@@ -1,0 +1,73 @@
+/* Phase 5A §5 — the semantic layer. This is the only file in src/styles that may
+   contain a raw colour, size or duration; everything downstream reads a name from
+   here. Radix provides the 12-step scales, the names below say what each step means. */
+
+:root {
+  color-scheme: light;
+
+  /* surfaces — Radix sand */
+  --bg: var(--sand-2);
+  --surface: var(--sand-1);
+  --surface-sunk: var(--sand-3);
+  --line: var(--sand-6);
+  --line-strong: var(--sand-8);
+  --text: var(--sand-12);
+  --text-muted: var(--sand-11);
+
+  /* state — darkened Radix 11s so every pair clears 4.5:1 on its own tint */
+  --ok: #20715a;
+  --ok-bg: var(--jade-3);
+  --ok-line: var(--jade-7);
+  --warn: #925805;
+  --warn-bg: var(--amber-3);
+  --warn-line: var(--amber-7);
+  --err: var(--red-11);
+  --err-bg: var(--red-3);
+  --err-line: var(--red-7);
+
+  /* action — ink, not brand colour */
+  --btn-bg: var(--sand-12);
+  --btn-text: var(--sand-1);
+  --focus: var(--jade-10);
+
+  /* type */
+  --font-display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --font-ui: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --fs-meta: 0.8125rem;
+  --fs-ui: 0.9375rem;
+  --fs-body: 1.0625rem;
+  --fs-lede: 1.1875rem;
+  --fs-h3: clamp(1.1875rem, 0.4vw + 1.09rem, 1.3125rem);
+  --fs-h2: clamp(1.5rem, 1vw + 1.25rem, 1.875rem);
+  --fs-h1: clamp(2.125rem, 3vw + 1.35rem, 3.25rem);
+
+  /* geometry */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --r-1: 3px;
+  --r-2: 5px;
+  --shadow-1: 0 1px 2px #21201c0f, 0 1px 3px -1px #21201c14;
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --shell: 1080px;
+  --prose: 68ch;
+  --rail: 260px;
+}
+
+/* Radix redefines --sand-*, --jade-* under .dark, so the surface aliases follow
+   automatically. Only the three hand-tuned state inks need a dark pair. */
+.dark {
+  color-scheme: dark;
+  --ok: var(--jade-11);
+  --warn: var(--amber-11);
+  --err: var(--red-11);
+}

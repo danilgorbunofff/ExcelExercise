@@ -1,0 +1,206 @@
+{
+  "generatedAt": "2026-10-28",
+  "note": "Every file listed here is copied into the repo at build time. src/verify.mjs recomputes these hashes and fails on drift.",
+  "files": {
+    "fonts/newsreader-latin.woff2": {
+      "url": "https://cdn.jsdelivr.net/npm/@fontsource-variable/newsreader@5.3.0/files/newsreader-latin-wght-normal.woff2",
+      "sha256": "62981321d9a3cc7a61a73792729043703fd6112da86e8ec848bb57f088578757",
+      "bytes": 58084,
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/newsreader-OFL.txt",
+      "added": "2026-10-28"
+    },
+    "fonts/plex-mono-400.woff2": {
+      "url": "https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-mono@5.3.0/files/ibm-plex-mono-latin-400-normal.woff2",
+      "sha256": "08949f728dc52d528e69b1667d15c89a5686a4ee9a296ff90983985f99c380f7",
+      "bytes": 14708,
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/ibm-plex-OFL.txt",
+      "added": "2026-10-28"
+    },
+    "fonts/plex-mono-500.woff2": {
+      "url": "https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-mono@5.3.0/files/ibm-plex-mono-latin-500-normal.woff2",
+      "sha256": "01d285447409c8a588692162439a038b8cbd7871309ee20267b0d2d91c6e8e22",
+      "bytes": 14888,
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/ibm-plex-OFL.txt",
+      "added": "2026-10-28"
+    },
+    "fonts/plex-sans-latin.woff2": {
+      "url": "https://cdn.jsdelivr.net/npm/@fontsource-variable/ibm-plex-sans@5.3.0/files/ibm-plex-sans-latin-wght-normal.woff2",
+      "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
+      "bytes": 45712,
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/ibm-plex-sans-OFL.txt",
+      "added": "2026-10-28"
+    },
+    "icons/arrow-right.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/arrow-right.svg",
+      "sha256": "e45bc4a12592b8723110db42c6deffdf177e4fe7704cf50324963fa0a59b2d74",
+      "bytes": 245,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "icons/check.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/check.svg",
+      "sha256": "cbb89a8c42f283d4f846eb935e05d88c1be04462f16480e068c0f82b9ce40b12",
+      "bytes": 215,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "icons/lightbulb.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/lightbulb.svg",
+      "sha256": "b61e4d9685a1d74e579a7dbbe0d5222bdf8dcdcaf5b67825a17ff45363e4fadd",
+      "bytes": 704,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "icons/lock.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/lock.svg",
+      "sha256": "7f9e0acc09a417a48328cd5b74e95de98989c5af1710ca5da705179da75c72d9",
+      "bytes": 321,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "licenses/ibm-plex-OFL.txt": {
+      "url": "https://cdn.jsdelivr.net/npm/@fontsource/ibm-plex-mono@5.3.0/LICENSE",
+      "sha256": "23b0a9d0c6d3f140a0b77e483c5cfa6bba574325ef5cb189ed9f2fec4884533f",
+      "bytes": 5299,
+      "licence": "OFL-1.1",
+      "licenceFile": null,
+      "added": "2026-10-28"
+    },
+    "licenses/ibm-plex-sans-OFL.txt": {
+      "url": "https://cdn.jsdelivr.net/npm/@fontsource-variable/ibm-plex-sans@5.3.0/LICENSE",
+      "sha256": "d0283623ef57e722fd0eb688a8041589670c608ab780cd3612d06ba6f153d3fd",
+      "bytes": 4429,
+      "licence": "OFL-1.1",
+      "licenceFile": null,
+      "added": "2026-10-28"
+    },
+    "licenses/newsreader-OFL.txt": {
+      "url": "https://cdn.jsdelivr.net/npm/@fontsource-variable/newsreader@5.3.0/LICENSE",
+      "sha256": "26028ec4e13b650065fa525a09532176f8a668b76ff849ea01c564a7480f91e7",
+      "bytes": 4520,
+      "licence": "OFL-1.1",
+      "licenceFile": null,
+      "added": "2026-10-28"
+    },
+    "licenses/open-props-MIT.txt": {
+      "url": "https://cdn.jsdelivr.net/npm/open-props@1.7.23/LICENSE",
+      "sha256": "fed3aa342094f6bb33701d09133c159a4c124e509ede255a889dd2c28ec3ab6e",
+      "bytes": 1068,
+      "licence": "MIT",
+      "licenceFile": null,
+      "added": "2026-10-28"
+    },
+    "licenses/phosphor-MIT.txt": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/LICENSE",
+      "sha256": "ddbe6082ec3cf979db47e5af549d2849c5d6182b3e005ef91ce1dbb9eb122f11",
+      "bytes": 1092,
+      "licence": "MIT",
+      "licenceFile": null,
+      "added": "2026-10-28"
+    },
+    "licenses/radix-colors-MIT.txt": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/LICENSE",
+      "sha256": "9c400881b9139571aa7acc3bd6e422a4f05223b4519169fb661298fb44bf228e",
+      "bytes": 1062,
+      "licence": "MIT",
+      "licenceFile": null,
+      "added": "2026-10-28"
+    },
+    "open-props/easings.min.css": {
+      "url": "https://cdn.jsdelivr.net/npm/open-props@1.7.23/easings.min.css",
+      "sha256": "08b48ad11e600c789d950c83a9f65529fa10ae3cb6d37572983ac624571a6d56",
+      "bytes": 5504,
+      "licence": "MIT",
+      "licenceFile": "licenses/open-props-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "open-props/shadows.min.css": {
+      "url": "https://cdn.jsdelivr.net/npm/open-props@1.7.23/shadows.min.css",
+      "sha256": "2b54a9752d08e24a8e1e6aa0d53b40cbd3ed883710b02a40dd46b39803f29502",
+      "bytes": 3100,
+      "licence": "MIT",
+      "licenceFile": "licenses/open-props-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "open-props/sizes.min.css": {
+      "url": "https://cdn.jsdelivr.net/npm/open-props@1.7.23/sizes.min.css",
+      "sha256": "496b8f65d37ab4e57126d889c07b99672c7f755d79b7036105081a036055ed27",
+      "bytes": 1645,
+      "licence": "MIT",
+      "licenceFile": "licenses/open-props-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "radix/amber-dark.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/amber-dark.css",
+      "sha256": "b1f84ce5cb8336b54c926c78bb89787df56d2bbe277dcd6a453d16d074d74013",
+      "bytes": 1022,
+      "licence": "MIT",
+      "licenceFile": "licenses/radix-colors-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "radix/amber.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/amber.css",
+      "sha256": "18ec7c43c6f21b3747aeecbac362ae0096dabef0a9f68095f676b57be7af6150",
+      "bytes": 1050,
+      "licence": "MIT",
+      "licenceFile": "licenses/radix-colors-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "radix/jade-dark.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/jade-dark.css",
+      "sha256": "073972f621660225cf056f9072060d27a52684d84a38ca0302883ecaf224f3f7",
+      "bytes": 1023,
+      "licence": "MIT",
+      "licenceFile": "licenses/radix-colors-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "radix/jade.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/jade.css",
+      "sha256": "fd553717d34f71011bee7d5bdde0f9da46f7acbb74b66a5eb022a801a30ccff2",
+      "bytes": 1039,
+      "licence": "MIT",
+      "licenceFile": "licenses/radix-colors-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "radix/red-dark.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/red-dark.css",
+      "sha256": "c65a4340bf310a3f37473a2db1986ec0e7af35fb41541f63b10364240c7825e1",
+      "bytes": 995,
+      "licence": "MIT",
+      "licenceFile": "licenses/radix-colors-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "radix/red.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/red.css",
+      "sha256": "b6ff5723edb3161efb8e0217ee373d0d4f844f63f921f0fd88fe970754a9b7a2",
+      "bytes": 1020,
+      "licence": "MIT",
+      "licenceFile": "licenses/radix-colors-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "radix/sand-dark.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/sand-dark.css",
+      "sha256": "8c5f87356d8c70532eed97448df65480da93db8ca1d498dd20042cbc543e6d79",
+      "bytes": 1026,
+      "licence": "MIT",
+      "licenceFile": "licenses/radix-colors-MIT.txt",
+      "added": "2026-10-28"
+    },
+    "radix/sand.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@radix-ui/colors@3.0.0/sand.css",
+      "sha256": "038aa82d732cf2aead2dfa323f5389e62a63b2a7bd9b09a9d78b6e5dd50447f0",
+      "bytes": 1044,
+      "licence": "MIT",
+      "licenceFile": "licenses/radix-colors-MIT.txt",
+      "added": "2026-10-28"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "accepted": [
+    "=IF(B2>=70,\"Pass\",\"Fail\")",
+    "=if(B2>=70,\"Pass\",\"Fail\")",
+    "=IF($B$2>=70,\"Pass\",\"Fail\")",
+    "=IF(70<=B2,\"Pass\",\"Fail\")",
+    "=IF(B2>69,\"Pass\",\"Fail\")",
+    "=IF(B2>=70,\"Pass\",\"Fail\")&\"\""
+  ],
+  "rejected": [
+    {
+      "formula": "=IF(B2>70,\"Pass\",\"Fail\")",
+      "rule": "value",
+      "why": "the boundary: 70>70 is false"
+    },
+    {
+      "formula": "=IF(B2>=70,\"Fail\",\"Pass\")",
+      "rule": "value",
+      "why": "the two branches are swapped"
+    },
+    {
+      "formula": "=IF(B2>=70,\"pass\",\"fail\")",
+      "rule": "value",
+      "why": "the cell would show pass, not the text the lesson asks for"
+    },
+    {
+      "formula": "=IF(B2>=80,\"Pass\",\"Fail\")",
+      "rule": "value",
+      "why": "threshold 80 instead of 70"
+    },
+    {
+      "formula": "=IF(B2>=70,\"Pass\")",
+      "rule": "func-if",
+      "why": "IF is given only two arguments"
+    },
+    {
+      "formula": "=\"Pass\"",
+      "rule": "func-if",
+      "why": "the answer is typed, not computed"
+    },
+    {
+      "formula": "=IF(TRUE,\"Pass\",\"Fail\")",
+      "rule": "require-ref",
+      "why": "the test ignores the score cell"
+    },
+    {
+      "formula": "=IF(B2>=70,Pass,Fail)",
+      "rule": "error",
+      "why": "unquoted text is read as a name"
+    },
+    {
+      "formula": "=IF(B2>=70,\"Pass\",\"Fail\"",
+      "rule": "syntax",
+      "why": "unclosed bracket"
+    }
+  ]
+}

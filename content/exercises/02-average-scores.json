@@ -1,0 +1,84 @@
+{
+  "id": "02-average-scores",
+  "slug": "average-scores",
+  "level": 1,
+  "title": "AVERAGE: mean of a score list",
+  "prompt": "In B7, work out the class average of the five scores.",
+  "answerCell": "B7",
+  "grid": {
+    "startCell": "A1",
+    "rows": [
+      [
+        "Student",
+        "Score"
+      ],
+      [
+        "Ana",
+        85
+      ],
+      [
+        "Bo",
+        90
+      ],
+      [
+        "Cy",
+        88
+      ],
+      [
+        "Dee",
+        92
+      ],
+      [
+        "Eli",
+        87.5
+      ],
+      [
+        "Class average",
+        null
+      ]
+    ]
+  },
+  "expect": {
+    "value": 88.5
+  },
+  "require": [
+    {
+      "id": "func-average",
+      "func": "AVERAGE",
+      "minArgs": 1
+    }
+  ],
+  "forbid": [],
+  "requireRef": "B2",
+  "rules": [],
+  "hints": {
+    "syntax": "=AVERAGE(B2:B6) — one function, one range, no plus signs.",
+    "func-average": "Use AVERAGE. Adding the scores and dividing by five by hand works here and breaks the moment a student leaves.",
+    "require-ref": "Point the formula at the score column instead of typing the number you worked out.",
+    "value": "That does not match the scores. AVERAGE divides by the count of numbers, so check nothing extra got included.",
+    "error": "#DIV/0! means AVERAGE found no numbers at all: the range is pointing at blank cells or at the header word rather than at the five scores. Text is skipped silently, not averaged."
+  },
+  "docs": {
+    "syntax": "=AVERAGE(number1, [number2], ...)",
+    "explain": "AVERAGE adds the numbers and divides by how many numbers it found. The five scores here are 85, 90, 88, 92 and 87.5, which come to 442.5, and 442.5 ÷ 5 = 88.5. The useful difference from typing the arithmetic yourself is the denominator: AVERAGE counts only the cells that actually hold a number, so if a sixth student has no score yet the divisor stays 5 rather than becoming 5.5. A blank cell is skipped; a zero is not. That distinction is the reason a class average can be wrong while every individual score looks right.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The range you pointed at holds no numbers at all, for example a column of names."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "A cell inside the range contains text that AVERAGE cannot read as a number."
+      },
+      {
+        "code": "Wrong divisor",
+        "text": "Averages built as SUM(...)/6 where the range holds five students drift the moment someone joins or leaves."
+      }
+    ],
+    "atWork": "Score averages, average order value, average handle time: the same function covers all of them. The professional habit is to let AVERAGE count, so the number survives a blank row.",
+    "outcome": "Turn five scores into one class average that updates itself.",
+    "teaches": "AVERAGE",
+    "dataset": "Class test scores",
+    "reference": "=AVERAGE(B2:B6)"
+  }
+}

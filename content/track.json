@@ -1,0 +1,18 @@
+{
+  "id": "formula-drills",
+  "title": "Excel formula drills",
+  "promise": "Ten real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
+  "freeLessonCount": 5,
+  "lessons": [
+    "01-sum-basics",
+    "02-average-scores",
+    "03-countif-open-tickets",
+    "04-if-pass-fail",
+    "05-sumif-region",
+    "06-round-markup",
+    "07-vlookup-exact",
+    "08-index-match",
+    "09-left-find-prefix",
+    "10-capstone-margin"
+  ]
+}

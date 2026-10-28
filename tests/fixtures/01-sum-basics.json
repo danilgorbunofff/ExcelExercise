@@ -1,0 +1,52 @@
+{
+  "accepted": [
+    "=SUM(B2:B4)",
+    "=sum(b2:b4)",
+    "=SUM($B$2:$B$4)",
+    "=SUM(B2,B3,B4)",
+    "=SUM(B2:B4)+0",
+    "=SUM(B$2:B$4)"
+  ],
+  "rejected": [
+    {
+      "formula": "=B2+B3+B4",
+      "rule": "func-sum",
+      "why": "adds the cells by hand instead of using SUM"
+    },
+    {
+      "formula": "=AVERAGE(B2:B4)",
+      "rule": "func-sum",
+      "why": "the right cells, the wrong function"
+    },
+    {
+      "formula": "=SUM(B2:B3)",
+      "rule": "value",
+      "why": "range stops one row short, so West is missing"
+    },
+    {
+      "formula": "=SUM(B2:B4)*2",
+      "rule": "value",
+      "why": "doubles the total to 7160"
+    },
+    {
+      "formula": "=SUM(B2:C4)",
+      "rule": "value",
+      "why": "picks up the Q2 column as well as Q1"
+    },
+    {
+      "formula": "=SUM(1200,1450,930)",
+      "rule": "require-ref",
+      "why": "types the numbers into SUM instead of pointing at B2:B4"
+    },
+    {
+      "formula": "=SUM(B2:B4)/0",
+      "rule": "error",
+      "why": "the total is right, then it is divided by zero"
+    },
+    {
+      "formula": "=SUM(B2:B4",
+      "rule": "syntax",
+      "why": "unclosed bracket"
+    }
+  ]
+}

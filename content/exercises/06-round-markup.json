@@ -1,0 +1,87 @@
+{
+  "id": "06-round-markup",
+  "slug": "round-markup",
+  "level": 2,
+  "title": "ROUND: money to two decimals",
+  "prompt": "In B6, total the three costs, add 8% markup, and round the result to 2 decimals.",
+  "answerCell": "B6",
+  "grid": {
+    "startCell": "A1",
+    "rows": [
+      [
+        "Item",
+        "Cost"
+      ],
+      [
+        "Hosting",
+        1500.24
+      ],
+      [
+        "Support",
+        1120.5
+      ],
+      [
+        "Design",
+        1500
+      ],
+      [
+        null,
+        null
+      ],
+      [
+        "Total with 8% markup",
+        null
+      ]
+    ]
+  },
+  "expect": {
+    "value": 4450.4
+  },
+  "require": [
+    {
+      "id": "func-round",
+      "func": "ROUND",
+      "minArgs": 2
+    },
+    {
+      "id": "func-sum",
+      "func": "SUM",
+      "minArgs": 1,
+      "message": "The total is summed before it is rounded: wrap the range in SUM."
+    }
+  ],
+  "forbid": [],
+  "requireRef": "B2",
+  "rules": [],
+  "hints": {
+    "syntax": "=ROUND(SUM(B2:B4)*1.08,2) — the arithmetic first, then how many decimals.",
+    "func-round": "ROUND takes two arguments: the number, and the number of decimals. Without it the answer runs on for four decimals.",
+    "func-sum": "Add the three line items with SUM rather than typing the total.",
+    "require-ref": "The formula has to read the cost cells so next month's invoice changes the answer.",
+    "value": "Check the order of operations: the whole total gets the markup, and ROUND applies to the result. 4120.74 × 1.08 = 4450.3992, which rounds to 4450.40.",
+    "error": "#VALUE! means ROUND was handed text instead of a number: make sure SUM(B2:B4)*1.08 is what sits inside ROUND, and that the range picked up no header cell."
+  },
+  "docs": {
+    "syntax": "=ROUND(number, num_digits)",
+    "explain": "The three line items are 1500.24, 1120.5 and 1500, which total 4120.74. Adding an 8% markup means multiplying by 1.08: 4120.74 × 1.08 = 4450.3992. ROUND with 2 decimals turns that into 4450.4 — note that the trailing zero is a formatting question, the stored value is 4450.4 either way. The important part is that ROUND changes the value, while formatting the cell only changes what you see: a total that looks like 4450.40 after formatting is still 4450.3992 in the sum of the next column, and that is where a penny appears in an invoice. A negative num_digits rounds to tens or hundreds, so ROUND(4450.3992,-2) gives 4500.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "One of the two arguments is missing or the decimal count is text, for example \"2\" in quotes from a copy-paste."
+      },
+      {
+        "code": "#NAME?",
+        "text": "ROUNDUP, ROUNDDOWN and ROUND are different functions; a misspelling gives #NAME?."
+      },
+      {
+        "code": "Half a cent",
+        "text": "Rounding each line item before adding gives a different total from rounding the sum, and invoices are disputed over exactly that."
+      }
+    ],
+    "atWork": "Quotes, invoices and price lists all live or die on two decimal places. The professional habit is to round the final figure once, not every intermediate step.",
+    "outcome": "Round money after applying the markup, not before.",
+    "teaches": "ROUND",
+    "dataset": "Cost sheet with markup",
+    "reference": "=ROUND(SUM(B2:B4)*1.08,2)"
+  }
+}

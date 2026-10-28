@@ -1,0 +1,67 @@
+{
+  "accepted": [
+    "=ROUND(SUM(B2:B4)*1.08,2)",
+    "=round(sum($B$2:$B$4)*1.08,2)",
+    "=ROUND(SUM(B2,B3,B4)*1.08,2)",
+    "=ROUND(SUM(B2:B4)*108/100,2)",
+    "=ROUND(SUM($B$2:$B$4)*1.08,1)",
+    "=ROUND(SUM(B2:B4)*1.08,2)+0"
+  ],
+  "rejected": [
+    {
+      "formula": "=SUM(B2:B4)*1.08",
+      "rule": "func-round",
+      "why": "computes the marked-up total but never rounds it"
+    },
+    {
+      "formula": "=(1500.24+1120.5+1500)*1.08",
+      "rule": "func-round",
+      "why": "types the costs and still never rounds"
+    },
+    {
+      "formula": "=ROUND(B2*1.08,2)",
+      "rule": "func-sum",
+      "why": "only the first cost gets the markup, and nothing sums the column"
+    },
+    {
+      "formula": "=ROUND((1500.24+1120.5+1500)*1.08,2)",
+      "rule": "func-sum",
+      "why": "types the costs instead of summing B2:B4"
+    },
+    {
+      "formula": "=ROUND(SUM(1500.24,1120.5,1500)*1.08,2)",
+      "rule": "require-ref",
+      "why": "sums typed numbers, so the costs in B2:B4 are never read"
+    },
+    {
+      "formula": "=ROUND(SUM(B2:B4),2)",
+      "rule": "value",
+      "why": "the markup was left out"
+    },
+    {
+      "formula": "=ROUND(SUM(B2:B4)*1.8,2)",
+      "rule": "value",
+      "why": "an 8% markup is 1.08, not 1.8"
+    },
+    {
+      "formula": "=ROUND(SUM(B2:B4)*1.08,0)",
+      "rule": "value",
+      "why": "rounds to whole euros, so 4450.4 becomes 4450"
+    },
+    {
+      "formula": "=ROUND(SUM(B2:B4)/1.08,2)",
+      "rule": "value",
+      "why": "divides by the markup instead of adding it"
+    },
+    {
+      "formula": "=ROUND(SUM(B2:B4)*1.08,2)/0",
+      "rule": "error",
+      "why": "divides the result by zero"
+    },
+    {
+      "formula": "=ROUND(SUM(B2:B4)*1.08,2",
+      "rule": "syntax",
+      "why": "unclosed brackets"
+    }
+  ]
+}

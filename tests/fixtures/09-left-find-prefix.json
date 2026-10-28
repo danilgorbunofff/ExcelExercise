@@ -1,0 +1,62 @@
+{
+  "accepted": [
+    "=LEFT(B2,FIND(\"-\",B2)-1)",
+    "=left(b2,find(\"-\",b2)-1)",
+    "=LEFT($B$2,FIND(\"-\",$B$2)-1)",
+    "=LEFT(B2,FIND(\"-\",B2)-1)&\"\"",
+    "=LEFT(B2,FIND(\"-\",B2)+0-1)",
+    "=LEFT(B$2,FIND(\"-\",B$2)-1)"
+  ],
+  "rejected": [
+    {
+      "formula": "=LEFT(B2,FIND(\"-\",B2))",
+      "rule": "value",
+      "why": "off by one: keeps the dash"
+    },
+    {
+      "formula": "=LEFT(B2,FIND(\"-\",B2)-2)",
+      "rule": "value",
+      "why": "off by one the other way: OR instead of ORD"
+    },
+    {
+      "formula": "=RIGHT(B2,4)",
+      "rule": "func-left",
+      "why": "takes the end of the reference"
+    },
+    {
+      "formula": "=MID(B2,1,FIND(\"-\",B2)-1)",
+      "rule": "func-left",
+      "why": "MID works here, but this lesson is about LEFT"
+    },
+    {
+      "formula": "=LEFT(B2,3)",
+      "rule": "func-find",
+      "why": "hardcodes the length instead of locating the dash"
+    },
+    {
+      "formula": "=LEFT(B2)",
+      "rule": "func-find",
+      "why": "no FIND, so the dash is never located"
+    },
+    {
+      "formula": "=\"ORD\"",
+      "rule": "func-left",
+      "why": "the prefix is typed, not extracted"
+    },
+    {
+      "formula": "=LEFT(B6,FIND(\"-\",B6)-1)",
+      "rule": "require-ref",
+      "why": "reads the answer row instead of the reference in B2"
+    },
+    {
+      "formula": "=LEFT(B2,FIND(\".\",B2)-1)",
+      "rule": "error",
+      "why": "FIND cannot locate a period in ORD-2024-0917"
+    },
+    {
+      "formula": "=LEFT(B2,FIND(\"-\",B2)-1",
+      "rule": "syntax",
+      "why": "unclosed bracket"
+    }
+  ]
+}

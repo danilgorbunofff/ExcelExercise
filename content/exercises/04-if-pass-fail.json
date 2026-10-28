@@ -1,0 +1,66 @@
+{
+  "id": "04-if-pass-fail",
+  "slug": "if-pass-fail",
+  "level": 1,
+  "title": "IF: one test, two answers",
+  "prompt": "In C2, write \"Pass\" if the score in B2 is 70 or more, otherwise \"Fail\".",
+  "answerCell": "C2",
+  "grid": {
+    "startCell": "A1",
+    "rows": [
+      [
+        "Student",
+        "Score",
+        "Result"
+      ],
+      [
+        "Ana",
+        70,
+        null
+      ]
+    ]
+  },
+  "expect": {
+    "value": "Pass"
+  },
+  "require": [
+    {
+      "id": "func-if",
+      "func": "IF",
+      "minArgs": 3
+    }
+  ],
+  "forbid": [],
+  "requireRef": "B2",
+  "rules": [],
+  "hints": {
+    "syntax": "=IF(B2>=70,\"Pass\",\"Fail\") — the test first, then the two outcomes in order.",
+    "func-if": "Use IF so the word changes by itself when the score changes. Typing Pass is right once and wrong forever after.",
+    "require-ref": "The test has to read the score cell, not a number you typed in.",
+    "value": "The test or the two branches are in the wrong order. IF returns the first value when the test is true, the second when it is false. Ana scored exactly 70, so 70>70 is false and 70>=70 is true — that boundary is the whole lesson.",
+    "error": "#NAME? means a branch was written without quotes, so Excel hunted for a name called Pass. Both text outcomes need double quotes, and IF needs all three arguments."
+  },
+  "docs": {
+    "syntax": "=IF(logical_test, value_if_true, value_if_false)",
+    "explain": "IF evaluates one condition and returns one of two values. Ana scored exactly 70, the test 70>=70 is true, so =IF(B2>=70,\"Pass\",\"Fail\") returns \"Pass\". Change B2 to 68 and the same formula returns \"Fail\" with no editing at all. The order of the arguments matters: the true-value comes second, the false-value third. Both outcomes can be numbers, text, or other formulas, and leaving the third argument out is legal but returns FALSE rather than a blank, which is how columns end up showing FALSE where somebody expected an empty cell. Text outcomes always need quotation marks; without them Excel looks for a name called Pass and fails.",
+    "errors": [
+      {
+        "code": "FALSE",
+        "text": "The third argument was omitted, so a failing student shows FALSE instead of Fail."
+      },
+      {
+        "code": "#NAME?",
+        "text": "Pass was written without quotes, so Excel read it as a name and could not find it."
+      },
+      {
+        "code": "Swapped branches",
+        "text": "Putting \"Fail\" second gives every passing student a Fail, and the column still looks plausible."
+      }
+    ],
+    "atWork": "Pass or fail, in stock or reorder, over budget or fine: every dashboard you have seen is a column of IFs underneath. Writing the test properly is what makes a sheet reusable next month.",
+    "outcome": "Write a decision: one comparison, two possible answers.",
+    "teaches": "IF",
+    "dataset": "Exam results",
+    "reference": "=IF(B2>=70,\"Pass\",\"Fail\")"
+  }
+}

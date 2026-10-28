@@ -1,0 +1,62 @@
+{
+  "accepted": [
+    "=INDEX(C2:C6,MATCH(D3,A2:A6,0))",
+    "=index(c2:c6,match(d3,a2:a6,0))",
+    "=INDEX(C2:C6,MATCH(D3,A2:A6,FALSE))",
+    "=INDEX($C$2:$C$6,MATCH($D$3,$A$2:$A$6,0))",
+    "=INDEX(C2:C6,MATCH(D3,A2:A6,0))+0",
+    "=INDEX(C2:C6,MATCH(D3,A2:A6,0))*1"
+  ],
+  "rejected": [
+    {
+      "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6,1))",
+      "rule": "match-exact",
+      "why": "approximate MATCH"
+    },
+    {
+      "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6))",
+      "rule": "func-match",
+      "why": "MATCH is given two arguments, so the match type is missing entirely"
+    },
+    {
+      "formula": "=INDEX(B2:B6,MATCH(D3,A2:A6,0))",
+      "rule": "value",
+      "why": "INDEX reads the name column"
+    },
+    {
+      "formula": "=INDEX(C2:C6,3)",
+      "rule": "func-match",
+      "why": "the row number is typed, so nothing matches dynamically"
+    },
+    {
+      "formula": "=MATCH(D3,A2:A6,0)",
+      "rule": "func-index",
+      "why": "returns a row position, not the salary"
+    },
+    {
+      "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6,0))+VLOOKUP(D3,A2:A6,2,FALSE)",
+      "rule": "no-vlookup",
+      "why": "VLOOKUP is exactly what this lesson replaces"
+    },
+    {
+      "formula": "=INDEX(C2:C6,MATCH(\"E-103\",B2:B6,0))",
+      "rule": "require-ref",
+      "why": "matches against the name column instead of the ID column"
+    },
+    {
+      "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6,0))/0",
+      "rule": "error",
+      "why": "divides the salary by zero"
+    },
+    {
+      "formula": "=88000",
+      "rule": "func-index",
+      "why": "the salary is typed, not looked up"
+    },
+    {
+      "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6,0)",
+      "rule": "syntax",
+      "why": "unclosed brackets"
+    }
+  ]
+}

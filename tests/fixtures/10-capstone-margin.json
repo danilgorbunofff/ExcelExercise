@@ -1,0 +1,72 @@
+{
+  "accepted": [
+    "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,1),\"\")",
+    "=iferror(round((sumif(a2:a5,\"north\",b2:b5)-sumif(a2:a5,\"north\",c2:c5))/sumif(a2:a5,\"north\",b2:b5)*100,1),\"\")",
+    "=IFERROR(ROUND((SUMIF($A$2:$A$5,\"North\",$B$2:$B$5)-SUMIF($A$2:$A$5,\"North\",$C$2:$C$5))/SUMIF($A$2:$A$5,\"North\",$B$2:$B$5)*100,1),\"\")",
+    "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2)-SUMIF(A2:A5,\"North\",C2))/SUMIF(A2:A5,\"North\",B2)*100,1),\"\")",
+    "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))*100/SUMIF(A2:A5,\"North\",B2:B5),1),\"n/a\")",
+    "=IFERROR(ROUND(100-100*SUMIF(A2:A5,\"North\",C2:C5)/SUMIF(A2:A5,\"North\",B2:B5),1),\"-\")"
+  ],
+  "rejected": [
+    {
+      "formula": "=ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,1)",
+      "rule": "func-iferror",
+      "why": "right arithmetic, no IFERROR, so an empty region would show #DIV/0!"
+    },
+    {
+      "formula": "=SUMIF(A2:A5,\"North\",B2:B5)",
+      "rule": "func-iferror",
+      "why": "reports North revenue, not the margin"
+    },
+    {
+      "formula": "=IFERROR(SUMIF(A2:A5,\"North\",B2:B5),\"\")",
+      "rule": "func-round",
+      "why": "no ROUND, so the margin would arrive with a long tail of decimals"
+    },
+    {
+      "formula": "=IFERROR(ROUND(44.8,1),\"\")",
+      "rule": "func-sumif",
+      "why": "the answer is typed instead of calculated from the table"
+    },
+    {
+      "formula": "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,2),\"\")",
+      "rule": "one-decimal",
+      "why": "rounded to 2 decimals; the lesson asks for 1"
+    },
+    {
+      "formula": "=IFERROR(ROUND(1-SUMIF(A2:A5,\"North\",C2:C5)/SUMIF(A2:A5,\"North\",B2:B5),3)*100,\"\")",
+      "rule": "one-decimal",
+      "why": "rounds to 3 decimals and multiplies afterwards, so the displayed figure is not rounded to 1"
+    },
+    {
+      "formula": "=IFERROR(ROUND((SUMIF(A3:A5,\"North\",B3:B5)-SUMIF(A3:A5,\"North\",C3:C5))/SUMIF(A3:A5,\"North\",B3:B5)*100,1),\"\")",
+      "rule": "require-ref",
+      "why": "every range starts at row 3, so the first North row — and the A2 the lesson points at — is never read"
+    },
+    {
+      "formula": "=IFERROR(ROUND((SUMIF(A2:A5,\"South\",B2:B5)-SUMIF(A2:A5,\"South\",C2:C5))/SUMIF(A2:A5,\"South\",B2:B5)*100,1),\"\")",
+      "rule": "value",
+      "why": "computes the South margin"
+    },
+    {
+      "formula": "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",C2:C5)*100,1),\"\")",
+      "rule": "value",
+      "why": "divides by cost instead of revenue"
+    },
+    {
+      "formula": "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/0*100,1),\"\")",
+      "rule": "value",
+      "why": "IFERROR catches the #DIV/0! and the cell shows the fallback text instead of a margin"
+    },
+    {
+      "formula": "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,1),\"\")/0",
+      "rule": "error",
+      "why": "the division by zero sits outside IFERROR, so #DIV/0! escapes"
+    },
+    {
+      "formula": "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,1),\"\"",
+      "rule": "syntax",
+      "why": "unclosed bracket"
+    }
+  ]
+}

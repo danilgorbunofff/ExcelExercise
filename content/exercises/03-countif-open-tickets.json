@@ -1,0 +1,96 @@
+{
+  "id": "03-countif-open-tickets",
+  "slug": "countif-open-tickets",
+  "level": 1,
+  "title": "COUNTIF: count one condition",
+  "prompt": "In B10, count how many tickets have the status \"Open\".",
+  "answerCell": "B10",
+  "grid": {
+    "startCell": "A1",
+    "rows": [
+      [
+        "Ticket",
+        "Status"
+      ],
+      [
+        "T-1001",
+        "Open"
+      ],
+      [
+        "T-1002",
+        "Closed"
+      ],
+      [
+        "T-1003",
+        "Open"
+      ],
+      [
+        "T-1004",
+        "Pending"
+      ],
+      [
+        "T-1005",
+        "Open"
+      ],
+      [
+        "T-1006",
+        "Closed"
+      ],
+      [
+        "T-1007",
+        "Open"
+      ],
+      [
+        "T-1008",
+        "Escalated"
+      ],
+      [
+        "Open tickets",
+        null
+      ]
+    ]
+  },
+  "expect": {
+    "value": 4
+  },
+  "require": [
+    {
+      "id": "func-countif",
+      "func": "COUNTIF",
+      "minArgs": 2
+    }
+  ],
+  "forbid": [],
+  "requireRef": "B2",
+  "rules": [],
+  "hints": {
+    "syntax": "The criteria is text, so it needs quotes: =COUNTIF(B2:B9,\"Open\").",
+    "func-countif": "COUNTIF counts the rows that match a condition. COUNT cannot help you here: it counts numbers, and the status column is text.",
+    "require-ref": "The first argument has to be the status column itself, not the answer.",
+    "value": "One of the four Open rows is being missed. Check the range reaches the last ticket, and that \"Open\" is quoted exactly as it appears.",
+    "error": "#VALUE! here almost always means the criteria lost its quotes, so Excel tried to read Open as a cell name. Wrap the word in double quotes and keep the range as B2:B9."
+  },
+  "docs": {
+    "syntax": "=COUNTIF(range, criteria)",
+    "explain": "COUNTIF walks the range and counts the cells that satisfy one condition. Eight tickets sit in B2:B9 with five different statuses, and exactly four of them read \"Open\", so COUNTIF(B2:B9,\"Open\") returns 4. Text conditions need quotation marks because the criteria is a string, while a numeric condition does not: COUNTIF(B2:B9,4) would count cells equal to the number four. The criteria also accepts comparisons and wildcards as text, so \">=5\", \"<>Closed\" and \"T-10*\" are all legal conditions. COUNTIF is not case-sensitive for text, which surprises people who expect \"open\" and \"Open\" to count separately.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The first argument is a single value instead of a range, or the criteria is missing its quotes."
+      },
+      {
+        "code": "#NAME?",
+        "text": "COUNTIFF or COUNITF — a doubled letter is enough to lose the function."
+      },
+      {
+        "code": "Off-by-one",
+        "text": "A range that stops at B8 misses the last ticket, which is the most common reason a count is short by exactly one."
+      }
+    ],
+    "atWork": "Support queues, stock levels, failed payments: counting rows that match one condition is the most-used formula in any operations role, and the one most often done by scrolling and counting instead.",
+    "outcome": "Count the rows that meet a single condition.",
+    "teaches": "COUNTIF",
+    "dataset": "Support ticket log",
+    "reference": "=COUNTIF(B2:B9,\"Open\")"
+  }
+}

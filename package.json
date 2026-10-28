@@ -1,0 +1,15 @@
+{
+  "name": "excelsupreme",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Excel Supreme — zero-signup, in-browser Excel practice drills with deterministic grading",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\"",
+    "build": "node src/build.mjs",
+    "verify": "node src/build.mjs && node src/verify.mjs",
+    "dev": "node src/build.mjs && node src/serve.mjs",
+    "check": "npm test && npm run build && node src/verify.mjs",
+    "vendor:check": "node src/vendor-check.mjs"
+  }
+}

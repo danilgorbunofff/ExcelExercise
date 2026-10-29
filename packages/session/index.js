@@ -8,6 +8,14 @@
 export { createClock, DEFAULT_SESSION_MINUTES } from "./clock.js";
 export { createSink, EVENT_TYPES, MAX_EVENTS } from "./events.js";
 export {
+  FEEDBACK_LIMIT,
+  FEEDBACK_TEXT_LIMIT,
+  MOODS,
+  enqueueFeedback,
+  feedbackEntry,
+  readQueue,
+} from "./feedback.js";
+export {
   createSession,
   currentScreen,
   DEFAULT_RECYCLE_FROM,

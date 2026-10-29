@@ -20,7 +20,12 @@ export default function RootLayout({ children }) {
         <link rel="preload" href="/assets/fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
       </head>
       {/* `body.lesson` / `body.track` exist in the legacy markup but no rule selects on them. */}
-      <body className="light">{children}</body>
+      <body className="light">
+        {children}
+        {/* The footer's feedback dialog is React-inserted markup, so its script cannot ride along in
+            the fragment: a script set through innerHTML never runs. */}
+        <script type="module" src="/assets/client/feedback.js" />
+      </body>
     </html>
   );
 }

@@ -85,13 +85,46 @@ export function renderByline({ config, index, extra = null }) {
   return `<p class="byline">${parts.join(" · ")}</p>`;
 }
 
+/**
+ * The feedback dialog is server-rendered with the footer, on every page, and stays closed until the
+ * client asks for it: a `<dialog>` cannot be built by a script without either a flash of unstyled
+ * markup or a second copy of this markup, and a learner with no JavaScript loses only the button.
+ */
+function renderFeedbackDialog() {
+  return `      <dialog class="feedback-dialog" id="feedback-dialog" aria-labelledby="feedback-heading">
+        <form class="feedback-form" id="feedback-form" novalidate>
+          <h2 class="feedback-title" id="feedback-heading">How is this going?</h2>
+          <fieldset class="feedback-set">
+            <legend class="feedback-legend">Pick the one that fits</legend>
+            <label class="feedback-choice"><input type="radio" name="mood" value="stuck"> I am stuck</label>
+            <label class="feedback-choice"><input type="radio" name="mood" value="progress"> Getting there</label>
+            <label class="feedback-choice"><input type="radio" name="mood" value="clicked"> It clicked</label>
+          </fieldset>
+          <label class="feedback-label" for="feedback-text">Anything to add? Optional.</label>
+          <textarea class="feedback-text" id="feedback-text" name="text" rows="3" maxlength="500" aria-describedby="feedback-count"></textarea>
+          <p class="feedback-count" id="feedback-count">0 of 500 characters</p>
+          <p class="feedback-note">Nothing is sent yet: your note is kept in this browser, and that is all.</p>
+          <p class="feedback-error" id="feedback-error" role="alert"></p>
+          <div class="feedback-actions">
+            <button class="btn btn-primary" type="submit">Send</button>
+            <button class="btn" type="button" id="feedback-cancel">Cancel</button>
+          </div>
+        </form>
+        <div class="feedback-done" id="feedback-done" hidden>
+          <p class="feedback-note" id="feedback-done-note"></p>
+          <div class="feedback-actions"><button class="btn" type="button" id="feedback-close">Close</button></div>
+        </div>
+      </dialog>`;
+}
+
 function renderFooter({ config }) {
   const contact = config.contact
     ? `<a href="${esc(config.contact.startsWith("mailto:") ? config.contact : `mailto:${config.contact}`)}">Contact</a>`
     : "";
   return `<footer class="foot">
       <p>${esc(config.name)} grades formulas in the browser. Nothing you type is sent anywhere.</p>
-      <p><a href="/">All drills</a> · <a href="/learn">Your progress</a>${contact ? ` · ${contact}` : ""}</p>
+      <p><a href="/">All drills</a> · <a href="/learn">Your progress</a>${contact ? ` · ${contact}` : ""} · <button class="foot-feedback" id="feedback-open" type="button" aria-haspopup="dialog">Send feedback</button></p>
+${renderFeedbackDialog()}
     </footer>`;
 }
 
@@ -119,6 +152,7 @@ export function renderDocument({ config, page, body, icons = {} }) {
     ${header}
     ${body}
     ${footer}
+    <script type="module" src="/assets/client/feedback.js"></script>
   </body>
 </html>
 `;

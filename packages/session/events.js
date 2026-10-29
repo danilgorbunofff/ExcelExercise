@@ -26,6 +26,7 @@ export const EVENT_TYPES = Object.freeze([
   "trial_start",
   "track_unlock",
   "track_view",
+  "feedback_sent",
 ]);
 
 const KNOWN = new Set(EVENT_TYPES);

@@ -29,6 +29,9 @@
   --btn-bg: var(--sand-12);
   --btn-text: var(--sand-1);
   --focus: var(--jade-10);
+  /* What a modal paints behind itself. Dark enough to hold attention, thin enough to keep the page
+     it is about readable behind it. */
+  --scrim: rgb(12 18 16 / 45%);
 
   /* type */
   --font-display: "Newsreader", "Iowan Old Style", Georgia, serif;

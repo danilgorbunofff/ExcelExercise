@@ -86,6 +86,135 @@
   text-decoration-color: var(--jade-7);
 }
 
+/* The feedback button reads as the link beside it, because that row is a row of small ways out. */
+.foot-feedback {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--jade-7);
+  cursor: pointer;
+}
+
+.foot-feedback:hover {
+  color: var(--text);
+}
+
+/* ── Feedback dialog ───────────────────────────────────────────────────── */
+
+/*
+ * A native modal `<dialog>`: the browser traps focus and answers Escape, so the only rules here are
+ * the panel's own. The backdrop dims the page behind it rather than hiding it, so the note stays
+ * attached to the page it is about.
+ */
+.feedback-dialog {
+  width: min(34rem, calc(100vw - var(--s-6)));
+  padding: var(--s-6);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.feedback-dialog::backdrop {
+  background: var(--scrim);
+}
+
+/* The form and its confirmation share the panel; the `hidden` attribute picks which one is read. */
+.feedback-form {
+  margin: 0;
+}
+
+.feedback-done {
+  margin-top: var(--s-2);
+}
+
+.feedback-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.feedback-set {
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.feedback-legend {
+  padding: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.feedback-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  font-size: var(--fs-ui);
+}
+
+.feedback-choice input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--jade-7);
+}
+
+.feedback-label {
+  display: block;
+  margin-top: var(--s-4);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.feedback-text {
+  width: 100%;
+  margin-top: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-1);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-ui);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.feedback-text:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.feedback-count,
+.feedback-note {
+  margin-top: var(--s-2);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.feedback-error {
+  margin-top: var(--s-2);
+  color: var(--err);
+  font-size: var(--fs-meta);
+  font-weight: 500;
+}
+
+.feedback-error:empty {
+  display: none;
+}
+
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-5);
+}
+
 /* ── Page head ─────────────────────────────────────────────────────────── */
 
 .page-head {

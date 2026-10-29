@@ -73,7 +73,21 @@ rule is replaced by what the record can actually prove.
       question is not "what is next" but "what will I have forgotten" — so a drill solved a month ago
       outranks one solved yesterday with a hint. It is a `Revisit` link, the same throttle-free path
       `resume` uses.
-- [ ] **8. Feedback modal.** Not built; it posts to a phase-4 endpoint.
+- [x] **8. Feedback modal.** The footer on every page carries "Send feedback", which opens a native
+      modal `<dialog>`: a three-way satisfaction choice, a 500-character textarea with a live count,
+      and the route it was filed from. A note with no mood picked is refused with a message and the
+      cursor moved onto the choice, because "which of these three" is the one thing the form cannot
+      infer. **Deviation, because the endpoint is phase 4:** a submission is filed twice, both times
+      locally — `feedback_sent` into the event sink (`mood`, `chars`, `kept`, `stored`) and the note
+      itself into a bounded queue under `es.feedback`, twenty entries, oldest dropped. Nothing is
+      sent, and the dialog says so in as many words before and after the submit rather than showing a
+      toast that implies otherwise. The bound is not tidiness: the queue shares `localStorage` with
+      the progress record, so an unbounded queue would eventually make a learner's *progress* fail to
+      save. A browser that refuses the write is told the note is gone rather than thanked. The note
+      never enters an event, for the same reason the learner's formula never does. `e2e/feedback.spec.js`
+      proves the round trip, the mood refusal, the bound in a real browser, the refused-storage path
+      and that Escape leaves a clean form; `e2e/a11y.spec.js` scans the dialog open, in error and in
+      confirmation.
 
 Two acceptance criteria are now true and proven in `e2e/dashboard.spec.js`: "signed-in learner's next
 lesson updates immediately after a completion" (the spec finishes a drill on its own page and reads the
@@ -81,8 +95,10 @@ dashboard, which is the same assertion without an account), and "reset progress 
 triggered by a stray keypress". The stale row is proven there too — a 2020 completion reads `Stale`, never
 `Complete` — and the category criterion is proven: every group page renders its own drills and no
 others, counts sum to the track total, no drill appears in two groups (`tests/dashboard-page.test.js`
-covers the first two, `legacy/src/verify.mjs` the third across all 9 pages). The gating criterion stays
-open with item 5.
+covers the first two, `legacy/src/verify.mjs` the third across all 9 pages). The gating criterion is met in its local
+form and proven in `e2e/gate.spec.js`: the learner who is not signed in — nobody is, until phase 4 —
+sees the frontier open, every later row marked "Opens after drill N", and the click that opens it
+in one step. The sign-in prompt the criterion names is the one deviation item 5 records.
 
 ---
 

@@ -184,10 +184,10 @@ emitted, which is before the player advances, so `lesson_complete` reports the s
   Refusing is silent by design: an analytics typo must not throw inside a learner's click handler.
 - `count` is the number accepted, which is what `emitAll(sink, events)` returns for a batch.
 
-`EVENT_TYPES` (16 names) is the whole vocabulary:
+`EVENT_TYPES` (17 names) is the whole vocabulary:
 `drill_start, screen_view, check_correct, check_wrong, hint_open, solution_reveal, screen_complete,
 lesson_complete, lesson_exhausted, lesson_abandon, gate_view, paywall_view, paywall_email, trial_start,
-track_unlock, track_view`.
+track_unlock, track_view, feedback_sent`.
 
 The two gate events sit beside the paywall's because they are the same funnel step asked twice.
 `gate_view` carries `reason: "order"` and `after` — the id of the drill that opens this one — and fires
@@ -195,6 +195,15 @@ from the order card, which is why `paywall_view` no longer fires on a drill ahea
 learner who never reached the trial was never on trial. `track_unlock` carries only the id, because the
 one thing it can say is that this browser is now open, and the flag it sets is local: nothing is sent
 and no account was created. `paywall_email` still never carries the address.
+
+`feedback_sent` comes from the footer dialog (`legacy/src/client/feedback.js`), which is on every page
+and so has no player to borrow a sink from — it builds its own and writes to the same `window.__esEvents`
+buffer. It carries `mood`, `chars` (the length of the note), `kept` (how many notes this browser now
+holds) and `stored` (whether the browser accepted the write). There is no endpoint until phase 10, so a
+note is appended to a bounded queue under `es.feedback` — twenty entries, oldest dropped — and the
+dialog says in as many words that nothing was sent. The bound matters beyond tidiness: the queue shares
+`localStorage` with the progress record, and a learner who files forty notes must not make the
+forty-first throw their progress away.
 
 The learner's formula is deliberately **not** in any event: `check_correct`/`check_wrong` carry the
 attempt count and the rule that failed, never the text of the answer. It is someone's typed input, and

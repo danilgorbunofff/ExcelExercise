@@ -257,3 +257,43 @@ describe("isReserved / uncapturable", () => {
     );
   });
 });
+
+/**
+ * Phase 2 asks that a browser-reserved combination "degrades to the fallback instead of dead-ending".
+ * No catalog lesson ships a shortcut yet, so there is no page to press it on; what can be proven is the
+ * rule the player applies (`keysLive` in `legacy/src/client/drill.js`) and that the fallback it lands on
+ * grades the same list. A chord screen offers alternatives, so one deliverable press is enough to offer
+ * the keyboard; a sequence has to reach the page whole, or the learner types all of it.
+ */
+describe("a reserved combination degrades to the typed fallback", () => {
+  const liveOnKeyboard = (chords, type = "chord") => {
+    const blocked = uncapturable(chords).length;
+    return type === "sequence" ? blocked === 0 : blocked < chords.length;
+  };
+
+  it("offers the keyboard when at least one chord can reach the page", () => {
+    assert.ok(liveOnKeyboard([parseChord("Ctrl+Shift+L")]));
+    assert.ok(liveOnKeyboard([parseChord("Ctrl+T"), parseChord("Ctrl+Shift+L")]));
+  });
+
+  it("drops to the bar when the browser would eat every chord", () => {
+    const chords = [parseChord("Ctrl+T"), parseChord("F11")];
+    assert.equal(liveOnKeyboard(chords), false, "the page would listen for a press it never hears");
+  });
+
+  it("drops a whole sequence to the bar when one step is reserved", () => {
+    const steps = ["Alt", "H", "Ctrl+T"].map(parsePress);
+    assert.equal(uncapturable(steps).length, 1);
+    assert.equal(liveOnKeyboard(steps, "sequence"), false, "a sequence missing a step can never complete");
+  });
+
+  it("still grades the reserved combination typed into the bar", () => {
+    const chord = parseChord("Ctrl+T");
+    // The reveal is printed in words, so what the learner types is read as words, not as a keypress.
+    assert.equal(chordText(chord), "Ctrl + T");
+    for (const typed of ["Ctrl+T", "ctrl + t", "CTRL+T"]) {
+      assert.ok(matchesTyped(typed, chord), `the bar refuses ${typed}`);
+    }
+    assert.ok(!matchesTyped("Ctrl+Shift+T", chord), "the wrong chord is accepted");
+  });
+});

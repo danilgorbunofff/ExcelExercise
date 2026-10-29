@@ -14,6 +14,7 @@ import {
   renderHint,
   renderKeys,
   renderPicture,
+  renderScreenDocs,
   renderSheet,
   renderWorkbook,
 } from "./sheet.mjs";
@@ -81,6 +82,7 @@ function exercisePayload({ config, track, index, entry }) {
       number: entry.number,
       free: entry.free,
       freeLessonCount: track.freeLessonCount,
+      showAnswerAfter: track.showAnswerAfter,
       nextPath: entry.nextPath,
       nextTitle: entry.next ? entry.next.title : null,
     },
@@ -136,7 +138,7 @@ function renderScreens(exercise, { icons }) {
               : "keys-body";
       return `
               <div data-screen="${position + 1}"${position === 0 ? "" : " hidden"}>
-                <p class="task">${esc(screen.prompt)}</p>
+                <p class="task">${esc(screen.prompt)}</p>${renderScreenDocs(screen)}
                 <div class="${shell}" id="sheet-${position}">
                   ${body}
                 </div>

@@ -247,6 +247,25 @@ export function renderHint({ icons = {} } = {}) {
 }
 
 /**
+ * The notes a screen brings with it: the syntax it is taught with, what it is for, and the one formula
+ * it works. A multi-screen lesson teaches a different function on each screen, so the lesson-level
+ * block cannot say what screen 3 is about. It is rendered inside the screen's own panel, so it is in
+ * the HTML before the player starts and never flashes in when the loop reaches that screen.
+ */
+export function renderScreenDocs(screen) {
+  const docs = screen.docs;
+  if (!docs) return "";
+  const parts = [];
+  if (docs.syntax) parts.push(`<pre class="syntax"><code>${esc(docs.syntax)}</code></pre>`);
+  if (docs.explain) parts.push(`<p>${esc(docs.explain)}</p>`);
+  if (docs.reference) parts.push(`<pre class="reference"><code>${esc(docs.reference)}</code></pre>`);
+  return `
+                <aside class="screen-docs" aria-label="About this screen">
+                  ${parts.join("\n                  ")}
+                </aside>`;
+}
+
+/**
  * The docs block: what it does, syntax, a worked example, what goes wrong, at work.
  * The worked example is a formula, so it is built from the first formula screen rather than from the
  * screen the page happens to open on — and it starts hidden when the lesson has no formula screen at

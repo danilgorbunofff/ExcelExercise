@@ -235,6 +235,21 @@ describe("content: reference answers", () => {
     }
   });
 
+  it("reveals, on every screen, the answer the audit owns", () => {
+    // The reveal is what a stuck learner is handed. Tying it to the audit row for that same screen is what
+    // makes the next test's proof reach the published formula: a screen 2 reveal that drifted from its own
+    // row — one cell up, one column over — would otherwise ship ungraded.
+    for (const { lesson, screens: views } of LESSONS) {
+      const rows = auditRows(AUDIT[lesson.id]);
+      views.forEach(({ screen }, index) => {
+        const label = views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id;
+        // A picture screen reveals its first accepted answer in the same slot the audit fills.
+        const reveal = screen.type === "picture" ? screen.answers[0] : (screen.reference ?? lesson.docs.reference);
+        assert.equal(reveal, rows[index].reference, `${label} reveals an answer the audit does not own`);
+      });
+    }
+  });
+
   it("grades the reference answer as correct", () => {
     for (const { label, exercise, picture, audit } of audited) {
       const result = submit({ exercise, picture }, audit.reference);

@@ -1096,6 +1096,51 @@
   display: none;
 }
 
+/* ── Notes a screen brings ─────────────────────────────────────────────── */
+
+/*
+ * A lesson may teach a different function on each screen, so a screen can carry the syntax and the
+ * worked formula that belong to it. It sits in the screen's own panel, above the grid, so it is read
+ * where the work is and needs no script to appear.
+ */
+.screen-docs {
+  max-width: var(--prose);
+  margin: 0 0 var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface-sunk);
+}
+
+.screen-docs p {
+  margin-top: var(--s-2);
+  font-size: var(--fs-ui);
+}
+
+.screen-docs pre {
+  margin: var(--s-2) 0 0;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface);
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+.screen-docs pre.syntax {
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+}
+
+/* The one line the screen is asking for, marked with the ink rather than decorated. */
+.screen-docs pre.reference {
+  border-left: 2px solid var(--jade-9);
+}
+
+.screen-docs code {
+  white-space: pre;
+}
+
 /* ── Docs ──────────────────────────────────────────────────────────────── */
 
 .docs {

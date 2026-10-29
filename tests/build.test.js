@@ -52,12 +52,13 @@ describe("build", () => {
     rmSync(out, { recursive: true, force: true });
   });
 
-  it("writes one page per lesson plus the index", () => {
+  it("writes one page per lesson plus the index and the dashboard", () => {
     const pages = htmlFiles(out).map((file) => file.slice(out.length + 1));
-    assert.equal(pages.length, lessons.length + 1, `expected ${lessons.length + 1} pages, got ${pages.length}`);
+    assert.equal(pages.length, lessons.length + 2, `expected ${lessons.length + 2} pages, got ${pages.length}`);
     assert.ok(pages.includes("index.html"));
+    assert.ok(pages.includes("learn/index.html"));
     for (const exercise of lessons) assert.ok(pages.includes(`excel/${exercise.slug}.html`), `${exercise.slug} page is missing`);
-    assert.equal(summary.pages, lessons.length + 1);
+    assert.equal(summary.pages, lessons.length + 2);
   });
 
   it("copies the assets the pages ask for", () => {
@@ -69,6 +70,8 @@ describe("build", () => {
       "assets/grader/index.js",
       "assets/grader/grade.js",
       "assets/session/index.js",
+      "assets/progress/index.js",
+      "assets/client/dashboard.js",
       "sitemap.xml",
       "robots.txt",
     ]) {
@@ -76,6 +79,7 @@ describe("build", () => {
     }
     assert.equal(summary.grader, 10, "every grader module must be copied as an ES module");
     assert.equal(summary.session, 4, "every session module must be copied as an ES module");
+    assert.equal(summary.progress, 1, "the progress read model is one module");
     assert.equal(summary.fonts, 4);
   });
 
@@ -173,7 +177,7 @@ describe("build", () => {
     for (const file of ["assets/client/drill.js", "assets/client/state.js", "assets/grader/index.js"]) {
       assert.doesNotThrow(() => readFileSync(join(out, file)), `${file} was not written`);
     }
-    assert.equal(summary.client, 2, "drill.js and its state module");
+    assert.equal(summary.client, 3, "drill.js, its state module, and the dashboard island");
 
     for (const page of ["excel/sum-basics.html", "index.html"]) {
       const html = readFileSync(join(out, page), "utf8");
@@ -567,7 +571,7 @@ describe("build validation", () => {
     try {
       for (const dir of ["content", "vendor", "src"]) cpSync(join(ROOT, "legacy", dir), join(real, dir), { recursive: true });
       // The build reads the packages from ../packages/, so the copy needs both as siblings.
-      for (const name of ["grader", "content"]) {
+      for (const name of ["grader", "content", "progress"]) {
         cpSync(join(ROOT, "packages", name), join(container, "packages", name), { recursive: true });
       }
       try {

@@ -10,6 +10,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { prepareDashboardPage } from "../legacy/src/site/dashboard-page.mjs";
 import { prepareExercisePage } from "../legacy/src/site/exercise-page.mjs";
 import { prepareIndexPage } from "../legacy/src/site/index-page.mjs";
 import { loadSite } from "../lib/site.js";
@@ -20,7 +21,7 @@ const PAGES = join(ROOT, ".next/server/app");
 
 // The same inputs the routes use, including the `/learn/excel/<slug>` path rewrite, so this compares
 // "what the route rendered" with "what the template says" rather than two different content models.
-const { config, track, index, icons, clientAvailable } = loadSite();
+const { config, track, index, icons, clientAvailable, dashboardAvailable } = loadSite();
 
 const problems = [];
 let checked = 0;
@@ -32,16 +33,20 @@ function checkPage({ file, args, prepare }) {
     return;
   }
   const html = readFileSync(path, "utf8");
-  const { body } = prepare(args);
+  const { body, page } = prepare(args);
   // The page renders the template fragment verbatim; a wrapper element around it is fine.
   if (!html.includes(body)) problems.push(`${file}: <main> markup differs from the shared template`);
-  for (const [label, probe] of [
+  const probes = [
     ["site header", 'class="site"'],
     ["footer", 'class="foot"'],
     ["skip link", 'class="skip"'],
-    ["JSON-LD", "application/ld+json"],
-  ]) {
+  ];
+  for (const [label, probe] of probes) {
     if (!html.includes(probe)) problems.push(`${file}: ${label} is missing`);
+  }
+  // A page the template gives no structured data to must not sprout one in the route either.
+  if (!page.jsonLd && html.includes("application/ld+json")) {
+    problems.push(`${file}: ships JSON-LD the template does not`);
   }
   checked += 1;
 }
@@ -51,6 +56,20 @@ checkPage({
   prepare: prepareIndexPage,
   args: { config, track, index, icons, clientAvailable },
 });
+
+checkPage({
+  file: "learn.html",
+  prepare: prepareDashboardPage,
+  args: { config, track, index, icons, clientAvailable: dashboardAvailable },
+});
+
+for (const [probe, label] of [
+  ['id="dashboard-data"', "the progress payload the island reads"],
+  ["/assets/client/dashboard.js", "the island script"],
+]) {
+  const path = join(PAGES, "learn.html");
+  if (existsSync(path) && !readFileSync(path, "utf8").includes(probe)) problems.push(`learn.html: ${label} is missing`);
+}
 
 for (const entry of index) {
   checkPage({

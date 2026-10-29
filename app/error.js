@@ -57,7 +57,7 @@ export default function Error({ error, reset }) {
       <footer className="foot">
         <p>Excel Supreme grades formulas in the browser. Nothing you type is sent anywhere.</p>
         <p>
-          <a href="/">All drills</a>
+          <a href="/">All drills</a> · <a href="/learn">Your progress</a>
         </p>
       </footer>
     </>

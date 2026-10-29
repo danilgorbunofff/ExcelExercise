@@ -14,6 +14,7 @@ import { describe, it } from "node:test";
 import { buildStyles, readIcons } from "../legacy/src/site/assets.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
 import { loadContent } from "../legacy/src/site/content.mjs";
+import { renderDashboardPage } from "../legacy/src/site/dashboard-page.mjs";
 import { renderExercisePage } from "../legacy/src/site/exercise-page.mjs";
 import { renderIndexPage } from "../legacy/src/site/index-page.mjs";
 
@@ -33,6 +34,7 @@ const icons = readIcons(join(ROOT, "vendor/icons"));
 
 const html = [
   renderIndexPage({ config, track, index, icons, clientAvailable: true }),
+  renderDashboardPage({ config, track, index, icons, clientAvailable: true }),
   ...index.map((entry) => renderExercisePage({ config, track, index, entry, icons, clientAvailable: true })),
 ].join("\n");
 
@@ -184,15 +186,20 @@ describe("class coverage", () => {
 
   it("styles every class the pages render", () => {
     // <body class="light lesson"> / "light track" are page hooks, not styled components.
-    const pageHooks = new Set(["lesson", "track"]);
+    const pageHooks = new Set(["dashboard", "dashboard-page", "lesson", "track"]);
     const missing = [...htmlClasses].filter((name) => !cssClasses.has(name) && !pageHooks.has(name)).sort();
     assert.deepEqual(missing, [], `classes rendered but never styled: ${missing.join(", ")}`);
   });
 
   it("styles every class the client adds at runtime", () => {
     const clientOnly = [
+      "badge-pill",
       "cell-correct",
       "cell-wrong",
+      "dash-recent-item",
+      "dash-recent-link",
+      "dash-recent-title",
+      "dash-when",
       "feedback-caret",
       "feedback-meta",
       "is-active",

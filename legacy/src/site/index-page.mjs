@@ -98,6 +98,7 @@ export function prepareIndexPage({ config, track, index, icons = {}, clientAvail
         <a class="btn btn-primary" href="${esc(first.path)}">Start with drill 1 · ${esc(
           first.exercise.title,
         )}${inlineIcon(icons["arrow-right"], { size: 16 })}</a>
+        <a class="btn" href="/learn">Your progress</a>
       </p>
       ${gateNote}
       <div class="track-progress" id="track-progress" hidden>

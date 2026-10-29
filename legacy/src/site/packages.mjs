@@ -9,17 +9,19 @@ try {
   packages = await Promise.all([
     import("../../../packages/grader/index.js"),
     import("../../../packages/content/index.js"),
+    import("../../../packages/progress/index.js"),
   ]);
 } catch (error) {
   if (error?.code !== "ERR_MODULE_NOT_FOUND") throw error;
   throw new Error(
-    "packages/ is missing: the build reads the grader and the content loader from ../packages/, so " +
-      "legacy/ and packages/ must sit side by side (see README, Architecture)",
+    "packages/ is missing: the build reads the grader, the content loader and the progress model from " +
+      "../packages/, so legacy/ and packages/ must sit side by side (see README, Architecture)",
     { cause: error },
   );
 }
 
-const [grader, content] = packages;
+const [grader, content, progress] = packages;
 
 export const { KNOWN_FUNCTIONS, addressOf, indexToCol, parseRef } = grader;
 export const { LEVELS, loadContent, referenceOf, revealOf, screenAt, validateLesson } = content;
+export const { BADGES, BADGE_LABELS, badgeFor, nextCopy, summarise, summaryLine } = progress;

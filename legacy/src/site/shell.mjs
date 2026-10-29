@@ -27,6 +27,7 @@ function renderHead({ config, page }) {
     <meta property="og:description" content="${esc(page.description)}">
     <meta property="og:url" content="${esc(canonical)}">
     <meta name="twitter:card" content="summary">
+    ${page.noindex ? '<meta name="robots" content="noindex">' : ""}
     <meta name="color-scheme" content="light">
     ${fontPreloads}
     <link rel="stylesheet" href="/assets/styles.css">
@@ -90,7 +91,7 @@ function renderFooter({ config }) {
     : "";
   return `<footer class="foot">
       <p>${esc(config.name)} grades formulas in the browser. Nothing you type is sent anywhere.</p>
-      <p><a href="/">All drills</a>${contact ? ` · ${contact}` : ""}</p>
+      <p><a href="/">All drills</a> · <a href="/learn">Your progress</a>${contact ? ` · ${contact}` : ""}</p>
     </footer>`;
 }
 
@@ -100,7 +101,7 @@ function renderFooter({ config }) {
  */
 export function renderChrome({ config, page }) {
   return {
-    skip: `<a class="skip" href="#main">Skip to the ${page.isHome ? "drills" : "drill"}</a>`,
+    skip: `<a class="skip" href="#main">Skip to the ${page.skipLabel ?? (page.isHome ? "drills" : "drill")}</a>`,
     header: renderSiteHeader({ config, page }),
     footer: renderFooter({ config }),
   };

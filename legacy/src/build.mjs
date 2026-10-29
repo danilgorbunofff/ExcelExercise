@@ -19,6 +19,7 @@ import { siteConfig } from "./site/config.mjs";
 import { loadContent } from "./site/content.mjs";
 import { renderExercisePage } from "./site/exercise-page.mjs";
 import { renderIndexPage } from "./site/index-page.mjs";
+import { renderDashboardPage } from "./site/dashboard-page.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -109,6 +110,10 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   assertSelfContained(indexHtml, config, "index.html");
   pages.push({ file: "index.html", html: indexHtml });
 
+  const dashboardHtml = renderDashboardPage({ config, track, index, icons, clientAvailable });
+  assertSelfContained(dashboardHtml, config, "learn/index.html");
+  pages.push({ file: "learn/index.html", html: dashboardHtml });
+
   for (const entry of index) {
     const html = renderExercisePage({ config, track, index, entry, icons, clientAvailable });
     assertSelfContained(html, config, `${entry.slug}.html`);
@@ -139,6 +144,12 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const session = copyDir(sessionSource, join(dist, "assets/session"), { filter: (name) => name.endsWith(".js") });
   if (session === 0) throw new Error(`${sessionSource} is empty — the client cannot emit events without it`);
 
+  // And the dashboard's read model: packages/progress ships at assets/progress/, the path
+  // client/dashboard.js imports (`../progress/index.js`).
+  const progressSource = resolve(root, "../packages/progress");
+  const progress = copyDir(progressSource, join(dist, "assets/progress"), { filter: (name) => name.endsWith(".js") });
+  if (progress === 0) throw new Error(`${progressSource} is empty — the dashboard cannot read progress without it`);
+
   const client = clientAvailable
     ? copyDir(join(root, "src/client"), join(dist, "assets/client"), { filter: (name) => name.endsWith(".js") })
     : 0;
@@ -168,6 +179,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     fonts,
     grader,
     session,
+    progress,
     client,
     images,
     bytes,
@@ -179,7 +191,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     console.log(`built ${summary.pages} pages (${kb} kB of HTML+CSS) → ${dist}`);
     console.log(`  styles: ${summary.cssSources.length} sources concatenated`);
     console.log(
-      `  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${client} client modules, ${images} images`,
+      `  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${progress} progress modules, ${client} client modules, ${images} images`,
     );
     for (const warning of warnings) console.warn(`  warning: ${warning}`);
   }

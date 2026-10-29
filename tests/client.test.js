@@ -429,3 +429,40 @@ describe("drill.js source", () => {
     assert.doesNotMatch(code, /track\("paywall_email"[^)]*input\.value/);
   });
 });
+
+describe("dashboard.js source", () => {
+  const code = stripComments(readFileSync(join(ROOT, "legacy/src/client/dashboard.js"), "utf8"));
+
+  it("never turns a title or a stored timestamp into markup", () => {
+    for (const danger of ["innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "eval(", "new Function"]) {
+      assert.equal(code.includes(danger), false, `dashboard.js must not use ${danger}`);
+    }
+    assert.match(code, /textContent/);
+  });
+
+  it("reads the shipped progress model instead of its own rules", () => {
+    assert.match(code, /from "\.\.\/progress\/index\.js"/);
+    assert.match(code, /from "\.\/state\.js"/);
+  });
+
+  it("does not teach the page a second copy of the badge labels", () => {
+    // The pills the server prints and the pills the island prints must say the same thing, so the
+    // label table is imported rather than retyped.
+    for (const label of ["Complete", "Needs practice", "Not started"]) {
+      assert.equal(code.includes(`"${label}"`), false, `${label} is retyped in the island`);
+    }
+    assert.match(code, /BADGE_LABELS\[/);
+  });
+
+  it("says storage is blocked instead of drawing zero progress", () => {
+    // Without this, a browser that refuses localStorage reads as "0 of 16 done" — a lie about work
+    // the learner may well have done.
+    assert.match(code, /blocks local storage/);
+    assert.match(code, /state\.blocked/);
+  });
+
+  it("arms the reset and needs a second click", () => {
+    assert.match(code, /dataset\.armed === "true"/);
+    assert.match(code, /setTimeout\(disarm, RESET_CONFIRM_MS\)/);
+  });
+});

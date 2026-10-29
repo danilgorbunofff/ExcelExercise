@@ -9,6 +9,9 @@ export { LEVELS };
 
 export function loadContent(contentDir) {
   const { track, exercises } = loadFromPackage(contentDir);
+  // Group membership lives on the catalogue slot, not on the lesson file: a lesson written into an
+  // earlier slot joins that slot's group, which is what the dashboard's sections are keyed on.
+  const groupOf = new Map(track.lessons.filter((slot) => slot.id).map((slot) => [slot.id, slot.group ?? null]));
 
   return {
     track,
@@ -23,6 +26,7 @@ export function loadContent(contentDir) {
         number,
         level: LEVELS[exercise.level],
         free: number <= track.freeLessonCount,
+        group: groupOf.get(exercise.id) ?? null,
         slug: exercise.slug,
         path: `/excel/${exercise.slug}`,
         prev,

@@ -1,0 +1,97 @@
+/**
+ * `/learn` in a real browser. The read model is covered by `tests/progress.test.js`; what only the
+ * browser can prove is that the page and the drill agree on where progress lives — one writes
+ * `localStorage`, the other reads it, and neither is any use if the key or the shape drifts.
+ */
+import { expect, test } from "@playwright/test";
+
+import { loadSite } from "../lib/site.js";
+
+const { index } = loadSite();
+const LESSONS = index.length;
+const FIRST = index[0].exercise.id;
+
+/** Seed a finished drill the way the drill page would have left it. */
+async function seedProgress(page, done) {
+  await page.addInitScript((entries) => {
+    window.localStorage.setItem("es.progress", JSON.stringify({ v: 1, done: entries, tries: {} }));
+  }, done);
+}
+
+test("the dashboard lists every drill and opens on the first one", async ({ page }) => {
+  await page.goto("/learn");
+
+  await expect(page.locator(".lesson-row")).toHaveCount(LESSONS);
+  await expect(page.locator("#dash-complete")).toHaveText("0");
+  await expect(page.locator("#dash-total")).toHaveText(String(LESSONS));
+  await expect(page.locator("#dash-note")).toHaveText(
+    "Nothing started yet. The first drill is one formula and about two minutes.",
+  );
+  await expect(page.locator("#dash-next-label")).toHaveText(`Start drill 1 · ${index[0].exercise.title}`);
+  await expect(page.locator("#dash-next-link")).toHaveAttribute("href", index[0].path);
+  await expect(page.locator("#dash-recent")).toContainText("Nothing finished yet");
+
+  // A group header counts its own lessons, not the track's.
+  await expect(page.locator("[data-group-count]").first()).toHaveText(new RegExp(`^0 of \\d+$`));
+});
+
+test("a lesson finished on its own page shows up here", async ({ page }) => {
+  await page.goto(`/learn/excel/${index[0].slug}`);
+  await page.fill("#formula", "=SUM(B2:B4)");
+  await page.click("#check");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+
+  await page.goto("/learn");
+
+  await expect(page.locator("#dash-complete")).toHaveText("1");
+  await expect(page.locator(`[data-lesson="${FIRST}"]`)).toHaveAttribute("data-badge", "complete");
+  await expect(page.locator(`[data-lesson="${FIRST}"] .badge-pill`)).toHaveText("Complete");
+  await expect(page.locator("#dash-next-label")).toHaveText(`Start drill 2 · ${index[1].exercise.title}`);
+  await expect(page.locator("#dash-recent")).toContainText(index[0].exercise.title);
+});
+
+test("a stale completion is called stale, not complete", async ({ page }) => {
+  await seedProgress(page, {
+    [FIRST]: { at: "2020-01-01T00:00:00.000Z", tries: 1, helped: false },
+  });
+  await page.goto("/learn");
+
+  await expect(page.locator(`[data-lesson="${FIRST}"]`)).toHaveAttribute("data-badge", "stale");
+  await expect(page.locator(`[data-lesson="${FIRST}"] .badge-pill`)).toHaveText("Stale");
+  await expect(page.locator("#dash-note")).toContainText("1 going stale.");
+});
+
+test("resetting asks twice and then forgets everything", async ({ page }) => {
+  await seedProgress(page, {
+    [FIRST]: { at: new Date().toISOString(), tries: 1, helped: false },
+  });
+  await page.goto("/learn");
+  await expect(page.locator("#dash-complete")).toHaveText("1");
+
+  const reset = page.locator("#dash-reset");
+  await expect(reset).toBeVisible();
+  await reset.click();
+  await expect(reset).toHaveText("Click again to erase");
+  await expect(page.locator("#dash-complete")).toHaveText("1");
+
+  await reset.click();
+  await expect(page.locator("#dash-complete")).toHaveText("0");
+  await expect(page.locator("#dash-note")).toHaveText(
+    "Nothing started yet. The first drill is one formula and about two minutes.",
+  );
+  await expect(page.locator("#dash-recent")).toContainText("Nothing finished yet");
+  await expect(page.locator("#dash-reset-section")).toBeHidden();
+
+  // The seed script re-runs on every navigation, so the storage itself is what has to be empty.
+  const stored = await page.evaluate(() => JSON.parse(window.localStorage.getItem("es.progress")));
+  expect(stored.done).toEqual({});
+});
+
+test("the dashboard stays out of the sitemap and out of the index", async ({ request }) => {
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  expect(sitemap).not.toContain("/learn</loc>");
+  expect(sitemap).not.toContain("/learn<");
+
+  const response = await request.get("/learn");
+  expect(response.status()).toBe(200);
+});

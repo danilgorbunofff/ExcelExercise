@@ -1,0 +1,11 @@
+{
+  "name": "@excelsupreme/progress",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Badges, counts and the up-next recommendation behind /learn. No DOM, no storage, no dependencies.",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  }
+}

@@ -174,12 +174,61 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     for (const entry of index) has(html, `href="${entry.path}"`, `index.html link to ${entry.path}`);
   }
 
+  // --- dashboard --------------------------------------------------------------------
+  // `/learn` is a real page for a stranger without JavaScript: the whole track, in order, grouped.
+  // What it cannot have is a per-browser number, so the counts it ships are zeroes and the island
+  // replaces them. `noindex` is checked here because a sitemap entry for it would be a lie.
+  if (ok(existsSync(join(distDir, "learn/index.html")), "learn/index.html", "does not exist")) {
+    const html = read("learn/index.html");
+    has(html, "<h1>Where you are</h1>", "learn/index.html heading");
+    has(html, '<meta name="robots" content="noindex">', "learn/index.html noindex");
+    for (const entry of index) has(html, `href="${entry.path}"`, `learn/index.html link to ${entry.path}`);
+    for (const group of track.groups) {
+      if (!index.some((entry) => entry.group === group.id)) continue;
+      has(html, `id="group-${group.id}"`, `learn/index.html ${group.id} group`);
+      has(html, `data-group-count="${group.id}"`, `learn/index.html ${group.id} counter`);
+    }
+    ok(
+      !html.includes('type="application/ld+json"'),
+      "learn/index.html",
+      "carries JSON-LD for a page that is not in the index",
+    );
+
+    const raw = extract(html, /<script type="application\/json" id="dashboard-data">([\s\S]*?)<\/script>/);
+    if (ok(raw !== null, "learn/index.html #dashboard-data", "is absent")) {
+      let payload = null;
+      try {
+        payload = JSON.parse(raw);
+      } catch (error) {
+        ok(false, "learn/index.html #dashboard-data", `is not valid JSON (${error.message})`);
+      }
+      if (payload) {
+        ok(
+          Array.isArray(payload.plan) && payload.plan.length === index.length,
+          "learn/index.html #dashboard-data plan",
+          `lists ${payload.plan?.length} of ${index.length} drills`,
+        );
+        index.forEach((entry, position) => {
+          const sent = payload.plan?.[position];
+          ok(sent?.id === entry.exercise.id, `learn/index.html plan[${position}].id`, `is "${sent?.id}"`);
+          ok(sent?.path === entry.path, `learn/index.html plan[${position}].path`, `is "${sent?.path}"`);
+          ok(sent?.group === entry.group, `learn/index.html plan[${position}].group`, `is "${sent?.group}"`);
+        });
+      }
+    }
+
+    for (const [, url] of html.matchAll(/(?:href|src)="(\/assets\/[^"]+)"/g)) {
+      ok(existsSync(join(distDir, url.slice(1))), `learn/index.html asset ${url}`, "is referenced but not on disk");
+    }
+  }
+
   // --- sitemap and robots -----------------------------------------------------------
   if (ok(existsSync(join(distDir, "sitemap.xml")), "sitemap.xml", "does not exist")) {
     const xml = read("sitemap.xml");
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
     ok(locs.length === index.length + 1, "sitemap.xml", `lists ${locs.length} URLs, expected ${index.length + 1}`);
     ok(locs.includes(`${config.baseUrl}/`), "sitemap.xml", "does not list the index");
+    ok(!locs.includes(`${config.baseUrl}/learn`), "sitemap.xml", "lists the dashboard, which is noindex");
     for (const entry of index) {
       ok(locs.includes(`${config.baseUrl}${entry.path}`), "sitemap.xml", `does not list ${entry.path}`);
     }
@@ -195,8 +244,10 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     ok(readFileSync(stylesPath, "utf8").length > 2000, "assets/styles.css", "is shorter than 2 kB");
   }
   for (const module of [
+    "client/dashboard.js",
     "client/drill.js",
     "client/state.js",
+    "progress/index.js",
     "grader/index.js",
     "grader/grade.js",
     "session/index.js",
@@ -211,7 +262,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
   // The index is a page a crawler lands on, so it is scanned with the lessons. `//host/x`
   // fetches remotely without a scheme, so the pattern makes the scheme optional.
   const allowed = new Set([config.baseUrl, ...ALLOWED_ORIGINS]);
-  for (const file of ["index.html", ...index.map((entry) => `excel/${entry.slug}.html`)]) {
+  for (const file of ["index.html", "learn/index.html", ...index.map((entry) => `excel/${entry.slug}.html`)]) {
     const html = read(file);
     for (const [url] of html.matchAll(/(?:https?:)?\/\/[^\s"'<>)]+/g)) {
       // A protocol-relative URL inherits our scheme; absolute ones must match it.
@@ -243,7 +294,7 @@ if (invokedDirectly()) {
       console.error(`verify: ${result.failures.length} of ${result.checks} checks failed`);
       process.exitCode = 1;
     } else {
-      console.log(`verified ${result.pages} lesson pages and the index — ${result.checks} checks passed`);
+      console.log(`verified ${result.pages} lesson pages, the index and the dashboard — ${result.checks} checks passed`);
     }
   } catch (error) {
     console.error(`verify failed: ${error.message}`);

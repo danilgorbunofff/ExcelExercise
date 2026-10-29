@@ -1,6 +1,7 @@
 # Excel Supreme — Reference Parity: Program Overview
 
-**Status:** draft for review. No code has been changed yet.
+**Status:** plan of record, being executed. Phases 0–2 have landed and phase 3 has shipped its
+dashboard; each phase file carries a Status section with what was built and what was deferred.
 **Contents:** this overview plus eleven phase plans in `docs/plans/parity/`. Read this file first; each
 phase file is self-contained and executable on its own.
 

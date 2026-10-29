@@ -1,6 +1,6 @@
 # Excel Supreme
 
-A zero-signup, browser-only micro-learning site for Excel formulas. Ten drills, each one a small
+A zero-signup, browser-only micro-learning site for Excel formulas. Sixteen drills, each one a small
 spreadsheet with a single answer cell: the learner types a formula, a deterministic grader in the page
 says exactly what is wrong — wrong value, wrong function, malformed syntax, with a caret under the
 offending token.
@@ -14,7 +14,7 @@ to any static host.
 
 That site now lives in `legacy/` and is frozen: it is the deployable artifact while the Next.js app in
 `app/` is ported beside it (phase 0 of the [parity plan](docs/plans/parity/00-overview.md)). Everything
-in "How grading works", "Adding lesson 16" and the phase-6 verification below still describes `legacy/`.
+in "How grading works", "Adding lesson 17" and the phase-6 verification below still describes `legacy/`.
 Until the port lands, `npm test`, `npm run build` and `npm run check` all still run against it.
 
 ---
@@ -24,9 +24,9 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 443 tests, no build step
+npm test                # 470 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
-npm run build           # writes legacy/dist — 17 pages, one stylesheet, the assets
+npm run build           # writes legacy/dist — 18 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
 npm run check           # all of it, including the Next.js build
 npm run dev             # build, then serve legacy/dist at http://localhost:4173
@@ -40,22 +40,22 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 443 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification | 470 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
-| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 17 pages, exit 0 |
+| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 18 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
 | `npm run content:fixtures -- --lesson 6` | Prints every fixture for one lesson with declared vs reported rule | one row per fixture, all `✓`/`·` |
-| `npm run content:new -- --lesson 16 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
+| `npm run content:new -- --lesson 17 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
 | `npm run content:preview -- --lesson 13` | Prints a lesson the way its page reads: prompt, grid, docs, hints, fixtures | one screen, one row per fixture |
 | `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
 | `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 594 checks pass |
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
-| `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 16 prerendered routes, exit 0 |
-| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 17 pages match |
+| `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 18 prerendered pages, exit 0 |
+| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 18 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
-| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 15 tests pass |
+| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 20 tests pass |
 
 **Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
 `SITE_URL`, which is what canonical links, the sitemap and the JSON-LD `@id`s are built from. Serve on
@@ -72,7 +72,8 @@ Deploying is `npm run build` plus uploading `legacy/dist/`. There is no server-s
 app/                      the ported Next.js shell, built beside the static site (phase 0)
   layout.js page.js       shared document head/body; the index route
   globals.css             imports the 14 stylesheets in the same order the static build concatenates
-  learn/excel/[lesson]/   the lesson route: 10 prerendered slugs from generateStaticParams
+  learn/page.js           the dashboard route: counts, badges and the up-next drill, noindex
+  learn/excel/[lesson]/   the lesson route: 16 prerendered slugs from generateStaticParams
   api/health/route.js     status plus the deploy SHA
   error.js not-found.js   the two boundaries: a render error, and a 404 that still looks like the site
   sitemap.js robots.js    Metadata routes: every served URL, and the crawler policy that points at them
@@ -93,10 +94,12 @@ legacy/                   the shipped static site: frozen, still what deploys
     client/
       state.js            pure, DOM-free: gating, progress, attempts, formula normalisation
       drill.js            the browser module: mounts on the SSR markup, renders feedback
+      dashboard.js        the dashboard island: paints badges from the shared read model
     site/                 server-side rendering: one function per page region
       content.mjs         the site's view of the track: URLs and prev/next on top of the validated data
       packages.mjs        the single place the build reaches into ../packages/ (named failure, not ERR_MODULE_NOT_FOUND)
       shell.mjs exercise-page.mjs index-page.mjs sheet.mjs    the templates
+      dashboard-page.mjs  the dashboard: the track in order, with an anchor per group
       assets.mjs html.mjs config.mjs                          CSS concatenation, escaping, env
     styles/               tokens.css → base.css → components.css (design system: docs/phases/05a)
     build.mjs             writes legacy/dist, refuses third-party origins
@@ -118,6 +121,7 @@ packages/
     score.js              createSession / recordVerdict — weights, cap, recycling, termination guard
     clock.js              the session budget, with an idempotent pause for a hidden tab
     README.md             docs/player-contract.md is the longer version: screen shape and invariants
+  progress/               the dashboard read model: badges, groups, up-next — pure, no DOM
   content-lint/           the authoring gate: can the lesson be shipped, not just rendered
     index.js              lintContent() → { ok, errors, warnings, stats }: fixtures replayed, prompts,
                           links; collects every finding instead of throwing on the first
@@ -161,21 +165,41 @@ here; yours has 0.`).
 
 ---
 
-## Adding lesson 16
+### The dashboard
+
+`/learn` answers one question — what do I do next — and `packages/progress` is the only thing that
+decides the answer. `summarise({ plan, progress, now })` reads the same `es.progress` record the drill
+writes and returns the counts, the up-next drill, the groups in track order and the last five finished;
+`badgeFor` owns the precedence — stale (finished ≥14 days ago) beats needs practice (solved with a hint,
+or after two misses) beats complete, in progress, not started.
+
+Badges are not accuracy: the record has no per-screen score, so "needs practice" is a signal the drill
+already stored rather than a percentage invented from attempts. The page is server-rendered with every
+row at `not_started` and the island paints the truth, so a browser without JavaScript reads the syllabus
+and the no-JS learner is neither tracked nor lied to. Both builds mark it `noindex` and both gates assert
+it is absent from the sitemap: what a crawler would index is one browser's zeroes.
+
+Gating stays where it was — the `freeLessonCount` trial gate. An order gate that opens lessons only after
+the previous one is finished needs an account to unlock it again; with local-only progress, clearing a
+browser would lock a learner out of the track. That lands in phase 4 with the server, not here.
+
+---
+
+## Adding lesson 17
 
 The full procedure — every field limit, the fixture checklist and a worked example — is
 [`docs/content-authoring.md`](docs/content-authoring.md). The short version:
 
-1. `npm run content:new -- --lesson 16 --group lookup` writes `legacy/content/exercises/16-your-slug.json`,
+1. `npm run content:new -- --lesson 17 --group lookup` writes `legacy/content/exercises/17-your-slug.json`,
    takes its title, level and group from `legacy/content/track.json`, and replaces that catalog slot's
-   `title` + `level` with `{ "id": "16-your-slug", "group": "lookup" }` so they are not written twice.
+   `title` + `level` with `{ "id": "17-your-slug", "group": "lookup" }` so they are not written twice.
    `--lesson` is the file number; the number a learner sees comes from how many lessons precede it.
 2. Replace the prompt, grid, rules (`require`, `forbid`, `requireRef`, `rules`), `fixtures` and `docs`
    in that file. `screens[0].fixtures` holds `accept` (formulas that must grade `ok`) and `reject`
    (`{ formula, rule, why }`, where `rule` is the id the grader reports); the gate wants six of each.
    A `type: "picture"` screen has none of those — just `image`, `alt`, `answers` and a `value` hint; see
    [picture screens](docs/content-authoring.md#picture-screens).
-3. `npm run content:preview -- --lesson 16`, `npm run content:fixtures -- --lesson 16`, then
+3. `npm run content:preview -- --lesson 17`, `npm run content:fixtures -- --lesson 17`, then
    `npm run content:check`. A group that gains its first published lesson owes an `intro` in
    `track.json`.
 4. `npm test && npm run verify`. The index, the rail, the pager, the sitemap and JSON-LD `position`
@@ -201,9 +225,9 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **443 passing**, 0 failing — 97 grader, 77 fixtures, 48 content-lint, 44 build/server, 43 client, 27 schema, 26 session, 20 content, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
-| `npm run build` | 17 pages, 534.2 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 4 session modules, 2 client modules |
-| `node legacy/src/verify.mjs` | **594 checks passed** across 16 lesson pages + the index |
+| `npm test` | **470 passing**, 0 failing — 97 grader, 77 fixtures, 48 content-lint, 44 build/server, 48 client, 27 schema, 26 session, 22 progress, 20 content, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
+| `npm run build` | 18 pages, 571.5 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 4 session modules, 1 progress module, 3 client modules |
+| `node legacy/src/verify.mjs` | **690 checks passed** across 16 lesson pages, the index and the dashboard |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |
 | axe-core 4 on a lesson | 0 violations, 50 passes |
 | Console | no errors or warnings, only the `[es]` debug funnel lines |
@@ -258,7 +282,7 @@ recorded completions. Twelve of the fourteen names in the vocabulary are emitted
   a no-JS reader can still learn from the page, but Check needs the in-page grader. That is the price
   of keeping the network out of the grading path.
 - **The trial is a fake door.** `paywall_email` records nothing outside the page; `es.trial` is a
-  seven-day local timestamp. Lessons 6–10 are gated to test whether the copy converts, not to sell
+  seven-day local timestamp. Lessons 6–16 are gated to test whether the copy converts, not to sell
   anything.
 - **Progress lives in `localStorage`** (`es.progress`, `es.trial`), per browser and per origin. Clear
   storage and the learner is a stranger again. Corrupt values, bad dates and future-dated trials are
@@ -277,7 +301,7 @@ recorded completions. Twelve of the fourteen names in the vocabulary are emitted
   regression service: `docs/screenshots/` is the baseline.
 - **No analytics collector.** Events are buffered in memory and logged; attaching a provider later
   means forwarding `window.__esEvents`, not touching the drill.
-- **Ten lessons.** Volume, not the engine, is the limit: the build, the grader and the client handle
+- **Sixteen lessons.** Volume, not the engine, is the limit: the build, the grader and the client handle
   any number of lessons listed in `track.json`.
 
 ## Screenshots
@@ -295,3 +319,7 @@ fact with what was actually built, what deviated and why, and which defects the 
 
 Phases 1–6 are complete. Phase 7 (add a second niche vs. deepen this one) is a decision to make from
 the funnel numbers, not a backlog item — it starts when someone has looked at real traffic.
+
+The reference-parity program is [docs/plans/parity/](docs/plans/parity/00-overview.md), one file per
+phase, each with the same after-the-fact status. Phases 0, 1 and 2 are done; phase 3 has landed its
+dashboard and badge machine, with category pages and the order gate waiting on phase 4's accounts.

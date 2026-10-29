@@ -11,9 +11,9 @@ template.
 ## The loop
 
 ```bash
-npm run content:new -- --lesson 14 --group lookup   # scaffold the next free slot
-npm run content:preview -- --lesson 14              # the page as a reader gets it
-npm run content:fixtures -- --lesson 14             # every fixture against the grader
+npm run content:new -- --lesson 17 --group lookup   # scaffold the next free slot
+npm run content:preview -- --lesson 17              # the page as a reader gets it
+npm run content:fixtures -- --lesson 17             # every fixture against the grader
 npm run content:check                               # the gate CI runs
 npm test                                            # schema, corpus, build, client
 ```
@@ -24,7 +24,7 @@ writes is `schemaVersion: 2` and already passes the gate: the grid, the fixtures
 working SUM drill, and the prompt and `docs.explain` say "replace this scaffold" in place. A green gate
 on a placeholder is not a done lesson; it is proof that the plumbing is out of your way.
 
-`--lesson 14` is the **file number**. The number a learner sees is the lesson's position among authored
+`--lesson 17` is the **file number**. The number a learner sees is the lesson's position among authored
 lessons, and the two agree only when the file's slot comes after every other authored slot. They parted
 for lesson 13: its slot is 39, but the capstone and the INDEX/MATCH pair sit at slots 46, 52 and 59, so
 its scaffold said "takes catalog slot 39, published as lesson 10 of 13" and shipping it pushed those

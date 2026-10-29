@@ -8,6 +8,57 @@
 
 ---
 
+## Status
+
+**Landed — the dashboard and the badge machine.** Items 1, 2 (as a single page rather than a grid of
+tiles), 3, 7 and 9 ship: `/learn` lists every drill in track order, grouped, with a badge per row, a
+count, an up-next button and a two-step reset, and the badges come from a pure read model that both the
+server template and the island import. Items 4, 5, 6 and 8 are open, and the plan's accuracy-based
+badge rule is replaced by what the record can actually prove.
+
+- [x] **1. Progress read model.** `packages/progress` — `summarise({ plan, progress, now })` returns
+      `{ total, completed, remaining, stale, needsPractice, next, nextReason, groups, recent, rows }`,
+      and `badgeFor`, `ago`, `summaryLine`, `nextCopy` are the shared copy, so the server-rendered page
+      and the island cannot describe the same state two different ways. It is a package rather than a
+      module in the island because the static build reads it too: it ships at `assets/progress/` the
+      same way the grader and the session do. There is no `userId`: the adapter is `localStorage`, and
+      the record is the one the drill already writes (`es.progress`), so nothing here learns about
+      accounts before phase 4 does.
+- [x] **2. Dashboard layout.** One page, not a wall: the count and its bar, an "Up next" card with the
+      reason beside it, the legend, the track by group with per-group counts, the last five finished,
+      and reset at the bottom. The plan's 16-tile grid is the same information as the grouped list with
+      more clicking, and it cannot show a title or an outcome — so the groups are `<section>`s with
+      `id="group-<id>"` and the tiles would have been deep links to exactly those anchors. Streak,
+      points and the certificate slots are not rendered at all rather than disabled: a placeholder is
+      data the product does not have.
+- [x] **3. Badge state machine.** `badgeFor` with the plan's precedence — stale > needs_practice >
+      complete > in_progress > not_started. **The rule the plan asked for is not the rule implemented:**
+      the record has no per-screen accuracy, so `needs_practice` is "solved with a hint, or after two or
+      more failed checks" (`done.helped || done.tries >= 2`), which is the same signal the drill already
+      stores. Inventing an accuracy figure from `tries / screens` would be a number the product cannot
+      stand behind.
+- [x] **7. Reset progress.** Two clicks, six seconds to take the second one, Escape cancels, and the
+      note says what it deletes. No typed confirmation: the record being destroyed is one browser's
+      practice history, not an account.
+- [x] **9. SEO meta.** `noindex` on `/learn` in both builds, and the sitemap and `next:check` assert the
+      page is absent from the crawl surface. Whatever a crawler sees would be one browser's zeroes.
+- [ ] **4. Category pages.** `/learn/groups/<id>` is not built: the dashboard's sections carry the ids
+      the deep links would use, so the route is a redirect-shaped addition, not a redesign.
+- [ ] **5. Gating (`canStart`).** Open, deliberately. The order gate needs an account to be more than a
+      dead end — with local-only progress, clearing a browser would lock a learner out of the track
+      forever — so the existing `freeLessonCount` trial gate stays the only wall until phase 4.
+- [ ] **6. Recommendation.** The up-next card ships; the all-complete branch says the track is finished
+      and stops. Daily challenge and certificate CTAs belong to phases 5 and 6 and are not faked.
+- [ ] **8. Feedback modal.** Not built; it posts to a phase-4 endpoint.
+
+Two acceptance criteria are now true and proven in `e2e/dashboard.spec.js`: "signed-in learner's next
+lesson updates immediately after a completion" (the spec finishes a drill on its own page and reads the
+dashboard, which is the same assertion without an account), and "reset progress asks twice and cannot be
+triggered by a stray keypress". The stale row is proven there too — a 2020 completion reads `Stale`, never
+`Complete`. The gating and category criteria stay open with items 4 and 5.
+
+---
+
 ## Objective
 
 Give the curriculum a front door: a dashboard that always answers "what do I do next", category pages

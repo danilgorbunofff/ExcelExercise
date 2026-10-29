@@ -389,6 +389,36 @@
         {"input":"=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)","ok":true,"rule":"correct","code":null,"position":null,"value":110,"expected":110,"message":"Correct.","hint":""},
         {"input":"=VLOOKUP(A6,A1:C5,MATCH(B6,B1:C1,0),FALSE)","ok":false,"rule":"value","code":null,"position":null,"value":90,"expected":110,"message":"Your formula returns 90, but this lesson expects 110.","hint":"MATCH returns a position inside the range you gave it, and VLOOKUP counts columns from the first column of its table. Start both at the Product column and the positions line up."}
       ]
+    },
+    "15-xlookup-exact-match-no-column-counting": {
+      "accepted": [
+        {"input":"=XLOOKUP( A6 , A2:A5 , D2:D5 )","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(A6,$A$2:$A$5,$D$2:$D$5)","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(A6,A1:A5,D1:D5)","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(A6,A2:A5,D2:D5)","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(A6,A2:A5,D2:D5,\"none\")","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(A6,A2:A5,D2:D5,,0)","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(A6,A2:A5,D2:D5,0)","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""},
+        {"input":"=xlookup(a6,a2:a5,d2:d5)","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=INDEX(D2:D5,MATCH(A6,A2:A5,0))","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":9.5,"message":"This lesson is about XLOOKUP. Your formula does not use XLOOKUP.","hint":"XLOOKUP is the function that reads a key column and a separate answer column, so it needs the SKU, the SKUs, and the prices."},
+        {"input":"=VLOOKUP(A6,A2:D5,4,FALSE)","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":9.5,"message":"This lesson is about XLOOKUP. Your formula does not use XLOOKUP.","hint":"XLOOKUP is the function that reads a key column and a separate answer column, so it needs the SKU, the SKUs, and the prices."},
+        {"input":"=XLOOKUP(\"TX-103\",A2:A5,D2:D5)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":9.5,"message":"Your formula does not refer to A6. The lesson checks that you point at the data rather than typing the number.","hint":"Point the first argument at A6. Typing \"TX-103\" into the formula gives the right number for one SKU and the wrong one the moment the cell changes."},
+        {"input":"=XLOOKUP(A6,A2:A3,D2:D3)","ok":false,"rule":"error","code":"#N/A","position":null,"value":null,"expected":9.5,"message":"#N/A XLOOKUP found no match for \"TX-103\".","hint":"Read the code: #N/A means A6's SKU is not in the lookup range, and #VALUE! means the lookup and return ranges are different sizes, so there is no row to pair with."},
+        {"input":"=XLOOKUP(A6,A2:A5)","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":9.5,"message":"XLOOKUP needs at least 3 arguments here; yours has 2.","hint":"XLOOKUP is the function that reads a key column and a separate answer column, so it needs the SKU, the SKUs, and the prices."},
+        {"input":"=XLOOKUP(A6,A2:A5,C2:C5)","ok":false,"rule":"value","code":null,"position":null,"value":4.8,"expected":9.5,"message":"Your formula returns 4.8, but this lesson expects 9.5.","hint":"There are two ways to get a wrong number from the right SKU: C2:C5 is the cost column, so it answers 4.8, and D1:D4 starts a row too high, so the third SKU picks up the second price, 14. The third SKU needs the third price."},
+        {"input":"=XLOOKUP(A6,A2:A5,D1:D4)","ok":false,"rule":"value","code":null,"position":null,"value":14,"expected":9.5,"message":"Your formula returns 14, but this lesson expects 9.5.","hint":"There are two ways to get a wrong number from the right SKU: C2:C5 is the cost column, so it answers 4.8, and D1:D4 starts a row too high, so the third SKU picks up the second price, 14. The third SKU needs the third price."},
+        {"input":"=XLOOKUP(A6,A2:A5,D2:D5","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":9.5,"message":"XLOOKUP is missing its closing \")\".","hint":"Start with = and close every bracket: =XLOOKUP(A6,A2:A5,D2:D5)."},
+        {"input":"=XLOOKUP(A6,A2:A5,D2:D6)","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":9.5,"message":"#VALUE! XLOOKUP: the lookup and return ranges must be the same size.","hint":"Read the code: #N/A means A6's SKU is not in the lookup range, and #VALUE! means the lookup and return ranges are different sizes, so there is no row to pair with."},
+        {"input":"=XLOOKUP(A6,B2:B5,D2:D5)","ok":false,"rule":"error","code":"#N/A","position":null,"value":null,"expected":9.5,"message":"#N/A XLOOKUP found no match for \"TX-103\".","hint":"Read the code: #N/A means A6's SKU is not in the lookup range, and #VALUE! means the lookup and return ranges are different sizes, so there is no row to pair with."}
+      ],
+      "audit": [
+        {"input":"=XLOOKUP(A6,A2:A5,C2:C5)","ok":false,"rule":"value","code":null,"position":null,"value":4.8,"expected":9.5,"message":"Your formula returns 4.8, but this lesson expects 9.5.","hint":"There are two ways to get a wrong number from the right SKU: C2:C5 is the cost column, so it answers 4.8, and D1:D4 starts a row too high, so the third SKU picks up the second price, 14. The third SKU needs the third price."},
+        {"input":"=XLOOKUP(A6,A2:A5,D1:D4)","ok":false,"rule":"value","code":null,"position":null,"value":14,"expected":9.5,"message":"Your formula returns 14, but this lesson expects 9.5.","hint":"There are two ways to get a wrong number from the right SKU: C2:C5 is the cost column, so it answers 4.8, and D1:D4 starts a row too high, so the third SKU picks up the second price, 14. The third SKU needs the third price."},
+        {"input":"=XLOOKUP(A6,A2:A5,D2:D5)","ok":true,"rule":"correct","code":null,"position":null,"value":9.5,"expected":9.5,"message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(A6,B2:B5,D2:D5)","ok":false,"rule":"error","code":"#N/A","position":null,"value":null,"expected":9.5,"message":"#N/A XLOOKUP found no match for \"TX-103\".","hint":"Read the code: #N/A means A6's SKU is not in the lookup range, and #VALUE! means the lookup and return ranges are different sizes, so there is no row to pair with."}
+      ]
     }
   }
 }

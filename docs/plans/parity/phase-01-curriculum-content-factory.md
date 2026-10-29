@@ -204,7 +204,7 @@ window in which two shapes are both live.
       silently creating it would hide the day a lesson loses its fixtures.
 
 - [ ] **8. Cohorts.** Ten lessons per batch, each green in `content:check` and through a human
-      accuracy review before it merges. **Cohort two is 4 of 10 in.** Lesson 11 is VLOOKUP approximate
+      accuracy review before it merges. **Cohort two is 5 of 10 in.** Lesson 11 is VLOOKUP approximate
       match (`11-vlookup-approximate-match-needs-a-sorted-column`), catalog slot 37, published as
       lesson 8 of 12 — the first file whose number disagrees with where the page sits, because the
       slot decides the reading order and the file name only records the order lessons were written.
@@ -256,6 +256,22 @@ window in which two shapes are both live.
       rather than 110, which is the mistake the lesson exists to catch. It also exposed the limit of
       `requireRef` — one cell, so `B6` is enforced and a hardcoded product name still passes — and that
       is now written down in phase 2 rather than worked around in content.
+
+      Lesson 15 is the first XLOOKUP drill and the first lesson where the answer column is not the one
+      the key sits in: `=XLOOKUP(A6,A2:A5,D2:D5)` reads the third SKU and returns the third price,
+      catalog slot 41, published as lesson 12 of 15. The evaluator already had XLOOKUP, so the work was
+      content, and the drill teaches the parallel walk rather than the argument list — the cost column
+      sits between the keys and the prices precisely so that `C2:C5` is a wrong answer with a plausible
+      number in it. Match mode is deliberately *not* a rule: exact is XLOOKUP's default, and a
+      `matchType` on the fifth argument rejects a missing argument, so enforcing it would force learners
+      to write `,,0` to say what the default already says.
+
+      Authoring it caught a defect in the factory rather than in the lesson: `content:new` emitted
+      string rejections while the corpus is `{ formula, rule, why }` and `npm test` demands the object,
+      so every scaffolded lesson failed the gate seconds after a CLI message claimed its fixtures
+      already worked. The scaffold now writes the objects, `content:check` refuses a bare string or a
+      short `why` at the same threshold the test uses, and a test pins the scaffold's own output so the
+      two cannot drift again.
 
 ## Acceptance criteria
 

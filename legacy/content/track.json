@@ -276,8 +276,7 @@
       "group": "lookup"
     },
     {
-      "title": "XLOOKUP: exact match, no column counting",
-      "level": 2,
+      "id": "15-xlookup-exact-match-no-column-counting",
       "group": "lookup"
     },
     {

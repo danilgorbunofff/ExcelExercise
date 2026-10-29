@@ -94,4 +94,9 @@ export const AUDIT = {
       "=VLOOKUP(A6,A1:C5,MATCH(B6,B1:C1,0),FALSE)",
     ],
   },
+  "15-xlookup-exact-match-no-column-counting": {
+    expected: 9.5, // TX-103 is the third SKU, so the third price is the answer
+    reference: "=XLOOKUP(A6,A2:A5,D2:D5)",
+    wrong: ["=XLOOKUP(A6,A2:A5,C2:C5)", "=XLOOKUP(A6,A2:A5,D1:D4)", "=XLOOKUP(A6,B2:B5,D2:D5)"],
+  },
 };

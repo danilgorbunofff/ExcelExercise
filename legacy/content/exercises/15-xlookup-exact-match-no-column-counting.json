@@ -1,0 +1,159 @@
+{
+  "id": "15-xlookup-exact-match-no-column-counting",
+  "slug": "xlookup-exact-match-no-column-counting",
+  "level": 2,
+  "title": "XLOOKUP: exact match, no column counting",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B6, return the price of the SKU in A6 with XLOOKUP, whose third argument is the answer column itself rather than a column number.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "SKU",
+            "Product",
+            "Cost",
+            "Price"
+          ],
+          [
+            "TX-101",
+            "Widget",
+            12.5,
+            19.99
+          ],
+          [
+            "TX-102",
+            "Gizmo",
+            7.25,
+            14
+          ],
+          [
+            "TX-103",
+            "Sprocket",
+            4.8,
+            9.5
+          ],
+          [
+            "TX-104",
+            "Flange",
+            21,
+            39
+          ],
+          [
+            "TX-103",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": {
+        "value": 9.5
+      },
+      "require": [
+        {
+          "id": "func-xlookup",
+          "func": "XLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A6",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close every bracket: =XLOOKUP(A6,A2:A5,D2:D5).",
+        "func-xlookup": "XLOOKUP is the function that reads a key column and a separate answer column, so it needs the SKU, the SKUs, and the prices.",
+        "require-ref": "Point the first argument at A6. Typing \"TX-103\" into the formula gives the right number for one SKU and the wrong one the moment the cell changes.",
+        "value": "There are two ways to get a wrong number from the right SKU: C2:C5 is the cost column, so it answers 4.8, and D1:D4 starts a row too high, so the third SKU picks up the second price, 14. The third SKU needs the third price.",
+        "error": "Read the code: #N/A means A6's SKU is not in the lookup range, and #VALUE! means the lookup and return ranges are different sizes, so there is no row to pair with."
+      },
+      "fixtures": {
+        "accept": [
+          "=XLOOKUP(A6,A2:A5,D2:D5)",
+          "=xlookup(a6,a2:a5,d2:d5)",
+          "=XLOOKUP(A6,$A$2:$A$5,$D$2:$D$5)",
+          "=XLOOKUP(A6,A2:A5,D2:D5,0)",
+          "=XLOOKUP(A6,A2:A5,D2:D5,\"none\")",
+          "=XLOOKUP( A6 , A2:A5 , D2:D5 )",
+          "=XLOOKUP(A6,A1:A5,D1:D5)",
+          "=XLOOKUP(A6,A2:A5,D2:D5,,0)"
+        ],
+        "reject": [
+          {
+            "formula": "=XLOOKUP(A6,A2:A5,D2:D5",
+            "rule": "syntax",
+            "why": "unclosed parenthesis, so nothing runs"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A2:D5,4,FALSE)",
+            "rule": "func-xlookup",
+            "why": "the right answer with the older function"
+          },
+          {
+            "formula": "=INDEX(D2:D5,MATCH(A6,A2:A5,0))",
+            "rule": "func-xlookup",
+            "why": "the right answer in the older two-function shape"
+          },
+          {
+            "formula": "=XLOOKUP(A6,A2:A5)",
+            "rule": "func-xlookup",
+            "why": "two arguments, so there is no column to return from"
+          },
+          {
+            "formula": "=XLOOKUP(\"TX-103\",A2:A5,D2:D5)",
+            "rule": "require-ref",
+            "why": "the SKU typed into the formula instead of read from A6"
+          },
+          {
+            "formula": "=XLOOKUP(A6,A2:A5,C2:C5)",
+            "rule": "value",
+            "why": "the cost column instead of the price column, so 4.8"
+          },
+          {
+            "formula": "=XLOOKUP(A6,A2:A5,D1:D4)",
+            "rule": "value",
+            "why": "the return range one row off, so the third price becomes the second"
+          },
+          {
+            "formula": "=XLOOKUP(A6,B2:B5,D2:D5)",
+            "rule": "error",
+            "why": "lookup range pointed at the product names, so TX-103 matches nothing"
+          },
+          {
+            "formula": "=XLOOKUP(A6,A2:A5,D2:D6)",
+            "rule": "error",
+            "why": "a return range one cell longer than the lookup range"
+          },
+          {
+            "formula": "=XLOOKUP(A6,A2:A3,D2:D3)",
+            "rule": "error",
+            "why": "a lookup range that stops before TX-103"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
+    "explain": "TX-103 is the third entry of A2:A5, so XLOOKUP returns the third entry of D2:D5, which is 9.5. The two ranges are read in parallel, position by position: the lookup range answers which row, and the return range answers which column, so no digit ever describes the table's shape. That is why the cost column can sit between the SKUs and the prices without breaking anything, and why =XLOOKUP(A6,A2:A5,C2:C5) returns 4.8 instead of 9.5. Both ranges have to be the same size and start on the same row \u2014 D1:D4 is off by one row and answers with 14. Match mode defaults to exact, so the fourth and fifth arguments can stay empty.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "A6's SKU is not in the lookup range, which happens when the range stops before the last row or points at the product names instead of the SKUs."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The lookup and return ranges are different sizes, so the third price has no SKU to pair with."
+      }
+    ],
+    "atWork": "Price lists and rate cards where the key column and the value column are not neighbours, or a sheet someone will re-order next week.",
+    "outcome": "Return a value from a column anywhere in the table without counting columns to find it.",
+    "teaches": "XLOOKUP",
+    "dataset": "SKU price list with cost and price columns",
+    "reference": "=XLOOKUP(A6,A2:A5,D2:D5)"
+  }
+}

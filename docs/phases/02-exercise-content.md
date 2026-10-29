@@ -87,6 +87,11 @@ them. Lesson 14 enforces `B6`, the quarter `MATCH` reads, and rejects `MATCH("Q2
 typing the product instead of `A6` still passes, because there is no second-reference rule. The prompt
 asks for both cells by name and the fixtures cover the half the grader can see.
 
+**Rejections carry their own reason.** Every shipped rejection is `{ formula, rule, why }`, and since
+lesson 15 `content:check` refuses a bare string or a `why` under fifteen characters — the same floor
+`npm test` applies. Before that, `content:new` wrote string rejects and its own output failed the gate
+while `content:check` reported green, which is the one thing a scaffold must never do.
+
 **Boundary data.** Lesson 4's one data row scores exactly 70, because a single answer cell can only
 catch the `>` / `>=` confusion the lesson warns about if the row sits on the threshold. A score of 74
 let `=IF(B2>0,…)` and `=IF(B2>=1,…)` grade correct — the lesson's own documented error was unpublishable.
@@ -152,10 +157,11 @@ only used to confirm. The literals live in `AUDIT` in `tests/audit.js`.
 | 12 | `=HLOOKUP(B4,B1:D3,3,FALSE)` | Feb is column 2 of the block, and row 3 is the price row | `5` |
 | 13 | `=VLOOKUP(A7&"*",A1:C6,3,FALSE)` | three rows start with Northwind, Air is first, column 3 | `7` |
 | 14 | `=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)` | Widget is row 3; Q2 is the third column of A1:C1, so column 3 | `110` |
+| 15 | `=XLOOKUP(A6,A2:A5,D2:D5)` | TX-103 is the third SKU, so the third price is the answer | `9.5` |
 
 ## Acceptance criteria
 
-- 14 valid JSON files that `buildCells()` can load without errors. **Done — each one's reference answer
+- 15 valid JSON files that `buildCells()` can load without errors. **Done — each one's reference answer
   and three wrong answers are pinned by hand in `AUDIT` (`tests/audit.js`).**
 - Every exercise solves correctly with its reference answer and fails with at least three plausible
   wrong answers.

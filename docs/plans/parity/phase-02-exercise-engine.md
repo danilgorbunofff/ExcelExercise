@@ -10,11 +10,13 @@
 
 ## Status
 
-**Landed — the engine, the first multi-screen player, and a second screen type.** Items 1, 2, 6, 8, 9
-and 11 ship: the loop and the event sink as a tested package (`packages/session`, `docs/player-contract.md`),
-screen dispatch, a `formula` player and a `picture` player that drive them, proven end to end by
-`16-xlookup-search-from-the-bottom` — the first lesson with three screens, the last of them a picture.
-Items 3–5, 7, 10, 12 are untouched, and the clock is read but not enforced.
+**Landed — the engine, the first multi-screen player, and every screen type.** Items 1, 2, 3, 4, 5, 6, 7, 8, 9
+and 11 ship: the loop and the event sink as a tested package (`packages/session`,
+`docs/player-contract.md`), screen dispatch, a `formula` player, a `picture` player, the chord/sequence
+keyboard player and a `workbook` player, proven end to end by `16-xlookup-search-from-the-bottom` — the first
+lesson with three screens, the last of them a picture. No catalog lesson ships a workbook yet, so its page,
+file and build path are proven from a temp content copy rather than from the shipped corpus. Items 10 and 12
+are untouched, and the clock is read but not enforced.
 
 - [x] **11. Events.** `packages/session/events.js` owns the vocabulary (14 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
@@ -75,8 +77,23 @@ Items 3–5, 7, 10, 12 are untouched, and the clock is read but not enforced.
       **Chord content is not authored yet**: `track.json` has no shortcuts group, because the reference's
       13 shortcut lessons are phase-9B scope. `tests/keys-page.test.js` renders a shortcut lesson from a
       temp content copy, which is what proves the server half until that group exists.
-- [ ] **7, 10, 12.** Workbook screens, `packages/sheet` as a module, the hint/docs panels, accessibility.
-      Next up, in that order.
+- [x] **7. Workbook screen.** The screen ships rows, not a file: `sheet: { name, startCell, rows }` is the
+      single source, and the build writes the `.xlsx` from it with `legacy/src/xlsx.mjs` — a dependency-free
+      ZIP of the six parts Excel reads, deterministic byte for byte, `fullCalcOnLoad` set because nothing
+      caches a value. That keeps the download and the preview from drifting, and it means no binary is
+      committed to review. The generated file has no `Content-Disposition` to set: it is a static asset
+      under `/assets/files/`, linked with `download` so the browser saves it instead of opening it, and the
+      preview is the same rows rendered by `renderDataGrid` into a plain table — no iframe, no third party,
+      no fetch, so it works offline. The preview is deliberately *not* `role="grid"`: the drill's delegated
+      click and keydown handlers would treat a preview cell as selectable, disable the bar and fill it with
+      a cell's text, so `renderDataGrid` takes an `interactive` option and the preview passes `false`.
+      Graded by `gradeAnswer`, exactly like a picture: `answers` is the whole grade and the first is the
+      reveal. `sheet` is rejected on any other screen type by `packages/content/schema.js` rather than
+      dropped, so an author who writes one always sees the file. Proved by `tests/xlsx.test.js` (the ZIP
+      parts, cell XML, determinism, name sanitisation), `tests/workbook-page.test.js` (the rendered page,
+      payload and non-interactive preview) and `tests/workbook-build.test.js` (a build from a temp content
+      copy: one file per screen, the link on the page, `verify()` clean, and two screens whose ids collapse
+      to one file name throwing instead of one silently winning).
 
 Two acceptance criteria are now true of the site — "a lesson with several screens terminates at 100"
 passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson 16's three screens in
@@ -150,13 +167,15 @@ design system, with accessibility and browser-resilience the reference does not 
 
 ## Acceptance criteria
 
-- [ ] A 7-screen lesson exercising all five types reaches 100 and completes.
-- [ ] Recycling works: a lesson with 5 screens still terminates at 100.
+- [ ] A 7-screen lesson exercising all five types reaches 100 and completes. All five types render; no
+      catalog lesson is authored with a workbook yet, so this stays open until one is.
+- [x] Recycling works: a lesson with 5 screens still terminates at 100.
 - [ ] Chord drills pass manual matrix on Chrome/Safari/Firefox × macOS/Windows.
 - [ ] At least one real browser-reserved combination degrades to the fallback instead of dead-ending.
 - [ ] Wrong answer shows the authored hint for the actual failure mode, not a generic message.
 - [ ] Show-answer threshold is configurable and respected.
-- [ ] Workbook preview renders offline, with no third-party request.
+- [x] Workbook preview renders offline, with no third-party request. Proven in
+      `tests/workbook-page.test.js`, whose fixture asserts the preview table is server-rendered markup.
 - [ ] axe: zero critical/serious on the player.
 - [ ] Keyboard-only learner completes a full lesson.
 - [x] Session timer pauses when the tab is hidden.

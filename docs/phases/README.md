@@ -4,8 +4,10 @@ The prototype is split into six build phases, a design-system phase that runs be
 built, and one post-validation phase. Each phase has its own document, a definition of done, and a
 gate that must pass before the next phase starts.
 
-Source of truth for the product decision: `files/excelsupreme-plan.md` (session workspace).
-Source of truth for this build: `plan.md` (session workspace).
+Source of truth for the shipped build: this folder, `legacy/src/`, `legacy/content/`, `packages/grader/`, `packages/content/`, and the tests that gate them.
+The static site moved into `legacy/` in phase 0 of the parity plan (history below still names the old
+paths — read `src/...` as `legacy/src/...`); the Next.js shell that replaces it lives in `app/`.
+Source of truth for the reference-parity program: [`docs/plans/parity/00-overview.md`](../plans/parity/00-overview.md).
 
 ## Sequence
 
@@ -19,6 +21,14 @@ Source of truth for this build: `plan.md` (session workspace).
 | 5 | [05-drill-ui-and-funnel.md](05-drill-ui-and-funnel.md) | `src/client/drill.js`, `src/styles/{tokens,base,components}.css` | A learner can solve, get hinted, hit the paywall, and unlock a trial |
 | 6 | [06-end-to-end-verification.md](06-end-to-end-verification.md) | passing build + browser walkthrough + `README.md` | All checks green, funnel events visible, documented run path |
 | 7 | [07-post-validation-expansion.md](07-post-validation-expansion.md) | roadmap for Next.js, payments, assessment | Only started after the fake-door metrics clear the threshold |
+
+### Reference-parity plans
+
+The expansion roadmap above is specified in detail, phase by phase, in
+[`docs/plans/parity/`](../plans/parity/00-overview.md): an overview plus eleven phase plans covering
+the shell port, curriculum and content factory, exercise engine, dashboard, accounts and payments,
+retention, credentials and projects, SEO, the SQL track, B2B/referrals, and launch. It supersedes the
+shortcut-drill and lifetime-pricing non-goals in phase 7.
 
 ## Progress
 
@@ -77,9 +87,11 @@ Source of truth for this build: `plan.md` (session workspace).
 ## Running the project at any point
 
 ```
-npm test        # grader + fixture + verify + vendor suite (268 tests)
-npm run build   # regenerate dist/
-npm run verify  # build, then assert dist/ is complete (333 checks)
-npm run check   # test + build + verify — the green-before-shipping command
-npm run dev     # build, then serve on http://localhost:4173
+npm test        # grader + fixture + golden + verify + vendor suite (344 tests)
+npm run build   # regenerate legacy/dist
+npm run verify  # build, then assert legacy/dist is complete (333 checks)
+npm run check   # test + next:build + next:check + verify — the green-before-shipping command
+npm run dev     # build, then serve http://localhost:4173 from legacy/dist
+npm run next:dev  # the ported Next.js shell on http://localhost:3000
+npm run e2e     # next:build, then Playwright against next start (13 browser tests)
 ```

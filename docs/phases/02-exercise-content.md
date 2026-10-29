@@ -10,7 +10,7 @@
 
 ```
 content/
-  track.json                     # track meta: title, promise, lesson order, freeLessonCount
+  track.json                     # the catalog: title, promise, groups, lesson slots, freeLessonCount
   exercises/
     01-sum-basics.json
     02-average-scores.json
@@ -94,7 +94,10 @@ Datasets are small on purpose: 3–6 data rows, readable at a glance, no scrolli
 
 ## Work breakdown
 
-1. Write `track.json` with `freeLessonCount: 5` and the ordered lesson list.
+1. Write `track.json` with `freeLessonCount: 5` and the ordered lesson list. Phase 1's catalog step
+   later reshaped this file into `groups` plus 88 lesson slots, where the ten lessons below are the
+   authored slots — see [`packages/content/README.md`](../../packages/content/README.md) for the shape
+   a new lesson goes into.
 2. Author lessons in order of dependency (1, 2, 3, 4 are level 1; 5–7 level 2; 8–10 level 3).
 3. For each lesson, compute the expected value **by hand** and cross-check with the evaluator before
    committing the JSON. Never copy the evaluator's output into `expect` — that hides evaluator bugs.
@@ -117,8 +120,8 @@ These are automated in [`tests/content.test.js`](../../tests/content.test.js) so
   answer with `+1/0` appended proves the copy is what a broken formula actually receives.
 - Every function named in a rule exists in phase 1's library (`KNOWN_FUNCTIONS`).
 - Every `docs` block is at least 150 words with two or more named errors.
-- `track.json` lists each file exactly once, in file order, and keeps the paywall strictly inside the
-  track.
+- `track.json` lists each file exactly once, in catalog order — which is the published numbering — and
+  keeps the paywall strictly inside the authored lessons.
 - The reference answer grades `ok: true` **and** its value equals a literal typed independently in
   the test's audit table, so neither the JSON nor the evaluator can drift alone.
 - Three or more plausible wrong answers per lesson are rejected, each with a non-empty hint.

@@ -8,8 +8,14 @@ offending token.
 Nothing is sent anywhere. There is no account, no backend, no analytics endpoint and no third-party
 request: the grader, the state and the styling all ship as first-party files.
 
-**Stack:** static HTML rendered by Node, native ES modules, `node --test`. No bundler, no framework,
-no runtime dependency. Node serves `dist/`; the same directory is what you upload to any static host.
+**Stack:** the shipped site is static HTML rendered by Node, native ES modules, `node --test` — no
+bundler, no framework, no runtime dependency. Node serves `dist/`; the same directory is what you upload
+to any static host.
+
+That site now lives in `legacy/` and is frozen: it is the deployable artifact while the Next.js app in
+`app/` is ported beside it (phase 0 of the [parity plan](docs/plans/parity/00-overview.md)). Everything
+in "How grading works", "Adding lesson 11" and the phase-6 verification below still describes `legacy/`.
+Until the port lands, `npm test`, `npm run build` and `npm run check` all still run against it.
 
 ---
 
@@ -17,58 +23,103 @@ no runtime dependency. Node serves `dist/`; the same directory is what you uploa
 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
-npm test                # 268 tests, no install step
-npm run build           # writes dist/ — 11 pages, one stylesheet, the assets
+npm install             # Next.js and React, for the new app shell only
+npm test                # 344 tests, no build step
+npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
+npm run build           # writes legacy/dist — 11 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
-npm run dev             # build, then serve dist/ at http://localhost:4173
+npm run check           # all of it, including the Next.js build
+npm run dev             # build, then serve legacy/dist at http://localhost:4173
+npm run next:dev        # the Next.js shell on http://localhost:3000
+npm run e2e             # build, then drive the shell in a real browser (Playwright)
 ```
 
-There is nothing to install. `npm install` is not part of the workflow and there is no
-`node_modules`; if one appears, something has gone wrong.
+`npm install` pulls the three dependencies `app/` needs (`next`, `react`, `react-dom`, pinned exact).
+The static site in `legacy/` still has none — it runs on Node alone, which is why it stays deployable
+while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, content validation, build, server, client, styles, vendor pins, build verification | 268 pass, 0 fail |
-| `npm run build` | Renders `dist/` from `content/` and `src/` | 11 pages, exit 0 |
-| `npm run verify` | Build, then read `dist/` the way a crawler would | 333 checks pass |
-| `npm run check` | `test` + `build` + `verify` | the one command to run before shipping |
-| `npm run vendor:check` | Re-hash every vendored file against `vendor/manifest.json` | 25 files match |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 344 pass, 0 fail |
+| `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
+| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 11 pages, exit 0 |
+| `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
+| `npm run content:fixtures -- --lesson 6` | Prints every fixture for one lesson with declared vs reported rule | one row per fixture, all `✓`/`·` |
+| `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
+| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 333 checks pass |
+| `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
+| `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
+| `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 11 prerendered routes, exit 0 |
+| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 11 pages match |
+| `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
+| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 13 tests pass |
 
-**Port note.** 4173 is not arbitrary: `src/site/config.mjs` falls back to `http://localhost:4173` as
+**Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
 `SITE_URL`, which is what canonical links, the sitemap and the JSON-LD `@id`s are built from. Serve on
-a different port and those URLs stop matching the page. `PORT=5000 node src/serve.mjs` works for a
+a different port and those URLs stop matching the page. `PORT=5000 node legacy/src/serve.mjs` works for a
 throwaway look; use `SITE_URL=https://your.host npm run build` for a real deployment.
 
-Deploying is `npm run build` plus uploading `dist/`. There is no server-side anything.
+Deploying is `npm run build` plus uploading `legacy/dist/`. There is no server-side anything.
 
 ---
 
 ## Architecture
 
 ```
-content/                  the product, in JSON
-  track.json              order, free-lesson count, track title and promise
-  exercises/NN-slug.json  one lesson: grid, prompt, answer cell, expect, require/forbid rules, docs
-src/
-  grader/                 the part that must never lie
+app/                      the ported Next.js shell, built beside the static site (phase 0)
+  layout.js page.js       shared document head/body; the index route
+  globals.css             imports the 14 stylesheets in the same order the static build concatenates
+  learn/excel/[lesson]/   the lesson route: 10 prerendered slugs from generateStaticParams
+  api/health/route.js     status plus the deploy SHA
+  error.js not-found.js   the two boundaries: a render error, and a 404 that still looks like the site
+  sitemap.js robots.js    Metadata routes: every served URL, and the crawler policy that points at them
+e2e/                      Playwright: the index, the drill loop, the URL contract (npm run e2e)
+.github/workflows/ci.yml  three jobs: unit + build gates, the browser suite, and the static site
+lib/
+  site.js                 loads config + validated content + icons once, from legacy/, for the routes
+scripts/
+  next-assets.mjs         copies legacy/dist/assets → public/assets so both builds serve one asset tree
+  check-next-pages.mjs    asserts each prerendered page equals the shared template fragments, plus
+                          that the sitemap and robots the build emits cover the track
+public/assets/            build output (gitignored)
+legacy/                   the shipped static site: frozen, still what deploys
+  content/                the product, in JSON
+    track.json            order, free-lesson count, track title and promise
+    exercises/NN-slug.json  one lesson: grid, prompt, answer cell, expect, require/forbid rules, docs
+  src/
+    client/
+      state.js            pure, DOM-free: gating, progress, attempts, formula normalisation
+      drill.js            the browser module: mounts on the SSR markup, renders feedback
+    site/                 server-side rendering: one function per page region
+      content.mjs         the site's view of the track: URLs and prev/next on top of the validated data
+      packages.mjs        the single place the build reaches into ../packages/ (named failure, not ERR_MODULE_NOT_FOUND)
+      shell.mjs exercise-page.mjs index-page.mjs sheet.mjs    the templates
+      assets.mjs html.mjs config.mjs                          CSS concatenation, escaping, env
+    styles/               tokens.css → base.css → components.css (design system: docs/phases/05a)
+    build.mjs             writes legacy/dist, refuses third-party origins
+    verify.mjs            reads legacy/dist and asserts the pages are complete
+    serve.mjs             static server for legacy/dist only
+  vendor/                 fonts, icons, Radix colours, Open Props, licences, manifest.json (hashes)
+packages/
+  grader/                 the part that must never lie — npm workspace, imported by the build and the app
     tokenize.js parse.js  formula → tokens → AST, with positions so the caret can point
     evaluate.js functions.js values.js address.js   the tiny spreadsheet it evaluates against
     grade.js              value + rule checks → { ok, code, message, position, hint }
-  client/
-    state.js              pure, DOM-free: gating, progress, attempts, formula normalisation
-    drill.js              the browser module: mounts on the SSR markup, renders feedback
-  site/                   server-side rendering: one function per page region
-    content.mjs           loads and validates content/; a malformed lesson fails the build
-    shell.mjs exercise-page.mjs index-page.mjs sheet.mjs    the templates
-    assets.mjs html.mjs config.mjs                          CSS concatenation, escaping, env
-  styles/                 tokens.css → base.css → components.css (design system: docs/phases/05a)
-  build.mjs               writes dist/, refuses third-party origins
-  verify.mjs              reads dist/ and asserts the pages are complete
-  serve.mjs               static server for dist/ only
-vendor/                   fonts, icons, Radix colours, Open Props, licences, manifest.json (hashes)
+    README.md             the verdict contract: what each field means and what may not change
+  content/                reads content/ and refuses anything malformed; every failure names the file
+    schema.js             the lesson schema: v2 screens[] plus the v1 flat shape, normalized to one
+    index.js              loadContent() → { track, exercises } in track order; validateLesson(); screenAt()
+    README.md             what it rejects and why, and why page shape is deliberately not in here
+  content-lint/           the authoring gate: can the lesson be shipped, not just rendered
+    index.js              lintContent() → { ok, errors, warnings, stats }: fixtures replayed, prompts,
+                          links; collects every finding instead of throwing on the first
+    cli.js                content-lint check | fixtures --lesson NN
+    README.md             the checks, the floor, and what is deliberately left to the schema
 tests/                    node --test suites, one per layer
+tests/golden/             byte-stable record of every grader verdict (phase 0 tripwire)
 docs/phases/              the plan each phase was built from, with what was built and what changed
+docs/plans/parity/        the reference-parity program, one file per phase
 docs/screenshots/         the visual baseline: lesson 1 at 1440px and 375px
 ```
 
@@ -77,7 +128,7 @@ re-implements grading, and the templates never contain a value `content.mjs` did
 
 ### How grading works
 
-`grade()` in `src/grader/index.js` is a pure function. It strips one leading `=`, tokenises, parses,
+`grade()` in `packages/grader/index.js` is a pure function. It strips one leading `=`, tokenises, parses,
 checks the syntax (reporting a 1-based `position` into the stripped text), evaluates against the grid,
 then applies the lesson's rules:
 
@@ -103,7 +154,7 @@ here; yours has 0.`).
 
 ## Adding lesson 11
 
-1. Copy a neighbouring file in `content/exercises/`, rename it `11-your-slug.json`. `id` must equal
+1. Copy a neighbouring file in `legacy/content/exercises/`, rename it `11-your-slug.json`. `id` must equal
    the file name; `slug` must be lowercase kebab.
 2. Fill in `grid` (rows of raw values, `startCell`), an `answerCell` inside that grid, `prompt`
    (≤160 chars) and `expect.value`.
@@ -111,14 +162,21 @@ here; yours has 0.`).
    you do not want, `requireRef` the cell the answer must depend on.
 4. Write `docs`: `dataset`, `syntax`, `reference` (a formula starting with `=`), `explain`, `errors`
    (`code` + `text`), `atWork`, `teaches`, `outcome`.
-5. Append the id to `lessons` in `content/track.json`. The build fails if an exercise exists that the
-   track does not list, so this is not optional.
+5. Point the catalog slot at the file. `legacy/content/track.json` is the site map: 16 groups and 88
+   lesson slots. A slot that is still planned carries `title` + `level`; authoring it means replacing
+   those two with `{ "id": "11-your-slug", "group": "lookup" }` — the title, slug and level then come
+   from the lesson file and are no longer written twice. A brand-new lesson adds a slot in the group it
+   belongs to. The build fails if an exercise exists that the catalog does not list, so this is not
+   optional.
 6. Add fixtures: `tests/fixtures.test.js` grades saved inputs per lesson — at minimum one accepted
    answer, one off-by-value, one wrong-function and one syntax error.
 7. `npm test && npm run verify`. The index, the rail, the pager, the sitemap and JSON-LD `position`
    all follow from `track.json`; nothing else needs editing.
 
-Free vs paid is one number: `freeLessonCount` in `track.json` (currently 5).
+`npm run catalog:reference` prints the reference site's lesson inventory next to our 16 groups, which
+is how the remaining 78 slots were chosen.
+
+Free vs paid is one number: `freeLessonCount` in `legacy/content/track.json` (currently 5).
 
 ### Styling
 
@@ -135,9 +193,9 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **268 passing**, 0 failing — 90 grader, 48 fixtures, 42 build/server, 32 client, 19 content, 16 styles, 13 verify, 8 vendor |
+| `npm test` | **344 passing**, 0 failing — 90 grader, 48 fixtures, 44 build/server, 32 client, 32 content-lint, 20 content, 17 styles, 17 schema, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
 | `npm run build` | 11 pages, 280.2 kB HTML+CSS, 14 style sources, 4 fonts, 9 grader modules, 2 client modules |
-| `node src/verify.mjs` | **333 checks passed** across 10 lesson pages + the index |
+| `node legacy/src/verify.mjs` | **333 checks passed** across 10 lesson pages + the index |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |
 | axe-core 4 on a lesson | 0 violations, 50 passes |
 | Console | no errors or warnings, only the `[es]` debug funnel lines |

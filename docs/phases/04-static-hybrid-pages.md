@@ -73,8 +73,9 @@ reviews the site does not have.
 
 ## Work breakdown
 
-1. `loadContent()` — read `track.json`, enumerate `content/exercises/*.json`, sort by `id`, validate
-   required fields and fail the build with a clear message (missing `docs`, duplicate slug, bad grid).
+1. `loadContent()` — read `track.json`, enumerate `content/exercises/*.json`, order them by the
+   catalog, validate required fields and fail the build with a clear message (missing `docs`, duplicate
+   slug, bad grid).
 2. `renderShell({ title, description, canonical, body })` — one HTML template with meta, OG tags,
    canonical, JSON-LD slot, and the asset links.
 3. `renderExercise(exercise, prev, next)` — drill mount + docs block + exercise JSON script tag.

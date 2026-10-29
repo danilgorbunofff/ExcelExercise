@@ -60,9 +60,17 @@ than pretending it does not exist.
 
 ## Explicit non-goals
 
-- Excel keyboard-shortcut drills as a headline feature (Chromium-only `navigator.keyboard.lock()`,
-  broken on Safari/Firefox).
 - Native mobile apps.
 - AI tutor chat inside the drill (nondeterministic, slow, expensive, and it undercuts the grading
   promise).
-- Selling lifetime deals before the assessment product proves willingness to pay.
+
+## Superseded by the reference-parity plan
+
+Two items above no longer hold, because the reference product proves they are expected features:
+
+- **Excel keyboard-shortcut drills** are now in scope. They ship with a capability check and an
+  always-available multiple-choice fallback, so Safari/Firefox learners are never blocked.
+- **Lifetime pricing** is now in scope as a one-time Stripe price alongside monthly and annual.
+
+The detailed, phase-by-phase replacement for this document is
+[`docs/plans/parity/00-overview.md`](../plans/parity/00-overview.md).

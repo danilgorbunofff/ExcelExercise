@@ -41,7 +41,13 @@ are untouched, and the clock is read but not enforced.
       is the same graded object: `createSession` → `recordVerdict` → `emitAll`. Screens carry their own
       `answerCell`, `expect`, `rules`, `fixtures` and `reference`, and a multi-screen lesson must give
       each screen its own reference — `packages/content-lint` fails the copy that would reveal the same
-      formula twice.
+      formula twice. The grid both halves read is `packages/sheet`: `gridModel({ grid, answerCell })`
+      resolves every address once from `startCell`, so the template that paints the cells and the
+      keyboard handler that moves across them cannot disagree about which cells exist, and
+      `moveSelection` answers for an arrow, Home or End — `null` at the edge rather than a wrap onto a
+      cell the page did not draw. Recorded deviation: the markup renderer stayed in
+      `legacy/src/site/sheet.mjs`. It needs the site's escaping and number formatting, and moving it
+      would rewrite golden-pinned bytes without buying a second consumer.
 - [x] **1. Screen router.** `type` picks the panel at build time — `renderScreens` in
       `legacy/src/site/exercise-page.mjs` writes a `<div class="sheet">` for a formula and a
       `<div class="picture-body">` for a picture — and picks the grader at runtime: `gradeScreen` in

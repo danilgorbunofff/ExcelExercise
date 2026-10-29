@@ -122,6 +122,8 @@ packages/
     clock.js              the session budget, with an idempotent pause for a hidden tab
     README.md             docs/player-contract.md is the longer version: screen shape and invariants
   progress/               the dashboard read model: badges, groups, up-next — pure, no DOM
+  keys/                   shortcut bindings as data: chords, presses, labels and what the browser keeps
+  sheet/                  the grid as data: cell addresses, the answer cell, arrow/Home/End movement
   content-lint/           the authoring gate: can the lesson be shipped, not just rendered
     index.js              lintContent() → { ok, errors, warnings, stats }: fixtures replayed, prompts,
                           links; collects every finding instead of throwing on the first

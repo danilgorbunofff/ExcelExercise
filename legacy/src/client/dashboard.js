@@ -8,7 +8,7 @@
  * browser refuses storage must not be told they have done nothing.
  */
 
-import { BADGE_LABELS, ago, nextCopy, summarise, summaryLine } from "../progress/index.js";
+import { BADGE_LABELS, ago, canStart, nextCopy, summarise, summaryLine } from "../progress/index.js";
 import { PROGRESS_KEY, emptyProgress, parseProgress, serializeProgress } from "./state.js";
 
 const RESET_CONFIRM_MS = 6000;
@@ -110,6 +110,30 @@ function renderRecent(rows) {
   ui.recent.replaceChildren(...items);
 }
 
+/**
+ * The order gate, said on the row. The link stays: a locked drill opens its gate page, which names the
+ * drill to finish and offers the one-click unlock — a row that is not a link would be a dead end with
+ * the way out behind it.
+ */
+function paintLock(node, row) {
+  const start = canStart({
+    plan: state.plan,
+    progress: state.progress,
+    id: row.id,
+    unlocked: state.progress.unlocked === true,
+  });
+  node.dataset.locked = String(!start.open);
+  const note = node.querySelector(".row-locked");
+  if (start.open) {
+    if (note) note.remove();
+    return;
+  }
+  const slot = node.querySelector(".row-body") ?? node;
+  const target = note ?? el("span", { class: "row-locked" });
+  target.textContent = `Opens after drill ${start.after.number}`;
+  if (!note) slot.append(target);
+}
+
 function paint() {
   const summary = summarise({ plan: state.plan, progress: state.progress });
 
@@ -128,6 +152,7 @@ function paint() {
     node.dataset.badge = row.badge;
     const label = node.querySelector("[data-badge-for]");
     if (label) label.textContent = BADGE_LABELS[row.badge] ?? BADGE_LABELS.not_started;
+    paintLock(node, row);
   }
 
   for (const group of summary.groups) {
@@ -159,10 +184,12 @@ function disarm() {
 function armReset() {
   if (!ui.reset || !ui.resetNote) return;
   if (ui.reset.dataset.armed === "true") {
-    const cleared = writeProgress(emptyProgress());
+    // The unlock is a preference, not a completion: erasing progress does not put the walls back.
+    const wiped = { ...emptyProgress(), unlocked: state.progress.unlocked === true };
+    const cleared = writeProgress(wiped);
     disarm();
     if (cleared) {
-      state.progress = emptyProgress();
+      state.progress = wiped;
       paint();
       ui.resetNote.textContent = "Progress cleared. Every drill is unstarted again.";
     } else {

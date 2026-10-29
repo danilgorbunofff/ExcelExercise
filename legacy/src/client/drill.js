@@ -7,6 +7,7 @@
  */
 
 import { grade, gradeAnswer } from "../grader/index.js";
+import { canStart } from "../progress/index.js";
 import { chordText, labelsOf, matchesEvent, matchesTyped, matchesTypedSteps, parseChord, parsePress, uncapturable } from "../keys/index.js";
 import { MOVE_KEYS, gridModel, moveSelection } from "../sheet/index.js";
 import {
@@ -905,77 +906,125 @@ function mountDrill(payloadNode) {
     }
   }
 
-  function gate() {
-    if (gateFor(payload.track, trial) === "open") return false;
-    const remaining = Math.max(total - (payload.track.freeLessonCount ?? 0), 1);
-    const paywall = el("div", { class: "paywall", id: "paywall" }, [
-      el("h2", { class: "paywall-title", text: "The rest of the track is on trial" }),
-      el(
-        "p",
-        { class: "paywall-body" },
-        [
-          `Drills ${(payload.track.freeLessonCount ?? 0) + 1}–${total} cover rounding, lookups, ` +
-            `and text splitting. The first ${payload.track.freeLessonCount} stay free. A trial opens the remaining ` +
-            `${remaining} for ${7} days.`,
-        ],
-      ),
-    ]);
+  /**
+   * The wall in front of this drill, or `null`. Two stand here and both are local: the order gate (the
+   * track is in order, so the frontier is the first drill nobody has finished) and the trial gate
+   * (`freeLessonCount`). The order gate is asked first because finishing one drill is the honest way
+   * through it, and a trial form behind an order wall would be a second riddle.
+   */
+  function blockingGate() {
+    if (progress.unlocked === true) return null;
+    const start = canStart({ plan: payload.track.plan ?? [], progress, id: lessonId });
+    if (!start.open) return { kind: "order", after: start.after };
+    return gateFor(payload.track, trial) === "open" ? null : { kind: "paywall" };
+  }
 
-    const error = el("p", { class: "paywall-error", id: "paywall-error", role: "alert", text: "" });
-    const input = el("input", {
-      class: "paywall-input",
-      id: "paywall-email",
-      type: "email",
-      name: "email",
-      autocomplete: "email",
-      placeholder: "you@company.com",
-      "aria-label": "Email address",
-      "aria-describedby": "paywall-error",
-      required: true,
+  /** The one exit from a wall: take it down, say why, and put the drill under the cursor. */
+  function openAfterGate(card, head, body) {
+    card.remove();
+    for (const node of [ui.screens, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = false;
+    // The mount's `screen_view` sits after the gate's early return, so a gated learner would otherwise
+    // never enter the funnel: their first screen is the one the gate just opened.
+    track("screen_view", {
+      id: lessonId,
+      screen: currentScreen(loop),
+      of: screenCount,
+      gated: true,
+      solved,
+      elapsed: seconds(),
     });
-    const submit = el("button", { class: "btn", type: "submit", text: "Start free trial" });
-    const form = el("form", { class: "paywall-form", id: "paywall-form", novalidate: true }, [input, submit, error]);
-    paywall.append(form, el("p", { class: "paywall-note", text: "No card required. Nothing is sent anywhere: the trial is stored in this browser." }));
+    clearFeedback();
+    showFeedback({ state: "is-hint", head, body });
+    ui.input.focus();
+  }
+
+  function gate() {
+    const blocked = blockingGate();
+    if (!blocked) return false;
+
+    const paywall = el("div", {
+      class: "paywall",
+      id: "paywall",
+      "data-gate": blocked.kind === "order" ? "order" : "trial",
+    });
+
+    if (blocked.kind === "order") {
+      const after = blocked.after;
+      paywall.append(
+        el("h2", { class: "paywall-title", text: `Drill ${payload.track.number} opens after drill ${after.number}` }),
+        el("p", {
+          class: "paywall-body",
+          text: `The track is in order, so finishing "${after.title}" opens this one. Nothing is locked forever: the unlock below opens the whole track in this browser.`,
+        }),
+        el("p", { class: "paywall-actions" }, [
+          el("a", { class: "btn btn-primary", href: after.path, text: `Go to drill ${after.number}` }),
+        ]),
+      );
+      track("gate_view", { id: lessonId, reason: "order", after: after.id });
+    } else {
+      const remaining = Math.max(total - (payload.track.freeLessonCount ?? 0), 1);
+      paywall.append(
+        el("h2", { class: "paywall-title", text: "The rest of the track is on trial" }),
+        el(
+          "p",
+          { class: "paywall-body" },
+          [
+            `Drills ${(payload.track.freeLessonCount ?? 0) + 1}–${total} cover rounding, lookups, ` +
+              `and text splitting. The first ${payload.track.freeLessonCount} stay free. A trial opens the remaining ` +
+              `${remaining} for ${7} days.`,
+          ],
+        ),
+      );
+
+      const error = el("p", { class: "paywall-error", id: "paywall-error", role: "alert", text: "" });
+      const input = el("input", {
+        class: "paywall-input",
+        id: "paywall-email",
+        type: "email",
+        name: "email",
+        autocomplete: "email",
+        placeholder: "you@company.com",
+        "aria-label": "Email address",
+        "aria-describedby": "paywall-error",
+        required: true,
+      });
+      const submit = el("button", { class: "btn", type: "submit", text: "Start free trial" });
+      const form = el("form", { class: "paywall-form", id: "paywall-form", novalidate: true }, [input, submit, error]);
+      paywall.append(form, el("p", { class: "paywall-note", text: "No card required. Nothing is sent anywhere: the trial is stored in this browser." }));
+      track("paywall_view", { id: lessonId });
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const email = input.value.trim();
+        if (!validEmail(email)) {
+          error.textContent = "That does not look like an email address. Use the form you@company.com.";
+          input.focus();
+          return;
+        }
+        trial = startTrial();
+        store.write(TRIAL_KEY, JSON.stringify(trial));
+        // Deliberately not logging the address: this buffer may later be wired to an
+        // analytics endpoint, and the form promises nothing is sent anywhere.
+        track("paywall_email", { id: lessonId });
+        track("trial_start", { id: lessonId, days: trialDaysLeft(trial) });
+        openAfterGate(paywall, "Trial started", `${trialDaysLeft(trial)} days of the full track are open. Your progress is kept in this browser.`);
+      });
+    }
+
+    // The order gate and the trial both offer the same way out: one flag, one browser, no account.
+    const unlock = el("button", { class: "btn", id: "gate-unlock", type: "button", text: "Unlock the whole track for this browser" });
+    const note = el("p", { class: "paywall-note", text: "Instant, and only in this browser. Clearing site data puts the walls back." });
+    paywall.append(el("div", { class: "paywall-unlock" }, [unlock, note]));
+    unlock.addEventListener("click", () => {
+      progress = { ...progress, unlocked: true };
+      saveProgress();
+      track("track_unlock", { id: lessonId });
+      openAfterGate(paywall, "The track is open", "Every drill is unlocked in this browser. Your progress is kept here too.");
+    });
 
     for (const node of [ui.screens, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = true;
     if (ui.solution) ui.solution.hidden = true;
     (ui.card?.querySelector(".sheet-head") ?? ui.card)?.after(paywall);
-    track("paywall_view", { id: lessonId });
-
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const email = input.value.trim();
-      if (!validEmail(email)) {
-        error.textContent = "That does not look like an email address. Use the form you@company.com.";
-        input.focus();
-        return;
-      }
-      trial = startTrial();
-      store.write(TRIAL_KEY, JSON.stringify(trial));
-      // Deliberately not logging the address: this buffer may later be wired to an
-      // analytics endpoint, and the form promises nothing is sent anywhere.
-      track("paywall_email", { id: lessonId });
-      track("trial_start", { id: lessonId, days: trialDaysLeft(trial) });
-      paywall.remove();
-      for (const node of [ui.screens, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = false;
-      // The mount's `screen_view` sits after the paywall's early return, so a gated learner would
-      // otherwise never enter the funnel: their first screen is the one the trial just opened.
-      track("screen_view", {
-        id: lessonId,
-        screen: currentScreen(loop),
-        of: screenCount,
-        gated: true,
-        solved,
-        elapsed: seconds(),
-      });
-      clearFeedback();
-      showFeedback({
-        state: "is-hint",
-        head: "Trial started",
-        body: `${trialDaysLeft(trial)} days of the full track are open. Your progress is kept in this browser.`,
-      });
-      ui.input.focus();
-    });
 
     return true;
   }

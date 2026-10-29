@@ -20,9 +20,11 @@ export const EVENT_TYPES = Object.freeze([
   "lesson_complete",
   "lesson_exhausted",
   "lesson_abandon",
+  "gate_view",
   "paywall_view",
   "paywall_email",
   "trial_start",
+  "track_unlock",
   "track_view",
 ]);
 

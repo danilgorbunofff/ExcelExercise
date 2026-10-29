@@ -13,7 +13,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const ZERO_WIDTH = /[\u200B-\u200D\u2060\uFEFF]/g;
 
 export function emptyProgress() {
-  return { v: 1, done: {}, tries: {} };
+  return { v: 1, done: {}, tries: {}, unlocked: false };
 }
 
 function isPlainObject(value) {
@@ -53,6 +53,7 @@ export function parseProgress(text) {
     if (!isLessonId(id)) continue;
     if (Number.isInteger(tries) && tries > 0) progress.tries[id] = tries;
   }
+  progress.unlocked = raw.unlocked === true;
   return progress;
 }
 
@@ -61,6 +62,7 @@ export function serializeProgress(progress) {
     v: 1,
     done: progress.done,
     tries: progress.tries,
+    unlocked: progress.unlocked === true,
   });
 }
 

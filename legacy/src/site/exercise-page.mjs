@@ -81,6 +81,14 @@ function exercisePayload({ config, track, index, entry }) {
       total: index.length,
       number: entry.number,
       free: entry.free,
+      // The order gate needs the whole order, not just where this drill sits in it: "the first drill you
+      // have not finished" is a fact about the plan. Ids and titles only — the gate links by path.
+      plan: index.map((item) => ({
+        id: item.exercise.id,
+        number: item.number,
+        title: item.exercise.title,
+        path: item.path,
+      })),
       freeLessonCount: track.freeLessonCount,
       showAnswerAfter: track.showAnswerAfter,
       nextPath: entry.nextPath,

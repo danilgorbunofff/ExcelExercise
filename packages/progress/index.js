@@ -82,6 +82,35 @@ export function nextCopy({ next, nextReason }) {
   return { label: `${verb} drill ${next.number} · ${next.title}`, why: why[nextReason] ?? "" };
 }
 
+/**
+ * Whether a drill is open yet. The track is in order: a lesson opens when every lesson before it is
+ * finished, which makes the frontier the one that always is. A lesson already finished stays open
+ * however far past the frontier it sits, because a learner who solved it has earned the revisit.
+ *
+ * `unlocked` is the local escape hatch: the whole track is in this browser's storage, so clearing the
+ * browser would otherwise wall a returning learner behind drill 1 forever. One click on the gate sets
+ * it, and it never leaves the browser.
+ *
+ * An id the plan does not contain is open. Gating something the plan cannot see would turn a stale
+ * bookmark or a renamed lesson into a wall.
+ */
+export function canStart({ plan, progress = null, id, unlocked = false }) {
+  if (unlocked === true) return { open: true, reason: "unlocked", after: null };
+  const index = plan.findIndex((entry) => entry.id === id);
+  if (index === -1) return { open: true, reason: "unknown", after: null };
+  if (progress?.done?.[id]) return { open: true, reason: "complete", after: null };
+  const frontier = plan.findIndex((entry) => !progress?.done?.[entry.id]);
+  if (frontier === -1 || index <= frontier) {
+    return { open: true, reason: index === frontier ? "next" : "open", after: null };
+  }
+  const blocking = plan[frontier];
+  return {
+    open: false,
+    reason: "ahead",
+    after: { id: blocking.id, number: blocking.number, title: blocking.title, path: blocking.path },
+  };
+}
+
 /** "just now", "4 minutes ago", "2 days ago", "3 weeks ago" — for the recent list. */
 export function ago(at, now = Date.now()) {
   const then = typeof at === "number" ? at : Date.parse(at ?? "");

@@ -1101,6 +1101,24 @@
   display: none;
 }
 
+/* The order gate's one action, and the unlock both gates offer. */
+.paywall-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+
+.paywall-unlock {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.paywall-unlock .paywall-note {
+  margin-top: var(--s-2);
+}
+
 /* ── Notes a screen brings ─────────────────────────────────────────────── */
 
 /*
@@ -1454,6 +1472,15 @@
   color: var(--text-muted);
   font-size: var(--fs-ui);
   line-height: 1.5;
+}
+
+/* The order gate, on the row: the link stays, the note says what opens it. */
+.row-locked {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-style: italic;
 }
 
 .row-meta {

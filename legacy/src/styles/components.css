@@ -550,12 +550,23 @@
   border-top: 1px solid var(--line);
 }
 
+/*
+ * The panel is the download line and then the preview, in that order, never side by side. The single
+ * column is a `minmax(0, 1fr)` track because the preview holds a table: a plain auto track would take
+ * the table's min-content width and push the sheet out through the card instead of scrolling in place.
+ */
+.workbook {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3);
+}
+
 .workbook-file {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--s-3);
-  margin: 0 0 var(--s-3);
+  margin: 0;
 }
 
 .workbook-link {

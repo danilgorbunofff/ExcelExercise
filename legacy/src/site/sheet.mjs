@@ -124,7 +124,12 @@ export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
                   </p>
                   <details class="workbook-preview" open>
                     <summary>Preview the sheet</summary>
-                    <div class="workbook-scroll">${preview}</div>
+                    <div
+                      class="workbook-scroll"
+                      tabindex="0"
+                      role="group"
+                      aria-label="${esc(`Scrollable preview of the ${screen.sheet.name} sheet`)}"
+                    >${preview}</div>
                   </details>
                 </div>`;
 }

@@ -167,6 +167,59 @@
             "why": "unclosed bracket"
           }
         ]
+      },
+      "reference": "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,1),\"\")"
+    },
+    {
+      "id": "book-1",
+      "type": "workbook",
+      "prompt": "Open the workbook and read the gross margin in B7.",
+      "answers": [
+        "44.8"
+      ],
+      "hints": {
+        "value": "B7 is the same IFERROR(ROUND(SUMIF…)) cell you wrote above, and the file recalculates it when it opens."
+      },
+      "sheet": {
+        "name": "Margin",
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Revenue",
+            "Cost"
+          ],
+          [
+            "North",
+            1500,
+            800
+          ],
+          [
+            "South",
+            1200,
+            900
+          ],
+          [
+            "North",
+            1000,
+            580
+          ],
+          [
+            "West",
+            900,
+            700
+          ],
+          [
+            null,
+            null,
+            null
+          ],
+          [
+            "North gross margin %",
+            "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,1),\"\")",
+            null
+          ]
+        ]
       }
     }
   ],

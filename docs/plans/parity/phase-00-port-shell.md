@@ -179,7 +179,7 @@ identical, but the foundation for accounts, payments and 600 screens is in place
 - [x] `npm test` reports **≥280 passing, 0 failing**, including the golden snapshot.
 - [x] `npm run build` produces all 27 pages (16 lessons, the index, the dashboard and 9 group pages); `next start` serves every legacy URL.
 - [x] Golden snapshot diff vs. `packages/grader` is **empty** for every lesson fixture.
-- [x] Playwright suite green locally and in CI. Local: 50/50 (`npm run e2e` — 47 `chromium` on the Next app, 3 `static` on `legacy/dist`); CI: green on `origin/main` and on `phase-0-port-shell`, `48 passed (16.8s)` at that commit, before the two shortcut screens were added.
+- [x] Playwright suite green locally and in CI. Local: 50/50 (`npm run e2e` — 47 `chromium` on the Next app, 3 `static` on `legacy/dist`); CI: green on `origin/main` ([run 40942379949](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40942379949)) and on `phase-0-port-shell` ([run 40942364882](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40942364882)), `50 passed (21.1s)`, after the two shortcut screens were added.
 - [ ] Preview deploy serves the 16 lessons; `/api/health` returns the SHA. (No deploy provider is connected; CI builds the artifact and asserts `/api/health` echoes `GIT_SHA`, which is the same claim minus the host.)
 - [x] `legacy/` still builds and deploys independently (it needs `packages/grader` beside it; its `dist/` output is standalone).
 - [x] `/sitemap.xml` and `/robots.txt` list every route the app serves and no address that only

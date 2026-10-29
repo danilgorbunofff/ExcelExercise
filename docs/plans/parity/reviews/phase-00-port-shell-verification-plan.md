@@ -173,10 +173,19 @@ five pinned numbers moved — all of them up, and the verdict counts did not mov
 | 3 | `735.2 kB` (was `732.3`) | `built 27 pages (735.2 kB of HTML+CSS)` | `npm run next:build` |
 | 5 | `817 checks` | `827 checks` | `node legacy/src/verify.mjs` |
 | 6 | `48 passed` (45 + 3) | `50 passed` (47 + 3) | `npx playwright test` |
-| 9 (CI) | reproduced the old set | **not yet re-run on this content** | — |
+| 9 (CI) | reproduced the old set | `645` / `pass 645`, `20 screens`, `827 checks`, `50 passed (21.1s)`, `735.2 kB` — every pinned number, on Linux | GitHub Actions |
 
 `content: 16 of 88 … 20 screens, 268 fixtures replayed` and `111 accepted and 157 rejected` are
 unchanged: the two new screens ship keys, not fixtures, so the fixture floor per lesson is untouched.
+
+CI has since run the same content, on Node 24 / `ubuntu-latest`, in [run 40942364882](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40942364882)
+(`phase-0-port-shell`) and [run 40942379949](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40942379949)
+(`main` after a fast-forward), both green on the first attempt. It reproduced every re-pinned number
+exactly — `tests 645` / `suites 104` / `pass 645` / `fail 0`; `content: 16 of 88 catalogued lessons,
+16 groups, 20 screens, 268 fixtures replayed`; `111 accepted and 157 rejected`; `built 27 pages
+(735.2 kB of HTML+CSS)`; `next routes: 27 prerendered pages match the shared templates`;
+`verified … 827 checks passed`; `50 passed (21.1s)`; `vendor: 25 files match manifest.json` — so
+row 9's gap is closed for this content too, and the byte total is platform-independent.
 The per-route JS/CSS byte rows in the baseline below were measured on `30629e8` and are due a
 re-measure; only the build total (which the build prints) has been updated.
 

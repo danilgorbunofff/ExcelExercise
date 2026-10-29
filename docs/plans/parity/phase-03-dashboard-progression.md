@@ -50,9 +50,22 @@ rule is replaced by what the record can actually prove.
       zeroes, exactly like `/learn`), and a group with no drills has no page rather than an empty one,
       so 9 of the 16 groups render today. The syllabus table the plan asked for is the grouped row list
       already built for the dashboard: same columns minus accuracy, which the record cannot prove.
-- [ ] **5. Gating (`canStart`).** Open, deliberately. The order gate needs an account to be more than a
-      dead end — with local-only progress, clearing a browser would lock a learner out of the track
-      forever — so the existing `freeLessonCount` trial gate stays the only wall until phase 4.
+- [x] **5. Gating (`canStart`).** `canStart({ plan, progress, id, unlocked })` in `packages/progress` is
+      the whole rule, and both pages ask it: `open | next | complete | ahead | unlocked | unknown`. The
+      frontier is the first drill nobody has finished; everything at or before it is open, a finished
+      drill is open however far past the frontier it sits, and an id the plan does not contain is open
+      (a stale bookmark must not become a wall). Two walls stand in the drill, order first, then the
+      trial — a form behind an order card would be a second riddle for the same lesson.
+      **Two deviations from the plan above, both because progress is local-only until phase 4:**
+      (a) the wall is not a sign-in prompt. With no account, the order rule alone would lock a learner
+      out of their own track the day they clear site data, so the card names the drill to finish *and*
+      offers one click that sets `es.progress.unlocked`, which opens every drill for that browser
+      forever (it survives a progress reset, because it is a preference, not a completion). Tourists
+      and crawlers see the same card; there is no entitlement to read. (b) The rule is client-side only,
+      as this phase asked, and the dashboard row is still a **link** — the phase doc says "shows a
+      prompt on click, not a dead link", while this item's own plan text asked for a non-link row. The
+      row now carries `data-locked` and says "Opens after drill N" inside the anchor, so the note and
+      the way through it are the same click. Server enforcement is phase 4's.
 - [x] **6. Recommendation.** The up-next card ships with four reasons — `start`, `resume`, `practice`,
       `finished`. A finished track says so and offers no button: the daily challenge and the certificate
       are phases 5 and 6 and a CTA to nothing is worse than no CTA. `practice` points at the **coldest**

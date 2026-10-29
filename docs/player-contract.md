@@ -184,9 +184,17 @@ emitted, which is before the player advances, so `lesson_complete` reports the s
   Refusing is silent by design: an analytics typo must not throw inside a learner's click handler.
 - `count` is the number accepted, which is what `emitAll(sink, events)` returns for a batch.
 
-`EVENT_TYPES` (14 names) is the whole vocabulary:
+`EVENT_TYPES` (16 names) is the whole vocabulary:
 `drill_start, screen_view, check_correct, check_wrong, hint_open, solution_reveal, screen_complete,
-lesson_complete, lesson_exhausted, lesson_abandon, paywall_view, paywall_email, trial_start, track_view`.
+lesson_complete, lesson_exhausted, lesson_abandon, gate_view, paywall_view, paywall_email, trial_start,
+track_unlock, track_view`.
+
+The two gate events sit beside the paywall's because they are the same funnel step asked twice.
+`gate_view` carries `reason: "order"` and `after` — the id of the drill that opens this one — and fires
+from the order card, which is why `paywall_view` no longer fires on a drill ahead of the frontier; a
+learner who never reached the trial was never on trial. `track_unlock` carries only the id, because the
+one thing it can say is that this browser is now open, and the flag it sets is local: nothing is sent
+and no account was created. `paywall_email` still never carries the address.
 
 The learner's formula is deliberately **not** in any event: `check_correct`/`check_wrong` carry the
 attempt count and the rule that failed, never the text of the answer. It is someone's typed input, and
@@ -203,7 +211,10 @@ check happened" is not a funnel step and "a check failed" is. Nothing consumed t
 `lesson_complete` and `check_wrong` are the loop's output rather than a second, hand-written opinion.
 Around them it emits `screen_view` (per screen, with `screen` and `of`), `drill_start`, `hint_open`,
 `solution_reveal`, `lesson_exhausted`, `paywall_view`, `paywall_email`, `trial_start` and `track_view`
-through the same sink, into `window.__esEvents` plus `console.debug`.
+through the same sink, into `window.__esEvents` plus `console.debug`. A gated drill adds `gate_view`
+(order) or `paywall_view` (trial) before any screen exists, and the `screen_view` that follows a gate
+carries `gated: true`: without it the funnel would show a learner entering a drill at screen 2, because
+the mount's own `screen_view` sits behind the gate's early return.
 
 Two limits are deliberate and documented rather than accidental:
 

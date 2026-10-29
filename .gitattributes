@@ -1,2 +1,2 @@
 # Vendored files are hash-pinned: git must hand back the exact bytes.
-vendor/** -text
+**/vendor/** -text

@@ -120,8 +120,8 @@ Run in order from the repo root. Each row: command → expected → what a failu
 | # | Command | Expected | If it fails |
 |---|---|---|---|
 | 1 | `vendor:check` | `25 files match manifest.json` | A vendored grader/sheet input was edited by hand. Nothing else catches this. |
-| 2 | `npm test` | `tests 645`, `suites 104`, `pass 645`, `fail 0` | The golden snapshot, schema or build contract drifted. Check `tests/golden/` first — it is the byte-stable one. |
-| 3 | `next:build` | `built 27 pages (739.4 kB of HTML+CSS)` then a 27-route table, exit `0` | A route disappeared or a template threw. `27` is the floor: 16 lessons + index + dashboard + 9 group pages. |
+| 2 | `npm test` | `tests 653`, `suites 105`, `pass 653`, `fail 0` | The golden snapshot, schema or build contract drifted. Check `tests/golden/` first — it is the byte-stable one. |
+| 3 | `next:build` | `built 27 pages (740.0 kB of HTML+CSS)` then a 27-route table, exit `0` | A route disappeared or a template threw. `27` is the floor: 16 lessons + index + dashboard + 9 group pages. |
 | 4 | `next:check` | `next routes: 27 prerendered pages match the shared templates` | Next and static fragments diverged. This is the port's core invariant. |
 | 5 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 839 checks passed` | A markup pin, link, budget or style rule broke on the static build. Verify is silent per-check on success; the failing check prints its own message and the exit code is non-zero. |
 | 6 | `npx playwright test` | `52 passed` (49 Next + 3 static) | Either deployable broke in a real browser: `chromium` drives `next start` on 4174, `static` drives `legacy/dist` over HTTP on 4175. Chromium only — a WebKit/Firefox-specific break is not covered. |
@@ -201,16 +201,38 @@ The workbook screen has since run on CI as well, again green on the first attemp
 The per-route JS/CSS byte rows in the baseline below were measured on `30629e8` and are due a
 re-measure; only the build total (which the build prints) has been updated.
 
+### Re-pin, 2026-10-29 — the workbook preview prints values, not formulas
+
+The shipped workbook screen's preview printed the cell's own text, so `B7` read
+`=IFERROR(ROUND((SUMIF(A2:A5,…` where the `.xlsx` opens on `44.8`. A screen asking for the gross
+margin therefore asked the learner to evaluate a nested SUMIF in their head, and the page's own
+promise — answerable without a download — was not met. Fixed in
+`legacy/src/site/preview.mjs` by computing each `=`-prefixed cell with the grader's own evaluator
+(`packages/grader/evaluate.js`), settling formula-to-formula chains over repeated passes and printing
+an error as its Excel code; `renderWorkbook` now hands those rows to `renderDataGrid` and names the
+formulas it computed under the grid, so the number never hides how it was made. Formula screens are
+untouched: only `renderWorkbook` calls the new module. Two packed numbers moved, and the check and
+fixture floors did not:
+
+| Row | Was | Now | Measured by |
+|---|---|---|---|
+| 2 | `tests 645` / `pass 645` | `tests 653` / `pass 653` (and `suites 105`) | `npm test` |
+| 3 | `739.4` | `built 27 pages (740.0 kB of HTML+CSS)` | `npm run next:build` |
+
+`content: 16 of 88 … 21 screens, 268 fixtures replayed`, `111 accepted and 157 rejected`,
+`verified … 839 checks passed` and `52 passed` are unchanged: the fix changes three cells and adds
+one caption on one page, and `verify` does not pin the preview's cells.
+
 ## Baseline
 
 | Metric | Value |
 |---|---|
 | Prerendered pages | 27 |
 | Fragment parity | 27/27 |
-| Unit tests | 645 |
+| Unit tests | 653 |
 | Verify checks | 839 |
 | Browser tests | 52 (Chromium: 49 Next + 3 static) |
-| Static build HTML+CSS | 739.4 kB |
+| Static build HTML+CSS | 740.0 kB |
 | Static lesson route JS | 155,784 B raw / 51,842 B gzip (20 modules) |
 | Next lesson route JS | 573,138 B raw / 176,017 B gzip |
 | Next lesson route CSS | 47,488 B raw / 10,057 B gzip |

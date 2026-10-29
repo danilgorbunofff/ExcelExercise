@@ -4,10 +4,11 @@ Review and verification plan for parity **Phases 0, 1, 2 and 3** only. Phases 4+
 scope by instruction.
 
 Measured on `30629e8`, Node `v25.9.0` (macOS, arm64). Every number below is reproducible with
-the command shown next to it; nothing here is estimated. Re-pinned on 2026-10-29 twice: first when
-lesson 03 gained a chord and a sequence screen, then when the capstone gained a workbook screen —
-`tests 645`, `21 screens`, `839 checks`, `52 passed`, `739.4 kB`. Every one of those moved up; the
-content verdict counts did not move at all.
+the command shown next to it; nothing here is estimated. Re-pinned on 2026-10-29 three times: first when
+lesson 03 gained a chord and a sequence screen, then when the capstone gained a workbook screen, then
+when that screen's preview started printing computed values instead of formula text — `tests 653`,
+`21 screens`, `839 checks`, `52 passed`, `740.0 kB`. Every one of those moved up; the content verdict
+counts did not move at all.
 
 ## Verdict
 
@@ -37,9 +38,9 @@ Verification gate chain (both deployables), in order. Run from the repo root.
 | # | Command | Expected | Proves |
 |---|---|---|---|
 | 1 | `vendor:check` | `25 files match manifest.json` | Vendored sheets/grader inputs are unmodified |
-| 2 | `npm test` | `tests 645`, `suites 104`, `pass 645`, `fail 0` | Engine, content factory, session, progress, build contracts |
+| 2 | `npm test` | `tests 653`, `suites 105`, `pass 653`, `fail 0` | Engine, content factory, session, progress, build contracts |
 | 3 | `content:check` | `content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | Content and grader agree |
-| 4 | `next:build` | `built 27 pages (739.4 kB of HTML+CSS)` then a 27-route table, exit `0` | Both deployables render |
+| 4 | `next:build` | `built 27 pages (740.0 kB of HTML+CSS)` then a 27-route table, exit `0` | Both deployables render |
 | 5 | `next:check` | `next routes: 27 prerendered pages match the shared templates` | Next and static fragments are byte-identical |
 | 6 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 839 checks passed` | Static dist, markup pins, links, budgets. Silent per-check; a failure prints its own line and exits non-zero |
 | 7 | `npx playwright test` | `52 passed` | Both deployables work in a real browser: `chromium` drives the Next app on 4174, `static` drives `legacy/dist` on 4175 |
@@ -103,7 +104,7 @@ deployable is driven in the same browser instead of being crawled as HTML only.
 
 | Metric | Value | Source |
 |---|---|---|
-| Unit tests | 645 | `npm test` |
+| Unit tests | 653 | `npm test` |
 | Verify checks | 839 | `node legacy/src/verify.mjs` |
 | Prerendered pages | 27 | `npm run next:build` |
 | Fragment parity | 27/27 | `npm run next:check` |
@@ -113,7 +114,7 @@ deployable is driven in the same browser instead of being crawled as HTML only.
 | Screens / fixtures | 21 / 268 (111 accepted, 157 rejected) | `content:check` |
 | Free lessons | 5 | `track.freeLessonCount` |
 | Vendored files | 25 | `vendor:check` |
-| Static build bytes (HTML+CSS) | 739.4 kB | build summary |
+| Static build bytes (HTML+CSS) | 740.0 kB | build summary |
 | Dashboard first paint | 21.4 kB gzip of a 40 kB budget | `verify` |
 | Static lesson JS graph | 52,125 B gzip over 20 modules (53,917 B with `feedback.js`) | manual rollup |
 | Next lesson JS | 192,293 B gzip as a page total (176,017 B framework+app chunks) | manual rollup |
@@ -128,7 +129,7 @@ deployable is driven in the same browser instead of being crawled as HTML only.
 | a | The drill silently dropped a failed save (`legacy/src/client/drill.js`) | **fixed** — `safeStorage()` is probed once, the dashboard's sentence is rendered at `#rail-blocked` near the rail, write semantics untouched. The note carries its own `.rail-note` class sharing the rail meta type — borrowing `.rail-count` would have been a false name in the stylesheet. Proven in the Next app by `e2e/drill.spec.js`, in the static build by `e2e-static/static-drill.spec.js`, and locked by a `tests/client.test.js` source contract (sentence, wiring, class, CSS selector). |
 | b | Two Turbopack `Dynamic filesystem access causes tracing of the whole project` warnings (`legacy/src/site/assets.mjs:48`) | **fixed** — inline `/* turbopackIgnore: true */` on both dynamic calls; `npm run next:build` emits 0 warnings, still `built 27 pages (732.3 kB of HTML+CSS)`. Traced entries in `.nft.json` drop 6690 → 4954 (per lesson page 784 → 536) and `legacy/dist` is byte-identical across 58 files. |
 | c | `/api/health` served `"sha":"unknown"` whenever `GIT_SHA` was unset | **fixed** — env vars still win; otherwise `git rev-parse --short HEAD` at build time; `unknown` only for a non-git checkout. CI contract unchanged: `GIT_SHA=abc123 npx next build` bakes `{"status":"ok","sha":"abc123"}`, an env-less build bakes the real short sha. |
-| d | Phase 0's contract doc still claimed "11 pages" and "13/13" | **fixed** — prose now quotes 27 pages, 817 checks, 643 unit tests, 48/48 browser tests, plus a route-labelled bundle baseline. Expected counts in the review docs were raised, never lowered: 639→643 (unit), 44→45 (browser, defect a), →48 (browser, the `static` project), 254→255 and 18→19 (phase 2). Raised again on 2026-10-29 when two shortcut screens shipped: 643→645 (unit), 48→50→52 (browser), 817→827→839 (verify checks), 18→20→21 (screens), 732.3→735.2→739.4 kB. |
+| d | Phase 0's contract doc still claimed "11 pages" and "13/13" | **fixed** — prose now quotes 27 pages, 817 checks, 643 unit tests, 48/48 browser tests, plus a route-labelled bundle baseline. Expected counts in the review docs were raised, never lowered: 639→643 (unit), 44→45 (browser, defect a), →48 (browser, the `static` project), 254→255 and 18→19 (phase 2). Raised again on 2026-10-29 when two shortcut screens shipped: 643→645 (unit), 48→50→52 (browser), 817→827→839 (verify checks), 18→20→21 (screens), 732.3→735.2→739.4 kB; and once more when the workbook preview began computing its cells: 645→653 (unit), 739.4→740.0 kB. |
 
 ## Still open, and why
 

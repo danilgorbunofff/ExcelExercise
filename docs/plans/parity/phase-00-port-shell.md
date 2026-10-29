@@ -37,7 +37,7 @@ identical, but the foundation for accounts, payments and 600 screens is in place
 - [x] **2. Move legacy.** `git mv src legacy/src`, `content legacy/content`, `vendor legacy/vendor`, so
       `legacy/src/build.mjs` resolves its own root. `npm run build` / `verify` / `check` / `dev` now point
       there, and the tree still builds and passes its checks (today: 27 pages and 839 checks;
-      `npm test` passes 645).
+      `npm test` passes 653).
 - [x] **7. Golden.** `tests/golden/` recorded every fixture verdict before any code moved — 196 verdicts,
       byte-stable, proven to bite.
 - [x] **3. Grader extracted.** `git mv legacy/src/grader packages/grader` (9 modules, zero logic edits) plus a

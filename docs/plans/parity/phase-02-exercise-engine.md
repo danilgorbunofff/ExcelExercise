@@ -95,7 +95,12 @@ not enforced.
       committed to review. The generated file has no `Content-Disposition` to set: it is a static asset
       under `/assets/files/`, linked with `download` so the browser saves it instead of opening it, and the
       preview is the same rows rendered by `renderDataGrid` into a plain table — no iframe, no third party,
-      no fetch, so it works offline. The preview is deliberately *not* `role="grid"`: the drill's delegated
+      no fetch, so it works offline. Those rows are first passed through `legacy/src/site/preview.mjs`,
+      which evaluates every `=`-prefixed cell with the grader's own evaluator and settles
+      formula-to-formula chains over repeated passes, so the preview prints `44.8` where the file opens on
+      `44.8` rather than the `IFERROR(ROUND(SUMIF(…` that produced it; the panel then names the formulas it
+      computed, so the value does not hide how it was made. Formula screens keep raw authored rows:
+      `renderSheet` does not call it. The preview is deliberately *not* `role="grid"`: the drill's delegated
       click and keydown handlers would treat a preview cell as selectable, disable the bar and fill it with
       a cell's text, so `renderDataGrid` takes an `interactive` option and the preview passes `false`.
       Graded by `gradeAnswer`, exactly like a picture: `answers` is the whole grade and the first is the

@@ -251,10 +251,10 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     // is the bytes themselves. Slow 3G is about 50 kB/s, so the page plus the one stylesheet it loads
     // get half of that second — 25 kB gzipped — and the budget is 40 kB, enough slack for round trips
     // without letting a regression hide behind it.
-    const firstPaint = ["learn/index.html", "assets/styles.css"].reduce(
-      (total, file) => total + gzipSync(readFileSync(join(distDir, file))).length,
-      0,
-    );
+    // A missing stylesheet is priced as zero here and reported where it belongs, further down.
+    const firstPaint = ["learn/index.html", "assets/styles.css"]
+      .filter((file) => existsSync(join(distDir, file)))
+      .reduce((total, file) => total + gzipSync(readFileSync(join(distDir, file))).length, 0);
     ok(
       firstPaint < 40_000,
       "learn/index.html first paint",

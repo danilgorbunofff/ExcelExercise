@@ -11,9 +11,9 @@
 ## Status
 
 **Landed — the dashboard and the badge machine.** Items 1, 2 (as a single page rather than a grid of
-tiles), 3, 4, 7 and 9 ship: `/learn` lists every drill in track order, grouped, with a badge per row, a
+tiles), 3, 4, 6, 7 and 9 ship: `/learn` lists every drill in track order, grouped, with a badge per row, a
 count, an up-next button and a two-step reset, and the badges come from a pure read model that both the
-server template and the island import. Items 5, 6 and 8 are open, and the plan's accuracy-based badge
+server template and the island import. Items 5 and 8 are open, and the plan's accuracy-based badge
 rule is replaced by what the record can actually prove.
 
 - [x] **1. Progress read model.** `packages/progress` — `summarise({ plan, progress, now })` returns
@@ -53,8 +53,13 @@ rule is replaced by what the record can actually prove.
 - [ ] **5. Gating (`canStart`).** Open, deliberately. The order gate needs an account to be more than a
       dead end — with local-only progress, clearing a browser would lock a learner out of the track
       forever — so the existing `freeLessonCount` trial gate stays the only wall until phase 4.
-- [ ] **6. Recommendation.** The up-next card ships; the all-complete branch says the track is finished
-      and stops. Daily challenge and certificate CTAs belong to phases 5 and 6 and are not faked.
+- [x] **6. Recommendation.** The up-next card ships with four reasons — `start`, `resume`, `practice`,
+      `finished`. A finished track says so and offers no button: the daily challenge and the certificate
+      are phases 5 and 6 and a CTA to nothing is worse than no CTA. `practice` points at the **coldest**
+      drill rather than the first one in track order, because once everything is solved the useful
+      question is not "what is next" but "what will I have forgotten" — so a drill solved a month ago
+      outranks one solved yesterday with a hint. It is a `Revisit` link, the same throttle-free path
+      `resume` uses.
 - [ ] **8. Feedback modal.** Not built; it posts to a phase-4 endpoint.
 
 Two acceptance criteria are now true and proven in `e2e/dashboard.spec.js`: "signed-in learner's next

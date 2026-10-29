@@ -64,6 +64,35 @@ test("a stale completion is called stale, not complete", async ({ page }) => {
   await expect(page.locator("#dash-note")).toContainText("1 going stale.");
 });
 
+/** Every drill solved, in the shape and at the time the caller asks for. */
+function allDone(overrides = {}) {
+  const now = new Date().toISOString();
+  const done = {};
+  for (const entry of index) done[entry.exercise.id] = { at: now, tries: 1, helped: false };
+  return { ...done, ...overrides };
+}
+
+test("a finished track says so and offers no button", async ({ page }) => {
+  await seedProgress(page, allDone());
+  await page.goto("/learn");
+
+  await expect(page.locator("#dash-complete")).toHaveText(String(LESSONS));
+  await expect(page.locator("#dash-note")).toContainText("Every drill is finished.");
+  await expect(page.locator("#dash-next-label")).toHaveText("You have finished the track");
+  await expect(page.locator("#dash-next-link")).toBeHidden();
+  await expect(page.locator("#dash-next-why")).toContainText("Nothing is stale and nothing wants practice.");
+});
+
+test("a finished track points at the drill that has gone coldest", async ({ page }) => {
+  const stale = index[3];
+  await seedProgress(page, allDone({ [stale.exercise.id]: { at: "2020-01-01T00:00:00.000Z", tries: 1, helped: false } }));
+  await page.goto("/learn");
+
+  await expect(page.locator("#dash-next-label")).toHaveText(`Revisit drill ${stale.number} · ${stale.exercise.title}`);
+  await expect(page.locator("#dash-next-link")).toHaveAttribute("href", stale.path);
+  await expect(page.locator(`[data-lesson="${stale.exercise.id}"]`)).toHaveAttribute("data-badge", "stale");
+});
+
 test("resetting asks twice and then forgets everything", async ({ page }) => {
   await seedProgress(page, {
     [FIRST]: { at: new Date().toISOString(), tries: 1, helped: false },

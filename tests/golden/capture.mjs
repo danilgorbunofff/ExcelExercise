@@ -91,6 +91,11 @@ export function capture() {
       // A shortcut screen is graded by matching key presses, not by the formula grader, so it has no
       // verdict to record here. `tests/content.test.js` holds its presses to the audit row instead.
       if (screen.type === "chord" || screen.type === "sequence") return;
+      // A workbook screen answers in words from a file the learner reads, so it has no formula
+      // fixtures either — it ships only `answers`. Recording it here would mean this snapshot grew
+      // with a screen whose verdicts belong to `tests/content.test.js`, and the snapshot is a byte
+      // record of the formula grader, so it stays one.
+      if (screen.type === "workbook") return;
       if (!picture && !screen.fixtures) {
         throw new Error(`content/exercises/${file} screen ${index + 1} carries no fixtures; cannot capture ${id}`);
       }

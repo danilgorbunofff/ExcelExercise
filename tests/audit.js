@@ -86,13 +86,25 @@ export const AUDIT = {
     wrong: ['=LEFT(B2,FIND("-",B2))', "=LEFT(B2,2)", '=LEFT(B2,FIND("-",B2)+1)'],
   },
   "10-capstone-margin": {
-    expected: 44.8, // (2500 - 1380) / 2500 * 100
-    reference:
-      '=IFERROR(ROUND((SUMIF(A2:A5,"North",B2:B5)-SUMIF(A2:A5,"North",C2:C5))/SUMIF(A2:A5,"North",B2:B5)*100,1),"")',
-    wrong: [
-      '=IFERROR(ROUND((SUMIF(A2:A5,"South",B2:B5)-SUMIF(A2:A5,"South",C2:C5))/SUMIF(A2:A5,"South",B2:B5)*100,1),"")',
-      '=IFERROR(ROUND((SUMIF(A2:A5,"North",B2:B5)-SUMIF(A2:A5,"North",C2:C5))/SUMIF(A2:A5,"North",B2:B5)*100,2),"")',
-      '=IFERROR(SUMIF(A2:A5,"North",B2:B5)*100,"")',
+    screens: [
+      {
+        expected: 44.8, // (2500 - 1380) / 2500 * 100
+        reference:
+          '=IFERROR(ROUND((SUMIF(A2:A5,"North",B2:B5)-SUMIF(A2:A5,"North",C2:C5))/SUMIF(A2:A5,"North",B2:B5)*100,1),"")',
+        wrong: [
+          '=IFERROR(ROUND((SUMIF(A2:A5,"South",B2:B5)-SUMIF(A2:A5,"South",C2:C5))/SUMIF(A2:A5,"South",B2:B5)*100,1),"")',
+          '=IFERROR(ROUND((SUMIF(A2:A5,"North",B2:B5)-SUMIF(A2:A5,"North",C2:C5))/SUMIF(A2:A5,"North",B2:B5)*100,2),"")',
+          '=IFERROR(SUMIF(A2:A5,"North",B2:B5)*100,"")',
+        ],
+      },
+      {
+        // The workbook screen asks for the cell the drill above finished in, so its answer is the same
+        // 44.8 — read out of the file rather than worked out on the page. A workbook screen is graded
+        // by its answer list, exactly as a picture screen is, so `reference` is that answer.
+        expected: "44.8",
+        reference: "44.8",
+        wrong: ["44.4", "448", "0.448"],
+      },
     ],
   },
   "11-vlookup-approximate-match-needs-a-sorted-column": {

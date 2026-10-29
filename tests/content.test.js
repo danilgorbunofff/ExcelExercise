@@ -30,25 +30,27 @@ const screens = LESSONS.flatMap(({ lesson, screens: views }) =>
     exercise,
     payload: lesson.screens[index],
     type: screen.type,
-    picture: screen.type === "picture",
+    // A picture and a workbook both answer in words, so both are graded by their answer list rather
+    // than by a formula; only the picture also ships an image.
+    words: screen.type === "picture" || screen.type === "workbook",
     shortcut: screen.type === "chord" || screen.type === "sequence",
     audit: auditRows(AUDIT[lesson.id])[index],
   })),
 );
 
-/** The screens a formula grader can be pointed at: a picture answers in text and a shortcut in keys. */
+/** The screens a formula grader can be pointed at: words answer in text and a shortcut in keys. */
 const formulas = screens.filter((screen) => screen.type === "formula");
 
 /** The screens the answer graders own — everything except the two keyboard types. */
 const graded = screens.filter((screen) => !screen.shortcut);
 
-/** One grader for both screen types, matching what the browser ships. */
-const submit = ({ exercise, picture }, raw) =>
-  picture ? gradeAnswer(exercise, raw) : grade(exercise, raw);
+/** One grader for both kinds of screen, matching what the browser ships. */
+const submit = ({ exercise, words }, raw) =>
+  words ? gradeAnswer(exercise, raw) : grade(exercise, raw);
 
-/** A picture screen's grader answers in normalised text, so its value is compared the same way. */
-const sameValue = (picture, actual, expected) =>
-  picture ? normaliseAnswer(actual) === normaliseAnswer(expected) : actual === expected;
+/** A words screen's grader answers in normalised text, so its value is compared the same way. */
+const sameValue = (words, actual, expected) =>
+  words ? normaliseAnswer(actual) === normaliseAnswer(expected) : actual === expected;
 
 /** The presses a shortcut screen accepts, parsed the way the player parses them. */
 const pressesOf = ({ exercise, type }) =>
@@ -229,10 +231,10 @@ describe("content: reference answers", () => {
   });
 
   it("expects exactly the hand-computed value", () => {
-    for (const { label, exercise, picture, audit } of screens) {
+    for (const { label, exercise, words, audit } of screens) {
       assert.equal(typeof exercise.expect.value, typeof audit.expected, `${label} value type`);
       assert.ok(
-        sameValue(picture, exercise.expect.value, audit.expected),
+        sameValue(words, exercise.expect.value, audit.expected),
         `${label} expect.value drifted from the audit`,
       );
     }
@@ -280,19 +282,19 @@ describe("content: reference answers", () => {
   });
 
   it("grades the reference answer as correct", () => {
-    for (const { label, exercise, picture, audit } of graded) {
-      const result = submit({ exercise, picture }, audit.reference);
+    for (const { label, exercise, words, audit } of graded) {
+      const result = submit({ exercise, words }, audit.reference);
       assert.equal(result.ok, true, `${label} rejected its own reference answer (${result.rule})`);
-      assert.ok(sameValue(picture, result.value, audit.expected), `${label} computed a different value`);
-      assert.ok(sameValue(picture, result.expected, audit.expected), `${label} echoes a different answer`);
+      assert.ok(sameValue(words, result.value, audit.expected), `${label} computed a different value`);
+      assert.ok(sameValue(words, result.expected, audit.expected), `${label} echoes a different answer`);
       assert.equal(result.hint, "");
     }
   });
 
   it("rejects three plausible wrong answers per screen", () => {
-    for (const { label, exercise, picture, audit } of graded) {
+    for (const { label, exercise, words, audit } of graded) {
       for (const formula of audit.wrong) {
-        const result = submit({ exercise, picture }, formula);
+        const result = submit({ exercise, words }, formula);
         assert.equal(result.ok, false, `${label} accepted the wrong answer ${formula}`);
         assert.ok(result.hint.length > 0, `${label} gave no hint for ${formula}`);
       }
@@ -316,9 +318,9 @@ describe("content: reference answers", () => {
   });
 
   it("keeps the message shape stable for every outcome", () => {
-    for (const { exercise, picture, audit } of graded) {
+    for (const { exercise, words, audit } of graded) {
       for (const formula of [audit.reference, ...audit.wrong, "=SUM("]) {
-        const result = submit({ exercise, picture }, formula);
+        const result = submit({ exercise, words }, formula);
         assert.deepEqual(Object.keys(result).sort(), [
           "code",
           "expected",
@@ -347,8 +349,8 @@ describe("content: error copy", () => {
     // The reference answer satisfies every rule, so appending `+1/0` can only
     // fail during evaluation: the learner must get the error copy, not the
     // generic "that is not the answer" fallback.
-    for (const { label, exercise, picture, audit } of graded) {
-      if (picture) continue;
+    for (const { label, exercise, words, audit } of graded) {
+      if (words) continue;
       const result = grade(exercise, `${audit.reference}+1/0`);
       assert.equal(result.ok, false, `${label} accepted a broken formula`);
       assert.equal(result.rule, "error", `${exercise.id} reported "${result.rule}" instead of error`);

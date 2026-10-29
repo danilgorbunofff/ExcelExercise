@@ -260,6 +260,13 @@ describe("build", () => {
           assert.equal(sent.answerCell, undefined, `${exercise.slug} screen ${position + 1} needs no answer cell`);
           assert.deepEqual(sent.answers, screen.answers);
           assert.equal(sent.reference, screen.expect.value, "the reveal is the first accepted answer");
+        } else if (screen.type === "workbook") {
+          // A workbook screen ships its answers and the preview's rows stay on the page, so the payload
+          // carries no grid, no answer cell and no file: the grader only ever reads `answers`.
+          assert.equal(sent.answerCell, undefined, `${exercise.slug} screen ${position + 1} needs no answer cell`);
+          assert.deepEqual(sent.answers, screen.answers);
+          assert.equal(sent.sheet, undefined, `${exercise.slug} screen ${position + 1} ships its rows on the page`);
+          assert.equal(sent.reference, screen.expect.value, "the reveal is the first accepted answer");
         } else if (screen.type === "chord" || screen.type === "sequence") {
           // A shortcut screen ships the presses in order and no grid: the client matches key presses
           // against `keys`, or against `steps` one after another, and reveals what it typed.

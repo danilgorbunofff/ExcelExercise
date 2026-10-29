@@ -294,3 +294,47 @@ test("a shortcut lesson grades the keys it asks for, and keeps its steps in orde
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
   await expect(page.locator("#feedback-body")).toHaveText(/^The keys are .*I\.$/);
 });
+
+test("a workbook lesson hands over the file and grades the answer it asks for", async ({ page }) => {
+  // The fifth screen type ships on the capstone: a real .xlsx plus a preview built from the same rows,
+  // because a screen that graded a file the page never showed would not be answerable.
+  await openGatedDrill(page, "capstone-margin");
+
+  await check(
+    page,
+    '=IFERROR(ROUND((SUMIF(A2:A5,"North",B2:B5)-SUMIF(A2:A5,"North",C2:C5))/SUMIF(A2:A5,"North",B2:B5)*100,1),"")',
+  );
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+
+  await expect(page.locator("[data-screen='2']")).toBeVisible();
+  const panel = page.locator("[data-screen='2'] .workbook");
+  await expect(panel).toBeVisible();
+
+  // The download is a real file, not a decorative link: the server answers with a ZIP, which is what
+  // an .xlsx is.
+  const href = await panel.locator("a.workbook-link").getAttribute("href");
+  expect(href).toBe("/assets/files/capstone-margin-book-1.xlsx");
+  const file = await page.request.get(href);
+  expect(file.status()).toBe(200);
+  expect((await file.body()).subarray(0, 2).toString("latin1")).toBe("PK");
+
+  // The preview carries the same rows, including the B7 the prompt names, so the question is fair
+  // without Excel.
+  const grid = page.locator("#workbook-grid-1");
+  await expect(grid).toBeVisible();
+  await expect(grid).toHaveAttribute("aria-label", "Margin, preview of the workbook");
+  await expect(grid.locator(".cell[data-cell='A7']")).toHaveText("North gross margin %");
+
+  // A workbook screen answers in words, so the target chip goes dark and the note sends the learner to
+  // the bar rather than to a cell they cannot edit.
+  await expect(page.locator("#ref-chip")).toBeHidden();
+  await expect(page.locator("#screen-answer-cell")).toHaveText("the bar");
+  await expect(page.locator("#formula")).toHaveAttribute("aria-label", "Your answer");
+
+  await check(page, "44");
+  await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
+
+  await check(page, "44.8");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+  await expect(page.locator("#feedback-body")).toHaveText("The answer is 44.8.");
+});

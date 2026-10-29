@@ -64,3 +64,17 @@ export function loadLesson(name) {
 }
 
 export const LESSONS = lessonFiles.map(loadLesson);
+
+/**
+ * How many workbook screens the shipped content already has, optionally ignoring the lesson a test is
+ * about to overwrite. A build counts every workbook it writes, so a suite that swaps one lesson into a
+ * copy of the content dir has to add the rest to its expectation instead of hardcoding a total that
+ * silently becomes wrong the first time a catalog lesson ships a workbook.
+ */
+export function shippedWorkbooks(except = []) {
+  const skip = new Set(except);
+  return LESSONS.filter(({ name }) => !skip.has(name)).reduce(
+    (total, { raw }) => total + (raw.screens ?? []).filter((screen) => screen.type === "workbook").length,
+    0,
+  );
+}

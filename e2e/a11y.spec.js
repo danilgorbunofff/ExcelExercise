@@ -136,6 +136,27 @@ test("the shortcut panels of a shipped lesson pass", async ({ page }) => {
   await scan(page, "a lesson's sequence screen");
 });
 
+test("the workbook panel of a shipped lesson passes", async ({ page }) => {
+  await seedBefore(page, "capstone-margin");
+  await page.goto("/learn/excel/capstone-margin");
+  await page.fill("#paywall-email", "learner@example.com");
+  await page.click("#paywall-form button[type='submit']");
+  await expect(page.locator("#formula")).toBeVisible();
+  await page.fill(
+    "#formula",
+    '=IFERROR(ROUND((SUMIF(A2:A5,"North",B2:B5)-SUMIF(A2:A5,"North",C2:C5))/SUMIF(A2:A5,"North",B2:B5)*100,1),"")',
+  );
+  await page.click("#check");
+
+  // A workbook screen puts a download, a collapsible preview and a read-only grid on the page at once,
+  // which is the most crowded screen the drill has: the preview's head has to name the sheet it opens.
+  await expect(page.locator("[data-screen='2'] .workbook")).toBeVisible();
+  await scan(page, "a lesson's workbook screen");
+
+  await page.locator(".workbook-preview > summary").click();
+  await scan(page, "a lesson's workbook screen with the preview collapsed");
+});
+
 test("the feedback dialog passes while it is open", async ({ page }) => {
   await page.goto("/");
   await page.click("#feedback-open");

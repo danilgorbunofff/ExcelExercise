@@ -1,10 +1,10 @@
 /**
  * A seven-screen lesson that uses all five screen types.
  *
- * Phase 2's first acceptance criterion asks for exactly this and has stayed open because no catalog
- * lesson ships a workbook, and none ships a shortcut either. Both audit paths exist on their own
- * (`tests/workbook-build.test.js`, `tests/keys-page.test.js`) but neither proves they coexist: one
- * lesson, every type, built and then walked to 100.
+ * Phase 2's first acceptance criterion asks for exactly this. Each type now has a shipped home of its
+ * own — the shortcuts on lesson 03, the workbook on the capstone — and each path is audited on its own
+ * (`tests/workbook-build.test.js`, `tests/keys-page.test.js`), but none of those proves the five
+ * coexist: one lesson, every type, built and then walked to 100. That is what this does.
  *
  * The walk grades each screen with the answer that lesson itself carries — `reference` on a formula,
  * `expect.value` on a shortcut, `answers[0]` on a picture — through the same modules the player
@@ -19,6 +19,7 @@ import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 
 import { grade } from "../packages/grader/grade.js";
+import { shippedWorkbooks } from "./lessons.js";
 import { gradeAnswer } from "../packages/grader/answers.js";
 import { matchesTyped, matchesTypedSteps, parseChord, parsePress } from "../packages/keys/index.js";
 import { createSession, recordVerdict } from "../packages/session/index.js";
@@ -122,7 +123,7 @@ describe("a lesson that uses all five screen types", () => {
   });
 
   it("builds, writes the workbook and passes the post-build verifier", () => {
-    assert.equal(summary.files, 1, "the summary does not count the workbook");
+    assert.equal(summary.files, 1 + shippedWorkbooks([LESSON]), "the summary does not count the workbook");
     assert.ok(existsSync(join(out, "assets/files/xlookup-search-from-the-bottom-book-total.xlsx")));
     assert.deepEqual(verify({ root: join(work, "legacy"), dist: out, env: ENV }).failures, []);
   });

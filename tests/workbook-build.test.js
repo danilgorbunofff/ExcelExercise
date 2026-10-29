@@ -3,8 +3,9 @@
  *
  * The writer and the page are tested on their own; what is left is the seam between them — the build
  * has to emit `/assets/files/<name>.xlsx` for every workbook screen, count it, and refuse two screens
- * that would land on the same file. No catalog lesson ships a workbook, so this builds a copy of the
- * site from a temp root with one lesson swapped, then verifies it the way the gate does.
+ * that would land on the same file. This builds a copy of the site from a temp root with one lesson
+ * swapped, then verifies it the way the gate does; the shipped lesson that already carries a workbook
+ * stays in the copy, so the file count below includes it.
  */
 import assert from "node:assert/strict";
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -14,6 +15,7 @@ import { after, before, describe, it } from "node:test";
 
 import { build } from "../legacy/src/build.mjs";
 import { verify } from "../legacy/src/verify.mjs";
+import { shippedWorkbooks } from "./lessons.js";
 
 const ROOT = join(import.meta.dirname, "..");
 const LESSON = "01-sum-basics.json";
@@ -73,7 +75,7 @@ describe("a build with a workbook lesson", () => {
   });
 
   it("writes one file per workbook screen and counts them", () => {
-    assert.equal(summary.files, 2, "the summary does not count the workbooks");
+    assert.equal(summary.files, 2 + shippedWorkbooks([LESSON]), "the summary does not count the workbooks");
     for (const name of ["sum-basics-book-total.xlsx", "sum-basics-book-price.xlsx"]) {
       const file = join(out, "assets/files", name);
       assert.ok(existsSync(file), `${name} was not written`);

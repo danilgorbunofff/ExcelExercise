@@ -13,6 +13,8 @@ import {
   parseRef,
 } from "../packages/grader/index.js";
 import { AUDIT, auditRows } from "./audit.js";
+import { revealOf } from "../packages/content/schema.js";
+import { matchesTyped, matchesTypedSteps, parseChord, parsePress } from "../packages/keys/index.js";
 import { LESSONS, readJson } from "./lessons.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "legacy");
@@ -26,22 +28,19 @@ const screens = LESSONS.flatMap(({ lesson, screens: views }) =>
   views.map(({ exercise, screen }, index) => ({
     label: views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id,
     exercise,
+    payload: lesson.screens[index],
+    type: screen.type,
     picture: screen.type === "picture",
-  })),
-);
-
-/** The screens a formula grader can be pointed at: a picture screen is typed text, not a formula. */
-const formulas = screens.filter((screen) => !screen.picture);
-
-/** The same rows, paired with the hand-computed expectations for that screen. */
-const audited = LESSONS.flatMap(({ lesson, screens: views }) =>
-  views.map(({ exercise, screen }, index) => ({
-    label: views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id,
-    exercise,
-    picture: screen.type === "picture",
+    shortcut: screen.type === "chord" || screen.type === "sequence",
     audit: auditRows(AUDIT[lesson.id])[index],
   })),
 );
+
+/** The screens a formula grader can be pointed at: a picture answers in text and a shortcut in keys. */
+const formulas = screens.filter((screen) => screen.type === "formula");
+
+/** The screens the answer graders own — everything except the two keyboard types. */
+const graded = screens.filter((screen) => !screen.shortcut);
 
 /** One grader for both screen types, matching what the browser ships. */
 const submit = ({ exercise, picture }, raw) =>
@@ -50,6 +49,20 @@ const submit = ({ exercise, picture }, raw) =>
 /** A picture screen's grader answers in normalised text, so its value is compared the same way. */
 const sameValue = (picture, actual, expected) =>
   picture ? normaliseAnswer(actual) === normaliseAnswer(expected) : actual === expected;
+
+/** The presses a shortcut screen accepts, parsed the way the player parses them. */
+const pressesOf = ({ exercise, type }) =>
+  (type === "chord" ? exercise.keys : exercise.steps).map((entry) => (type === "chord" ? parseChord : parsePress)(entry));
+
+/**
+ * How the player answers a typed shortcut: a chord matches any listed press, a sequence is one
+ * comma-separated run checked step by step. Those are the two calls `drill.js` makes, so a press the
+ * browser refuses is a press this file refuses.
+ */
+const acceptsShortcut = (row, raw) =>
+  row.type === "sequence"
+    ? matchesTypedSteps(raw, pressesOf(row))
+    : pressesOf(row).some((press) => matchesTyped(raw, press));
 
 /** Addresses covered by the grid rectangle, row-major from startCell. */
 function gridAddresses(exercise) {
@@ -216,7 +229,7 @@ describe("content: reference answers", () => {
   });
 
   it("expects exactly the hand-computed value", () => {
-    for (const { label, exercise, picture, audit } of audited) {
+    for (const { label, exercise, picture, audit } of screens) {
       assert.equal(typeof exercise.expect.value, typeof audit.expected, `${label} value type`);
       assert.ok(
         sameValue(picture, exercise.expect.value, audit.expected),
@@ -230,28 +243,44 @@ describe("content: reference answers", () => {
       const [first] = auditRows(AUDIT[lesson.id]);
       assert.equal(lesson.docs.reference, first.reference, `${lesson.id} docs.reference drifted from the audit`);
     }
-    for (const { label, exercise, picture, audit } of audited) {
-      assert.equal(submit({ exercise, picture }, audit.reference).ok, true, `${label} publishes a reference answer the grader rejects`);
+    for (const row of screens) {
+      const { label, audit } = row;
+      const accepted = row.shortcut ? acceptsShortcut(row, audit.reference) : submit(row, audit.reference).ok;
+      assert.equal(accepted, true, `${label} publishes a reference answer the grader rejects`);
     }
   });
 
   it("reveals, on every screen, the answer the audit owns", () => {
     // The reveal is what a stuck learner is handed. Tying it to the audit row for that same screen is what
     // makes the next test's proof reach the published formula: a screen 2 reveal that drifted from its own
-    // row — one cell up, one column over — would otherwise ship ungraded.
-    for (const { lesson, screens: views } of LESSONS) {
-      const rows = auditRows(AUDIT[lesson.id]);
-      views.forEach(({ screen }, index) => {
-        const label = views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id;
-        // A picture screen reveals its first accepted answer in the same slot the audit fills.
-        const reveal = screen.type === "picture" ? screen.answers[0] : (screen.reference ?? lesson.docs.reference);
-        assert.equal(reveal, rows[index].reference, `${label} reveals an answer the audit does not own`);
+    // row — one cell up, one column over — would otherwise ship ungraded. `revealOf` is the function the
+    // page itself prints, so a shortcut screen is covered by the same rule as a formula one.
+    for (const { lesson } of LESSONS) {
+      const rows = lesson.screens;
+      const audit = auditRows(AUDIT[lesson.id]);
+      rows.forEach((payload, index) => {
+        const label = rows.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id;
+        // A formula screen owns a formula; every other type owns the answer or press it accepts.
+        const owned = payload.type === "formula" ? audit[index].reference : audit[index].expected;
+        assert.equal(revealOf(lesson, payload), owned, `${label} reveals an answer the audit does not own`);
       });
     }
   });
 
+  it("accepts the press the audit owns, and refuses three near misses", () => {
+    const shortcuts = screens.filter((screen) => screen.shortcut);
+    assert.ok(shortcuts.length > 0, "no shortcut screen is shipped, so nothing here is proven");
+    for (const row of shortcuts) {
+      const { label, audit } = row;
+      assert.equal(acceptsShortcut(row, audit.reference), true, `${label} refused its own reference press ${audit.reference}`);
+      for (const wrong of audit.wrong) {
+        assert.equal(acceptsShortcut(row, wrong), false, `${label} accepted the wrong press ${wrong}`);
+      }
+    }
+  });
+
   it("grades the reference answer as correct", () => {
-    for (const { label, exercise, picture, audit } of audited) {
+    for (const { label, exercise, picture, audit } of graded) {
       const result = submit({ exercise, picture }, audit.reference);
       assert.equal(result.ok, true, `${label} rejected its own reference answer (${result.rule})`);
       assert.ok(sameValue(picture, result.value, audit.expected), `${label} computed a different value`);
@@ -261,7 +290,7 @@ describe("content: reference answers", () => {
   });
 
   it("rejects three plausible wrong answers per screen", () => {
-    for (const { label, exercise, picture, audit } of audited) {
+    for (const { label, exercise, picture, audit } of graded) {
       for (const formula of audit.wrong) {
         const result = submit({ exercise, picture }, formula);
         assert.equal(result.ok, false, `${label} accepted the wrong answer ${formula}`);
@@ -287,7 +316,7 @@ describe("content: reference answers", () => {
   });
 
   it("keeps the message shape stable for every outcome", () => {
-    for (const { exercise, picture, audit } of audited) {
+    for (const { exercise, picture, audit } of graded) {
       for (const formula of [audit.reference, ...audit.wrong, "=SUM("]) {
         const result = submit({ exercise, picture }, formula);
         assert.deepEqual(Object.keys(result).sort(), [
@@ -318,7 +347,7 @@ describe("content: error copy", () => {
     // The reference answer satisfies every rule, so appending `+1/0` can only
     // fail during evaluation: the learner must get the error copy, not the
     // generic "that is not the answer" fallback.
-    for (const { label, exercise, picture, audit } of audited) {
+    for (const { label, exercise, picture, audit } of graded) {
       if (picture) continue;
       const result = grade(exercise, `${audit.reference}+1/0`);
       assert.equal(result.ok, false, `${label} accepted a broken formula`);

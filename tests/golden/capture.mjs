@@ -88,6 +88,9 @@ export function capture() {
       // A picture screen answers in typed text, so it ships no formula fixtures: the audit row
       // below is its whole vocabulary and still records the verdicts.
       const picture = screen.type === "picture";
+      // A shortcut screen is graded by matching key presses, not by the formula grader, so it has no
+      // verdict to record here. `tests/content.test.js` holds its presses to the audit row instead.
+      if (screen.type === "chord" || screen.type === "sequence") return;
       if (!picture && !screen.fixtures) {
         throw new Error(`content/exercises/${file} screen ${index + 1} carries no fixtures; cannot capture ${id}`);
       }

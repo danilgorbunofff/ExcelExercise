@@ -22,9 +22,28 @@ export const AUDIT = {
     wrong: ["=SUM(B2:B6)/6", "=AVERAGE(B2:B6)*2", "=AVERAGE(B2:B5)"],
   },
   "03-countif-open-tickets": {
-    expected: 4, // T-1001, T-1003, T-1005, T-1007
-    reference: '=COUNTIF(B2:B9,"Open")',
-    wrong: ['=COUNTIF(B2:B9,"Open")+1', '=COUNTIF(B2:B9,"Closed")', '="4"'],
+    screens: [
+      {
+        expected: 4, // T-1001, T-1003, T-1005, T-1007
+        reference: '=COUNTIF(B2:B9,"Open")',
+        wrong: ['=COUNTIF(B2:B9,"Open")+1', '=COUNTIF(B2:B9,"Closed")', '="4"'],
+      },
+      {
+        // A shortcut screen is graded by its keys, not by a formula: `reference` is the press the
+        // learner has to make, and `expected` is how the page spells that press back to them.
+        expected: "Ctrl + Shift + L",
+        reference: "Ctrl+Shift+L",
+        wrong: ["Ctrl+L", "Ctrl+Shift+F", "Ctrl+Alt+L"],
+      },
+      {
+        // Alt, H, O, I walks the ribbon: Home tab, Format menu, AutoFit Column Width. The three
+        // wrong runs are the near misses — dropping a step, swapping the last two, picking the
+        // number-format menu instead of Format.
+        expected: "Alt then H then O then I",
+        reference: "Alt, H, O, I",
+        wrong: ["Alt, H, O", "Alt, H, I, O", "Alt, H, N, O"],
+      },
+    ],
   },
   "04-if-pass-fail": {
     expected: "Pass", // 70 >= 70, and exactly 70 so that ">70" is wrong

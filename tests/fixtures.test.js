@@ -14,12 +14,13 @@ const screens = lessons.flatMap(({ lesson, screens: views }) =>
     fixture,
     screen,
     picture: screen.type === "picture",
+    shortcut: screen.type === "chord" || screen.type === "sequence",
     audit: auditRows(AUDIT[lesson.id])[index],
   })),
 );
 
-/** A picture screen is graded from typed answers, so the formula fixtures cover only the sheets. */
-const covered = screens.filter((entry) => !entry.picture);
+/** A picture answers in typed text and a shortcut in key presses, so the fixtures cover the sheets. */
+const covered = screens.filter((entry) => entry.screen.type === "formula");
 
 /** A rejection is `{ formula, rule, why }` in the shipped corpus; the schema also allows a bare string. */
 const formulaOf = (rejection) => (typeof rejection === "string" ? rejection : rejection.formula);
@@ -39,6 +40,12 @@ describe("fixtures: shape", () => {
   it("keeps formula fixtures off a picture screen", () => {
     for (const { label, screen } of screens.filter((entry) => entry.picture)) {
       assert.equal(screen.fixtures, undefined, `${label}: a picture screen has no formulas to fixture`);
+    }
+  });
+
+  it("keeps formula fixtures off a shortcut screen", () => {
+    for (const { label, screen } of screens.filter((entry) => entry.shortcut)) {
+      assert.equal(screen.fixtures, undefined, `${label}: a shortcut is graded by its keys, not by formulas`);
     }
   });
 

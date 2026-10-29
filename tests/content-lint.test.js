@@ -76,8 +76,8 @@ describe("content-lint: the real corpus", () => {
       .filter((name) => name.endsWith(".json"))
       .map((name) => readJson(join(CONTENT, "exercises", name)));
     const screens = lessons.flatMap((lesson) => lesson.screens);
-    // A picture screen is graded from its answers, not from formulas, so it ships no fixtures.
-    const graded = screens.filter((screen) => screen.type !== "picture");
+    // Only a formula screen ships fixtures: a picture answers in text, a shortcut in key presses.
+    const graded = screens.filter((screen) => screen.type === "formula");
     const accepted = graded.reduce((sum, screen) => sum + screen.fixtures.accept.length, 0);
     const rejected = graded.reduce((sum, screen) => sum + screen.fixtures.reject.length, 0);
     assert.equal(report.stats.lessons, lessons.length, "one lesson file per lesson");

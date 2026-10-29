@@ -632,6 +632,13 @@
   outline-offset: 6px;
 }
 
+/* A sequence is a procedure rather than a set of alternatives, so its steps keep their order down
+   the panel instead of wrapping into one row. */
+.keys-panel-sequence .keys-steps {
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .keys-chords {
   display: flex;
   flex-wrap: wrap;

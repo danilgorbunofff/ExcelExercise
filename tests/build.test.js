@@ -260,6 +260,13 @@ describe("build", () => {
           assert.equal(sent.answerCell, undefined, `${exercise.slug} screen ${position + 1} needs no answer cell`);
           assert.deepEqual(sent.answers, screen.answers);
           assert.equal(sent.reference, screen.expect.value, "the reveal is the first accepted answer");
+        } else if (screen.type === "chord" || screen.type === "sequence") {
+          // A shortcut screen ships the presses in order and no grid: the client matches key presses
+          // against `keys`, or against `steps` one after another, and reveals what it typed.
+          const field = screen.type === "chord" ? "keys" : "steps";
+          assert.equal(sent.answerCell, undefined, `${exercise.slug} screen ${position + 1} needs no answer cell`);
+          assert.deepEqual(sent[field], screen[field]);
+          assert.equal(sent[field === "keys" ? "steps" : "keys"], undefined, `${exercise.slug}: a screen carries one field`);
         } else {
           assert.equal(sent.answerCell, screen.answerCell, `${exercise.slug} screen ${position + 1} answerCell`);
           assert.deepEqual(sent.grid.rows, screen.grid.rows);

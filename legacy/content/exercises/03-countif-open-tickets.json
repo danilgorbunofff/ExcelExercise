@@ -9,6 +9,7 @@
       "id": "formula-1",
       "type": "formula",
       "prompt": "In B10, count how many tickets have the status \"Open\".",
+      "reference": "=COUNTIF(B2:B9,\"Open\")",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -126,6 +127,31 @@
             "why": "unclosed bracket"
           }
         ]
+      }
+    },
+    {
+      "id": "shortcut-1",
+      "type": "chord",
+      "prompt": "Turn filters on for the ticket table without leaving the keyboard.",
+      "keys": [
+        "Ctrl+Shift+L"
+      ],
+      "hints": {
+        "value": "Filters toggle on the Data tab, at the end of the Sort & Filter group. The same keys switch them off again."
+      }
+    },
+    {
+      "id": "shortcut-2",
+      "type": "sequence",
+      "prompt": "Widen the Status column to fit its longest value, from the ribbon.",
+      "steps": [
+        "Alt",
+        "H",
+        "O",
+        "I"
+      ],
+      "hints": {
+        "value": "Alt reaches the ribbon, H is the Home tab, O opens Format, and I is AutoFit Column Width."
       }
     }
   ],

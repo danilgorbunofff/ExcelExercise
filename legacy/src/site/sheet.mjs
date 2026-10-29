@@ -5,7 +5,7 @@
  * JavaScript arrives. The client only ever fills these in; it never builds structure.
  */
 
-import { addressOf, indexToCol, parseRef, referenceOf } from "./packages.mjs";
+import { addressOf, chordText, indexToCol, labelsOf, parseChord, parsePress, parseRef, referenceOf } from "./packages.mjs";
 import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
 
 function splitCell(address) {
@@ -91,15 +91,75 @@ export function renderPicture(screen, { position = 0 } = {}) {
 }
 
 /**
+ * The keycaps of one press, in the order they are held. `data-press` is how the client finds them
+ * again: it re-labels every cap for the keyboard in front of the learner, because the server renders
+ * the words a Windows keyboard would print.
+ */
+function renderKeycaps(chord, { press, role }) {
+  const caps = labelsOf(chord)
+    .map((label) => `<kbd class="keycap">${esc(label)}</kbd>`)
+    .join('<span class="key-plus" aria-hidden="true">+</span>');
+  return `<span class="press" data-press="${press}" role="${role}" aria-label="${esc(chordText(chord))}">${caps}</span>`;
+}
+
+/**
+ * A shortcut screen: the presses to make, in the order a learner makes them. The panel is the
+ * question's body, so it takes the sheet's place — and it is focusable, because the keys only reach
+ * the page while the panel, not the bar, has the focus. Typing in the bar still grades the same
+ * shortcut for a browser that will not deliver the keys, and the panel's note says so up front.
+ */
+export function renderKeys(screen, { position = 0 } = {}) {
+  const parse = screen.type === "chord" ? parseChord : parsePress;
+  const presses = (screen.type === "chord" ? screen.keys : screen.steps).map(parse);
+
+  if (screen.type === "chord") {
+    // Alternative spellings of one shortcut: the learner presses one of them, so they read as "or".
+    const chords = presses
+      .map((chord, index) => renderKeycaps(chord, { press: index, role: "none" }))
+      .join('<span class="key-or">or</span>');
+    return `<div class="keys-panel" id="keys-${position}" tabindex="0" role="group" aria-label="Press the shortcut, or type it in the bar">
+                  <div class="keys-chords">${chords}</div>
+                  <p class="keys-note" id="keys-note-${position}">Press it, or type it in the bar.</p>
+                </div>`;
+  }
+
+  const steps = presses
+    .map(
+      (chord, index) =>
+        `<li class="keys-step" data-step="${index}">${renderKeycaps(chord, {
+          press: index,
+          role: "none",
+        })}</li>`,
+    )
+    .join("");
+  return `<div class="keys-panel keys-panel-sequence" id="keys-${position}" tabindex="0" role="group" aria-label="Press the keys in order, or type them in the bar">
+                  <ol class="keys-steps">${steps}</ol>
+                  <p class="keys-note" id="keys-note-${position}">Press the keys in order, or type them in the bar.</p>
+                </div>`;
+}
+
+/**
  * The formula bar: target chip, input, Check. No control is named, so a submit
  * without JavaScript reloads the page instead of leaking the draft into the URL.
  * A picture screen has no target cell, so the chip keeps its place in the DOM but goes dark:
  * the client toggles it per screen, and removing it would shift the bar on every switch.
  */
 export function renderFormulaBar(screen, { icons = {} } = {}) {
-  const isPicture = screen.type === "picture";
+  // Only a formula screen answers in a cell; a picture screen answers in words and a shortcut screen
+  // in keys. The chip keeps its place in the DOM on all three and goes dark, because the client
+  // toggles it per screen and removing it would shift the bar on every switch.
+  const hasCell = screen.type === "formula";
+  const typed = screen.type === "picture" ? "Type your answer" : "Type the shortcut";
+  const label =
+    screen.type === "picture"
+      ? "Your answer"
+      : hasCell
+        ? `Your formula for ${screen.answerCell}`
+        : screen.type === "sequence"
+          ? "Type the keys in order"
+          : "Type the shortcut";
   return `<form class="formula-bar" id="formula-bar" method="get">
-          <span class="ref-chip" id="ref-chip"${isPicture ? " hidden" : ""}>${esc(screen.answerCell ?? "")}</span>
+          <span class="ref-chip" id="ref-chip"${hasCell ? "" : " hidden"}>${esc(screen.answerCell ?? "")}</span>
           <span class="fx" aria-hidden="true">fx</span>
           <input${attrs({
             id: "formula",
@@ -110,8 +170,8 @@ export function renderFormulaBar(screen, { icons = {} } = {}) {
             autocapitalize: "none",
             autocorrect: "off",
             spellcheck: "false",
-            placeholder: isPicture ? "Type your answer" : "=...",
-            "aria-label": isPicture ? "Your answer" : `Your formula for ${screen.answerCell}`,
+            placeholder: hasCell ? "=..." : typed,
+            "aria-label": label,
             "aria-describedby": "feedback",
           })}>
           <button class="btn btn-check" id="check" type="submit">${inlineIcon(icons.check, {
@@ -149,13 +209,14 @@ export function renderHint({ icons = {} } = {}) {
 /**
  * The docs block: what it does, syntax, a worked example, what goes wrong, at work.
  * The worked example is a formula, so it is built from the first formula screen rather than from the
- * screen the page happens to open on — and it starts hidden if a lesson ever opens on a picture.
+ * screen the page happens to open on — and it starts hidden when the lesson has no formula screen at
+ * all, or opens on a screen that is not one.
  */
 export function renderDocs(exercise, screen) {
   const docs = exercise.docs;
-  const worked = exercise.screens.find((candidate) => candidate.type !== "picture") ?? null;
+  const worked = exercise.screens.find((candidate) => candidate.type === "formula") ?? null;
   const reference = worked ? referenceOf(exercise, worked) : exercise.docs.reference;
-  const workedHidden = worked === null || screen.type === "picture";
+  const workedHidden = worked === null || screen.type !== "formula";
   const errorRows = docs.errors
     .map((entry) => `            <tr><th scope="row"><code>${esc(entry.code)}</code></th><td>${esc(entry.text)}</td></tr>`)
     .join("\n");

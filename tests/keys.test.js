@@ -16,6 +16,7 @@ import {
   labelsOf,
   matchesEvent,
   matchesTyped,
+  matchesTypedSteps,
   parseChord,
   parsePress,
   sameChord,
@@ -204,6 +205,22 @@ describe("matchesTyped", () => {
     const chord = parseChord("Mod+Shift+L");
     for (const typed of ["", "  ", "Ctrl+L", "Ctrl+Alt+Shift+L", "Ctrl+Shift+K", "l", "nonsense+", null]) {
       assert.ok(!matchesTyped(typed, chord), String(typed));
+    }
+  });
+});
+
+describe("matchesTypedSteps", () => {
+  const steps = ["Alt", "H", "O"].map(parsePress);
+
+  it("accepts the ways a learner might spell a sequence", () => {
+    for (const typed of ["Alt, H, O", "alt > h > o", "Alt then H then O", "Alt→H→O"]) {
+      assert.ok(matchesTypedSteps(typed, steps), typed);
+    }
+  });
+
+  it("rejects a sequence that is short, long, or out of order", () => {
+    for (const typed of ["", "Alt, H", "Alt, H, O, O", "H, Alt, O", "Alt, H, P", null]) {
+      assert.ok(!matchesTypedSteps(typed, steps), String(typed));
     }
   });
 });

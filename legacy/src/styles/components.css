@@ -408,6 +408,116 @@
   background: var(--surface);
 }
 
+/* ── Keys ──────────────────────────────────────────────────────────────── */
+
+/*
+ * A shortcut screen asks its question with the keys themselves, so the panel takes the picture's
+ * place inside the card. It is focusable because that is the door the presses arrive through: the
+ * bar keeps the focus for typing, and the panel takes it for pressing.
+ */
+.keys-body {
+  padding: var(--s-5) var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.keys-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  border-radius: var(--r-2);
+}
+
+.keys-panel:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 6px;
+}
+
+.keys-chords {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+}
+
+.keys-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.keys-step {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface);
+  counter-increment: step;
+}
+
+.keys-step::before {
+  content: counter(step);
+  margin-right: var(--s-2);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A step that has been pressed already: the learner can see how far into the run they are. */
+.keys-step[data-done] {
+  border-color: var(--focus);
+  color: var(--text-muted);
+}
+
+.press {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid var(--line);
+  border-bottom-width: 3px;
+  border-radius: var(--r-1);
+  background: var(--surface-sunk);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.key-plus,
+.key-or {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.key-or {
+  padding: 0 var(--s-2);
+}
+
+.keys-note {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  text-align: center;
+}
+
 /* ── Grid ──────────────────────────────────────────────────────────────── */
 
 .sheet {

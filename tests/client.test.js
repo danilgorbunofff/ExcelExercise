@@ -360,40 +360,85 @@ describe("drill.js source", () => {
   });
 
   it("asks the shared predicate before grading", () => {
-    // A picture screen has no cell to select, so its bar is always the learner's to grade.
+    // Only a formula screen has a cell to select, so only it can have a bar that is read-only. A
+    // picture screen answers in words and a shortcut screen in keys: their bar is always the
+    // learner's to grade.
     assert.match(
       code,
-      /if \(screen\.type !== "picture" && !canGrade\(\{ selected, answerCell: screen\.answerCell, disabled: ui\.input\.disabled \}\)\) \{\s*return;/,
+      /if \(\s*screen\.type === "formula" &&\s*!canGrade\(\{ selected, answerCell: screen\.answerCell, disabled: ui\.input\.disabled \}\)\s*\) \{\s*return;/,
     );
   });
 
   it("routes each screen type to its own grader", () => {
     assert.match(code, /import \{ grade, gradeAnswer \} from "\.\.\/grader\/index\.js";/);
-    assert.match(code, /return screen\.type === "picture" \? gradeAnswer\(screen, raw\) : grade\(screen, raw\);/);
+    assert.match(
+      code,
+      /if \(screen\.type === "picture"\) return gradeAnswer\(screen, raw\);\s*if \(screen\.type === "chord" \|\| screen\.type === "sequence"\) return gradeKeys\(screen, raw\);\s*return grade\(screen, raw\);/,
+    );
+  });
+
+  it("grades a typed shortcut as forgivingly as a typed answer", () => {
+    // The bar is the documented fallback for a browser that eats the keys, so the spelling has to
+    // be as loose as the press: Cmd, Ctrl and Mod are one token, and a sequence is one entry per
+    // step in order.
+    assert.match(code, /import \{[^}]*matchesTyped[^}]*\} from "\.\.\/keys\/index\.js";/);
+    assert.match(code, /chords\.some\(\(chord\) => matchesTyped\(raw, chord\)\)/);
+    assert.match(code, /matchesTypedSteps\(raw, chords\)/);
+  });
+
+  it("only spends an attempt on a press that could be the answer", () => {
+    // A learner reading the sheet types plain letters that are not shortcuts; grading those would
+    // burn the three attempts before the first real attempt.
+    assert.match(code, /const deliberate =\s*keyStep > 0 \|\|/);
+    assert.match(code, /if \(!deliberate \|\| !keysLive\) return false;/);
+    // The typed fallback lives in the bar, so a keydown that came from a field is never captured.
+    assert.match(code, /if \(event\.target\?\.closest\?\.\("input, textarea, select, \[contenteditable=true\]"\)\) return;/);
+    assert.match(code, /event\.isTrusted === false/);
+  });
+
+  it("starts a sequence over on Escape", () => {
+    assert.match(code, /if \(event\.key === "Escape" && keyStep > 0\) \{/);
   });
 
   it("prints a solved line the screen can actually show", () => {
-    // A picture screen has no cell to name, so the line reads the answer instead of "B7 holds 21.5.".
+    // A picture screen has no cell to name, so the line reads the answer instead of "B7 holds 21.5.";
+    // a shortcut screen names the shortcut in this keyboard's words.
     assert.match(code, /if \(screen\.type === "picture"\) return `The answer is \$\{display\(screen\.expect\.value\)\}\.`;/);
+    assert.match(code, /if \(screen\.type === "chord"\) return `The shortcut is \$\{revealText\(screen\)\}\.`;/);
+    assert.match(code, /if \(screen\.type === "sequence"\) return `The keys are \$\{revealText\(screen\)\}\.`;/);
     assert.match(code, /return `\$\{screen\.answerCell\} holds \$\{display\(screen\.expect\.value\)\}\.`;/);
   });
 
-  it("takes the chip and the worked example away on a picture screen", () => {
-    assert.match(code, /ui\.chip\.hidden = isPicture;/);
-    assert.match(code, /ui\.docsWorked\.hidden = isPicture;/);
-    // enterScreen only rewrites the docs block for a formula screen; a picture screen would print
-    // the previous screen's formula beside an image that is not about it.
-    assert.match(code, /if \(!isPicture\) \{\s*if \(ui\.docsCode\)/);
+  it("prints the reference in the learner's keyboard words", () => {
+    // `screen.reference` was spoken by the server in the default spelling; a reveal on a Mac has to
+    // say ⌘⇧L, not Ctrl + Shift + L.
+    assert.match(code, /ui\.solutionCode\.textContent = revealText\(activeScreen\(\)\);/);
+    assert.match(code, /function revealText\(screen\) \{/);
+    assert.match(code, /return chords\.map\(spoken\)\.join\(screen\.type === "sequence" \? ", " : " or "\);/);
   });
 
-  it("opens the bar on a picture screen without a cell to select", () => {
+  it("takes the chip and the worked example away when there is no cell", () => {
+    assert.match(code, /ui\.chip\.hidden = !isFormula;/);
+    assert.match(code, /ui\.docsWorked\.hidden = !isFormula;/);
+    // enterScreen only rewrites the docs block for a formula screen; a picture or shortcut screen
+    // would print the previous screen's formula beside a question that is not about it.
+    assert.match(code, /if \(isFormula\) \{\s*if \(ui\.docsCode\)/);
+  });
+
+  it("opens the bar on a screen without a cell to select", () => {
     // `stripComments` removes the comment, so the branch is read as code alone.
-    assert.match(code, /if \(isPicture\) \{\s*selected = null;\s*if \(ui\.check\) ui\.check\.disabled = false;/);
-    assert.match(code, /ui\.input\.setAttribute\("aria-label", "Your answer"\);/);
+    assert.match(
+      code,
+      /if \(isPicture \|\| isKeys\) \{\s*selected = null;\s*if \(ui\.check\) ui\.check\.disabled = false;/,
+    );
+    assert.match(code, /ui\.input\.setAttribute\("aria-label", barLabel\(screen\)\);/);
+    for (const label of ["Your answer", "Type the keys in order", "Type the shortcut"]) {
+      assert.ok(code.includes(`return "${label}";`), `barLabel does not name "${label}"`);
+    }
   });
 
-  it("keeps a draft typed on a picture screen", () => {
-    assert.match(code, /if \(screen\.type === "picture" \|\| selected === screen\.answerCell\) draft = ui\.input\.value;/);
+  it("keeps a draft typed on a screen without a cell", () => {
+    assert.match(code, /if \(screen\.type !== "formula" \|\| selected === screen\.answerCell\) draft = ui\.input\.value;/);
   });
 
   it("announces exhaustion once, on the third miss", () => {

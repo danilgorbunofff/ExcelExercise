@@ -13,6 +13,7 @@ about what "Ctrl+Shift+L" is.
 | `labelsOf`, `chordText` | The keycaps — `⌘ ⇧ ←` on a Mac, `Ctrl Shift ←` everywhere else. |
 | `chordFromEvent`, `matchesEvent` | Is this key press the chord? Modifier-only presses are not answers. |
 | `matchesTyped` | The fallback spelling check, for chords the browser will not deliver. |
+| `matchesTypedSteps` | The same check for a sequence, one entry per step, in order. |
 | `isReserved`, `uncapturable` | Which shortcuts the browser or the OS eats before the page hears them. |
 
 Rules the tests pin, because each one is a screen that would otherwise never match:

@@ -71,6 +71,7 @@ describe("build", () => {
       "assets/grader/grade.js",
       "assets/session/index.js",
       "assets/progress/index.js",
+      "assets/keys/index.js",
       "assets/client/dashboard.js",
       "sitemap.xml",
       "robots.txt",

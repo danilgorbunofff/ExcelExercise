@@ -247,6 +247,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     "client/dashboard.js",
     "client/drill.js",
     "client/state.js",
+    "keys/index.js",
     "progress/index.js",
     "grader/index.js",
     "grader/grade.js",

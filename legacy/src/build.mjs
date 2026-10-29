@@ -150,6 +150,12 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const progress = copyDir(progressSource, join(dist, "assets/progress"), { filter: (name) => name.endsWith(".js") });
   if (progress === 0) throw new Error(`${progressSource} is empty — the dashboard cannot read progress without it`);
 
+  // And the keyboard model: packages/keys ships at assets/keys/, the path client/drill.js imports
+  // (`../keys/index.js`) to grade a press and to print the labels this platform uses.
+  const keysSource = resolve(root, "../packages/keys");
+  const keys = copyDir(keysSource, join(dist, "assets/keys"), { filter: (name) => name.endsWith(".js") });
+  if (keys === 0) throw new Error(`${keysSource} is empty — the client cannot grade a shortcut without it`);
+
   const client = clientAvailable
     ? copyDir(join(root, "src/client"), join(dist, "assets/client"), { filter: (name) => name.endsWith(".js") })
     : 0;
@@ -180,6 +186,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     grader,
     session,
     progress,
+    keys,
     client,
     images,
     bytes,
@@ -191,7 +198,8 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     console.log(`built ${summary.pages} pages (${kb} kB of HTML+CSS) → ${dist}`);
     console.log(`  styles: ${summary.cssSources.length} sources concatenated`);
     console.log(
-      `  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${progress} progress modules, ${client} client modules, ${images} images`,
+      `  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${progress} progress modules, ` +
+        `${keys} keyboard modules, ${client} client modules, ${images} images`,
     );
     for (const warning of warnings) console.warn(`  warning: ${warning}`);
   }

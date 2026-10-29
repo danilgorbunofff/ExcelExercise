@@ -393,6 +393,21 @@ export function matchesTyped(text, chord) {
 }
 
 /**
+ * The typed fallback for a sequence: `Alt, H, O`, `alt > h > o` and `Alt then H then O` all read as
+ * the same three presses, in order. A sequence is graded step by step on the keyboard, so the typed
+ * spelling is graded the same way — one entry per step, and no extra step at either end.
+ */
+export function matchesTypedSteps(text, steps) {
+  if (typeof text !== "string" || typeof steps !== "object" || steps === null) return false;
+  const typed = text
+    .split(/\s*(?:,|>|→|then)\s*/i)
+    .map((part) => part.trim())
+    .filter((part) => part !== "");
+  if (typed.length !== steps.length) return false;
+  return steps.every((step, index) => matchesTyped(typed[index], step));
+}
+
+/**
  * The chord with the platform's primary modifier folded to `mod`, so `Cmd+Q`, `Meta+Q` and
  * `Mod+Q` are one chord on a Mac and `Ctrl+N` is the same chord off one.
  */

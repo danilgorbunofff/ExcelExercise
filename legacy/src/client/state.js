@@ -215,11 +215,17 @@ export function parsePayload(text) {
         throw new Error(`${where} is missing ${key}`);
       }
     }
-    // A picture screen is graded from `answers`, so the grid and the target cell it has no use for
-    // are required only of the types that grade from them.
+    // Each type is graded from its own field, so the grid and the target cell a type has no use for
+    // are required only of the types that grade from them: a picture from `answers`, a shortcut from
+    // its presses.
     if (screen.type === "picture") {
       if (!Array.isArray(screen.answers) || screen.answers.length === 0) {
         throw new Error(`${where} is missing answers`);
+      }
+    } else if (screen.type === "chord" || screen.type === "sequence") {
+      const field = screen.type === "chord" ? "keys" : "steps";
+      if (!Array.isArray(screen[field]) || screen[field].length === 0) {
+        throw new Error(`${where} is missing ${field}`);
       }
     } else {
       if (typeof screen.answerCell !== "string" || screen.answerCell === "") {

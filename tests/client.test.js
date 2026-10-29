@@ -104,6 +104,16 @@ describe("progress storage", () => {
     assert.deepEqual(progress.tries, { kept: 2 });
   });
 
+  it("keeps the local unlock across a round-trip, and only for a real true", () => {
+    assert.equal(emptyProgress().unlocked, false);
+    assert.equal(parseProgress('{"unlocked":"true"}').unlocked, false);
+    assert.equal(parseProgress('{"unlocked":1}').unlocked, false);
+    assert.equal(parseProgress('{"unlocked":true}').unlocked, true);
+    const unlocked = { ...emptyProgress(), unlocked: true };
+    assert.equal(parseProgress(serializeProgress(unlocked)).unlocked, true);
+    assert.equal(serializeProgress(emptyProgress()).includes('"unlocked":false'), true);
+  });
+
   it("uses the documented storage keys", () => {
     assert.equal(PROGRESS_KEY, "es.progress");
     assert.equal(TRIAL_KEY, "es.trial");
@@ -313,6 +323,8 @@ describe("drill.js source", () => {
       "paywall_view",
       "paywall_email",
       "trial_start",
+      "gate_view",
+      "track_unlock",
     ]) {
       assert.match(code, new RegExp(`track\\("${event}"`), `${event} is never emitted`);
     }

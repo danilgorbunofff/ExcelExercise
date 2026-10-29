@@ -10,6 +10,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { seedBefore } from "../lib/seed.js";
+
 const SEVERITIES = ["critical", "serious"];
 
 // The player fades its verdict in over 120 ms, and axe measures the colour it can see: a scan fired
@@ -95,7 +97,14 @@ test("a group page passes with progress in it", async ({ page }) => {
   await scan(page, "a group page with progress");
 });
 
+test("a drill behind the order gate passes with nothing to fix", async ({ page }) => {
+  await page.goto("/learn/excel/xlookup-search-from-the-bottom");
+  await expect(page.locator("#paywall[data-gate='order']")).toBeVisible();
+  await scan(page, "the order gate");
+});
+
 test("the picture screen of a multi-screen drill passes", async ({ page }) => {
+  await seedBefore(page, "xlookup-search-from-the-bottom");
   await page.goto("/learn/excel/xlookup-search-from-the-bottom");
   await page.fill("#paywall-email", "learner@example.com");
   await page.click("#paywall-form button[type='submit']");

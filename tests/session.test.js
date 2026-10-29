@@ -242,6 +242,10 @@ describe("session event sink", () => {
     assert.equal(written.length, 0);
     assert.equal(sink.count, 0);
     assert.ok(EVENT_TYPES.includes("screen_view"));
+    // The two gate events are the funnel's wall, not a comment about one: a rename here would make the
+    // drill's gate invisible to anything that reads the vocabulary.
+    assert.ok(EVENT_TYPES.includes("gate_view"));
+    assert.ok(EVENT_TYPES.includes("track_unlock"));
   });
 
   it("writes one event with a type and an ISO timestamp", () => {

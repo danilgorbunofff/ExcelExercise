@@ -5,6 +5,7 @@
  */
 import { expect, test } from "@playwright/test";
 
+import { seedBefore } from "../lib/seed.js";
 import { loadSite } from "../lib/site.js";
 
 const LESSONS = loadSite().index.length;
@@ -17,8 +18,11 @@ async function openDrill(page, slug) {
 }
 
 /** A drill past the free ones: the paywall opens the first time an email is entered, and the trial
- *  is remembered in this browser, so this is the real path to a later lesson. */
+ *  is remembered in this browser, so this is the real path to a later lesson. The drills before it are
+ *  finished first, because the order gate is asked before the trial form and would otherwise be the
+ *  only wall this test ever sees. */
 async function openGatedDrill(page, slug) {
+  await seedBefore(page, slug);
   await page.goto(`/learn/excel/${slug}`);
   await page.fill("#paywall-email", "learner@example.com");
   await page.click("#paywall-form button[type='submit']");

@@ -15,6 +15,7 @@ import {
   ago,
   badgeFor,
   badgeLabel,
+  canStart,
   nextCopy,
   summarise,
 } from "../packages/progress/index.js";
@@ -265,5 +266,56 @@ describe("summarise", () => {
     assert.equal(summary.total, 0);
     assert.equal(summary.next, null);
     assert.deepEqual(summary.groups, []);
+  });
+});
+
+describe("canStart", () => {
+  const plan = PLAN;
+
+  it("opens the frontier and everything behind it", () => {
+    const progress = progressOf({ done: { "01-a": { at: at(1), tries: 0, helped: false } } });
+    assert.deepEqual(canStart({ plan, progress, id: "01-a" }), { open: true, reason: "complete", after: null });
+    assert.deepEqual(canStart({ plan, progress, id: "02-b" }), { open: true, reason: "next", after: null });
+  });
+
+  it("gates a drill ahead of the frontier and names the one to finish", () => {
+    const progress = progressOf({ done: { "01-a": { at: at(1), tries: 0, helped: false } } });
+    assert.deepEqual(canStart({ plan, progress, id: "03-c" }), {
+      open: false,
+      reason: "ahead",
+      after: { id: "02-b", number: 2, title: "Second", path: "/excel/b" },
+    });
+  });
+
+  it("opens a finished drill however far past the frontier it sits", () => {
+    const progress = progressOf({ done: { "03-c": { at: at(1), tries: 1, helped: true } } });
+    assert.equal(canStart({ plan, progress, id: "03-c" }).open, true);
+  });
+
+  it("opens the whole track when the browser is unlocked", () => {
+    assert.deepEqual(canStart({ plan, progress: progressOf(), id: "03-c", unlocked: true }), {
+      open: true,
+      reason: "unlocked",
+      after: null,
+    });
+  });
+
+  it("opens an id the plan does not know", () => {
+    assert.deepEqual(canStart({ plan, progress: progressOf(), id: "99-gone" }), {
+      open: true,
+      reason: "unknown",
+      after: null,
+    });
+  });
+
+  it("opens every drill when the track is finished", () => {
+    const done = { "01-a": { at: at(3) }, "02-b": { at: at(2) }, "03-c": { at: at(1) } };
+    assert.equal(canStart({ plan, progress: progressOf({ done }), id: "03-c" }).open, true);
+    assert.equal(canStart({ plan, progress: progressOf({ done }), id: "01-a" }).reason, "complete");
+  });
+
+  it("gates without a progress record at all", () => {
+    assert.equal(canStart({ plan, progress: null, id: "01-a" }).open, true);
+    assert.equal(canStart({ plan, progress: null, id: "02-b" }).open, false);
   });
 });

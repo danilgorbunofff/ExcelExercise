@@ -134,6 +134,13 @@ describe("content: track", () => {
     assert.ok(track.title.trim().length > 0);
     assert.ok(track.promise.trim().length > 0);
   });
+
+  it("advertises the number of tasks the track ships, not the number it launched with", () => {
+    // The promise is the first sentence a search result shows, and it drifted once already: it said ten
+    // while sixteen drills shipped. Measured against the catalog every build, so it cannot drift again.
+    const advertised = Number(track.promise.match(/^(\d+)/)?.[1]);
+    assert.equal(advertised, authored.length, "the promise advertises a task count the track does not ship");
+  });
 });
 
 describe("content: exercise schema", () => {

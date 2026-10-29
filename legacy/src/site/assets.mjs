@@ -44,8 +44,8 @@ export function buildStyles({ vendorDir, stylesDir }) {
       .sort()
       .map((file) => join(vendorDir, "open-props", file)),
     ...["tokens.css", "base.css", "components.css"]
-      .map((file) => join(stylesDir, file))
-      .filter((file) => existsSync(file)),
+      .map((file) => join(/* turbopackIgnore: true */ stylesDir, file))
+      .filter((file) => existsSync(/* turbopackIgnore: true */ file)),
   ];
 
   const header = [

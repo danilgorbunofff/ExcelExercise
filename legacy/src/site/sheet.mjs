@@ -5,15 +5,9 @@
  * JavaScript arrives. The client only ever fills these in; it never builds structure.
  */
 
-import { addressOf, chordText, indexToCol, labelsOf, parseChord, parsePress, parseRef, referenceOf } from "./packages.mjs";
+import { chordText, gridModel, labelsOf, parseChord, parsePress, referenceOf } from "./packages.mjs";
 import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
 import { workbookUrl } from "../xlsx.mjs";
-
-function splitCell(address) {
-  const parsed = parseRef(address);
-  if (!parsed) throw new Error(`sheet: "${address}" is not a cell address`);
-  return parsed;
-}
 
 /**
  * The grid itself, shared by the drill and the workbook preview. `targetCell` is the cell the learner
@@ -22,18 +16,17 @@ function splitCell(address) {
  * a plain table, so the drill's delegated handlers cannot mistake one of its cells for an answer cell.
  */
 function renderDataGrid({ id, label, startCell, rows, targetCell = null, interactive = true }) {
-  const start = splitCell(startCell);
-  const width = rows[0].length;
+  const model = gridModel({ grid: { startCell, rows }, answerCell: targetCell });
+  const width = model.width;
 
-  const columnHeaders = Array.from({ length: width }, (_, offset) => {
-    const letter = indexToCol(start.colIndex + offset);
-    return `<th scope="col" role="columnheader" class="col-head">${esc(letter)}</th>`;
-  });
+  const columnHeaders = model.columns.map(
+    (letter) => `<th scope="col" role="columnheader" class="col-head">${esc(letter)}</th>`,
+  );
 
-  const body = rows.map((row, rowOffset) => {
-    const rowNumber = start.row + rowOffset;
+  const body = model.rows.map((row, rowOffset) => {
+    const rowNumber = model.start.row + rowOffset;
     const cells = row.map((value, colOffset) => {
-      const address = addressOf(start.colIndex + colOffset, rowNumber);
+      const address = model.addresses[rowOffset][colOffset];
       if (targetCell !== null && address === targetCell) {
         return `<td${attrs({
           class: "cell cell-target",
@@ -61,7 +54,7 @@ function renderDataGrid({ id, label, startCell, rows, targetCell = null, interac
     class: "sheet-grid",
     role: interactive ? "grid" : undefined,
     "aria-label": label,
-    "aria-rowcount": rows.length + 1,
+    "aria-rowcount": model.height + 1,
     // The row-header column is a real column on screen, so it counts here too.
     "aria-colcount": width + 1,
   })}>

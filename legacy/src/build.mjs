@@ -157,6 +157,12 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const keys = copyDir(keysSource, join(dist, "assets/keys"), { filter: (name) => name.endsWith(".js") });
   if (keys === 0) throw new Error(`${keysSource} is empty — the client cannot grade a shortcut without it`);
 
+  // And the sheet model: packages/sheet ships at assets/sheet/, the path client/drill.js imports
+  // (`../sheet/index.js`) to know which cells exist and where an arrow moves the selection.
+  const sheetSource = resolve(root, "../packages/sheet");
+  const sheet = copyDir(sheetSource, join(dist, "assets/sheet"), { filter: (name) => name.endsWith(".js") });
+  if (sheet === 0) throw new Error(`${sheetSource} is empty — the grid cannot move without its model`);
+
   const client = clientAvailable
     ? copyDir(join(root, "src/client"), join(dist, "assets/client"), { filter: (name) => name.endsWith(".js") })
     : 0;
@@ -207,6 +213,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     session,
     progress,
     keys,
+    sheet,
     client,
     images,
     files,
@@ -220,7 +227,8 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     console.log(`  styles: ${summary.cssSources.length} sources concatenated`);
     console.log(
       `  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${progress} progress modules, ` +
-        `${keys} keyboard modules, ${client} client modules, ${images} images, ${files} workbooks`,
+        `${keys} keyboard modules, ${sheet} sheet modules, ${client} client modules, ${images} images, ` +
+        `${files} workbooks`,
     );
     for (const warning of warnings) console.warn(`  warning: ${warning}`);
   }

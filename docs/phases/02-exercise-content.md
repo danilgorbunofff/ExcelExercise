@@ -145,10 +145,12 @@ only used to confirm. The literals live in `AUDIT` in `tests/audit.js`.
 | 10 | `=IFERROR(ROUND((rev−cost)/rev*100,1),"")` | (2500 − 1380) / 2500 × 100 | `44.8` |
 | 11 | `=VLOOKUP(A6,A2:B5,2,TRUE)` | 4200 ≥ 1000 and < 5000, so the second column of the 1000 row | `0.05` |
 | 12 | `=HLOOKUP(B4,B1:D3,3,FALSE)` | Feb is column 2 of the block, and row 3 is the price row | `5` |
+| 13 | `=VLOOKUP(A7&"*",A1:C6,3,FALSE)` | three rows start with Northwind, Air is first, column 3 | `7` |
 
 ## Acceptance criteria
 
-- 10 valid JSON files that `buildCells()` can load without errors. **Done — 17 content tests.**
+- 13 valid JSON files that `buildCells()` can load without errors. **Done — each one's reference answer
+  and three wrong answers are pinned by hand in `AUDIT` (`tests/audit.js`).**
 - Every exercise solves correctly with its reference answer and fails with at least three plausible
   wrong answers.
 - Each `docs` block reads like something a person wrote, with numbers specific to that dataset.

@@ -1,0 +1,178 @@
+{
+  "id": "13-vlookup-with-a-wildcard",
+  "slug": "vlookup-with-a-wildcard",
+  "level": 3,
+  "title": "VLOOKUP with a wildcard",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, look up the lead time of the first Northwind supplier in A1:C6, using the partial name in A7 with a wildcard.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Supplier",
+            "Country",
+            "Lead time (days)"
+          ],
+          [
+            "Baltic Freight",
+            "Latvia",
+            12
+          ],
+          [
+            "Baltic Couriers",
+            "Latvia",
+            4
+          ],
+          [
+            "Northwind Air",
+            "Ireland",
+            7
+          ],
+          [
+            "Northwind Rail",
+            "Ireland",
+            19
+          ],
+          [
+            "Northwind Sea",
+            "Ireland",
+            26
+          ],
+          [
+            "Northwind",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 7
+      },
+      "require": [
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A7",
+      "rules": [
+        {
+          "id": "match-type",
+          "type": "matchType",
+          "func": "VLOOKUP",
+          "arg": 4,
+          "values": [
+            false
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "Start with = and close every bracket: =VLOOKUP(A7&\"*\",A1:C6,3,FALSE).",
+        "func-vlookup": "Use VLOOKUP. INDEX and MATCH can find the same row, but this drill is about what a wildcard inside the lookup value does.",
+        "match-type": "Write FALSE as the fourth argument. Approximate match compares text in sort order and never reads the wildcard, so the pattern has to be matched exactly.",
+        "require-ref": "Build the lookup value from A7 with &\"*\" on the end. Typing \"Northwind*\" in gives the right number today and stops following A7 tomorrow.",
+        "value": "That is the country, not the lead time. Count the columns in A1:C6: supplier is 1, country 2, lead time 3, so the third argument is 3.",
+        "error": "Read the code: #N/A means the pattern matched no supplier, so the wildcard is missing or says the wrong thing; #REF! means the column number points past the three columns of A1:C6; #VALUE! means it is text rather than a number."
+      },
+      "fixtures": {
+        "accept": [
+          "=VLOOKUP(A7&\"*\",A1:C6,3,FALSE)",
+          "=vlookup(a7&\"*\",a1:c6,3,false)",
+          "=VLOOKUP($A$7&\"*\",$A$1:$C$6,3,FALSE)",
+          "=VLOOKUP(A7&\"*\",A1:C6,3,0)",
+          "=VLOOKUP(A7&\"*\",A1:C6,3,FALSE)+0",
+          "=VLOOKUP(A$7&\"*\",A$1:C$6,3,FALSE)",
+          "=VLOOKUP(CONCAT(A7,\"*\"),A1:C6,3,FALSE)",
+          "=VLOOKUP(A7&\"*\",A1:C6,3,FALSE)*1"
+        ],
+        "reject": [
+          {
+            "formula": "=VLOOKUP(A7&\"*\",A1:C6,3,FALSE",
+            "rule": "syntax",
+            "why": "unclosed parenthesis, so nothing runs"
+          },
+          {
+            "formula": "=VLOOKUP(A7&\"*\",A1:C6)",
+            "rule": "func-vlookup",
+            "why": "two arguments is not a VLOOKUP; the column to read is missing"
+          },
+          {
+            "formula": "=VLOOKUP(A7&\"*\",A1:C6,3)",
+            "rule": "match-type",
+            "why": "no fourth argument means approximate match, which never reads the pattern"
+          },
+          {
+            "formula": "=VLOOKUP(A7&\"*\",A1:C6,3,TRUE)",
+            "rule": "match-type",
+            "why": "approximate match compares text in sort order instead of matching the pattern"
+          },
+          {
+            "formula": "=VLOOKUP(A7,A1:C6,3,FALSE)",
+            "rule": "error",
+            "why": "the bare word Northwind is not in the list, so exact match stops with #N/A"
+          },
+          {
+            "formula": "=VLOOKUP(\"Northwind*\",A1:C6,3,FALSE)",
+            "rule": "require-ref",
+            "why": "the pattern is typed in, so the answer never follows A7"
+          },
+          {
+            "formula": "=VLOOKUP(A7&\"*\",A1:C6,2,FALSE)",
+            "rule": "value",
+            "why": "column 2 holds the country, so this returns Ireland rather than a lead time"
+          },
+          {
+            "formula": "=VLOOKUP(A7&\"*\",A1:C6,\"lead\",FALSE)",
+            "rule": "error",
+            "why": "the column argument is a word, so there is no column to count to and the formula stops with #VALUE!"
+          },
+          {
+            "formula": "=VLOOKUP(A7&\"*\",A1:C6,4,FALSE)",
+            "rule": "error",
+            "why": "a fourth column does not exist, so the formula stops with #REF!"
+          },
+          {
+            "formula": "=VLOOKUP(A7&\"?\",A1:C6,3,FALSE)",
+            "rule": "error",
+            "why": "? stands for exactly one character, and Northwind plus one character is not a supplier"
+          },
+          {
+            "formula": "=INDEX(C1:C6,MATCH(A7&\"*\",A1:A6,0))",
+            "rule": "func-vlookup",
+            "why": "right answer, but the drill is about VLOOKUP reading the wildcard"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
+    "explain": "VLOOKUP compares the text Northwind followed by anything — written A7&\"*\" — against the first column of A1:C6, so the pattern matches the first supplier whose name starts with Northwind: Air, in row 4 of the grid, and column 3 of that row is 7 days. Without the wildcard the lookup value is the bare word Northwind, which is not in the list, so exact match stops at #N/A instead of guessing. Three suppliers begin with Northwind — Air, Rail and Sea — and VLOOKUP returns the first one it meets in table order, which is why 7 comes back rather than Rail's 19 or Sea's 26; a longer prefix such as Northwind R would pick out one row and take the ordering question away. The fourth argument has to be FALSE, because approximate match on text compares the names in sort order and never reads the pattern, so Excel would be free to land on a neighbouring supplier. The pattern is built from A7 rather than typed into the formula, so changing the partial name changes which supplier the lookup finds.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "Nothing in the first column matches the pattern exactly, so VLOOKUP has no row to read."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The column number is text, such as \"lead\", so there is no column to count to."
+      },
+      {
+        "code": "#REF!",
+        "text": "The column number reaches past the right edge of A1:C6, which is only three columns wide."
+      }
+    ],
+    "atWork": "Supplier names arrive abbreviated in a purchase ledger, so a wildcard turns a partial name into the first matching order, rate or lead time without a helper column.",
+    "outcome": "Match a lookup value you only partly know, and keep the pattern in a cell so it stays editable.",
+    "teaches": "VLOOKUP wildcard",
+    "dataset": "Supplier lead times",
+    "reference": "=VLOOKUP(A7&\"*\",A1:C6,3,FALSE)"
+  }
+}

@@ -204,7 +204,7 @@ window in which two shapes are both live.
       silently creating it would hide the day a lesson loses its fixtures.
 
 - [ ] **8. Cohorts.** Ten lessons per batch, each green in `content:check` and through a human
-      accuracy review before it merges. **Cohort two is 2 of 10 in.** Lesson 11 is VLOOKUP approximate
+      accuracy review before it merges. **Cohort two is 3 of 10 in.** Lesson 11 is VLOOKUP approximate
       match (`11-vlookup-approximate-match-needs-a-sorted-column`), catalog slot 37, published as
       lesson 8 of 12 — the first file whose number disagrees with where the page sits, because the
       slot decides the reading order and the file name only records the order lessons were written.
@@ -233,6 +233,19 @@ window in which two shapes are both live.
       settled a table-shape question the phase had not asked: HLOOKUP's range has to start at the key
       row, so the label column stays outside `B1:D3`, and the first draft of the grader fixture did not
       — `=HLOOKUP(4200,A1:D2,2)` read the label cell and answered #N/A.
+
+      Lesson 13 is the same function with the lookup value built instead of given: `A7&"*"`, catalog
+      slot 39, published as lesson 10 of 13 — which pushed the capstone and the INDEX/MATCH pair one
+      place later in the reading order without touching their URLs. It cost the grader nothing, and that
+      is the interesting part: wildcard matching, the exact-match gate and the `matchType` rule were all
+      already in place, so the lesson is one JSON file and its `AUDIT` row. What it has to teach is the
+      pairing rather than the wildcard alone — the pattern only matches under `FALSE`, so
+      `=VLOOKUP(A7&"*",A1:C6,3)` and `...,3,TRUE)` are both rejected on `match-type`, and the bare name
+      `=VLOOKUP(A7,A1:C6,3,FALSE)` is rejected because it stops at #N/A. It also refuses the right answer
+      by the wrong route: `=INDEX(C1:C6,MATCH(A7&"*",A1:A6,0))` returns 7 and is rejected on
+      `func-vlookup`. One grader gap surfaced while authoring and was left open deliberately: wildcard
+      matching has no `~` escape, so `COUNTIF(A2:A9,"~*")` and friends diverge from Excel, and cycle
+      detection stays off while lesson 09's reference formula reads the cell it fills.
 
 ## Acceptance criteria
 

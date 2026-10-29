@@ -80,4 +80,9 @@ export const AUDIT = {
     reference: "=HLOOKUP(B4,B1:D3,3,FALSE)",
     wrong: ["=HLOOKUP(B4,B1:D3,2,FALSE)", '=HLOOKUP("Feb",B1:D3,3,FALSE)', "=HLOOKUP(B4,B1:D3,3,TRUE)"],
   },
+  "13-vlookup-with-a-wildcard": {
+    expected: 7, // three suppliers start with Northwind; Air is first in table order, so column 3 is 7
+    reference: '=VLOOKUP(A7&"*",A1:C6,3,FALSE)',
+    wrong: ["=VLOOKUP(A7,A1:C6,3,FALSE)", '=VLOOKUP("Northwind*",A1:C6,3,FALSE)', '=VLOOKUP(A7&"*",A1:C6,2,FALSE)'],
+  },
 };

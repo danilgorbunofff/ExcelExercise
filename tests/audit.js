@@ -75,4 +75,9 @@ export const AUDIT = {
     reference: "=VLOOKUP(A6,A2:B5,2,TRUE)",
     wrong: ["=VLOOKUP(A6,A2:B5,2,FALSE)", "=VLOOKUP(A6,A2:B5,1,TRUE)", "=VLOOKUP(4200,A2:B5,2,TRUE)"],
   },
+  "12-hlookup-look-across-a-row": {
+    expected: 5, // Feb is the second column of B1:D3, and row 3 of that block is the price row
+    reference: "=HLOOKUP(B4,B1:D3,3,FALSE)",
+    wrong: ["=HLOOKUP(B4,B1:D3,2,FALSE)", '=HLOOKUP("Feb",B1:D3,3,FALSE)', "=HLOOKUP(B4,B1:D3,3,TRUE)"],
+  },
 };

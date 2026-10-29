@@ -1,0 +1,151 @@
+{
+  "id": "12-hlookup-look-across-a-row",
+  "slug": "hlookup-look-across-a-row",
+  "level": 2,
+  "title": "HLOOKUP: look across a row",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B5, look up the month in B4 across the top row of B1:D3 and write that month's price.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Month",
+            "Jan",
+            "Feb",
+            "Mar"
+          ],
+          [
+            "Units",
+            120,
+            180,
+            200
+          ],
+          [
+            "Price",
+            4.5,
+            5,
+            5.25
+          ],
+          [
+            "Lookup",
+            "Feb",
+            null,
+            null
+          ],
+          [
+            "Price",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B5",
+      "expect": {
+        "value": 5
+      },
+      "require": [
+        {
+          "id": "func-hlookup",
+          "func": "HLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B4",
+      "rules": [
+        {
+          "id": "match-type",
+          "type": "matchType",
+          "func": "HLOOKUP",
+          "arg": 4,
+          "values": [
+            false
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "Start with = and close every bracket: =HLOOKUP(B4,B1:D3,3,FALSE).",
+        "func-hlookup": "Use HLOOKUP, which reads across a row. VLOOKUP reads down a column, so it would search column B for a month and find nothing.",
+        "match-type": "Write FALSE as the fourth argument. The headers run in calendar order, not alphabetical order, so an approximate match would be allowed to stop on the wrong month.",
+        "require-ref": "Point the first argument at B4 so the price follows the month. Typing \"Feb\" in gives an answer that never updates.",
+        "value": "That is the units figure, not the price. Count the rows in B1:D3: the month is row 1, units row 2, price row 3, so the third argument is 3.",
+        "error": "Check the row number: B1:D3 is three rows deep, so the third argument can only be 1, 2 or 3, and it has to be a number rather than the word price."
+      },
+      "fixtures": {
+        "accept": [
+          "=HLOOKUP(B4,B1:D3,3,FALSE)",
+          "=hlookup(b4,b1:d3,3,false)",
+          "=HLOOKUP($B$4,$B$1:$D$3,3,FALSE)",
+          "=HLOOKUP(B4,B1:D3,3,0)",
+          "=HLOOKUP(B4,B1:D3,3,FALSE)+0",
+          "=HLOOKUP($B4,B$1:$D$3,3,FALSE)"
+        ],
+        "reject": [
+          {
+            "formula": "=HLOOKUP(B4,B1:D3,3,FALSE",
+            "rule": "syntax",
+            "why": "unclosed parenthesis, so nothing runs"
+          },
+          {
+            "formula": "=HLOOKUP(B4,B1:D3,3)",
+            "rule": "match-type",
+            "why": "no fourth argument means approximate match, but the drill wants an exact one written"
+          },
+          {
+            "formula": "=HLOOKUP(B4,B1:D3,3,TRUE)",
+            "rule": "match-type",
+            "why": "approximate match is free to stop on a neighbouring month"
+          },
+          {
+            "formula": "=VLOOKUP(B4,B1:D3,3,FALSE)",
+            "rule": "func-hlookup",
+            "why": "VLOOKUP searches column B for the month and finds nothing"
+          },
+          {
+            "formula": "=HLOOKUP(\"Feb\",B1:D3,3,FALSE)",
+            "rule": "require-ref",
+            "why": "the month is typed in, so the answer never follows B4"
+          },
+          {
+            "formula": "=HLOOKUP(B4,B1:D3,2,FALSE)",
+            "rule": "value",
+            "why": "row 2 holds units, so this returns 180"
+          },
+          {
+            "formula": "=HLOOKUP(B4,B1:D3,\"price\",FALSE)",
+            "rule": "error",
+            "why": "a text row number stops the formula with #VALUE!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=HLOOKUP(lookup_value, table_array, row_index_num, [range_lookup])",
+    "explain": "HLOOKUP walks across the first row of B1:D3 until it finds Feb and then reads down that column to the row number you give it, so the third argument 3 lands on the price row and returns 5. The rows are what the index counts here, the way VLOOKUP counts columns: row 1 is the month headers, row 2 the units and row 3 the prices, which is why a 2 would quietly hand back 180. The fourth argument has to be FALSE, because an approximate match is only safe on a first row sorted ascending, and Jan, Feb, Mar is calendar order rather than alphabetical: Excel would be free to accept a neighbouring month and return its price. That is also why the drill rejects the formula with the fourth argument left out, even though Excel itself would run it, since leaving it out means TRUE. The reference is B4 rather than the word \"Feb\" so the lookup follows the month when it changes.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The month is not anywhere in the first row, so HLOOKUP has no column to read down."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The row number is text or the table is not a block of cells, so there is no row index to count."
+      },
+      {
+        "code": "#REF!",
+        "text": "The row number reaches below the bottom of the table, so the answer sits outside the range you selected."
+      }
+    ],
+    "atWork": "Shift rosters, price sheets and scorecards laid out with the months across the top are all read horizontally.",
+    "outcome": "Pull a value out of a row table by naming the row you want, instead of reading across by eye.",
+    "teaches": "HLOOKUP",
+    "dataset": "Monthly price sheet",
+    "reference": "=HLOOKUP(B4,B1:D3,3,FALSE)"
+  }
+}

@@ -63,6 +63,24 @@ const STAFF = {
 
 const GRADES = { A1: 0, B1: "F", A2: 60, B2: "D", A3: 70, B3: "C", A4: 80, B4: "B", A5: 90, B5: "A" };
 
+/** The band table read sideways, so HLOOKUP has a row to walk; the label column stays out of the range. */
+const MONTHS = {
+  A1: "Month",
+  B1: "Jan",
+  C1: "Feb",
+  D1: "Mar",
+  A2: "Units",
+  B2: 120,
+  C2: 180,
+  D2: 200,
+  A3: "Price",
+  B3: 4.5,
+  C3: 5,
+  D3: 5.25,
+};
+
+const BANDS = { A1: "Revenue", B1: 0, C1: 1000, D1: 5000, A2: "Rate", B2: 0.02, C2: 0.05, D2: 0.08 };
+
 describe("address", () => {
   it("round-trips column labels", () => {
     for (const [index, label] of [[1, "A"], [26, "Z"], [27, "AA"], [52, "AZ"], [702, "ZZ"], [703, "AAA"]]) {
@@ -282,6 +300,24 @@ describe("lookup", () => {
   it("refuses a column wider than the table", () => {
     throwsCode(() => run('=VLOOKUP("E-104",A2:C6,9,FALSE)', STAFF), CODES.REF);
     throwsCode(() => run('=VLOOKUP("E-104",A2:C6,0,FALSE)', STAFF), CODES.VALUE);
+  });
+
+  it("reads the row HLOOKUP's index names", () => {
+    assert.equal(run('=HLOOKUP("Feb",B1:D3,3,FALSE)', MONTHS), 5);
+    assert.equal(run('=HLOOKUP("f*",B1:D3,2,FALSE)', MONTHS), 180);
+    assert.equal(run('=HLOOKUP("Mar",B1:D3,1,0)', MONTHS), "Mar");
+    throwsCode(() => run('=HLOOKUP("Dec",B1:D3,3,FALSE)', MONTHS), CODES.NA);
+  });
+
+  it("approximates across the first row until a key overshoots", () => {
+    assert.equal(run("=HLOOKUP(4200,B1:D2,2)", BANDS), 0.05);
+    assert.equal(run("=HLOOKUP(1000,B1:D2,2,TRUE)", BANDS), 0.05);
+    throwsCode(() => run("=HLOOKUP(-1,B1:D2,2)", BANDS), CODES.NA);
+  });
+
+  it("refuses a row taller than the table", () => {
+    throwsCode(() => run('=HLOOKUP("Feb",B1:D3,4,FALSE)', MONTHS), CODES.REF);
+    throwsCode(() => run('=HLOOKUP("Feb",B1:D3,0,FALSE)', MONTHS), CODES.VALUE);
   });
 
   it("looks up with XLOOKUP and honours if_not_found", () => {

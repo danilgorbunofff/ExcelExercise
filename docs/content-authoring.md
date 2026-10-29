@@ -11,9 +11,9 @@ template.
 ## The loop
 
 ```bash
-npm run content:new -- --lesson 12 --group lookup   # scaffold the next free slot
-npm run content:preview -- --lesson 12              # the page as a reader gets it
-npm run content:fixtures -- --lesson 12             # every fixture against the grader
+npm run content:new -- --lesson 13 --group lookup   # scaffold the next free slot
+npm run content:preview -- --lesson 13              # the page as a reader gets it
+npm run content:fixtures -- --lesson 13             # every fixture against the grader
 npm run content:check                               # the gate CI runs
 npm test                                            # schema, corpus, build, client
 ```
@@ -24,10 +24,11 @@ writes is `schemaVersion: 2` and already passes the gate: the grid, the fixtures
 working SUM drill, and the prompt and `docs.explain` say "replace this scaffold" in place. A green gate
 on a placeholder is not a done lesson; it is proof that the plumbing is out of your way.
 
-`--lesson 12` is the **file number**. The number a learner sees is the lesson's position among authored
-lessons, which is why the scaffold answers "takes catalog slot 38, published as lesson 9 of 12" — a
-slot in the middle of the book, from a file written last. Inserting a slot never renumbers a page;
-publishing one does.
+`--lesson 13` is the **file number**. The number a learner sees is the lesson's position among authored
+lessons, so once every earlier slot is written the two agree and the scaffold says "takes catalog slot
+39, published as lesson 13 of 13". Take a slot earlier in the book and they part: lesson 12 was written
+with three planned slots still ahead of it, which is why its own scaffold said "slot 38, published as
+lesson 9 of 12". Inserting a slot never renumbers a page; publishing one does.
 
 ## What a lesson is
 

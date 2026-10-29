@@ -204,7 +204,7 @@ window in which two shapes are both live.
       silently creating it would hide the day a lesson loses its fixtures.
 
 - [ ] **8. Cohorts.** Ten lessons per batch, each green in `content:check` and through a human
-      accuracy review before it merges. **Cohort two is 1 of 10 in:** lesson 11, VLOOKUP approximate
+      accuracy review before it merges. **Cohort two is 2 of 10 in.** Lesson 11 is VLOOKUP approximate
       match (`11-vlookup-approximate-match-needs-a-sorted-column`), catalog slot 37, published as
       lesson 8 of 11 — the first file whose number disagrees with where the page sits, because the
       slot decides the reading order and the file name only records the order lessons were written.
@@ -223,6 +223,16 @@ window in which two shapes are both live.
       them and were already red. The two literals that stayed are the ones that are the specification: 88
       catalog slots and 16 groups. `tests/golden/snapshot.json` grew by 25 lines and lost none, which
       is what a new lesson should look like in a record of every grader verdict.
+
+      Lesson 12 is HLOOKUP read across the header row of a monthly price sheet, and it cost the grader
+      a function rather than costing content a shape: `HLOOKUP` was in the catalog and not in the
+      evaluator, so the drill could not be authored honestly without it. VLOOKUP and HLOOKUP are now
+      one `axisLookup` walk that differs only in which edge holds the keys and which the index counts,
+      and VLOOKUP's messages are byte-identical afterwards — the golden snapshot and the 90 grader
+      tests proved the refactor behaviour-preserving before the three HLOOKUP tests landed. It also
+      settled a table-shape question the phase had not asked: HLOOKUP's range has to start at the key
+      row, so the label column stays outside `B1:D3`, and the first draft of the grader fixture did not
+      — `=HLOOKUP(4200,A1:D2,2)` read the label cell and answered #N/A.
 
 ## Acceptance criteria
 

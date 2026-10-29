@@ -144,6 +144,7 @@ only used to confirm. The literals live in `AUDIT` in `tests/audit.js`.
 | 9 | `=LEFT(B2,FIND("-",B2)-1)` | `-` at 4, so 3 characters | `"ORD"` |
 | 10 | `=IFERROR(ROUND((rev−cost)/rev*100,1),"")` | (2500 − 1380) / 2500 × 100 | `44.8` |
 | 11 | `=VLOOKUP(A6,A2:B5,2,TRUE)` | 4200 ≥ 1000 and < 5000, so the second column of the 1000 row | `0.05` |
+| 12 | `=HLOOKUP(B4,B1:D3,3,FALSE)` | Feb is column 2 of the block, and row 3 is the price row | `5` |
 
 ## Acceptance criteria
 

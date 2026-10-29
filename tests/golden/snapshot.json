@@ -301,6 +301,31 @@
         {"input":"=VLOOKUP(A6,A2:B5,2,FALSE)","ok":false,"rule":"match-type","code":null,"position":null,"value":null,"expected":0.05,"message":"VLOOKUP's 4th argument is FALSE; this lesson needs TRUE.","hint":"Write TRUE as the fourth argument. That is the approximate match this band table needs, and 1 means the same thing to Excel."},
         {"input":"=VLOOKUP(A6,A2:B5,2,TRUE)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""}
       ]
+    },
+    "12-hlookup-look-across-a-row": {
+      "accepted": [
+        {"input":"=HLOOKUP($B$4,$B$1:$D$3,3,FALSE)","ok":true,"rule":"correct","code":null,"position":null,"value":5,"expected":5,"message":"Correct.","hint":""},
+        {"input":"=HLOOKUP($B4,B$1:$D$3,3,FALSE)","ok":true,"rule":"correct","code":null,"position":null,"value":5,"expected":5,"message":"Correct.","hint":""},
+        {"input":"=HLOOKUP(B4,B1:D3,3,0)","ok":true,"rule":"correct","code":null,"position":null,"value":5,"expected":5,"message":"Correct.","hint":""},
+        {"input":"=HLOOKUP(B4,B1:D3,3,FALSE)","ok":true,"rule":"correct","code":null,"position":null,"value":5,"expected":5,"message":"Correct.","hint":""},
+        {"input":"=HLOOKUP(B4,B1:D3,3,FALSE)+0","ok":true,"rule":"correct","code":null,"position":null,"value":5,"expected":5,"message":"Correct.","hint":""},
+        {"input":"=hlookup(b4,b1:d3,3,false)","ok":true,"rule":"correct","code":null,"position":null,"value":5,"expected":5,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=HLOOKUP(\"Feb\",B1:D3,3,FALSE)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":5,"message":"Your formula does not refer to B4. The lesson checks that you point at the data rather than typing the number.","hint":"Point the first argument at B4 so the price follows the month. Typing \"Feb\" in gives an answer that never updates."},
+        {"input":"=HLOOKUP(B4,B1:D3,\"price\",FALSE)","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":5,"message":"#VALUE! That value is text (\"price\"), not a number.","hint":"Check the row number: B1:D3 is three rows deep, so the third argument can only be 1, 2 or 3, and it has to be a number rather than the word price."},
+        {"input":"=HLOOKUP(B4,B1:D3,2,FALSE)","ok":false,"rule":"value","code":null,"position":null,"value":180,"expected":5,"message":"Your formula returns 180, but this lesson expects 5.","hint":"That is the units figure, not the price. Count the rows in B1:D3: the month is row 1, units row 2, price row 3, so the third argument is 3."},
+        {"input":"=HLOOKUP(B4,B1:D3,3)","ok":false,"rule":"match-type","code":null,"position":null,"value":null,"expected":5,"message":"HLOOKUP has no 4th argument, so Excel uses its default instead.","hint":"Write FALSE as the fourth argument. The headers run in calendar order, not alphabetical order, so an approximate match would be allowed to stop on the wrong month."},
+        {"input":"=HLOOKUP(B4,B1:D3,3,FALSE","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":5,"message":"HLOOKUP is missing its closing \")\".","hint":"Start with = and close every bracket: =HLOOKUP(B4,B1:D3,3,FALSE)."},
+        {"input":"=HLOOKUP(B4,B1:D3,3,TRUE)","ok":false,"rule":"match-type","code":null,"position":null,"value":null,"expected":5,"message":"HLOOKUP's 4th argument is TRUE; this lesson needs FALSE.","hint":"Write FALSE as the fourth argument. The headers run in calendar order, not alphabetical order, so an approximate match would be allowed to stop on the wrong month."},
+        {"input":"=VLOOKUP(B4,B1:D3,3,FALSE)","ok":false,"rule":"func-hlookup","code":null,"position":null,"value":null,"expected":5,"message":"This lesson is about HLOOKUP. Your formula does not use HLOOKUP.","hint":"Use HLOOKUP, which reads across a row. VLOOKUP reads down a column, so it would search column B for a month and find nothing."}
+      ],
+      "audit": [
+        {"input":"=HLOOKUP(\"Feb\",B1:D3,3,FALSE)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":5,"message":"Your formula does not refer to B4. The lesson checks that you point at the data rather than typing the number.","hint":"Point the first argument at B4 so the price follows the month. Typing \"Feb\" in gives an answer that never updates."},
+        {"input":"=HLOOKUP(B4,B1:D3,2,FALSE)","ok":false,"rule":"value","code":null,"position":null,"value":180,"expected":5,"message":"Your formula returns 180, but this lesson expects 5.","hint":"That is the units figure, not the price. Count the rows in B1:D3: the month is row 1, units row 2, price row 3, so the third argument is 3."},
+        {"input":"=HLOOKUP(B4,B1:D3,3,FALSE)","ok":true,"rule":"correct","code":null,"position":null,"value":5,"expected":5,"message":"Correct.","hint":""},
+        {"input":"=HLOOKUP(B4,B1:D3,3,TRUE)","ok":false,"rule":"match-type","code":null,"position":null,"value":null,"expected":5,"message":"HLOOKUP's 4th argument is TRUE; this lesson needs FALSE.","hint":"Write FALSE as the fourth argument. The headers run in calendar order, not alphabetical order, so an approximate match would be allowed to stop on the wrong month."}
+      ]
     }
   }
 }

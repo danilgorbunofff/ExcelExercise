@@ -24,7 +24,7 @@ This is the part competitors cannot copy quickly, so it gets built and tested be
 
 Aggregates: `SUM`, `AVERAGE`, `COUNT`, `COUNTA`, `MIN`, `MAX`, `SUMIF`, `COUNTIF`.
 Logic: `IF`, `IFERROR`, `AND`, `OR`, `NOT`.
-Lookup: `VLOOKUP`, `XLOOKUP`, `INDEX`, `MATCH`.
+Lookup: `VLOOKUP`, `HLOOKUP`, `XLOOKUP`, `INDEX`, `MATCH`.
 Text: `LEN`, `LEFT`, `RIGHT`, `MID`, `FIND`, `SEARCH`, `UPPER`, `LOWER`, `PROPER`, `TRIM`,
 `CONCAT`, `CONCATENATE`, `TEXTJOIN`.
 Math: `ABS`, `ROUND`, `ROUNDUP`, `ROUNDDOWN`.

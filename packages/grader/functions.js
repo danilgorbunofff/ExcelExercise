@@ -218,6 +218,67 @@ function matchLookup(lookup, cell, { wildcard = true } = {}) {
   return compareValues(cell, lookup) === 0;
 }
 
+/**
+ * VLOOKUP and HLOOKUP are one walk on two axes: the keys run down the first column
+ * or across the first row, and the index number picks the column or the row to read.
+ * `across` names the axis so the pair cannot drift on the parts that matter —
+ * wildcards, the default approximate match, #N/A when no key fits and #REF! when the
+ * index reaches past the table.
+ */
+function axisLookup(name, { lookup, table, index, approximate, across }) {
+  const horizontal = across === "row";
+  const noun = horizontal ? "row" : "column";
+  const keys = horizontal ? table.width : table.height;
+  const depth = horizontal ? table.height : table.width;
+  const indexNumber = Math.trunc(index);
+  const keyAt = horizontal ? (i) => table.values[0][i] : (i) => table.values[i][0];
+  const read = horizontal
+    ? (i) => table.values[indexNumber - 1][i]
+    : (i) => table.values[i][indexNumber - 1];
+
+  if (!Number.isFinite(indexNumber) || indexNumber < 1) {
+    throw new FormulaError(CODES.VALUE, `${name}'s ${noun} number must be 1 or more.`);
+  }
+  if (indexNumber > depth) {
+    const shape = `${depth} ${noun}s`;
+    const tooBig = horizontal ? "taller" : "wider";
+    throw new FormulaError(
+      CODES.REF,
+      `${name}'s ${noun} number ${indexNumber} is ${tooBig} than the table (${shape}).`,
+    );
+  }
+
+  if (!approximate) {
+    for (let i = 0; i < keys; i += 1) {
+      if (matchLookup(lookup, keyAt(i))) return read(i) ?? null;
+    }
+    throw new FormulaError(
+      CODES.NA,
+      `${name} found no exact match for ${formatLookup(lookup)} in the first ${noun}.`,
+    );
+  }
+
+  const key = numericOrNull(lookup);
+  let best = -1;
+  for (let i = 0; i < keys; i += 1) {
+    const cell = keyAt(i);
+    const cellNumber = numericOrNull(cell);
+    const cmp =
+      key !== null && cellNumber !== null
+        ? compareValues(cellNumber, key)
+        : compareValues(cell, lookup);
+    if (cmp <= 0) best = i;
+    else break;
+  }
+  if (best === -1) {
+    throw new FormulaError(
+      CODES.NA,
+      `${name} found no approximate match for ${formatLookup(lookup)}; every value is larger.`,
+    );
+  }
+  return read(best) ?? null;
+}
+
 /* ---------------------------------------------------------------- registry */
 
 const NUMERIC_AGGREGATE = (name, pick, { empty } = {}) => (args) => {
@@ -313,54 +374,23 @@ export const FUNCTIONS = {
     return false;
   },
 
-  VLOOKUP: (args) => {
-    const lookup = scalar(args[0]);
-    const table = requireRange("VLOOKUP", args[1], 2);
-    const colIndex = Math.trunc(toNumber(args[2]));
-    const approximate = args.length > 3 ? toBoolean(scalar(args[3])) : true;
+  VLOOKUP: (args) =>
+    axisLookup("VLOOKUP", {
+      lookup: scalar(args[0]),
+      table: requireRange("VLOOKUP", args[1], 2),
+      index: toNumber(args[2]),
+      approximate: args.length > 3 ? toBoolean(scalar(args[3])) : true,
+      across: "column",
+    }),
 
-    if (!Number.isFinite(colIndex) || colIndex < 1) {
-      throw new FormulaError(CODES.VALUE, "VLOOKUP's column number must be 1 or more.");
-    }
-    if (colIndex > table.width) {
-      throw new FormulaError(
-        CODES.REF,
-        `VLOOKUP's column number ${colIndex} is wider than the table (${table.width} columns).`,
-      );
-    }
-
-    const column = colIndex - 1;
-
-    if (!approximate) {
-      for (const row of table.values) {
-        if (matchLookup(lookup, row[0])) return row[column] ?? null;
-      }
-      throw new FormulaError(
-        CODES.NA,
-        `VLOOKUP found no exact match for ${formatLookup(lookup)} in the first column.`,
-      );
-    }
-
-    const key = numericOrNull(lookup);
-    let best = null;
-    for (const row of table.values) {
-      const cell = row[0];
-      const cellNumber = numericOrNull(cell);
-      const cmp =
-        key !== null && cellNumber !== null
-          ? compareValues(cellNumber, key)
-          : compareValues(cell, lookup);
-      if (cmp <= 0) best = row;
-      else break;
-    }
-    if (!best) {
-      throw new FormulaError(
-        CODES.NA,
-        `VLOOKUP found no approximate match for ${formatLookup(lookup)}; every value is larger.`,
-      );
-    }
-    return best[column] ?? null;
-  },
+  HLOOKUP: (args) =>
+    axisLookup("HLOOKUP", {
+      lookup: scalar(args[0]),
+      table: requireRange("HLOOKUP", args[1], 2),
+      index: toNumber(args[2]),
+      approximate: args.length > 3 ? toBoolean(scalar(args[3])) : true,
+      across: "row",
+    }),
 
   XLOOKUP: (args) => {
     const lookup = scalar(args[0]);
@@ -581,6 +611,7 @@ export const FUNCTION_ARITY = Object.freeze({
   SUMIF: { min: 2, max: 3 },
   COUNTIF: { min: 2, max: 2 },
   VLOOKUP: { min: 3, max: 4 },
+  HLOOKUP: { min: 3, max: 4 },
   XLOOKUP: { min: 3, max: 6 },
   INDEX: { min: 1, max: 3 },
   MATCH: { min: 2, max: 3 },

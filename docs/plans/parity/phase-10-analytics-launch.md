@@ -39,6 +39,15 @@ the new one without losing search rankings or a single learner's progress.
    article_drill_start, search, filter_use, error_boundary`.
    Every event carries `session_id`, `user_id?`, `anon_id`, `route`, `track`, `lesson_id?`,
    `screen_id?`, `ts`.
+   **What exists today:** `packages/session/events.js` implements this list minus the events that need
+   accounts, checkout, articles, search or challenges — 14 names covering the drill funnel, with a
+   runtime allowlist, a flat-primitive prop filter, `type`/`ts` written last and a 500-event buffer cap.
+   The envelope it produces is `{ ...context, ...props, type, ts }`, and its context carries only `route`
+   so far. Four of those fourteen names are not in the list above — `lesson_exhausted`, `paywall_email`,
+   `trial_start`, `track_view` — because they describe the fake-door paywall and the catalog page this
+   site has; the rest of the list (`checkout_*`, `signup`, `login`, `challenge_*`, `certificate_issue`,
+   `article_*`, `search`, `filter_use`, `error_boundary`, `page_view`) has no emitter yet. Reconcile the
+   vocabulary, `session_id`/`anon_id` and `screen_id` with this list in this phase, not at the collector.
 2. **Collector.** `POST /api/events` batches (≤20 per request, `sendBeacon` on unload), validates
    against the schema, writes to Postgres (`events` table, partitioned by month) with a 90-day
    retention job. No third-party JS. Consent: anonymous mode sends no `user_id` and truncates IP.

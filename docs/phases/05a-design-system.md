@@ -390,5 +390,5 @@ accessibility violation count of zero from axe-core on the lesson, index and pay
   ever renders as a synth-bold, read the axis range out of the file and correct it here.
 - The grid keeps `font-variant-numeric: tabular-nums lining-nums` rather than a monospace family:
   digits align in columns without the width penalty of a second text face.
-- The tenth funnel event (`drill_exhausted`) is documented in
+- The tenth funnel event (`lesson_exhausted`) is documented in
   [05-drill-ui-and-funnel.md](05-drill-ui-and-funnel.md), not in §10 of this document.

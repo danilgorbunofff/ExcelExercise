@@ -54,8 +54,12 @@ business depends on: start → finish → paywall intent.
 **Events** (pushed to `window.__esEvents` and `console.debug`, so PostHog can be attached later
 without touching the drill):
 
-`drill_view`, `drill_start` (first keystroke), `drill_check`, `drill_hint`, `drill_solution`,
-`drill_complete`, `paywall_view`, `paywall_email`, `trial_start`.
+`screen_view`, `drill_start` (first keystroke), `check_correct`/`check_wrong`, `hint_open`,
+`solution_reveal`, `lesson_complete`, `paywall_view`, `paywall_email`, `trial_start`.
+
+> Names are as of phase 2, when these events moved onto the shared sink in `packages/session/events.js`.
+> This phase shipped them as `drill_view`, `drill_check`, `drill_hint`, `drill_solution`,
+> `drill_complete` and `drill_exhausted`; the rename is recorded in `docs/player-contract.md`.
 
 ## Visual contract
 
@@ -161,7 +165,7 @@ Total suite: **248 tests**.
 | Separate tablet progress bar | The rail doubles as the progress bar via `order: -1` | One element, no duplicate state |
 | Streak counter | Omitted | Nothing honest to count until there are sessions |
 | Sticky formula bar on phones | Not implemented; the sheet body scrolls inside a `60vh` box and `keepVerdictInView()` scrolls the page to the verdict | `.sheet-card` clips its corners (`overflow: hidden`), which makes sticky children impossible; `overflow: clip` fixes sticky but stops `scrollIntoView` reaching descendants. The bar sits directly under the grid, so it needs no pinning. |
-| Nine funnel events | Ten, adding `drill_exhausted` (all three attempts used, then reveal shown) | The reveal and the exhaustion are different signals for the metrics |
+| Nine funnel events | Ten, adding `lesson_exhausted` (all three attempts used, then reveal shown) | The reveal and the exhaustion are different signals for the metrics |
 
 ### Defects found by the browser verification pass
 
@@ -196,7 +200,7 @@ input was read-only. All five items below are fixed and covered by `tests/client
    a learner who had already used all three attempts had to miss a fourth time to see the answer again.
    Mount now unhides it when `attemptsFor(...) >= MAX_ATTEMPTS`. The server still ships it `hidden`, so
    the no-JS page is unchanged.
-4. **`drill_exhausted` fired on every attempt past the limit.** The guard was `attempts >= MAX_ATTEMPTS`,
+4. **`lesson_exhausted` fired on every attempt past the limit.** The guard was `attempts >= MAX_ATTEMPTS`,
    which re-fires on attempts 4, 5, …; it is now `=== MAX_ATTEMPTS`, so one lesson emits one exhaustion.
 5. **Success copy reused the failure label.** `attemptLabel()` counted the just-recorded completion, so a
    one-miss solve read "2 attempts. The reference answer is available below." A separate
@@ -211,4 +215,5 @@ dead `export { … }` block plus two now-unused imports were removed from `drill
 stores `Math.max(previous, attempts) || 1` and a first-try solve must also record one attempt. The
 persisted record therefore cannot distinguish "solved first try" from "solved after one miss"; the
 success copy avoids the problem by taking the pre-completion count, and nothing in the UI reads the
-stored value. `drill_complete.attempts` in the event buffer inherits the same conflation.
+stored value. `check_correct.attempts` in the event buffer inherits the same conflation (phase 2 moved
+the attempt count off `lesson_complete`, which now reports the lesson, not the try that finished it).

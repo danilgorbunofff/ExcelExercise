@@ -1,0 +1,11 @@
+{
+  "name": "@excelsupreme/session",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Score loop, session clock and event sink for the player. No DOM, no network, no dependencies.",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  }
+}

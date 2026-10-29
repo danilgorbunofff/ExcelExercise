@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, before, describe, it } from "node:test";
 
@@ -65,12 +65,14 @@ describe("build", () => {
       "assets/fonts/newsreader-latin.woff2",
       "assets/grader/index.js",
       "assets/grader/grade.js",
+      "assets/session/index.js",
       "sitemap.xml",
       "robots.txt",
     ]) {
       assert.doesNotThrow(() => readFileSync(join(out, file)), `${file} was not written`);
     }
     assert.equal(summary.grader, 9, "every grader module must be copied as an ES module");
+    assert.equal(summary.session, 4, "every session module must be copied as an ES module");
     assert.equal(summary.fonts, 4);
   });
 
@@ -175,16 +177,26 @@ describe("build", () => {
       assert.match(html, /<script type="module" src="\/assets\/client\/drill\.js"><\/script>/, `${page} does not load the client`);
     }
 
-    // drill.js reaches the grader with `../grader/index.js`; that only works from assets/client.
-    const source = readFileSync(join(out, "assets/client/drill.js"), "utf8");
-    const specifiers = [...source.matchAll(/from "(\.[^"]+)"/g)].map((match) => match[1]);
-    assert.ok(specifiers.length >= 2, "the client should import the grader and its own state module");
-    for (const specifier of specifiers) {
-      assert.doesNotThrow(
-        () => readFileSync(join(out, "assets/client", specifier), "utf8"),
-        `${specifier} does not resolve from assets/client`,
-      );
-    }
+    // drill.js reaches the grader with `../grader/index.js`; that only works from
+    // assets/client. The copied packages are not bundled either, so their own relative
+    // imports have to resolve from where they land — walked, not assumed.
+    const visited = new Set();
+    const unresolved = [];
+    const walk = (file) => {
+      if (visited.has(file)) return;
+      visited.add(file);
+      let source;
+      try {
+        source = readFileSync(file, "utf8");
+      } catch {
+        unresolved.push(file.slice(out.length + 1));
+        return;
+      }
+      for (const [, specifier] of source.matchAll(/from "(\.[^"]+)"/g)) walk(resolve(dirname(file), specifier));
+    };
+    walk(join(out, "assets/client/drill.js"));
+    assert.deepEqual(unresolved, [], "the client and the packages it loads must resolve from dist");
+    assert.ok(visited.size >= 4, "the walk should reach the client, the grader and the session engine");
   });
 
   it("gives the track page progress markup that stays invisible without JavaScript", () => {

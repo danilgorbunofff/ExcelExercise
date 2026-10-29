@@ -280,20 +280,28 @@ describe("drill.js source", () => {
     }
   });
 
-  it("emits the nine funnel events the phase document lists", () => {
+  it("emits the funnel events under the names the phase document lists", () => {
     for (const event of [
-      "drill_view",
+      "screen_view",
       "drill_start",
-      "drill_check",
-      "drill_hint",
-      "drill_solution",
-      "drill_complete",
+      "check_correct",
+      "check_wrong",
+      "hint_open",
+      "solution_reveal",
+      "lesson_complete",
+      "lesson_exhausted",
       "paywall_view",
       "paywall_email",
       "trial_start",
     ]) {
       assert.match(code, new RegExp(`track\\("${event}"`), `${event} is never emitted`);
     }
+  });
+
+  it("reaches the shared session sink instead of its own buffer", () => {
+    assert.match(code, /import \{ createSink \} from "\.\.\/session\/index\.js";/);
+    assert.match(code, /const sink = createSink\(\{/);
+    assert.match(code, /return sink\.emit\(type, props\)/);
   });
 
   it("never puts a cell value in the formula bar", () => {
@@ -309,7 +317,7 @@ describe("drill.js source", () => {
   });
 
   it("announces exhaustion once, on the third miss", () => {
-    assert.equal(code.match(/drill_exhausted/g).length, 1, "one emission site, so a retry does not re-count");
+    assert.equal(code.match(/lesson_exhausted/g).length, 1, "one emission site, so a retry does not re-count");
     assert.doesNotMatch(code, />= MAX_ATTEMPTS\) \{\s*if \(ui\.showAnswer\) ui\.showAnswer\.hidden = false;/);
   });
 
@@ -320,7 +328,7 @@ describe("drill.js source", () => {
   it("keeps the typed address out of the event buffer", () => {
     // The form says nothing is sent anywhere; an address sitting in the event queue
     // would be the one field an analytics hook could forward. The extra
-    // drill_exhausted event is intentional (it marks the third miss).
+    // lesson_exhausted event is intentional (it marks the third miss).
     assert.doesNotMatch(code, /track\("paywall_email"[^)]*email[^)]*\)/);
     assert.doesNotMatch(code, /track\("paywall_email"[^)]*input\.value/);
   });

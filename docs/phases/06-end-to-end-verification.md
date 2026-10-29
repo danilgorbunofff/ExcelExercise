@@ -140,14 +140,20 @@ field sample ever disagrees, the first fix to try is subsetting the two text fac
 
 | Journey | Result |
 |---|---|
-| 1. Cold visit, lesson 1 | `=SUM(B2:B4)` + Enter → cell fills `3580`, success state, "Correct", next CTA "Next: AVERAGE: mean of a score list". Events: `drill_view, drill_start, drill_check, drill_complete`. **Deviation:** the plan expects "streak 1"; the streak counter was cut in phase 5 (see its deviation table) and the rail reads "1 of 10 complete" instead. |
+| 1. Cold visit, lesson 1 | `=SUM(B2:B4)` + Enter → cell fills `3580`, success state, "Correct", next CTA "Next: AVERAGE: mean of a score list". Events: `screen_view, drill_start, check_correct, lesson_complete`. **Deviation:** the plan expects "streak 1"; the streak counter was cut in phase 5 (see its deviation table) and the rail reads "1 of 10 complete" instead. |
 | 2. Wrong-answer path | `=B2+B3+B4` → names SUM and what the answer needs; `=SUM(B2:B3)` → "returns 2650, but this lesson expects 3580"; `=sum(` → "The formula cannot be read" with the caret under the missing bracket. Three misses reveal the reference formula. No crash, no console error. |
 | 3. Paywall | Lesson 6 shows the card in place of the grid with the docs still readable; email starts a trial; the drill mounts; reload keeps the trial; `=ROUND(SUM(B2:B4)*1.08,2)` → `4450.4`. |
 | 4. Crawl | `verify.mjs` green on all 10 pages; `/sitemap.xml` lists 11 `<loc>` entries. |
 
 Funnel counts for the whole session (one fresh profile, `window.__esEvents`):
-`track_view` 1, `drill_view` 3, `drill_start` 3, `drill_check` 5, `drill_hint` 1, `drill_solution` 1,
-`drill_exhausted` 1, `drill_complete` 2, `paywall_view` 1, `paywall_email` 1, `trial_start` 1.
+`track_view` 1, `screen_view` 3, `drill_start` 3, `check_correct` 2, `check_wrong` 3, `hint_open` 1,
+`solution_reveal` 1, `lesson_exhausted` 1, `lesson_complete` 2, `paywall_view` 1, `paywall_email` 1,
+`trial_start` 1.
+
+The session was recorded when these were `drill_view`/`drill_check`/`drill_hint`/`drill_solution`/
+`drill_complete`/`drill_exhausted`; phase 2 renamed them onto the shared vocabulary
+(`docs/player-contract.md`), and the one `drill_check` count of 5 is shown split as the 2 correct and 3
+wrong answers the journeys describe.
 
 ## Acceptance criteria, as measured
 

@@ -133,6 +133,12 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const grader = copyDir(graderSource, join(dist, "assets/grader"), { filter: (name) => name.endsWith(".js") });
   if (grader === 0) throw new Error(`${graderSource} is empty — the client cannot grade without it`);
 
+  // Same contract for the session engine: packages/session ships at assets/session/, the
+  // path client/drill.js imports (`../session/index.js`).
+  const sessionSource = resolve(root, "../packages/session");
+  const session = copyDir(sessionSource, join(dist, "assets/session"), { filter: (name) => name.endsWith(".js") });
+  if (session === 0) throw new Error(`${sessionSource} is empty — the client cannot emit events without it`);
+
   const client = clientAvailable
     ? copyDir(join(root, "src/client"), join(dist, "assets/client"), { filter: (name) => name.endsWith(".js") })
     : 0;
@@ -151,6 +157,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     cssSources: sources.map((file) => file.split("/").slice(-2).join("/")),
     fonts,
     grader,
+    session,
     client,
     bytes,
     warnings,
@@ -160,7 +167,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     const kb = (summary.bytes / 1024).toFixed(1);
     console.log(`built ${summary.pages} pages (${kb} kB of HTML+CSS) → ${dist}`);
     console.log(`  styles: ${summary.cssSources.length} sources concatenated`);
-    console.log(`  assets: ${fonts} fonts, ${grader} grader modules, ${client} client modules`);
+    console.log(`  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${client} client modules`);
     for (const warning of warnings) console.warn(`  warning: ${warning}`);
   }
 

@@ -7,6 +7,7 @@
  */
 
 import { grade } from "../grader/index.js";
+import { createSink } from "../session/index.js";
 import {
   PROGRESS_KEY,
   TRIAL_KEY,
@@ -43,13 +44,24 @@ const RULE_LABEL = {
 
 const globalObject = globalThis;
 
-function track(name, props = {}) {
-  const event = { name, at: new Date().toISOString(), ...props };
-  if (!Array.isArray(globalObject.__esEvents)) globalObject.__esEvents = [];
-  globalObject.__esEvents.push(event);
-  if (typeof globalObject.console?.debug === "function") {
-    globalObject.console.debug(`[es] ${name}`, props);
-  }
+/**
+ * Funnel events go through the shared sink, which owns the vocabulary and the envelope
+ * and refuses names it does not know. Nothing is shipped anywhere yet: the buffer is
+ * what the analytics collector will read once phase 10 wires a transport.
+ */
+const sink = createSink({
+  write: (event) => {
+    if (!Array.isArray(globalObject.__esEvents)) globalObject.__esEvents = [];
+    globalObject.__esEvents.push(event);
+    if (typeof globalObject.console?.debug === "function") {
+      globalObject.console.debug(`[es] ${event.type}`, event);
+    }
+  },
+  context: () => ({ route: globalObject.location?.pathname ?? "" }),
+});
+
+function track(type, props = {}) {
+  return sink.emit(type, props);
 }
 
 /** Element builder: text is always a text node, so grader output cannot become markup. */
@@ -345,9 +357,13 @@ function mountDrill(payloadNode) {
       meta: offeredSolution ? "Completed with help." : successLabel(missed),
       next,
     });
-    track("drill_complete", {
+    track("check_correct", {
       id: lessonId,
       attempts: attemptsFor(progress, lessonId),
+      helped: offeredSolution,
+    });
+    track("lesson_complete", {
+      id: lessonId,
       helped: offeredSolution,
       completed: completedCount(progress),
     });
@@ -366,9 +382,10 @@ function mountDrill(payloadNode) {
       meta: attemptLabel(),
     });
     if (result.hint) ui.hintText.textContent = result.hint;
+    track("check_wrong", { id: lessonId, rule: result.rule, attempts: attemptsFor(progress, lessonId) });
     if (attemptsFor(progress, lessonId) === MAX_ATTEMPTS) {
       if (ui.showAnswer) ui.showAnswer.hidden = false;
-      track("drill_exhausted", { id: lessonId });
+      track("lesson_exhausted", { id: lessonId });
     }
     paintProgress();
   }
@@ -385,7 +402,6 @@ function mountDrill(payloadNode) {
       ui.feedbackBody.textContent = `Type a formula in the bar, starting with =, then press Enter.`;
       return;
     }
-    track("drill_check", { id: lessonId, value: raw });
     let result;
     try {
       result = grade(payload, raw);
@@ -404,7 +420,7 @@ function mountDrill(payloadNode) {
 
   function revealSolution() {
     offeredSolution = true;
-    track("drill_solution", { id: lessonId });
+    track("solution_reveal", { id: lessonId });
     ui.solutionCode.textContent = payload.docs.reference;
     ui.solution.hidden = false;
     ui.solution.classList.add("is-live");
@@ -428,7 +444,7 @@ function mountDrill(payloadNode) {
     if (!expanded) {
       ui.hintText.classList.add("is-live");
       if (!ui.hintText.textContent) setHint();
-      track("drill_hint", { id: lessonId, attempts: attemptsFor(progress, lessonId) });
+      track("hint_open", { id: lessonId, attempts: attemptsFor(progress, lessonId) });
     }
   }
 
@@ -544,7 +560,7 @@ function mountDrill(payloadNode) {
   }
 
   selectCell(payload.answerCell);
-  track("drill_view", { id: lessonId, gated: !payload.track.free, solved });
+  track("screen_view", { id: lessonId, gated: !payload.track.free, solved });
 
   // Focus the bar only when the drill is actually on screen: autofocus on a long page
   // scrolls the reader past the lesson title.

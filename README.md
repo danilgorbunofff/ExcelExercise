@@ -24,7 +24,7 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 376 tests, no build step
+npm test                # 403 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
 npm run build           # writes legacy/dist — 16 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
@@ -40,7 +40,7 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 376 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 403 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
 | `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 16 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
@@ -113,6 +113,11 @@ packages/
     schema.js             the lesson schema: v2 screens[] plus the v1 flat shape, normalized to one
     index.js              loadContent() → { track, exercises } in track order; validateLesson(); screenAt()
     README.md             what it rejects and why, and why page shape is deliberately not in here
+  session/                the player engine: score loop, clock and typed event sink
+    events.js             the event vocabulary (14 names) plus createSink: filter, envelope, buffer cap
+    score.js              createSession / recordVerdict — weights, cap, recycling, termination guard
+    clock.js              the session budget, with an idempotent pause for a hidden tab
+    README.md             docs/player-contract.md is the longer version: screen shape and invariants
   content-lint/           the authoring gate: can the lesson be shipped, not just rendered
     index.js              lintContent() → { ok, errors, warnings, stats }: fixtures replayed, prompts,
                           links; collects every finding instead of throwing on the first
@@ -123,6 +128,7 @@ tests/golden/             byte-stable record of every grader verdict (phase 0 tr
 docs/phases/              the plan each phase was built from, with what was built and what changed
 docs/plans/parity/        the reference-parity program, one file per phase
 docs/content-authoring.md how to write, preview, fixture and gate a lesson
+docs/player-contract.md  the player's screen, score-loop, clock and event contract
 docs/screenshots/         the visual baseline: lesson 1 at 1440px and 375px
 ```
 
@@ -193,9 +199,9 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **376 passing**, 0 failing — 93 grader, 68 fixtures, 44 build/server, 40 content-lint, 32 client, 20 content, 18 schema, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
-| `npm run build` | 16 pages, 476.9 kB HTML+CSS, 14 style sources, 4 fonts, 9 grader modules, 2 client modules |
-| `node legacy/src/verify.mjs` | **493 checks passed** across 15 lesson pages + the index |
+| `npm test` | **403 passing**, 0 failing — 93 grader, 68 fixtures, 44 build/server, 40 content-lint, 33 client, 26 session, 20 content, 18 schema, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
+| `npm run build` | 16 pages, 477.0 kB HTML+CSS, 14 style sources, 4 fonts, 9 grader modules, 4 session modules, 2 client modules |
+| `node legacy/src/verify.mjs` | **497 checks passed** across 15 lesson pages + the index |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |
 | axe-core 4 on a lesson | 0 violations, 50 passes |
 | Console | no errors or warnings, only the `[es]` debug funnel lines |
@@ -229,13 +235,18 @@ buffers (`window.__esEvents`, mirrored to `console.debug`) was counted afterward
 | 3. Paywall → lesson 6 | Card replaces the grid, docs stay readable, email starts a trial, the drill mounts, reload keeps the trial, `=ROUND(SUM(B2:B4)*1.08,2)` → 4450.4 |
 | 4. Crawl | `verify.mjs`: prompt, five docs sections, reference formula, syntax block, payload and JSON-LD present on all 11 pages; sitemap lists 12 URLs |
 
-Counted events for that session: `track_view` 1, `drill_view` 3, `drill_start` 3, `drill_check` 5,
-`drill_hint` 1, `drill_solution` 1, `drill_exhausted` 1, `drill_complete` 2, `paywall_view` 1,
-`paywall_email` 1, `trial_start` 1.
+Counted events for that session: `track_view` 1, `screen_view` 3, `drill_start` 3, `check_correct` 2,
+`check_wrong` 3, `hint_open` 1, `solution_reveal` 1, `lesson_exhausted` 1, `lesson_complete` 2,
+`paywall_view` 1, `paywall_email` 1, `trial_start` 1.
 
 Read plainly: every lesson view started a drill, 5 checks produced 2 completions, and the one gated
 view reached the email field. These are single-user samples proving the instrumentation fires in the
-right order, not evidence of demand. Eleven events exist; nothing leaves the page.
+right order, not evidence of demand. The walkthrough was recorded before phase 2 renamed the names
+(`drill_view` → `screen_view`, `drill_hint` → `hint_open`, `drill_solution` → `solution_reveal`,
+`drill_complete` → `lesson_complete`, `drill_exhausted` → `lesson_exhausted`); the single `drill_check`
+was split into `check_correct`/`check_wrong` and the 5 checks are reconstructed here as 2 and 3 from the
+recorded completions. Twelve of the fourteen names in the vocabulary are emitted; `screen_complete` and
+`lesson_abandon` need the multi-screen player. Nothing leaves the page.
 
 ---
 

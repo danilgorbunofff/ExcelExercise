@@ -8,6 +8,38 @@
 
 ---
 
+## Status
+
+**Partly landed — the engine, not the player.** Work breakdown items 8, 9 and 11 exist as a
+tested package (`packages/session`, 26 tests, `docs/player-contract.md`); items 1–7 and 10, 12 are
+untouched, because every authored lesson still has exactly one `formula` screen and a multi-screen
+player would have nothing to advance through.
+
+- [x] **11. Events.** `packages/session/events.js` owns the vocabulary (14 names, the phase-10 list) and a
+      `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
+      500-event cap. The drill now emits through it instead of its own `track()`, and its `drill_*` names
+      were renamed to the canonical ones — `drill_check` split into `check_correct`/`check_wrong`, since a
+      failed check is the funnel step and a check is not. The package ships at `dist/assets/session/` the
+      same way the grader ships, so the client imports the source rather than a bundle.
+- [x] **8. Score loop.** `score.js`: `createSession` / `recordVerdict` / `emitAll` with configurable
+      `{ correct, incorrect, cap }`, `incorrect` bounded to `[-100, 0]`, and recycling from `recycleFrom`
+      (default screen 4) clamped into the lesson. Termination is a construction-time invariant —
+      `correct >= 1` and a finite cap are validated, so the zero-weight "recycles forever" bug cannot be
+      built. A verdict after completion returns the unchanged session and no events.
+- [x] **9. Timers (the clock half).** `clock.js`: wall-clock session budget (default 60 min), idempotent
+      `pause`/`resume` for `visibilitychange`, backwards clock steps clamped to zero. Per-screen elapsed
+      time is not implemented: it belongs to the screen component, which does not exist.
+- [ ] **1–7, 10, 12.** Screen router, the five screen types, `packages/sheet`, the hint/docs panels'
+      wiring to the loop, accessibility. Next up, in that order, starting with the router and the three
+      additional `formula`-shaped screens that need no new grid work.
+
+Two acceptance criteria are now true of the engine and still false of the site, and stay unchecked for
+that reason: "a lesson with 5 screens still terminates at 100" is a passing unit test with no UI behind
+it, and "the session timer pauses when the tab is hidden" holds only once something calls
+`clock.pause()` from `visibilitychange`.
+
+---
+
 ## Objective
 
 Reproduce the reference's learner loop — five screen types, score-to-100 progression with screen

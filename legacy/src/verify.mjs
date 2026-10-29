@@ -162,7 +162,16 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
   if (ok(existsSync(stylesPath), "assets/styles.css", "does not exist")) {
     ok(readFileSync(stylesPath, "utf8").length > 2000, "assets/styles.css", "is shorter than 2 kB");
   }
-  for (const module of ["client/drill.js", "client/state.js", "grader/index.js", "grader/grade.js"]) {
+  for (const module of [
+    "client/drill.js",
+    "client/state.js",
+    "grader/index.js",
+    "grader/grade.js",
+    "session/index.js",
+    "session/events.js",
+    "session/score.js",
+    "session/clock.js",
+  ]) {
     ok(existsSync(join(distDir, "assets", module)), `assets/${module}`, "is not in the build");
   }
 

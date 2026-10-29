@@ -272,6 +272,7 @@ describe("session event sink", () => {
       attempts: 2,
       rule: "value",
       helped: false,
+      screen_elapsed: 7,
       nothing: null,
       missing: undefined,
       nested: { a: 1 },
@@ -279,7 +280,15 @@ describe("session event sink", () => {
       notFinite: Number.NaN,
       fn: () => {},
     });
-    assert.deepEqual(Object.keys(written[0]).sort(), ["attempts", "helped", "nothing", "rule", "ts", "type"]);
+    assert.deepEqual(Object.keys(written[0]).sort(), [
+      "attempts",
+      "helped",
+      "nothing",
+      "rule",
+      "screen_elapsed",
+      "ts",
+      "type",
+    ]);
   });
 
   it("does not let a prop overwrite the schema", () => {

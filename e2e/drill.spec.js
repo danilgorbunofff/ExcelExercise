@@ -50,6 +50,14 @@ test("a wrong total keeps the SUM and names the value rule", async ({ page }) =>
     "Your formula returns 2650, but this lesson expects 3580.",
   );
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-wrong/);
+
+  // Time on task is reported twice: for the drill and for the screen that spent it. The second cannot
+  // exceed the first, and neither can be negative.
+  const event = await page.evaluate(() =>
+    [...(window.__esEvents ?? [])].reverse().find((entry) => entry.type === "check_wrong"),
+  );
+  expect(event.elapsed).toBeGreaterThanOrEqual(event.screen_elapsed);
+  expect(event.screen_elapsed).toBeGreaterThanOrEqual(0);
 });
 
 test("the missing function is rejected before the value is even considered", async ({ page }) => {

@@ -156,6 +156,15 @@ wall-clock stop would throw away a zero-signup learner's unfinished lesson, so `
 show up in the funnel as an hour of practice. There is no countdown to render: the reference has none,
 and inventing one would be the parity drift, not the parity.
 
+Two clocks, because the funnel asks two questions. `elapsed` is time on the drill; `screen_elapsed` is
+time on the screen being answered, and it restarts at every screen entry — so a learner who spends
+40 seconds on screen 1 and 5 on screen 2 is not reported as spending 45 on either. Both are whole
+seconds, never negative (a clock stepped backwards counts as zero), and both are stamped on the events
+that say work happened: `check_correct`, `check_wrong`, `screen_complete`, `lesson_complete`,
+`hint_open` and `solution_reveal`. Navigation events carry `elapsed` only, since a `screen_view` has
+spent no time on the screen it is about. The loop's events are stamped where the loop's events are
+emitted, which is before the player advances, so `lesson_complete` reports the screen it completed.
+
 ## The event envelope
 
 `createSink({ write, context, now })` → `{ emit(type, props), count }`.

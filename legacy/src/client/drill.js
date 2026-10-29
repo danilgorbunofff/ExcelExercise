@@ -276,6 +276,9 @@ function mountDrill(payloadNode) {
   // progress is in their own browser loses nothing by working on — so the clock is read for the
   // funnel only, and pausing it keeps a background tab from inflating the numbers.
   const clock = createClock();
+  // The total `elapsed` answers "how long on this lesson"; the funnel also asks which screen cost the
+  // time, so both are stamped. This mark moves to the clock's reading at every screen entry.
+  let screenStartedMs = clock.elapsedMs();
 
   let active = 0;
   let cells = [];
@@ -311,6 +314,12 @@ function mountDrill(payloadNode) {
   /** Whole seconds on the drill, the unit the funnel reports. */
   function seconds() {
     return Math.round(clock.elapsedMs() / 1000);
+  }
+
+  /** Whole seconds on the current screen. Never negative: the clock handles a backwards step already,
+   *  and the mark cannot be ahead of it unless one lands mid-screen. */
+  function screenSeconds() {
+    return Math.max(0, Math.round((clock.elapsedMs() - screenStartedMs) / 1000));
   }
 
   /** The screen being answered. Everything that used to read a single `payload.screen` reads this. */
@@ -498,6 +507,7 @@ function mountDrill(payloadNode) {
     draft = "";
     screenMisses = 0;
     offeredSolution = false;
+    screenStartedMs = clock.elapsedMs();
 
     clearFeedback();
     ui.solution.hidden = true;
@@ -611,7 +621,7 @@ function mountDrill(payloadNode) {
    * the reference one, and how much of the track is done. The loop's own props win a collision.
    */
   function emitLoop(events, extra = {}) {
-    const base = { id: lessonId, elapsed: seconds(), ...extra };
+    const base = { id: lessonId, elapsed: seconds(), screen_elapsed: screenSeconds(), ...extra };
     emitAll({ emit: (type, props) => sink.emit(type, { ...base, ...props }) }, events);
   }
 
@@ -862,7 +872,7 @@ function mountDrill(payloadNode) {
 
   function revealSolution() {
     offeredSolution = true;
-    track("solution_reveal", { id: lessonId, elapsed: seconds() });
+    track("solution_reveal", { id: lessonId, elapsed: seconds(), screen_elapsed: screenSeconds() });
     ui.solutionCode.textContent = revealText(activeScreen());
     ui.solution.hidden = false;
     ui.solution.classList.add("is-live");
@@ -886,7 +896,12 @@ function mountDrill(payloadNode) {
     if (!expanded) {
       ui.hintText.classList.add("is-live");
       if (!ui.hintText.textContent) setHint();
-      track("hint_open", { id: lessonId, attempts: attemptsFor(progress, lessonId), elapsed: seconds() });
+      track("hint_open", {
+        id: lessonId,
+        attempts: attemptsFor(progress, lessonId),
+        elapsed: seconds(),
+        screen_elapsed: screenSeconds(),
+      });
     }
   }
 

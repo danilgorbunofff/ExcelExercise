@@ -342,7 +342,24 @@ describe("drill.js source", () => {
     assert.match(code, /function seconds\(\) \{\s*return Math\.round\(clock\.elapsedMs\(\) \/ 1000\);/);
     // Three screen_views, the loop's base props, the first keystroke, hint, reveal and exhaustion.
     assert.equal(code.match(/elapsed: seconds\(\)/g)?.length, 8);
-    assert.match(code, /const base = \{ id: lessonId, elapsed: seconds\(\), \.\.\.extra \};/);
+    assert.match(
+      code,
+      /const base = \{ id: lessonId, elapsed: seconds\(\), screen_elapsed: screenSeconds\(\), \.\.\.extra \};/,
+    );
+  });
+
+  it("stamps the per-screen time too, and restarts it on every screen entry", () => {
+    assert.match(
+      code,
+      /function screenSeconds\(\) \{\s*return Math\.max\(0, Math\.round\(\(clock\.elapsedMs\(\) - screenStartedMs\) \/ 1000\)\);/,
+    );
+    // The hint and the reveal are the two hand-written working events that carry it; the loop's four
+    // get it from `base`.
+    assert.equal(code.match(/screen_elapsed: screenSeconds\(\)/g)?.length, 3);
+    assert.match(
+      code,
+      /screenMisses = 0;\s*offeredSolution = false;\s*screenStartedMs = clock\.elapsedMs\(\);/,
+    );
   });
 
   it("reaches the shared session sink instead of its own buffer", () => {

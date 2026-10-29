@@ -35,7 +35,7 @@ A screen is what `legacy/content/exercises/<slot>-<slug>.json` already ships und
 | Field | Meaning |
 |---|---|
 | `id` | stable across edits; the join key for events and saved progress |
-| `type` | `formula` \| `chord` \| `sequence` \| `picture` \| `workbook` — picks the component |
+| `type` | `formula` \| `chord` \| `sequence` \| `picture` \| `workbook` — picks the component; `formula` and `picture` are the two that ship |
 | `prompt` | the question, plain text |
 | `grid` | the sheet the screen renders (columns, rows, highlighted range, locked cells) |
 | `answerCell` | the cell the grader reads; also where a successful result is written back |
@@ -48,9 +48,26 @@ A screen is what `legacy/content/exercises/<slot>-<slug>.json` already ships und
 | `fixtures` | `{ accept: [...], reject: [{ formula, rule, why }] }` — the graded corpus |
 | `reference` | the formula the reveal prints; required on every screen of a multi-screen lesson, and compared with whitespace stripped and case folded so two screens cannot show the same answer twice |
 
+A `formula` screen carries every field above. The other type that ships is `picture`: it renders an
+image instead of a grid and asks, in the prompt, what the image shows. It has no `grid`, `answerCell`,
+`expect`, `require`, `forbid`, `requireRef`, `reference` or `fixtures` — the schema rejects those rather
+than ignoring them — and instead carries:
+
+| Field | Meaning |
+|---|---|
+| `image` | path under `content/`, ending in `.svg`; the build copies it to `assets/img/` |
+| `alt` | what the image shows, verbatim (≤240 chars) — the image is the question, so the text has to carry it |
+| `answers` | the accepted spellings, first one being the reference answer (≤80 chars each, unique after normalisation) |
+| `hints` | `{ value }` only: there is no formula to debrief |
+
+Grading a picture screen is a lookup, not an evaluation: `gradeAnswer` folds case and spacing and drops
+`$`, so `$B$2:$B$6` and `b2:b6` are the same answer. A miss never echoes the expected spelling. The page
+still renders a formula bar for it — no target chip, `aria-label="Your answer"`, and the note under the
+sheet says "the bar" where a formula screen names a cell.
+
 A lesson carries one or more screens: `legacy/content/exercises/16-xlookup-search-from-the-bottom.json`
-is the first with two, and every screen is still type `formula`. The other four types are phase-2 work;
-see `docs/plans/parity/phase-02-exercise-engine.md`.
+is the first with three, the third being a `picture`. The other three types are phase-2 work; see
+`docs/plans/parity/phase-02-exercise-engine.md`.
 
 The page server-renders every screen into `#drill-screens` as `<div data-screen="N">`, with the first
 one visible. Switching screens toggles `hidden` on those panels and nothing else: the panels, their

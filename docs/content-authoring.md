@@ -34,8 +34,9 @@ renumbers a page; publishing one does.
 ## What a lesson is
 
 One JSON file per lesson in `legacy/content/exercises/`, named `<number>-<slug>.json`. The file is a
-lesson: identity, catalog docs, and `screens[]` — the drills. This phase ships single-screen lessons,
-so `screens` is a one-element list; write it that way anyway rather than reaching for the flat shape.
+lesson: identity, catalog docs, and `screens[]` — the drills. Most lessons are one screen; a lesson that
+needs several writes them as a list, and each screen is graded on its own (lesson 16 has three). Write
+`screens[]` even for the single-screen case rather than reaching for the flat shape.
 
 The loader also reads the old flat shape (`schemaVersion` absent, drill fields at the top level) during
 a one-release deprecation window. Do not write it: the migrator is done, and the shape exists only so an
@@ -196,6 +197,48 @@ attempt*, these are for the post-mortem.
 
 Links in `docs` and `hints` must point at pages that exist: `/learn/excel/<slug>`, `/excel/<slug>`, or
 `/`. Anything else fails the gate, including `/lessons` and `/learn/excel`, which the site never serves.
+
+## Picture screens
+
+A `picture` screen shows an image and asks what it says. Reach for one when the answer is about a sheet
+you would have to describe rather than a formula the learner can run — a range that points at the wrong
+column, a reference that should be absolute, a chart whose series is mislabelled. Type `formula` covers
+everything a formula bar can settle; a picture covers what an eyeball has to.
+
+```json
+{
+  "id": "picture-1",
+  "type": "picture",
+  "prompt": "The bar's third argument points at an empty column — which range should it read the price from?",
+  "image": "images/xlookup-third-argument.svg",
+  "alt": "The lesson's sheet: SKU in column A and price in column B for rows 2 to 6, and row 7 asking for TX-101. The formula bar reads =XLOOKUP(A7,A2:A6,C2:C6,,0,-1) with C2:C6 underlined in red as the third argument, and column C is empty.",
+  "answers": ["B2:B6"],
+  "hints": {
+    "value": "The third argument is the range XLOOKUP reads the answer from, so it covers the price column's data rows."
+  }
+}
+```
+
+- **`image`** lives under `legacy/content/images/`, is a flat lowercase kebab name, and ends in `.svg`
+  or `.png`. The build copies the directory to `assets/img/`, so a path with a directory or a URL
+  renders broken and the gate rejects it.
+- **`alt`** is not a caption: it is the question. A learner who cannot see the image has to be able to
+  answer from this text alone, so it names the columns, the rows, the values that matter, and what is
+  wrong in the picture. 240 characters is the limit, not the target.
+- **`answers`** are the accepted spellings of one fact, best first — the first one is what the reveal
+  prints. Grading folds case, whitespace and `$`, so `B2:B6` and `$b$2:$b$6` are the same answer and
+  the gate rejects a second spelling that folds to the first. Each is at most 80 characters.
+- **`hints`** takes `value` only. There is no formula to debrief, so `syntax`, `error` and the rule keys
+  do not apply.
+- **No formula fields, and not by omission.** `grid`, `answerCell`, `expect`, `require`, `forbid`,
+  `requireRef`, `rules`, `fixtures` and `reference` are all rejected on a picture screen: a leftover
+  `grid` would render a sheet over the image, and a leftover `reference` would print a formula where the
+  answer is a range.
+
+Pictures are worth an SVG you draw yourself: the first-party asset has no licence question, scales on a
+high-density display, and weighs less than a screenshot of the same sheet. Draw the sheet as the lesson
+actually shows it — same values, same highlight — because the prompt and the image disagreeing is the
+one bug a reader cannot catch from the JSON.
 
 ## The catalog slot
 

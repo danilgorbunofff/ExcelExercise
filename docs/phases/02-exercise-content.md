@@ -136,6 +136,9 @@ These are automated in [`tests/content.test.js`](../../tests/content.test.js) so
   the test's audit table, so neither the JSON nor the evaluator can drift alone. A multi-screen lesson
   gets one audit row per screen, because each screen is a separate answer a learner can get right.
 - Three or more plausible wrong answers per screen are rejected, each with a non-empty hint.
+- A `picture` screen is audited by its accepted answer, not a formula: row 16·3 pins the spelling
+  `B2:B6`, and the same row's wrong answers (`B2:B5` off by one row, `C2:C6` the empty column, `A2:A6`
+  the wrong column) prove the lookup rejects each way of misreading the image.
 
 ### Arithmetic audit trail
 
@@ -161,6 +164,7 @@ only used to confirm. The literals live in `AUDIT` in `tests/audit.js`.
 | 15 | `=XLOOKUP(A6,A2:A5,D2:D5)` | TX-103 is the third SKU, so the third price is the answer | `9.5` |
 | 16·1 | `=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)` | TX-101 at rows 2 (19.99) and 4 (21.5); searching from the bottom meets row 4 first | `21.5` |
 | 16·2 | `=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)` | TX-102 at rows 3 (14) and 6 (16.25); the bottom-up walk stops at row 6 | `16.25` |
+| 16·3 | `B2:B6` — typed text, not a formula | the third argument reads the price column for the log's five rows; column C is empty | `B2:B6` |
 
 ## Acceptance criteria
 

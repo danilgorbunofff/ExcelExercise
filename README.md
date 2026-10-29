@@ -24,7 +24,7 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 418 tests, no build step
+npm test                # 441 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
 npm run build           # writes legacy/dist — 17 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
@@ -40,7 +40,7 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 418 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 441 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
 | `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 17 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
@@ -48,7 +48,7 @@ while the port is in progress.
 | `npm run content:new -- --lesson 16 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
 | `npm run content:preview -- --lesson 13` | Prints a lesson the way its page reads: prompt, grid, docs, hints, fixtures | one screen, one row per fixture |
 | `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
-| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 565 checks pass |
+| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 594 checks pass |
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
@@ -173,6 +173,8 @@ The full procedure — every field limit, the fixture checklist and a worked exa
 2. Replace the prompt, grid, rules (`require`, `forbid`, `requireRef`, `rules`), `fixtures` and `docs`
    in that file. `screens[0].fixtures` holds `accept` (formulas that must grade `ok`) and `reject`
    (`{ formula, rule, why }`, where `rule` is the id the grader reports); the gate wants six of each.
+   A `type: "picture"` screen has none of those — just `image`, `alt`, `answers` and a `value` hint; see
+   [picture screens](docs/content-authoring.md#picture-screens).
 3. `npm run content:preview -- --lesson 16`, `npm run content:fixtures -- --lesson 16`, then
    `npm run content:check`. A group that gains its first published lesson owes an `intro` in
    `track.json`.
@@ -199,9 +201,9 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **418 passing**, 0 failing — 93 grader, 76 fixtures, 44 build/server, 42 content-lint, 38 client, 26 session, 20 content, 18 schema, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
-| `npm run build` | 17 pages, 531.0 kB HTML+CSS, 14 style sources, 4 fonts, 9 grader modules, 4 session modules, 2 client modules |
-| `node legacy/src/verify.mjs` | **565 checks passed** across 16 lesson pages + the index |
+| `npm test` | **441 passing**, 0 failing — 96 grader, 77 fixtures, 47 content-lint, 44 build/server, 43 client, 27 schema, 26 session, 20 content, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
+| `npm run build` | 17 pages, 534.2 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 4 session modules, 2 client modules |
+| `node legacy/src/verify.mjs` | **594 checks passed** across 16 lesson pages + the index |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |
 | axe-core 4 on a lesson | 0 violations, 50 passes |
 | Console | no errors or warnings, only the `[es]` debug funnel lines |

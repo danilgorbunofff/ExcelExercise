@@ -10,11 +10,11 @@
 
 ## Status
 
-**Landed — the engine and the first multi-screen player.** Items 2, 8, 9 and 11 ship: the loop and the
-event sink as a tested package (`packages/session`, `docs/player-contract.md`) and a `formula` screen
-player that drives them, proven end to end by `16-xlookup-search-from-the-bottom`, the first lesson with
-two screens. Items 1, 3–7, 10 and 12 are untouched: the screen router still only has one component to
-pick, and the clock is read but not enforced.
+**Landed — the engine, the first multi-screen player, and a second screen type.** Items 1, 2, 6, 8, 9
+and 11 ship: the loop and the event sink as a tested package (`packages/session`, `docs/player-contract.md`),
+screen dispatch, a `formula` player and a `picture` player that drive them, proven end to end by
+`16-xlookup-search-from-the-bottom` — the first lesson with three screens, the last of them a picture.
+Items 3–5, 7, 10, 12 are untouched, and the clock is read but not enforced.
 
 - [x] **11. Events.** `packages/session/events.js` owns the vocabulary (14 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
@@ -40,14 +40,30 @@ pick, and the clock is read but not enforced.
       `answerCell`, `expect`, `rules`, `fixtures` and `reference`, and a multi-screen lesson must give
       each screen its own reference — `packages/content-lint` fails the copy that would reveal the same
       formula twice.
-- [ ] **1, 3–7, 10, 12.** Screen router and the four other screen types, `packages/sheet` as a module,
-      the hint/docs panels, accessibility. Next up, in that order, starting with the
-      router and the three additional `formula`-shaped screens that need no new grid work.
+- [x] **1. Screen router.** `type` picks the panel at build time — `renderScreens` in
+      `legacy/src/site/exercise-page.mjs` writes a `<div class="sheet">` for a formula and a
+      `<div class="picture-body">` for a picture — and picks the grader at runtime: `gradeScreen` in
+      `legacy/src/client/drill.js` sends a picture to `gradeAnswer` and everything else to `grade`. Both
+      dispatches are a two-way switch on purpose; a registry would need something to register, and the
+      plan's component contract (`{ screen, grid, onSubmit, onHelp, state }`) arrives with the third type,
+      when its shape is known from two implementations rather than guessed from none.
+- [x] **6. Picture screen.** Image, prompt, one bar, accepted answers from content. First-party SVG at
+      `legacy/content/images/xlookup-third-argument.svg`, copied by the build to `assets/img/`. Graded by
+      `gradeAnswer` (`packages/grader/answers.js`): case, spacing and `$` folded, the first answer is the
+      reference, and a miss never echoes it. The bar renders with no target chip and `aria-label="Your
+      answer"`, and the note under the sheet says "the bar" instead of naming a cell. **Zoom is
+      deferred** — the plan asked for it, but the pilot image is a 640 px vector that is legible at 100 %
+      on a 375 px viewport, so a zoom control would be a button with nothing to reveal until a raster
+      screenshot forces one. The `alt` text is required and carries the whole image, so the screen is
+      solvable without seeing it.
+- [ ] **3–5, 7, 10, 12.** Chord and sequence screens, capability detection and the fallback, workbook
+      screens, `packages/sheet` as a module, the hint/docs panels, accessibility. Next up, in that order.
 
 Two acceptance criteria are now true of the site — "a lesson with several screens terminates at 100"
-passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson 16's two screens in
-a browser, and "the session timer pauses when the tab is hidden" is proven there too: the spec hides the
-tab, waits, and asserts the next event's `elapsed` did not grow by the hidden second.
+passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson 16's three screens in
+a browser, grades a near miss on the picture screen and completes on typed text, and "the session timer
+pauses when the tab is hidden" is proven there too: the spec hides the tab, waits, and asserts the next
+event's `elapsed` did not grow by the hidden second.
 
 ---
 

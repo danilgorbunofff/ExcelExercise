@@ -1,0 +1,11 @@
+{
+  "name": "@excelsupreme/keys",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "One keyboard chord as data: parse, label, match an event, and know which shortcuts the browser eats. No DOM, no dependencies.",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  }
+}

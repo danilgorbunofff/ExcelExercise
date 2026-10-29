@@ -7,9 +7,12 @@ import { expect, test } from "@playwright/test";
 
 import { loadSite } from "../lib/site.js";
 
-const { index } = loadSite();
+const { track, index } = loadSite();
 const LESSONS = index.length;
 const FIRST = index[0].exercise.id;
+// The group the first drill sits in: more than one drill, so the page's own count has work to do.
+const GROUP = track.groups.find((group) => group.id === index[0].group);
+const GROUP_LESSONS = index.filter((entry) => entry.group === GROUP.id);
 
 /** Seed a finished drill the way the drill page would have left it. */
 async function seedProgress(page, done) {
@@ -94,4 +97,37 @@ test("the dashboard stays out of the sitemap and out of the index", async ({ req
 
   const response = await request.get("/learn");
   expect(response.status()).toBe(200);
+});
+
+test("a group heading opens that group on its own, and back returns to the track", async ({ page }) => {
+  expect(GROUP_LESSONS.length).toBeGreaterThan(1);
+
+  await page.goto("/learn");
+  await page.click(`a[href="/learn/groups/${GROUP.id}"]`);
+
+  await expect(page.locator("h1")).toHaveText(GROUP.title);
+  // Only this group's drills, and the island counting them rather than the whole track.
+  await expect(page.locator(".lesson-row")).toHaveCount(GROUP_LESSONS.length);
+  const crossGroup = index.filter((entry) => entry.group !== GROUP.id).map((entry) => entry.exercise.id);
+  for (const id of crossGroup) await expect(page.locator(`[data-lesson="${id}"]`)).toHaveCount(0);
+  await expect(page.locator(`[data-group-count="${GROUP.id}"]`)).toHaveText(`0 of ${GROUP_LESSONS.length}`);
+
+  await page.click("a.link-btn[href='/learn']");
+  await expect(page.locator("h1")).toHaveText("Where you are");
+  await expect(page.locator(".lesson-row")).toHaveCount(LESSONS);
+});
+
+test("group pages stay out of the sitemap, and an unknown group is the not-found page", async ({
+  page,
+  request,
+}) => {
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  expect(sitemap).not.toContain("/learn/groups/");
+
+  expect((await request.get(`/learn/groups/${GROUP.id}`)).status()).toBe(200);
+
+  // PPR answers the first request for an unknown param with a 200 shell, the same known consequence
+  // phase-00 records for an unknown lesson slug. What a reader gets is the not-found page either way.
+  await page.goto("/learn/groups/not-a-group");
+  await expect(page.locator("h1")).toHaveText("That page is not a drill");
 });

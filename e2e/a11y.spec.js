@@ -58,15 +58,41 @@ test("a formula drill passes before and after a miss", async ({ page }) => {
 
 test("the dashboard passes with progress in it", async ({ page }) => {
   // The empty dashboard is one shape; a dashboard with rows, badges and a bar is the one learners see.
+  // `done` is keyed by exercise id, not slug: a seed the page cannot match paints nothing and passes.
   await page.addInitScript(() => {
+    const at = new Date().toISOString();
     window.localStorage.setItem(
       "es.progress",
-      JSON.stringify({ v: 1, done: ["sum-basics", "if-pass-fail"], tries: { "average-scores": 3 } }),
+      JSON.stringify({
+        v: 1,
+        done: {
+          "01-sum-basics": { at, tries: 1, helped: false },
+          "04-if-pass-fail": { at, tries: 3, helped: false },
+        },
+        tries: {},
+      }),
     );
   });
   await page.goto("/learn");
-  await expect(page.locator(".lesson-row").first()).toBeVisible();
+  await expect(page.locator("[data-badge='complete']").first()).toBeVisible();
   await scan(page, "the dashboard with progress");
+});
+
+test("a group page passes with progress in it", async ({ page }) => {
+  // The same island on a page with one section instead of sixteen, and a heading that is a link.
+  await page.addInitScript(() => {
+    window.localStorage.setItem(
+      "es.progress",
+      JSON.stringify({
+        v: 1,
+        done: { "01-sum-basics": { at: new Date().toISOString(), tries: 1, helped: false } },
+        tries: {},
+      }),
+    );
+  });
+  await page.goto("/learn/groups/sum");
+  await expect(page.locator("[data-group-count='sum']")).toHaveText("1 of 2");
+  await scan(page, "a group page with progress");
 });
 
 test("the picture screen of a multi-screen drill passes", async ({ page }) => {

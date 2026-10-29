@@ -2,7 +2,8 @@
 
 Phase 2's handoff artifact: what a screen is, what the score loop promises, what the clock
 promises, and what an event looks like once it leaves the player. The engine half of that contract
-exists and is tested today in `packages/session`; the multi-screen player that consumes it does not.
+and the first multi-screen lesson that consumes it both exist today; the clock is the piece the
+player still does not read.
 
 Writing the contract down before the player exists is deliberate. The reference's loop is the one place
 where a bug looks like "the lesson never ends", and a typed event name is a database column once phase
@@ -14,8 +15,8 @@ read.
 | File | Exports | Runs in |
 |---|---|---|
 | `packages/session/events.js` | `EVENT_TYPES`, `MAX_EVENTS`, `createSink` | browser (wired) and node (tests) |
-| `packages/session/score.js` | `createSession`, `recordVerdict`, `emitAll`, `nextIndex`, `currentScreen`, `isComplete`, `progress`, `DEFAULT_SCORING`, `DEFAULT_RECYCLE_FROM` | node (tests) today, browser with the multi-screen player |
-| `packages/session/clock.js` | `createClock`, `DEFAULT_SESSION_MINUTES` | node (tests) today, browser with the player |
+| `packages/session/score.js` | `createSession`, `recordVerdict`, `emitAll`, `nextIndex`, `currentScreen`, `isComplete`, `progress`, `DEFAULT_SCORING`, `DEFAULT_RECYCLE_FROM` | browser (wired) and node (tests) |
+| `packages/session/clock.js` | `createClock`, `DEFAULT_SESSION_MINUTES` | node (tests) today, browser when the player reads it |
 | `packages/session/index.js` | everything above | — |
 
 Nothing in the package touches the DOM, `Date.now()` or the network directly: time and the write
@@ -45,9 +46,16 @@ A screen is what `legacy/content/exercises/<slot>-<slug>.json` already ships und
 | `rules` | per-rule hints, so a wrong answer explains *its own* failure |
 | `hints` | the escalating hint list the Hint button reveals |
 | `fixtures` | `{ accept: [...], reject: [{ formula, rule, why }] }` — the graded corpus |
+| `reference` | the formula the reveal prints; required on every screen of a multi-screen lesson, and compared with whitespace stripped and case folded so two screens cannot show the same answer twice |
 
-One screen today, because every authored lesson has exactly one `formula` screen. The other four types
-are phase-2 work; see `docs/plans/parity/phase-02-exercise-engine.md`.
+A lesson carries one or more screens: `legacy/content/exercises/16-xlookup-search-from-the-bottom.json`
+is the first with two, and every screen is still type `formula`. The other four types are phase-2 work;
+see `docs/plans/parity/phase-02-exercise-engine.md`.
+
+The page server-renders every screen into `#drill-screens` as `<div data-screen="N">`, with the first
+one visible. Switching screens toggles `hidden` on those panels and nothing else: the panels, their
+sheets and their answer cells are in the first byte of HTML, so a crawler, a reader with JavaScript
+off, and the verifying build all see the same lesson.
 
 ## The score loop
 
@@ -57,6 +65,9 @@ returns `{ session, events }` with a **new** session object — the loop never m
 so the caller can render optimistically and still have the old state.
 
 - Default `scoring` is `{ correct: 20, incorrect: 0, cap: 100 }`: five correct answers complete a lesson.
+  The drill does not use the default: it passes `correct: Math.ceil(100 / screens)`, so a lesson finishes
+  on the last screen of an in-order run (`ceil` guarantees `correct × screens ≥ 100`) while a single-screen
+  lesson still completes on its first correct answer.
   A weight that does not divide the cap clamps (`7 × 15 → 100` on the seventh), so a non-divisible track
   still terminates.
 - `incorrect` is a penalty in `[-100, 0]` — zero by default, because a wrong answer already costs an
@@ -127,21 +138,29 @@ check happened" is not a funnel step and "a check failed" is. Nothing consumed t
 
 ## Wired today vs. waiting for the player
 
-**Wired.** The drill (`legacy/src/client/drill.js`) emits `screen_view`, `drill_start`, `check_correct`,
-`check_wrong`, `hint_open`, `solution_reveal`, `lesson_complete`, `lesson_exhausted`, `paywall_view`,
-`paywall_email`, `trial_start` and `track_view` through one sink, into `window.__esEvents` plus
-`console.debug`. Its attempts, solve state and paywall gate are still the single-screen ones it shipped
-with — a lesson is one screen, so a score loop and a session budget have nothing to advance through yet.
+**Wired.** The drill (`legacy/src/client/drill.js`) drives `createSession`, hands every verdict to
+`recordVerdict`, and emits the returned events through `emitAll` — so `check_correct`, `screen_complete`,
+`lesson_complete` and `check_wrong` are the loop's output rather than a second, hand-written opinion.
+Around them it emits `screen_view` (per screen, with `screen` and `of`), `drill_start`, `hint_open`,
+`solution_reveal`, `lesson_exhausted`, `paywall_view`, `paywall_email`, `trial_start` and `track_view`
+through the same sink, into `window.__esEvents` plus `console.debug`.
 
-**Waiting.** Everything that needs more than one screen or a transport:
+Two limits are deliberate and documented rather than accidental:
 
-- the multi-screen player and the five screen components, which is what makes `createSession`'s loop
-  observable;
-- wiring `recordVerdict`'s events through `emitAll` (the drill's hand-written `check_*` calls become
-  the loop's output, so the two cannot disagree);
+- **The session is memory-only.** `createSession` state is never written, so a reload starts at screen 1
+  again. Only `es.progress` is persisted, and its shape did not change with screens: attempts per lesson
+  plus whether that lesson was completed with help.
+- **The reveal completes the whole lesson** from whichever screen shows it. `lesson_exhausted` fires once
+  per lesson — a return visit that already spent its three attempts re-shows the button without
+  re-emitting it — because a learner who has been shown the answer has been shown all of it.
+
+**Waiting.** Everything that needs the clock or a transport:
+
 - `visibilitychange` → `clock.pause()`/`resume()`, and what happens at `expired()`;
-- `screen_id`/`lesson_id` in the envelope, and `screen_view` per screen rather than per page;
-- `lesson_abandon` (needs a leave intent) and `paywall_view` deduplication across screens;
+- the five other screen types (`chord`, `sequence`, `picture`, `workbook`), which is what makes a screen
+  anything more than a formula;
+- `session_id`/`anon_id` in the envelope, `lesson_abandon` (needs a leave intent), and `paywall_view`
+  deduplication across screens;
 - the transport (`POST /api/events`, phase 10) and postgres persistence (phase 4).
 
 ## Invariants a change must not break

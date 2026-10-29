@@ -204,6 +204,33 @@ function checkLinks(value, prefix, { label, where, report, routes }) {
 }
 
 /**
+ * The reveal and the docs example are per screen. A screen that repeats another screen's reference
+ * shows the learner the same answer twice, and a lesson whose own `docs.reference` disagrees with
+ * screen 1 contradicts what a single-screen surface still prints.
+ */
+function checkReferences(lesson, { file, report }) {
+  const seen = new Map();
+  lesson.screens.forEach((screen, index) => {
+    const reference = screen.reference ?? lesson.docs.reference;
+    const key = reference.replace(/\s+/g, "").toLowerCase();
+    if (seen.has(key)) {
+      report.error(
+        file,
+        `screens[${index}].reference repeats screens[${seen.get(key)}].reference — the reveal would show the same formula twice`,
+      );
+    } else {
+      seen.set(key, index);
+    }
+  });
+  if (lesson.screens.length > 1 && lesson.screens[0].reference !== lesson.docs.reference) {
+    report.error(
+      file,
+      `docs.reference must match screens[0].reference ("${lesson.screens[0].reference}") — it is the answer every single-screen surface prints`,
+    );
+  }
+}
+
+/**
  * Catalog rules. A title that appears twice makes the index link to two lessons that read alike;
  * planned lessons are held to the same rule as published ones, because a slot that will collide once
  * authored collides now. A group a learner can reach owes an intro, and a blank one fails the gate
@@ -307,6 +334,7 @@ export function lintContent(contentDir, { fixturesDir } = {}) {
     });
 
     checkLinks(lesson.docs, "docs", { label: "", where: file, report, routes });
+    checkReferences(lesson, { file, report });
 
     if (lesson.schemaVersion === SCHEMA_VERSION && sidecarFile) {
       report.error(

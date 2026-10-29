@@ -133,8 +133,9 @@ These are automated in [`tests/content.test.js`](../../tests/content.test.js) so
 - `track.json` lists each file exactly once, in catalog order — which is the published numbering — and
   keeps the paywall strictly inside the authored lessons.
 - The reference answer grades `ok: true` **and** its value equals a literal typed independently in
-  the test's audit table, so neither the JSON nor the evaluator can drift alone.
-- Three or more plausible wrong answers per lesson are rejected, each with a non-empty hint.
+  the test's audit table, so neither the JSON nor the evaluator can drift alone. A multi-screen lesson
+  gets one audit row per screen, because each screen is a separate answer a learner can get right.
+- Three or more plausible wrong answers per screen are rejected, each with a non-empty hint.
 
 ### Arithmetic audit trail
 
@@ -158,11 +159,13 @@ only used to confirm. The literals live in `AUDIT` in `tests/audit.js`.
 | 13 | `=VLOOKUP(A7&"*",A1:C6,3,FALSE)` | three rows start with Northwind, Air is first, column 3 | `7` |
 | 14 | `=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)` | Widget is row 3; Q2 is the third column of A1:C1, so column 3 | `110` |
 | 15 | `=XLOOKUP(A6,A2:A5,D2:D5)` | TX-103 is the third SKU, so the third price is the answer | `9.5` |
+| 16·1 | `=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)` | TX-101 at rows 2 (19.99) and 4 (21.5); searching from the bottom meets row 4 first | `21.5` |
+| 16·2 | `=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)` | TX-102 at rows 3 (14) and 6 (16.25); the bottom-up walk stops at row 6 | `16.25` |
 
 ## Acceptance criteria
 
-- 15 valid JSON files that `buildCells()` can load without errors. **Done — each one's reference answer
-  and three wrong answers are pinned by hand in `AUDIT` (`tests/audit.js`).**
+- 16 valid JSON files that `buildCells()` can load without errors. **Done — each screen's reference
+  answer and three wrong answers are pinned by hand in `AUDIT` (`tests/audit.js`).**
 - Every exercise solves correctly with its reference answer and fails with at least three plausible
   wrong answers.
 - Each `docs` block reads like something a person wrote, with numbers specific to that dataset.

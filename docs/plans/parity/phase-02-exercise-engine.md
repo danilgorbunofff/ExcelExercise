@@ -10,10 +10,11 @@
 
 ## Status
 
-**Partly landed — the engine, not the player.** Work breakdown items 8, 9 and 11 exist as a
-tested package (`packages/session`, 26 tests, `docs/player-contract.md`); items 1–7 and 10, 12 are
-untouched, because every authored lesson still has exactly one `formula` screen and a multi-screen
-player would have nothing to advance through.
+**Landed — the engine and the first multi-screen player.** Items 2, 8, 9 and 11 ship: the loop and the
+event sink as a tested package (`packages/session`, `docs/player-contract.md`) and a `formula` screen
+player that drives them, proven end to end by `16-xlookup-search-from-the-bottom`, the first lesson with
+two screens. Items 1, 3–7, 10 and 12 are untouched: the screen router still only has one component to
+pick, and the clock is the one engine piece nothing calls yet.
 
 - [x] **11. Events.** `packages/session/events.js` owns the vocabulary (14 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
@@ -29,14 +30,20 @@ player would have nothing to advance through.
 - [x] **9. Timers (the clock half).** `clock.js`: wall-clock session budget (default 60 min), idempotent
       `pause`/`resume` for `visibilitychange`, backwards clock steps clamped to zero. Per-screen elapsed
       time is not implemented: it belongs to the screen component, which does not exist.
-- [ ] **1–7, 10, 12.** Screen router, the five screen types, `packages/sheet`, the hint/docs panels'
-      wiring to the loop, accessibility. Next up, in that order, starting with the router and the three
-      additional `formula`-shaped screens that need no new grid work.
+- [x] **2. Formula screen (multi-screen).** The lesson page server-renders every screen into
+      `#drill-screens` and the client advances by toggling `hidden`. The section, one drill per screen,
+      is the same graded object: `createSession` → `recordVerdict` → `emitAll`. Screens carry their own
+      `answerCell`, `expect`, `rules`, `fixtures` and `reference`, and a multi-screen lesson must give
+      each screen its own reference — `packages/content-lint` fails the copy that would reveal the same
+      formula twice.
+- [ ] **1, 3–7, 10, 12.** Screen router and the four other screen types, `packages/sheet` as a module,
+      the hint/docs panels' wiring to the clock, accessibility. Next up, in that order, starting with the
+      router and the three additional `formula`-shaped screens that need no new grid work.
 
-Two acceptance criteria are now true of the engine and still false of the site, and stay unchecked for
-that reason: "a lesson with 5 screens still terminates at 100" is a passing unit test with no UI behind
-it, and "the session timer pauses when the tab is hidden" holds only once something calls
-`clock.pause()` from `visibilitychange`.
+One acceptance criterion is now true of the site — "a lesson with several screens terminates at 100"
+passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson 16's two screens in
+a browser. "The session timer pauses when the tab is hidden" still holds only at the engine level: nothing
+calls `clock.pause()` from `visibilitychange` yet.
 
 ---
 

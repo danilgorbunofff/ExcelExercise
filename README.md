@@ -24,9 +24,9 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 403 tests, no build step
+npm test                # 415 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
-npm run build           # writes legacy/dist — 16 pages, one stylesheet, the assets
+npm run build           # writes legacy/dist — 17 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
 npm run check           # all of it, including the Next.js build
 npm run dev             # build, then serve legacy/dist at http://localhost:4173
@@ -40,22 +40,22 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 403 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 415 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
-| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 16 pages, exit 0 |
+| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 17 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
 | `npm run content:fixtures -- --lesson 6` | Prints every fixture for one lesson with declared vs reported rule | one row per fixture, all `✓`/`·` |
 | `npm run content:new -- --lesson 16 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
 | `npm run content:preview -- --lesson 13` | Prints a lesson the way its page reads: prompt, grid, docs, hints, fixtures | one screen, one row per fixture |
 | `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
-| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 493 checks pass |
+| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 565 checks pass |
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
 | `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 16 prerendered routes, exit 0 |
-| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 16 pages match |
+| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 17 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
-| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 13 tests pass |
+| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 14 tests pass |
 
 **Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
 `SITE_URL`, which is what canonical links, the sitemap and the JSON-LD `@id`s are built from. Serve on
@@ -199,9 +199,9 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **403 passing**, 0 failing — 93 grader, 68 fixtures, 44 build/server, 40 content-lint, 33 client, 26 session, 20 content, 18 schema, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
-| `npm run build` | 16 pages, 477.0 kB HTML+CSS, 14 style sources, 4 fonts, 9 grader modules, 4 session modules, 2 client modules |
-| `node legacy/src/verify.mjs` | **497 checks passed** across 15 lesson pages + the index |
+| `npm test` | **415 passing**, 0 failing — 93 grader, 76 fixtures, 44 build/server, 42 content-lint, 35 client, 26 session, 20 content, 18 schema, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
+| `npm run build` | 17 pages, 531.0 kB HTML+CSS, 14 style sources, 4 fonts, 9 grader modules, 4 session modules, 2 client modules |
+| `node legacy/src/verify.mjs` | **565 checks passed** across 16 lesson pages + the index |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |
 | axe-core 4 on a lesson | 0 violations, 50 passes |
 | Console | no errors or warnings, only the `[es]` debug funnel lines |

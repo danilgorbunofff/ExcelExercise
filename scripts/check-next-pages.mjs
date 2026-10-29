@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Proves the Next.js routes render what the static build renders: every lesson page and the index
- * prerendered by `next build` must contain the exact fragment the shared template returns. Run after
+ * Proves the Next.js routes render what the static build renders: every lesson page, the dashboard, the
+ * group pages and the index prerendered by `next build` must contain the exact fragment the shared
+ * template returns. Run after
  * `npm run next:build`. A route that quietly drops the rail, the pager or the client script fails here,
  * and so does a sitemap that drops a lesson or lists a redirect.
  *
@@ -10,7 +11,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { prepareDashboardPage } from "../legacy/src/site/dashboard-page.mjs";
+import { dashboardGroups, prepareDashboardPage } from "../legacy/src/site/dashboard-page.mjs";
 import { prepareExercisePage } from "../legacy/src/site/exercise-page.mjs";
 import { prepareIndexPage } from "../legacy/src/site/index-page.mjs";
 import { loadSite } from "../lib/site.js";
@@ -63,12 +64,31 @@ checkPage({
   args: { config, track, index, icons, clientAvailable: dashboardAvailable },
 });
 
-for (const [probe, label] of [
-  ['id="dashboard-data"', "the progress payload the island reads"],
-  ["/assets/client/dashboard.js", "the island script"],
-]) {
-  const path = join(PAGES, "learn.html");
-  if (existsSync(path) && !readFileSync(path, "utf8").includes(probe)) problems.push(`learn.html: ${label} is missing`);
+/** The island's two halves: the payload it reads and the script that reads it. Both pages need both. */
+function checkIsland(file) {
+  const path = join(PAGES, file);
+  if (!existsSync(path)) return; // checkPage already fails a page that was not prerendered
+  const html = readFileSync(path, "utf8");
+  for (const [probe, label] of [
+    ['id="dashboard-data"', "the progress payload the island reads"],
+    ["/assets/client/dashboard.js", "the island script"],
+  ]) {
+    if (!html.includes(probe)) problems.push(`${file}: ${label} is missing`);
+  }
+}
+
+checkIsland("learn.html");
+
+// One page per group, so a reader can land on just that group's drills and link to it. They are
+// `noindex` and stay out of the sitemap — the count assertion below is what keeps them out.
+for (const { id } of dashboardGroups({ track, index })) {
+  const file = `learn/groups/${id}.html`;
+  checkPage({
+    file,
+    prepare: prepareDashboardPage,
+    args: { config, track, index, icons, clientAvailable: dashboardAvailable, group: id },
+  });
+  checkIsland(file);
 }
 
 for (const entry of index) {

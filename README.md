@@ -24,7 +24,7 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 344 tests, no build step
+npm test                # 351 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
 npm run build           # writes legacy/dist — 11 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
@@ -40,11 +40,13 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 344 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 351 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
 | `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 11 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
 | `npm run content:fixtures -- --lesson 6` | Prints every fixture for one lesson with declared vs reported rule | one row per fixture, all `✓`/`·` |
+| `npm run content:new -- --lesson 11 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
+| `npm run content:preview -- --lesson 11` | Prints a lesson the way its page reads: prompt, grid, docs, hints, fixtures | one screen, one row per fixture |
 | `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
 | `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 333 checks pass |
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
@@ -120,6 +122,7 @@ tests/                    node --test suites, one per layer
 tests/golden/             byte-stable record of every grader verdict (phase 0 tripwire)
 docs/phases/              the plan each phase was built from, with what was built and what changed
 docs/plans/parity/        the reference-parity program, one file per phase
+docs/content-authoring.md how to write, preview, fixture and gate a lesson
 docs/screenshots/         the visual baseline: lesson 1 at 1440px and 375px
 ```
 
@@ -154,23 +157,20 @@ here; yours has 0.`).
 
 ## Adding lesson 11
 
-1. Copy a neighbouring file in `legacy/content/exercises/`, rename it `11-your-slug.json`. `id` must equal
-   the file name; `slug` must be lowercase kebab.
-2. Fill in `grid` (rows of raw values, `startCell`), an `answerCell` inside that grid, `prompt`
-   (≤160 chars) and `expect.value`.
-3. Add the rules that make the lesson teach one thing: `require` the function, `forbid` the shortcut
-   you do not want, `requireRef` the cell the answer must depend on.
-4. Write `docs`: `dataset`, `syntax`, `reference` (a formula starting with `=`), `explain`, `errors`
-   (`code` + `text`), `atWork`, `teaches`, `outcome`.
-5. Point the catalog slot at the file. `legacy/content/track.json` is the site map: 16 groups and 88
-   lesson slots. A slot that is still planned carries `title` + `level`; authoring it means replacing
-   those two with `{ "id": "11-your-slug", "group": "lookup" }` — the title, slug and level then come
-   from the lesson file and are no longer written twice. A brand-new lesson adds a slot in the group it
-   belongs to. The build fails if an exercise exists that the catalog does not list, so this is not
-   optional.
-6. Add fixtures: `tests/fixtures.test.js` grades saved inputs per lesson — at minimum one accepted
-   answer, one off-by-value, one wrong-function and one syntax error.
-7. `npm test && npm run verify`. The index, the rail, the pager, the sitemap and JSON-LD `position`
+The full procedure — every field limit, the fixture checklist and a worked example — is
+[`docs/content-authoring.md`](docs/content-authoring.md). The short version:
+
+1. `npm run content:new -- --lesson 11 --group lookup` writes `legacy/content/exercises/11-your-slug.json`,
+   takes its title, level and group from `legacy/content/track.json`, and replaces that catalog slot's
+   `title` + `level` with `{ "id": "11-your-slug", "group": "lookup" }` so they are not written twice.
+   `--lesson` is the file number; the number a learner sees comes from how many lessons precede it.
+2. Replace the prompt, grid, rules (`require`, `forbid`, `requireRef`, `rules`), `fixtures` and `docs`
+   in that file. `screens[0].fixtures` holds `accept` (formulas that must grade `ok`) and `reject`
+   (`{ formula, rule, why }`, where `rule` is the id the grader reports); the gate wants six of each.
+3. `npm run content:preview -- --lesson 11`, `npm run content:fixtures -- --lesson 11`, then
+   `npm run content:check`. A group that gains its first published lesson owes an `intro` in
+   `track.json`.
+4. `npm test && npm run verify`. The index, the rail, the pager, the sitemap and JSON-LD `position`
    all follow from `track.json`; nothing else needs editing.
 
 `npm run catalog:reference` prints the reference site's lesson inventory next to our 16 groups, which

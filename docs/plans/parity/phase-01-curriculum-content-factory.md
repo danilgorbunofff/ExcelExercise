@@ -163,6 +163,23 @@ window in which two shapes are both live.
    example lesson.
 8. **Cohorts.** Publish lessons in batches of 10; each batch must pass `content:check` and a human
    accuracy review before merge.
+- [x] **7. Authoring guide.** `docs/content-authoring.md` is the whole procedure in one page: the loop
+      (`content:new` → `preview` → `fixtures` → `content:check` → `npm test`), what a lesson file is,
+      the identity rules (`id` = file name, kebab slug, title unique across all 88 slots), the level
+      ladder, prompt style, grid and expectation design, the four ways a screen constrains an answer,
+      the fixture checklist, the `docs` block, and the catalog slot. It is written against the code
+      rather than from memory: every limit it states is the limit the loader or the gate enforces, and
+      the failure messages it quotes are the strings `content:check` actually prints, so an author can
+      match what they see to what they read. Two decisions are worth keeping. **The worked example is a
+      real lesson, not a sketch:** the VLOOKUP approximate-match drill in the guide was built in a
+      sandbox copy of the corpus and run through the gate — 6 accepted and 7 rejected fixtures, 167
+      fixtures replayed, `✓ content passes` — so the example cannot document a lesson that does not
+      ship. **The fixture rules are stated as the gate checks them:** `rule` is compared to the
+      grader's verdict rather than trusted, rules run before evaluation (which is why
+      `=VLOOKUP(A6,A2:B5,2,FALSE)` is filed under `match-type` and not `#N/A`), and every advertised
+      rule must be reached by a rejection. The README's "Adding lesson 11" now leads with `content:new`
+      and links the guide instead of restating it; its stale `≤160 chars` prompt limit went with the v1
+      shape.
 - [x] **9. Migration.** All ten lesson files are `schemaVersion: 2` with one `screens[]` entry each,
       and the ten sidecars under `tests/fixtures/` are deleted. The move is provable because nothing
       observable moved: `tests/golden/snapshot.json` is byte-identical, which required

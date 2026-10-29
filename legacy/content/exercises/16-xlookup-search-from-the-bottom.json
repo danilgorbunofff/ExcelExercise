@@ -239,6 +239,19 @@
           }
         ]
       }
+    },
+    {
+      "id": "picture-1",
+      "type": "picture",
+      "prompt": "The bar's third argument points at an empty column — which range should it read the price from?",
+      "image": "images/xlookup-third-argument.svg",
+      "alt": "The lesson's sheet: SKU in column A and price in column B for rows 2 to 6, and row 7 asking for TX-101. The formula bar reads =XLOOKUP(A7,A2:A6,C2:C6,,0,-1) with C2:C6 underlined in red as the third argument, and column C is empty.",
+      "answers": [
+        "B2:B6"
+      ],
+      "hints": {
+        "value": "The third argument is the range XLOOKUP reads the answer from, so it covers the price column's data rows. Rows 2 to 6 hold the log; row 7 is where the answer goes."
+      }
     }
   ],
   "docs": {

@@ -13,15 +13,21 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { loadContent } from "../content/index.js";
+import { loadContent, revealOf } from "../content/index.js";
 import { SCHEMA_VERSION } from "../content/schema.js";
-import { grade } from "../grader/index.js";
+import { grade, normaliseAnswer } from "../grader/index.js";
 
 /** The phase-1 floor. Twelve is the number the plan asks for; six is the number CI refuses to go under. */
 export const MIN_FIXTURES = 6;
 
 /** `tests/fixtures.test.js` refuses a shorter reason, so the gate has to refuse it first. */
 const MIN_WHY = 15;
+
+/** Alt text shorter than this names the picture instead of describing it. */
+const MIN_ALWAYS_TEXT = 15;
+
+/** Past this many spellings of one answer, the list is a guess list rather than a grade. */
+const MAX_ANSWERS = 6;
 
 /** Rules the grader reports for behaviour every formula lesson can produce. */
 const UNIVERSAL_RULES = ["syntax", "value", "error"];
@@ -211,6 +217,8 @@ function checkLinks(value, prefix, { label, where, report, routes }) {
 function checkReferences(lesson, { file, report }) {
   const seen = new Map();
   lesson.screens.forEach((screen, index) => {
+    // A picture screen reveals the answer it accepts, not a formula, so it has no reference to repeat.
+    if (screen.type === "picture") return;
     const reference = screen.reference ?? lesson.docs.reference;
     const key = reference.replace(/\s+/g, "").toLowerCase();
     if (seen.has(key)) {
@@ -222,11 +230,42 @@ function checkReferences(lesson, { file, report }) {
       seen.set(key, index);
     }
   });
-  if (lesson.screens.length > 1 && lesson.screens[0].reference !== lesson.docs.reference) {
-    report.error(
-      file,
-      `docs.reference must match screens[0].reference ("${lesson.screens[0].reference}") — it is the answer every single-screen surface prints`,
-    );
+  // The docs example is a formula, so it is compared against the first formula screen — the one the
+  // docs block is built from — no matter where a picture screen sits in the lesson.
+  const first = lesson.screens.findIndex((screen) => screen.type !== "picture");
+  if (lesson.screens.length > 1 && first === -1) {
+    report.error(file, "has no formula screen — the lesson's docs.reference would never be shown");
+  } else if (lesson.screens.length > 1) {
+    const reference = lesson.screens[first].reference;
+    if (reference !== lesson.docs.reference) {
+      report.error(
+        file,
+        `docs.reference must match screens[${first}].reference ("${reference}") — it is the answer every single-screen surface prints`,
+      );
+    }
+  }
+}
+
+/**
+ * A picture screen ships an image and a list of accepted spellings, not fixtures and rules. The
+ * checks that remain are the ones a learner can see: the file exists on disk, the alt text describes
+ * it, and the answers are spellings of one fact rather than a pile of guesses.
+ */
+function checkPicture(screen, { label, where, report, contentDir }) {
+  const file = join(contentDir, "images", screen.image.slice("images/".length));
+  if (!existsSync(file)) {
+    report.error(where, `${label}image "${screen.image}" does not exist — the build copies content/images/ onto /assets/img/`);
+  }
+  if (screen.alt.trim().length < MIN_ALWAYS_TEXT) {
+    report.error(where, `${label}alt is ${screen.alt.trim().length} characters — describe what the image shows for a reader who cannot see it`);
+  }
+  if (screen.answers.length > MAX_ANSWERS) {
+    report.error(where, `${label}answers lists ${screen.answers.length} spellings — beyond ${MAX_ANSWERS} grading stops being one fact`);
+  }
+  for (const [index, answer] of screen.answers.entries()) {
+    if (normaliseAnswer(answer).length < 2) {
+      report.error(where, `${label}answers[${index}] "${answer}" is too short to be a specific answer`);
+    }
   }
 }
 
@@ -304,6 +343,16 @@ export function lintContent(contentDir, { fixturesDir } = {}) {
 
     lesson.screens.forEach((screen, index) => {
       const label = lesson.screens.length > 1 ? `screens[${index}].` : "";
+
+      if (screen.type === "picture") {
+        // No fixtures, no rules, no reference: a picture screen's grading is its answer list, so the
+        // checks below would each be a false alarm. The prompt and link checks still apply.
+        checkPicture(screen, { label, where: file, report, contentDir });
+        checkPrompt(screen, { label, where: file, report, seenPrompts });
+        checkLinks({ prompt: screen.prompt, hints: screen.hints }, "screen", { label, where: file, report, routes });
+        return;
+      }
+
       const inline = screen.fixtures;
 
       if (inline && sidecarFile) {

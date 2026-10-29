@@ -7,14 +7,19 @@ import { HOSTILE, OUTCOME_KEYS } from "./corpus.js";
 import { LESSONS as lessons } from "./lessons.js";
 
 /** Each screen with its own fixtures: every screen is a drill a learner has to get through. */
-const covered = lessons.flatMap(({ lesson, screens: views }) =>
-  views.map(({ exercise, fixture }, index) => ({
+const screens = lessons.flatMap(({ lesson, screens: views }) =>
+  views.map(({ exercise, fixture, screen }, index) => ({
     label: views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id,
     exercise,
     fixture,
+    screen,
+    picture: screen.type === "picture",
     audit: auditRows(AUDIT[lesson.id])[index],
   })),
 );
+
+/** A picture screen is graded from typed answers, so the formula fixtures cover only the sheets. */
+const covered = screens.filter((entry) => !entry.picture);
 
 /** A rejection is `{ formula, rule, why }` in the shipped corpus; the schema also allows a bare string. */
 const formulaOf = (rejection) => (typeof rejection === "string" ? rejection : rejection.formula);
@@ -28,6 +33,12 @@ describe("fixtures: shape", () => {
       assert.ok(screen.fixtures, `${name}: screen has no fixtures inline`);
       assert.ok(fixture.accepted.length > 0, `${name}: no accepted fixtures`);
       assert.ok(fixture.rejected.length > 0, `${name}: no rejected fixtures`);
+    }
+  });
+
+  it("keeps formula fixtures off a picture screen", () => {
+    for (const { label, screen } of screens.filter((entry) => entry.picture)) {
+      assert.equal(screen.fixtures, undefined, `${label}: a picture screen has no formulas to fixture`);
     }
   });
 

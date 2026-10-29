@@ -20,7 +20,8 @@ import { isDeepStrictEqual } from "node:util";
 import { siteConfig } from "./site/config.mjs";
 import { loadContent } from "./site/content.mjs";
 import { esc } from "./site/html.mjs";
-import { referenceOf, screenAt } from "./site/packages.mjs";
+import { referenceOf, revealOf, screenAt } from "./site/packages.mjs";
+import { imageUrl } from "./site/sheet.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -98,21 +99,19 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
         );
         exercise.screens.forEach((s, position) => {
           const sent = payload.screens?.[position];
-          ok(
-            sent?.answerCell === s.answerCell,
-            `${label} payload screens[${position}].answerCell`,
-            `is "${sent?.answerCell}"`,
-          );
-          ok(
-            isDeepStrictEqual(sent?.expect, s.expect),
-            `${label} payload screens[${position}].expect`,
-            "does not match the exercise",
-          );
-          ok(
-            sent?.reference === referenceOf(exercise, s),
-            `${label} payload screens[${position}].reference`,
-            "does not match the exercise",
-          );
+          const where = `${label} payload screens[${position}]`;
+          const type = s.type ?? "formula";
+          ok(sent?.type === type, `${where}.type`, `is "${sent?.type}", expected "${type}"`);
+          ok(isDeepStrictEqual(sent?.expect, s.expect), `${where}.expect`, "does not match the exercise");
+          ok(sent?.reference === revealOf(exercise, s), `${where}.reference`, "does not match the exercise");
+          if (type === "picture") {
+            ok(isDeepStrictEqual(sent?.answers, s.answers), `${where}.answers`, "does not match the exercise");
+            ok(sent?.answerCell === undefined, `${where}.answerCell`, "is set on a picture screen");
+            ok(sent?.image === s.image, `${where}.image`, "does not match the exercise");
+            ok(typeof sent?.alt === "string" && sent.alt.length > 0, `${where}.alt`, "is empty");
+          } else {
+            ok(sent?.answerCell === s.answerCell, `${where}.answerCell`, `is "${sent?.answerCell}"`);
+          }
         });
         ok(
           payload.docs?.reference === exercise.docs.reference,
@@ -150,6 +149,16 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
           "does not name the course",
         );
       }
+    }
+
+    // A picture screen is the image: the tag and its src have to survive the render, and the
+    // asset check below proves the file the src names is really in dist.
+    for (const [position, s] of exercise.screens.entries()) {
+      if (s.type !== "picture") continue;
+      const where = `${label} screen ${position + 1}`;
+      has(html, `class="picture-img" src="${imageUrl(s.image)}"`, `${where} image`);
+      has(html, `alt="${esc(s.alt)}"`, `${where} image alt`);
+      has(html, `id="picture-${position}"`, `${where} figure`);
     }
 
     // Every asset the page asks for must exist; a rename would otherwise 404 in silence.

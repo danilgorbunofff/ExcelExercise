@@ -384,6 +384,30 @@
   line-height: 1.55;
 }
 
+/* ── Picture ───────────────────────────────────────────────────────────── */
+
+/*
+ * A picture screen shows an image where a sheet would be, so it takes the sheet's place
+ * inside the card and its width, but not its scroll box: the image is sized to fit.
+ */
+.picture-body {
+  padding: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.picture {
+  margin: 0;
+}
+
+.picture-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface);
+}
+
 /* ── Grid ──────────────────────────────────────────────────────────────── */
 
 .sheet {
@@ -948,6 +972,19 @@
   border: 0;
   background: none;
   white-space: pre;
+}
+
+/*
+ * The worked example is one unit the player hides on a picture screen: `contents` keeps the
+ * paragraph and the pre inside .docs' own rhythm, and the [hidden] rule restates the UA default
+ * that `contents` would otherwise win against on source order.
+ */
+.worked {
+  display: contents;
+}
+
+.worked[hidden] {
+  display: none;
 }
 
 .error-table {

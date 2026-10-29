@@ -202,6 +202,7 @@ describe("formula input", () => {
 
 describe("payload guard", () => {
   const screen = {
+    type: "formula",
     prompt: "Add the three months in B2:B4.",
     answerCell: "B5",
     grid: { startCell: "A1", rows: [[1]] },
@@ -221,7 +222,7 @@ describe("payload guard", () => {
 
   it("names the missing field instead of failing later", () => {
     assert.throws(() => parsePayload(JSON.stringify({ ...valid, id: undefined })), /missing id/);
-    for (const key of ["answerCell", "prompt"]) {
+    for (const key of ["answerCell", "prompt", "type"]) {
       const broken = { id: valid.id, screens: [{ ...screen, [key]: undefined }], track: valid.track };
       assert.throws(() => parsePayload(JSON.stringify(broken)), new RegExp(`screen 1 is missing ${key}`));
     }
@@ -230,6 +231,14 @@ describe("payload guard", () => {
     assert.throws(() => parsePayload(JSON.stringify({ ...valid, screens: [] })), /at least one screen/);
     assert.throws(() => parsePayload(JSON.stringify({ ...valid, screens: [{ ...screen, grid: {} }] })), /grid\.rows/);
     assert.throws(() => parsePayload(JSON.stringify({ ...valid, screens: [{ ...screen, expect: {} }] })), /expect\.value/);
+    // A picture screen is graded from its answers, so the grid it has no use for is not required —
+    // and the answers it does use are.
+    const picture = { type: "picture", prompt: "Which range?", answers: ["B2:B6"], expect: { value: "B2:B6" } };
+    assert.deepEqual(parsePayload(JSON.stringify({ ...valid, screens: [picture] })).screens, [picture]);
+    assert.throws(
+      () => parsePayload(JSON.stringify({ ...valid, screens: [{ ...picture, answers: [] }] })),
+      /screen 1 is missing answers/,
+    );
     assert.throws(() => parsePayload(JSON.stringify({ ...valid, track: {} })), /track\.free/);
     assert.throws(() => parsePayload("{"), /not JSON/);
     assert.throws(() => parsePayload("[]"), /must be an object/);
@@ -268,7 +277,9 @@ describe("drill.js source", () => {
 
   it("imports the real grader rather than a copy of the rules", () => {
     assert.match(code, /from "\.\.\/grader\/index\.js"/);
-    assert.match(code, /\bgrade\(activeScreen\(\), raw\)/);
+    // Both graders come from the shipped module: the formula evaluator and the answer lookup.
+    assert.match(code, /\bgrade\(screen, raw\)/);
+    assert.match(code, /\bgradeAnswer\(screen, raw\)/);
   });
 
   it("never turns content or learner input into markup", () => {
@@ -280,7 +291,7 @@ describe("drill.js source", () => {
   });
 
   it("keeps the grader call guarded so a throw cannot strand the learner", () => {
-    assert.match(code, /try \{\s*result = grade\(activeScreen\(\), raw\);\s*\} catch/);
+    assert.match(code, /try \{\s*result = gradeScreen\(screen, raw\);\s*\} catch/);
   });
 
   it("keeps state.js free of browser globals so Node can test it", () => {
@@ -349,10 +360,40 @@ describe("drill.js source", () => {
   });
 
   it("asks the shared predicate before grading", () => {
+    // A picture screen has no cell to select, so its bar is always the learner's to grade.
     assert.match(
       code,
-      /if \(!canGrade\(\{ selected, answerCell: activeScreen\(\)\.answerCell, disabled: ui\.input\.disabled \}\)\) return;/,
+      /if \(screen\.type !== "picture" && !canGrade\(\{ selected, answerCell: screen\.answerCell, disabled: ui\.input\.disabled \}\)\) \{\s*return;/,
     );
+  });
+
+  it("routes each screen type to its own grader", () => {
+    assert.match(code, /import \{ grade, gradeAnswer \} from "\.\.\/grader\/index\.js";/);
+    assert.match(code, /return screen\.type === "picture" \? gradeAnswer\(screen, raw\) : grade\(screen, raw\);/);
+  });
+
+  it("prints a solved line the screen can actually show", () => {
+    // A picture screen has no cell to name, so the line reads the answer instead of "B7 holds 21.5.".
+    assert.match(code, /if \(screen\.type === "picture"\) return `The answer is \$\{display\(screen\.expect\.value\)\}\.`;/);
+    assert.match(code, /return `\$\{screen\.answerCell\} holds \$\{display\(screen\.expect\.value\)\}\.`;/);
+  });
+
+  it("takes the chip and the worked example away on a picture screen", () => {
+    assert.match(code, /ui\.chip\.hidden = isPicture;/);
+    assert.match(code, /ui\.docsWorked\.hidden = isPicture;/);
+    // enterScreen only rewrites the docs block for a formula screen; a picture screen would print
+    // the previous screen's formula beside an image that is not about it.
+    assert.match(code, /if \(!isPicture\) \{\s*if \(ui\.docsCode\)/);
+  });
+
+  it("opens the bar on a picture screen without a cell to select", () => {
+    // `stripComments` removes the comment, so the branch is read as code alone.
+    assert.match(code, /if \(isPicture\) \{\s*selected = null;\s*if \(ui\.check\) ui\.check\.disabled = false;/);
+    assert.match(code, /ui\.input\.setAttribute\("aria-label", "Your answer"\);/);
+  });
+
+  it("keeps a draft typed on a picture screen", () => {
+    assert.match(code, /if \(screen\.type === "picture" \|\| selected === screen\.answerCell\) draft = ui\.input\.value;/);
   });
 
   it("announces exhaustion once, on the third miss", () => {

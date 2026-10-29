@@ -5,18 +5,27 @@
  */
 
 import { esc, inlineIcon, jsonScript } from "./html.mjs";
-import { referenceOf, screenAt } from "./packages.mjs";
+import { revealOf, screenAt } from "./packages.mjs";
 import { renderByline, renderDocument, renderRail } from "./shell.mjs";
-import { renderDocs, renderFeedback, renderFormulaBar, renderHint, renderSheet } from "./sheet.mjs";
+import { renderDocs, renderFeedback, renderFormulaBar, renderHint, renderPicture, renderSheet } from "./sheet.mjs";
 
 /** One screen's share of the payload: exactly what the client grades and teaches with. */
 function screenPayload(exercise, screen, position) {
-  return {
+  const common = {
     position,
     id: screen.id,
     type: screen.type,
     prompt: screen.prompt,
-    reference: referenceOf(exercise, screen),
+    reference: revealOf(exercise, screen),
+    hints: screen.hints,
+  };
+
+  if (screen.type === "picture") {
+    return { ...common, image: screen.image, alt: screen.alt, answers: screen.answers, expect: screen.expect };
+  }
+
+  return {
+    ...common,
     answerCell: screen.answerCell,
     grid: screen.grid,
     expect: screen.expect,
@@ -24,7 +33,6 @@ function screenPayload(exercise, screen, position) {
     forbid: screen.forbid,
     requireRef: screen.requireRef,
     rules: screen.rules,
-    hints: screen.hints,
   };
 }
 
@@ -87,15 +95,19 @@ function lessonJsonLd({ config, track, entry }) {
  */
 function renderScreens(exercise, { icons }) {
   return `<div id="drill-screens">${exercise.screens
-    .map(
-      (screen, position) => `
+    .map((screen, position) => {
+      const body =
+        screen.type === "picture"
+          ? renderPicture(screen, { position })
+          : renderSheet(exercise, screen, { icons, id: `sheet-grid-${position}` });
+      return `
               <div data-screen="${position + 1}"${position === 0 ? "" : " hidden"}>
                 <p class="task">${esc(screen.prompt)}</p>
-                <div class="sheet" id="sheet-${position}">
-                  ${renderSheet(exercise, screen, { icons, id: `sheet-grid-${position}` })}
+                <div class="${screen.type === "picture" ? "picture-body" : "sheet"}" id="sheet-${position}">
+                  ${body}
                 </div>
-              </div>`,
-    )
+              </div>`;
+    })
     .join("")}
             </div>`;
 }
@@ -154,7 +166,7 @@ export function prepareExercisePage({ config, track, index, entry, icons = {}, c
               <h2 class="sheet-name" id="drill-heading">${esc(exercise.docs.dataset)}</h2>
               <p class="sheet-note">Read-only data · ${
                 screens.length > 1 ? `<span id="screen-position">screen 1 of ${screens.length} · </span>` : ""
-              }answer in <code id="screen-answer-cell">${esc(screen.answerCell)}</code></p>
+              }answer in <code id="screen-answer-cell">${esc(screen.answerCell ?? "the bar")}</code></p>
             </div>
             ${renderScreens(exercise, { icons })}
             ${renderFormulaBar(screen, { icons })}

@@ -11,7 +11,7 @@
  * links) belongs in `content-lint`, so a half-written lesson can still be previewed.
  */
 
-import { KNOWN_FUNCTIONS, parseRef } from "../grader/index.js";
+import { KNOWN_FUNCTIONS, normaliseAnswer, parseRef } from "../grader/index.js";
 
 export const LEVELS = { 1: "Beginner", 2: "Intermediate", 3: "Advanced" };
 
@@ -19,10 +19,22 @@ export const SCHEMA_VERSION = 2;
 
 /** Every screen type the plan defines. Only these can be graded today; phase 2 adds the rest. */
 export const SCREEN_TYPES = ["formula", "chord", "sequence", "picture", "workbook"];
-const IMPLEMENTED = new Set(["formula"]);
+const IMPLEMENTED = new Set(["formula", "picture"]);
 
 /** The grader applies these and silently skips anything else, so the loader must reject the rest. */
 const RULE_TYPES = new Set(["matchType"]);
+
+/** A picture screen is read, not typed into: the image is the data and `answers` is the grading. */
+const PICTURE_FIELDS = ["image", "alt", "answers"];
+
+/** The inverse: fields a picture screen has no use for, and a formula screen's grader cannot read. */
+const FORMULA_FIELDS = ["grid", "answerCell", "expect", "require", "forbid", "requireRef", "rules", "fixtures"];
+
+/**
+ * Where a picture screen's image may live. The build copies `content/images/` flat onto
+ * `/assets/img/`, so a path with a directory in it, or a URL, would render a broken image.
+ */
+const IMAGE_PATH = /^images\/[a-z0-9]+(-[a-z0-9]+)*\.(svg|png)$/;
 
 /** The fields a screen owns. v2 files may not also carry them at the top level — see `normalizeLesson`. */
 const SCREEN_FIELDS = ["prompt", "grid", "answerCell", "expect", "require", "forbid", "requireRef", "rules", "hints", "fixtures"];
@@ -85,6 +97,68 @@ function validateRules(rules, field, where, check) {
 /** Everything a screen needs before it can be rendered, graded and taught. */
 function validateScreen(screen, label, where, version) {
   requireText(screen.prompt, `${label}prompt`, where, { max: PROMPT_LIMIT[version] });
+  if (screen.type === "picture") validatePictureScreen(screen, label, where);
+  else validateFormulaScreen(screen, label, where);
+}
+
+/**
+ * A picture screen: an image this repository ships, a line of alt text for the learner who cannot
+ * see it, and the spellings of the answer it asks for. There is no grid, no answer cell and no
+ * rules — the image is the whole prompt and `answers` is the whole grade.
+ */
+function validatePictureScreen(screen, label, where) {
+  for (const field of FORMULA_FIELDS) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a formula screen — a picture screen is graded by its answers alone`);
+    }
+  }
+  if (screen.reference !== undefined) {
+    failAt(
+      where,
+      `${label}reference is a formula screen's reveal — a picture screen reveals the first answer it accepts`,
+    );
+  }
+
+  const image = requireText(screen.image, `${label}image`, where, { max: 120 });
+  if (!IMAGE_PATH.test(image)) {
+    failAt(where, `${label}image "${image}" must be a path like images/name.svg inside content/, not a URL`);
+  }
+  requireText(screen.alt, `${label}alt`, where, { max: 240 });
+
+  if (!Array.isArray(screen.answers) || screen.answers.length === 0) {
+    failAt(where, `${label}answers must be a non-empty array`);
+  }
+  const seen = new Map();
+  screen.answers.forEach((answer, index) => {
+    const text = requireText(answer, `${label}answers[${index}]`, where, { max: 80 });
+    const key = normaliseAnswer(text);
+    const previous = seen.get(key);
+    if (previous !== undefined) {
+      failAt(where, `${label}answers[${index}] repeats answers[${previous}] once normalised — one of them is dead`);
+    }
+    seen.set(key, index);
+  });
+
+  if (screen.hints !== undefined) {
+    if (!isPlainObject(screen.hints)) failAt(where, `${label}hints must be an object`);
+    // A picture answer is right or wrong; "value" is the only failure it can report, so a hint
+    // filed under any other rule id would never be shown.
+    for (const key of Object.keys(screen.hints)) {
+      if (key !== "value") {
+        failAt(where, `${label}hints.${key} is not a failure a picture screen reports — use hints.value`);
+      }
+    }
+    requireText(screen.hints.value, `${label}hints.value`, where, { max: 300 });
+  }
+}
+
+/** The drill the site has always had: a grid, a target cell, rules, and formulas to grade. */
+function validateFormulaScreen(screen, label, where) {
+  for (const field of PICTURE_FIELDS) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a picture screen — a formula screen is graded by its grid`);
+    }
+  }
 
   // A multi-screen lesson teaches a different formula on each screen, so the screen may carry its own
   // reference. Single-screen lessons leave it off and the lesson-level `docs.reference` is the answer.
@@ -193,10 +267,28 @@ function validateDocs(docs, where) {
 
 /** The fields a screen owns, in the order a payload or a diff reads best. */
 function pickScreen(screen, id, type) {
-  return {
+  const common = {
     id,
     type,
     prompt: screen.prompt.trim(),
+    hints: screen.hints ?? {},
+  };
+
+  if (type === "picture") {
+    const answers = screen.answers.map((answer) => answer.trim());
+    return {
+      ...common,
+      image: screen.image.trim(),
+      alt: screen.alt.trim(),
+      answers,
+      // Every solved message and the reveal read `expect.value`, so the first accepted answer is
+      // published there: one field means one shape for the player, whatever the screen type.
+      expect: { value: answers[0] },
+    };
+  }
+
+  return {
+    ...common,
     reference: screen.reference,
     grid: screen.grid,
     answerCell: screen.answerCell,
@@ -205,7 +297,6 @@ function pickScreen(screen, id, type) {
     forbid: screen.forbid ?? [],
     requireRef: screen.requireRef,
     rules: screen.rules ?? [],
-    hints: screen.hints ?? {},
     fixtures: screen.fixtures,
   };
 }
@@ -274,6 +365,8 @@ export function normalizeLesson(raw, file) {
     // answer, so only a multi-screen lesson has to repeat itself per screen.
     if (screens.length > 1) {
       screens.forEach((screen, index) => {
+        // A picture screen's reveal is the answer it accepts, so it carries no reference to lose.
+        if (screen.type === "picture") return;
         if (screen.reference === undefined) {
           failExercise(
             file,
@@ -298,6 +391,15 @@ export function screenAt(lesson, index = 0) {
  */
 export function referenceOf(lesson, screen) {
   return screen?.reference ?? lesson.docs.reference;
+}
+
+/**
+ * What the reveal shows for a screen: a formula screen's formula, a picture screen's accepted
+ * answer. The player prints this one string, so a reveal never asks which type it is looking at.
+ */
+export function revealOf(lesson, screen) {
+  if (!screen) return lesson.docs.reference;
+  return screen.type === "picture" ? screen.expect.value : referenceOf(lesson, screen);
 }
 
 /**

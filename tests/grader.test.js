@@ -10,7 +10,9 @@ import {
   colToIndex,
   expandRange,
   grade,
+  gradeAnswer,
   indexToCol,
+  normaliseAnswer,
   parse,
   parseRef,
   tokenize,
@@ -871,5 +873,30 @@ describe("text results keep the case the formula writes", () => {
     const result = grade({ ...PASS, expect: { value: 70 } }, '=IF(B2>=70,"70","Fail")');
     assert.equal(result.ok, false);
     assert.equal(result.rule, "value");
+  });
+});
+
+describe("typed answers", () => {
+  const picture = { type: "picture", answers: ["B2:B6", "column B rows 2 to 6"], hints: { value: "The price column." } };
+
+  it("folds the spellings a learner can reasonably type", () => {
+    for (const typed of ["B2:B6", "b2:b6", " $B$2:$B$6 ", "COLUMN b ROWS 2 TO 6", "B2:B6\u200b"]) {
+      assert.equal(gradeAnswer(picture, typed).ok, true, typed);
+    }
+    assert.equal(normaliseAnswer("  A  B \n"), "a b");
+  });
+
+  it("rejects a near miss without printing the answer it wanted", () => {
+    const result = gradeAnswer(picture, "C2:C6");
+    assert.equal(result.ok, false);
+    assert.equal(result.rule, "value");
+    assert.equal(result.expected, null);
+    assert.equal(result.message, "That is not what the image shows.");
+    assert.equal(result.hint, "The price column.");
+  });
+
+  it("rejects an empty answer and a screen with no answers at all", () => {
+    assert.equal(gradeAnswer(picture, "   ").ok, false);
+    assert.equal(gradeAnswer({ type: "picture" }, "B2:B6").ok, false);
   });
 });

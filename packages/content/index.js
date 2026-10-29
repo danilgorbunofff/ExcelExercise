@@ -1,9 +1,19 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { LEVELS, SCHEMA_VERSION, SCREEN_TYPES, failAt, normalizeLesson, normalizeTrack, referenceOf, screenAt } from "./schema.js";
+import {
+  LEVELS,
+  SCHEMA_VERSION,
+  SCREEN_TYPES,
+  failAt,
+  normalizeLesson,
+  normalizeTrack,
+  referenceOf,
+  revealOf,
+  screenAt,
+} from "./schema.js";
 
-export { LEVELS, SCHEMA_VERSION, SCREEN_TYPES, normalizeLesson, normalizeTrack, referenceOf, screenAt };
+export { LEVELS, SCHEMA_VERSION, SCREEN_TYPES, normalizeLesson, normalizeTrack, referenceOf, revealOf, screenAt };
 
 /** Kept as the public name of the lesson gate: everything that read it before still does. */
 export const validateLesson = normalizeLesson;

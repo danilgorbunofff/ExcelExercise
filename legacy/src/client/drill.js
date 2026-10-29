@@ -6,7 +6,7 @@
  * string reaches the DOM through textContent.
  */
 
-import { grade } from "../grader/index.js";
+import { grade, gradeAnswer } from "../grader/index.js";
 import {
   createClock,
   createSession,
@@ -140,6 +140,7 @@ function mountDrill(payloadNode) {
     docsCode: document.getElementById("docs-example-code"),
     docsValue: document.getElementById("docs-example-value"),
     docsReference: document.getElementById("docs-reference"),
+    docsWorked: document.getElementById("docs-worked"),
     bar: document.getElementById("formula-bar"),
     chip: document.getElementById("ref-chip"),
     input: document.getElementById("formula"),
@@ -266,7 +267,7 @@ function mountDrill(payloadNode) {
     cell.closest("tr")?.querySelector(".row-head")?.classList.add("is-active");
 
     const onAnswer = key === activeScreen().answerCell;
-    ui.chip.textContent = key;
+    if (ui.chip) ui.chip.textContent = key;
     // A disabled input cannot be submitted, and a disabled button cannot submit it.
     if (ui.check) ui.check.disabled = !onAnswer;
     if (onAnswer) {
@@ -406,13 +407,34 @@ function mountDrill(payloadNode) {
     }
     if (ui.showAnswer) ui.showAnswer.hidden = true;
     if (ui.position) ui.position.textContent = `screen ${position + 1} of ${screenCount} · `;
-    if (ui.answerNote) ui.answerNote.textContent = screen.answerCell;
-    if (ui.docsCode) ui.docsCode.textContent = screen.reference;
-    if (ui.docsReference) ui.docsReference.textContent = screen.reference;
-    if (ui.docsValue) ui.docsValue.textContent = display(screen.expect.value);
+    const isPicture = screen.type === "picture";
+    // The target chip names a cell; a picture screen has none, so it goes dark and the note under
+    // the sheet says where the answer goes instead. The docs worked example is a formula, so it
+    // steps aside on a picture screen too — the client puts it back for the next formula screen.
+    if (ui.answerNote) ui.answerNote.textContent = isPicture ? "the bar" : screen.answerCell;
+    if (ui.chip) {
+      ui.chip.hidden = isPicture;
+      ui.chip.textContent = isPicture ? "" : screen.answerCell;
+    }
+    if (ui.docsWorked) ui.docsWorked.hidden = isPicture;
+    if (!isPicture) {
+      if (ui.docsCode) ui.docsCode.textContent = screen.reference;
+      if (ui.docsReference) ui.docsReference.textContent = screen.reference;
+      if (ui.docsValue) ui.docsValue.textContent = display(screen.expect.value);
+    }
 
     setHint();
-    selectCell(screen.answerCell, { focus });
+    if (isPicture) {
+      selected = null;
+      // Nothing to select, so nothing can disable the bar: every keystroke is an attempt at the answer.
+      if (ui.check) ui.check.disabled = false;
+      ui.input.disabled = false;
+      ui.input.value = draft;
+      ui.input.setAttribute("aria-label", "Your answer");
+      if (focus) ui.input.focus();
+    } else {
+      selectCell(screen.answerCell, { focus });
+    }
   }
 
   /** One graded answer through the score loop. The caller emits what comes back. */
@@ -445,6 +467,20 @@ function mountDrill(payloadNode) {
     return `Attempt ${screenMisses} of ${MAX_ATTEMPTS}.`;
   }
 
+  /** What the learner reads once a screen is right, whichever kind of screen it was. */
+  function solvedLine(screen) {
+    if (screen.type === "picture") return `The answer is ${display(screen.expect.value)}.`;
+    return `${screen.answerCell} holds ${display(screen.expect.value)}.`;
+  }
+
+  /**
+   * The screen router: one grading call per screen type, in one place. A registry would need
+   * something to register; with two types this switch is the whole of it.
+   */
+  function gradeScreen(screen, raw) {
+    return screen.type === "picture" ? gradeAnswer(screen, raw) : grade(screen, raw);
+  }
+
   function onCorrect() {
     const answered = activeScreen();
     const missed = screenMisses;
@@ -467,8 +503,8 @@ function mountDrill(payloadNode) {
         state: "is-correct",
         head: "Correct",
         body: helped
-          ? `${answered.answerCell} holds ${display(answered.expect.value)}. Counted as completed with the reference answer.`
-          : `${answered.answerCell} holds ${display(answered.expect.value)}.`,
+          ? `${solvedLine(answered)} Counted as completed with the reference answer.`
+          : solvedLine(answered),
         meta: helped ? "Completed with help." : successLabel(missed),
         next,
       });
@@ -480,7 +516,7 @@ function mountDrill(payloadNode) {
     showFeedback({
       state: "is-correct",
       head: "Correct",
-      body: `${answered.answerCell} holds ${display(answered.expect.value)}.`,
+      body: solvedLine(answered),
       meta: `${right} Screen ${currentScreen(loop)} of ${screenCount}.`,
     });
     track("screen_view", {
@@ -521,20 +557,27 @@ function mountDrill(payloadNode) {
   }
 
   function check() {
+    const screen = activeScreen();
     // Clicking a data cell makes the bar read-only; grading the value it shows would
-    // spend an attempt and answer "not accepted" to a cell the learner cannot edit.
-    if (!canGrade({ selected, answerCell: activeScreen().answerCell, disabled: ui.input.disabled })) return;
+    // spend an attempt and answer "not accepted" to a cell the learner cannot edit. A picture
+    // screen has no cells to select, so its bar is always the learner's to grade.
+    if (screen.type !== "picture" && !canGrade({ selected, answerCell: screen.answerCell, disabled: ui.input.disabled })) {
+      return;
+    }
     const raw = normaliseFormula(ui.input.value);
     if (raw === "") {
       clearFeedback();
       ui.feedback.classList.add("is-hint", "is-live");
       ui.feedbackHead.textContent = "Nothing to check yet";
-      ui.feedbackBody.textContent = `Type a formula in the bar, starting with =, then press Enter.`;
+      ui.feedbackBody.textContent =
+        screen.type === "picture"
+          ? "Type the answer in the bar, then press Enter."
+          : `Type a formula in the bar, starting with =, then press Enter.`;
       return;
     }
     let result;
     try {
-      result = grade(activeScreen(), raw);
+      result = gradeScreen(screen, raw);
     } catch (error) {
       console.error("[es] grader threw", error);
       showFeedback({
@@ -562,7 +605,7 @@ function mountDrill(payloadNode) {
     showFeedback({
       state: "is-hint",
       head: "Reference answer",
-      body: `${activeScreen().reference} returns ${display(activeScreen().expect.value)}. This counts as completed with help.`,
+      body: `${solvedLine(activeScreen())} This counts as completed with help.`,
       meta: screenMisses ? attemptLabel() : "",
     });
   }
@@ -664,7 +707,8 @@ function mountDrill(payloadNode) {
     check();
   });
   ui.input.addEventListener("input", () => {
-    if (selected === activeScreen().answerCell) draft = ui.input.value;
+    const screen = activeScreen();
+    if (screen.type === "picture" || selected === screen.answerCell) draft = ui.input.value;
     if (!started && ui.input.value.trim() !== "") {
       started = true;
       track("drill_start", { id: lessonId, elapsed: seconds() });

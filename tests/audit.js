@@ -128,6 +128,13 @@ export const AUDIT = {
           "=VLOOKUP(A8,A2:B6,2,FALSE)",
         ],
       },
+      {
+        // The picture screen shows the formula bar reading C2:C6 while asking what the third
+        // argument should point at. The price lives in B, so B2:B6 is the range the bar needs.
+        expected: "B2:B6",
+        reference: "B2:B6",
+        wrong: ["B2:B5", "C2:C6", "A2:A6"],
+      },
     ],
   },
 };

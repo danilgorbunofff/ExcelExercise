@@ -70,12 +70,36 @@ export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } 
 }
 
 /**
+ * A picture screen's image. `alt` is the question rather than a caption, so there is no `figcaption`
+ * repeating it: a screen reader reads the figure's image and gets the whole prompt in one turn. The
+ * image is first-party — `build.mjs` copies `content/images/` onto `/assets/img/`, where this points.
+ */
+export function imageUrl(path) {
+  return `/assets/img/${path.slice("images/".length)}`;
+}
+
+export function renderPicture(screen, { position = 0 } = {}) {
+  return `<figure class="picture" id="picture-${position}">
+                  <img${attrs({
+                    class: "picture-img",
+                    src: imageUrl(screen.image),
+                    alt: screen.alt,
+                    loading: "lazy",
+                    decoding: "async",
+                  })}>
+                </figure>`;
+}
+
+/**
  * The formula bar: target chip, input, Check. No control is named, so a submit
  * without JavaScript reloads the page instead of leaking the draft into the URL.
+ * A picture screen has no target cell, so the chip keeps its place in the DOM but goes dark:
+ * the client toggles it per screen, and removing it would shift the bar on every switch.
  */
 export function renderFormulaBar(screen, { icons = {} } = {}) {
+  const isPicture = screen.type === "picture";
   return `<form class="formula-bar" id="formula-bar" method="get">
-          <span class="ref-chip" id="ref-chip">${esc(screen.answerCell)}</span>
+          <span class="ref-chip" id="ref-chip"${isPicture ? " hidden" : ""}>${esc(screen.answerCell ?? "")}</span>
           <span class="fx" aria-hidden="true">fx</span>
           <input${attrs({
             id: "formula",
@@ -86,8 +110,8 @@ export function renderFormulaBar(screen, { icons = {} } = {}) {
             autocapitalize: "none",
             autocorrect: "off",
             spellcheck: "false",
-            placeholder: "=...",
-            "aria-label": `Your formula for ${screen.answerCell}`,
+            placeholder: isPicture ? "Type your answer" : "=...",
+            "aria-label": isPicture ? "Your answer" : `Your formula for ${screen.answerCell}`,
             "aria-describedby": "feedback",
           })}>
           <button class="btn btn-check" id="check" type="submit">${inlineIcon(icons.check, {
@@ -122,10 +146,16 @@ export function renderHint({ icons = {} } = {}) {
         </div>`;
 }
 
-/** The docs block: what it does, syntax, a worked example, what goes wrong, at work. */
+/**
+ * The docs block: what it does, syntax, a worked example, what goes wrong, at work.
+ * The worked example is a formula, so it is built from the first formula screen rather than from the
+ * screen the page happens to open on — and it starts hidden if a lesson ever opens on a picture.
+ */
 export function renderDocs(exercise, screen) {
   const docs = exercise.docs;
-  const reference = referenceOf(exercise, screen);
+  const worked = exercise.screens.find((candidate) => candidate.type !== "picture") ?? null;
+  const reference = worked ? referenceOf(exercise, worked) : exercise.docs.reference;
+  const workedHidden = worked === null || screen.type === "picture";
   const errorRows = docs.errors
     .map((entry) => `            <tr><th scope="row"><code>${esc(entry.code)}</code></th><td>${esc(entry.text)}</td></tr>`)
     .join("\n");
@@ -138,10 +168,12 @@ export function renderDocs(exercise, screen) {
         <pre class="syntax"><code>${esc(docs.syntax)}</code></pre>
 
         <h2 id="docs-example">Worked example</h2>
-        <p>On <em>${esc(docs.dataset)}</em>, <code id="docs-example-code">${esc(reference)}</code> returns <strong id="docs-example-value">${esc(
-          formatCell(screen.expect.value),
-        )}</strong>.</p>
-        <pre class="reference"><code id="docs-reference">${esc(reference)}</code></pre>
+        <div class="worked" id="docs-worked"${workedHidden ? " hidden" : ""}>
+          <p>On <em>${esc(docs.dataset)}</em>, <code id="docs-example-code">${esc(reference)}</code> returns <strong id="docs-example-value">${esc(
+            worked === null ? "" : formatCell(worked.expect.value),
+          )}</strong>.</p>
+          <pre class="reference"><code id="docs-reference">${esc(reference)}</code></pre>
+        </div>
 
         <h2 id="docs-errors">Common errors</h2>
         <table class="error-table">

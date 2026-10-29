@@ -70,19 +70,19 @@ test("a formula that cannot be read points at the character", async ({ page }) =
   await expect(page.locator(".feedback-caret")).toBeVisible();
 });
 
-test("a two-screen lesson advances to screen 2 and completes on the last answer", async ({ page }) => {
+test("a multi-screen lesson walks to its picture screen and completes on typed text", async ({ page }) => {
   await openGatedDrill(page, "xlookup-search-from-the-bottom");
 
-  // Screen 2 exists in the markup from the first paint, so it is hidden rather than absent: the
-  // panel is what a real browser has to switch, not something a script has to build.
-  await expect(page.locator("#screen-position")).toHaveText("screen 1 of 2 · ");
+  // The later screens exist in the markup from the first paint, so they are hidden rather than
+  // absent: the panel is what a real browser has to switch, not something a script has to build.
+  await expect(page.locator("#screen-position")).toHaveText("screen 1 of 3 · ");
   await expect(page.locator("#screen-answer-cell")).toHaveText("B7");
   await expect(page.locator("[data-screen='1']")).toBeVisible();
   await expect(page.locator("[data-screen='2']")).toBeHidden();
 
   await check(page, "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
-  await expect(page.locator("#feedback .feedback-meta")).toHaveText("Right first time. Screen 2 of 2.");
+  await expect(page.locator("#feedback .feedback-meta")).toHaveText("Right first time. Screen 2 of 3.");
   // The trial opened the drill, so the first screen view has to come from the paywall's exit.
   const firstView = await page.evaluate(() =>
     (globalThis.__esEvents ?? []).find((event) => event.type === "screen_view"),
@@ -93,8 +93,31 @@ test("a two-screen lesson advances to screen 2 and completes on the last answer"
   await expect(page.locator("#screen-answer-cell")).toHaveText("B8");
 
   await check(page, "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)");
+  await expect(page.locator("#feedback .feedback-meta")).toHaveText("Right first time. Screen 3 of 3.");
+
+  // A picture screen has no target cell, so the chip goes dark, the note names the bar instead,
+  // and the bar takes typed text rather than a formula.
+  await expect(page.locator("[data-screen='3']")).toBeVisible();
+  const picture = page.locator("[data-screen='3'] .picture-img");
+  await expect(picture).toBeVisible();
+  // The panel is hidden until this screen, so the image is fetched now: a 404 would still paint a
+  // box, and only a decoded width proves the SVG the build copied is the one the screen asked for.
+  await expect.poll(() => picture.evaluate((img) => img.naturalWidth)).toBeGreaterThan(0);
+  await expect(page.locator("#ref-chip")).toBeHidden();
+  await expect(page.locator("#screen-answer-cell")).toHaveText("the bar");
+  await expect(page.locator("#formula")).toHaveAttribute("aria-label", "Your answer");
+
+  // A near miss is graded as text and nothing echoes the answer it wanted.
+  await check(page, "C2:C6");
+  await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
+  await expect(page.locator("#feedback-head")).toHaveText("Not the answer");
+  await expect(page.locator("#feedback-body")).toHaveText("That is not what the image shows.");
+  await expect(page.locator("#formula")).toHaveValue("C2:C6");
+
+  // `$B$2:$B$6` names the same range as the accepted spelling, so the absolute markers are no trap.
+  await check(page, "$B$2:$B$6");
   await expect(page.locator("#feedback-head")).toHaveText("Correct");
-  await expect(page.locator("#feedback-body")).toHaveText("B8 holds 16.25.");
+  await expect(page.locator("#feedback-body")).toHaveText("The answer is B2:B6.");
   await expect(page.locator(".rail-item[data-lesson='16-xlookup-search-from-the-bottom']")).toHaveClass(/is-done/);
 });
 

@@ -76,13 +76,15 @@ describe("content-lint: the real corpus", () => {
       .filter((name) => name.endsWith(".json"))
       .map((name) => readJson(join(CONTENT, "exercises", name)));
     const screens = lessons.flatMap((lesson) => lesson.screens);
-    const accepted = screens.reduce((sum, screen) => sum + screen.fixtures.accept.length, 0);
-    const rejected = screens.reduce((sum, screen) => sum + screen.fixtures.reject.length, 0);
+    // A picture screen is graded from its answers, not from formulas, so it ships no fixtures.
+    const graded = screens.filter((screen) => screen.type !== "picture");
+    const accepted = graded.reduce((sum, screen) => sum + screen.fixtures.accept.length, 0);
+    const rejected = graded.reduce((sum, screen) => sum + screen.fixtures.reject.length, 0);
     assert.equal(report.stats.lessons, lessons.length, "one lesson file per lesson");
     assert.equal(report.stats.screens, screens.length, "every screen is counted, not just the first");
     assert.equal(report.stats.accepted, accepted);
     assert.equal(report.stats.rejected, rejected);
-    assert.ok(accepted >= screens.length && rejected >= screens.length);
+    assert.ok(accepted >= graded.length && rejected >= graded.length);
   });
 
   it("warns about nothing worse than prompt style", () => {
@@ -314,6 +316,59 @@ describe("content-lint: per-screen references", () => {
   });
 });
 
+describe("content-lint: picture screens", () => {
+  const PICTURE_LESSON = "16-xlookup-search-from-the-bottom";
+
+  /** Rewrites the third screen of the pilot lesson: the one a picture renders. */
+  const editPicture = (content, edit) => {
+    const path = lessonPath(content, PICTURE_LESSON);
+    const lesson = readJson(path);
+    const index = lesson.screens.findIndex((screen) => screen.type === "picture");
+    assert.ok(index > 0, `${PICTURE_LESSON} no longer ships a picture screen to lint`);
+    const screens = lesson.screens.map((screen, at) => (at === index ? edit(screen) : screen));
+    writeJson(path, { ...lesson, screens });
+    return index;
+  };
+
+  it("passes the pilot screen the lesson ships", () => {
+    const { report } = sandbox();
+    assert.deepEqual(messages(report), []);
+  });
+
+  it("fails an image the repository does not ship", () => {
+    const { report } = sandbox(({ content }) => {
+      const index = editPicture(content, (screen) => ({ ...screen, image: "images/not-a-real-sheet.svg" }));
+      assert.equal(index, 2);
+    });
+    assert.match(
+      messages(report).join("\n"),
+      /screens\[2\]\.image "images\/not-a-real-sheet\.svg" does not exist/,
+    );
+  });
+
+  it("fails alt text that would leave a screen-reader user guessing", () => {
+    const { report } = sandbox(({ content }) => {
+      editPicture(content, (screen) => ({ ...screen, alt: "a sheet" }));
+    });
+    assert.match(messages(report).join("\n"), /screens\[2\]\.alt is 7 characters/);
+  });
+
+  it("fails a screen whose answers are really several questions", () => {
+    const { report } = sandbox(({ content }) => {
+      const answers = ["B2:B6", "B2:B5", "B8", "C2:C6", "A2:A6", "B2", "B3"];
+      editPicture(content, (screen) => ({ ...screen, answers }));
+    });
+    assert.match(messages(report).join("\n"), /screens\[2\]\.answers lists 7 spellings/);
+  });
+
+  it("fails an answer too short to be the whole fact", () => {
+    const { report } = sandbox(({ content }) => {
+      editPicture(content, (screen) => ({ ...screen, answers: [...screen.answers, "B"] }));
+    });
+    assert.match(messages(report).join("\n"), /screens\[2\]\.answers\[1\] "B" is too short/);
+  });
+});
+
 describe("content-lint: the catalog", () => {
   /** Rewrites track.json in the sandbox. The loader reads it, so a broken catalog is one error. */
   function editTrack(content, edit) {
@@ -471,7 +526,10 @@ describe("content-lint: the authoring CLI", () => {
       assert.equal(check.status, 0, check.stdout);
       // Every earlier lesson has one screen; the scaffold writes one more, and the slot it took
       // no longer holds a planned entry, so the screen count is the lesson count plus the extra.
-      assert.match(check.stdout, new RegExp(`content: ${number} of 88 catalogued lessons, 16 groups, ${number + 1} screens, `));
+      const screens = readdirSync(join(content, "exercises"))
+        .filter((name) => name.endsWith(".json"))
+        .reduce((sum, name) => sum + readJson(join(content, "exercises", name)).screens.length, 0);
+      assert.match(check.stdout, new RegExp(`content: ${number} of 88 catalogued lessons, 16 groups, ${screens} screens, `));
     });
   });
 

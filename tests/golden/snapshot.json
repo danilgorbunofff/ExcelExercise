@@ -464,7 +464,11 @@
         {"input":"=XLOOKUP(A7,A2:A6,B2:B6)","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":21.5,"message":"XLOOKUP needs at least 6 arguments here; yours has 3.","hint":"XLOOKUP takes six arguments here: the key, the keys, the prices, the text to show when nothing matches, the match mode, and the search direction."},
         {"input":"=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)","ok":true,"rule":"correct","code":null,"position":null,"value":21.5,"expected":21.5,"message":"Correct.","hint":""},
         {"input":"=XLOOKUP(A8,A2:A6,B2:B6)","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":16.25,"message":"XLOOKUP needs at least 6 arguments here; yours has 3.","hint":"XLOOKUP takes six arguments here: the key, the keys, the prices, the text to show when nothing matches, the match mode, and the search direction."},
-        {"input":"=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)","ok":true,"rule":"correct","code":null,"position":null,"value":16.25,"expected":16.25,"message":"Correct.","hint":""}
+        {"input":"=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)","ok":true,"rule":"correct","code":null,"position":null,"value":16.25,"expected":16.25,"message":"Correct.","hint":""},
+        {"input":"A2:A6","ok":false,"rule":"value","code":null,"position":null,"value":"a2:a6","expected":null,"message":"That is not what the image shows.","hint":"The third argument is the range XLOOKUP reads the answer from, so it covers the price column's data rows. Rows 2 to 6 hold the log; row 7 is where the answer goes."},
+        {"input":"B2:B5","ok":false,"rule":"value","code":null,"position":null,"value":"b2:b5","expected":null,"message":"That is not what the image shows.","hint":"The third argument is the range XLOOKUP reads the answer from, so it covers the price column's data rows. Rows 2 to 6 hold the log; row 7 is where the answer goes."},
+        {"input":"B2:B6","ok":true,"rule":"correct","code":null,"position":null,"value":"b2:b6","expected":"B2:B6","message":"Correct.","hint":""},
+        {"input":"C2:C6","ok":false,"rule":"value","code":null,"position":null,"value":"c2:c6","expected":null,"message":"That is not what the image shows.","hint":"The third argument is the range XLOOKUP reads the answer from, so it covers the price column's data rows. Rows 2 to 6 hold the log; row 7 is where the answer goes."}
       ]
     }
   }

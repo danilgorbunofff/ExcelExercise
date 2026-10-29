@@ -143,6 +143,16 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     ? copyDir(join(root, "src/client"), join(dist, "assets/client"), { filter: (name) => name.endsWith(".js") })
     : 0;
 
+  // Picture screens point at /assets/img/<name>; content/images/ is where the files are authored.
+  // Optional, because no lesson has to ship one — but an empty directory means a broken <img>.
+  const imagesSource = join(contentDir, "images");
+  const images = existsSync(imagesSource)
+    ? copyDir(imagesSource, join(dist, "assets/img"), { filter: (name) => /\.(svg|png)$/.test(name) })
+    : 0;
+  if (existsSync(imagesSource) && images === 0) {
+    throw new Error(`${imagesSource} exists but holds no .svg or .png — a picture screen would render broken`);
+  }
+
   // macOS drops .DS_Store into a freshly created directory; never ship it.
   removeDotFiles(dist);
 
@@ -159,6 +169,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     grader,
     session,
     client,
+    images,
     bytes,
     warnings,
   };
@@ -167,7 +178,9 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     const kb = (summary.bytes / 1024).toFixed(1);
     console.log(`built ${summary.pages} pages (${kb} kB of HTML+CSS) → ${dist}`);
     console.log(`  styles: ${summary.cssSources.length} sources concatenated`);
-    console.log(`  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${client} client modules`);
+    console.log(
+      `  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${client} client modules, ${images} images`,
+    );
     for (const warning of warnings) console.warn(`  warning: ${warning}`);
   }
 

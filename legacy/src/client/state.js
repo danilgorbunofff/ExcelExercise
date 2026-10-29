@@ -208,17 +208,29 @@ export function parsePayload(text) {
     throw new Error("exercise payload must carry at least one screen");
   }
   payload.screens.forEach((screen, index) => {
-    if (!isPlainObject(screen)) throw new Error(`exercise payload screen ${index + 1} must be an object`);
-    for (const key of ["prompt", "answerCell"]) {
+    const where = `exercise payload screen ${index + 1}`;
+    if (!isPlainObject(screen)) throw new Error(`${where} must be an object`);
+    for (const key of ["prompt", "type"]) {
       if (typeof screen[key] !== "string" || screen[key] === "") {
-        throw new Error(`exercise payload screen ${index + 1} is missing ${key}`);
+        throw new Error(`${where} is missing ${key}`);
       }
     }
-    if (!isPlainObject(screen.grid) || !Array.isArray(screen.grid.rows)) {
-      throw new Error(`exercise payload screen ${index + 1} is missing grid.rows`);
+    // A picture screen is graded from `answers`, so the grid and the target cell it has no use for
+    // are required only of the types that grade from them.
+    if (screen.type === "picture") {
+      if (!Array.isArray(screen.answers) || screen.answers.length === 0) {
+        throw new Error(`${where} is missing answers`);
+      }
+    } else {
+      if (typeof screen.answerCell !== "string" || screen.answerCell === "") {
+        throw new Error(`${where} is missing answerCell`);
+      }
+      if (!isPlainObject(screen.grid) || !Array.isArray(screen.grid.rows)) {
+        throw new Error(`${where} is missing grid.rows`);
+      }
     }
     if (!isPlainObject(screen.expect) || screen.expect.value === undefined) {
-      throw new Error(`exercise payload screen ${index + 1} is missing expect.value`);
+      throw new Error(`${where} is missing expect.value`);
     }
   });
   if (!isPlainObject(payload.track) || typeof payload.track.free !== "boolean") {

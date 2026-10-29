@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
-import { SCHEMA_VERSION, normalizeLesson, referenceOf, screenAt } from "../packages/content/index.js";
+import { SCHEMA_VERSION, normalizeLesson, referenceOf, revealOf, screenAt } from "../packages/content/index.js";
 import { readRawLesson, toV1 } from "./lessons.js";
 
 const FILE = "01-sum-basics.json";
@@ -31,6 +31,17 @@ function screenFrom(raw, overrides = {}) {
   for (const field of SCREEN_FIELDS) if (raw[field] !== undefined) screen[field] = raw[field];
   return { ...screen, ...overrides };
 }
+
+/** A screen whose answer is shown in a picture: no grid, no rules, just the spellings it accepts. */
+const PICTURE = {
+  id: "picture-a",
+  type: "picture",
+  prompt: "Which range should the third argument read?",
+  image: "images/xlookup-third-argument.svg",
+  alt: "A sheet with a formula bar above it and the third argument underlined.",
+  answers: ["B2:B6"],
+  hints: { value: "The price lives in column B." },
+};
 
 /** A v2 lesson carries its drill on the screens and nowhere else — the loader rejects both halves. */
 function v2({ screens = [screenFrom(V1)], ...overrides } = {}) {
@@ -145,6 +156,75 @@ describe("lesson schema v2", () => {
     });
   });
 
+  describe("a picture screen", () => {
+    const picture = (overrides = {}) =>
+      v2({ screens: [screenFrom(V1, { reference: V1.docs.reference }), { ...PICTURE, ...overrides }] });
+    const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+
+    it("normalises to the answers it accepts, with no grid and no rules", () => {
+      const lesson = normalizeLesson(picture(), FILE);
+      const screen = screenAt(lesson, 1);
+
+      assert.deepEqual(Object.keys(screen).sort(), ["alt", "answers", "expect", "hints", "id", "image", "prompt", "type"]);
+      assert.equal(screen.reference, undefined);
+      assert.equal(screen.answerCell, undefined);
+      assert.equal(screen.grid, undefined);
+      assert.deepEqual(screen.answers, ["B2:B6"]);
+      // The player prints `expect.value` when a screen is solved, so it is the first accepted spelling.
+      assert.deepEqual(screen.expect, { value: "B2:B6" });
+      assert.equal(revealOf(lesson, screen), "B2:B6");
+    });
+
+    it("trims the answers it keeps", () => {
+      const lesson = normalizeLesson(picture({ answers: ["  B2:B6  ", " the price column "] }), FILE);
+      assert.deepEqual(screenAt(lesson, 1).answers, ["B2:B6", "the price column"]);
+    });
+
+    it("does not need a reference even when the lesson has several screens", () => {
+      // The rule that a multi-screen lesson repeats its reveal per screen is a formula-screen rule.
+      assert.doesNotThrow(() => normalizeLesson(picture(), FILE));
+    });
+
+    it("rejects an image that is not a path in content/", () => {
+      throws(picture({ image: "https://cdn.example.com/sheet.png" }), /image .* must be a path like images\/name\.svg/);
+      throws(picture({ image: "images/Sheet With Spaces.png" }), /must be a path like images\/name\.svg/);
+    });
+
+    it("rejects a screen with no alt text and one with no answers", () => {
+      throws(picture({ alt: "" }), /screens\[1\]\.alt must be a non-empty string/);
+      throws(picture({ answers: [] }), /screens\[1\]\.answers must be a non-empty array/);
+    });
+
+    it("rejects two spellings that normalise to the same answer", () => {
+      throws(
+        picture({ answers: ["B2:B6", "$b$2:$b$6"] }),
+        /screens\[1\]\.answers\[1\] repeats answers\[0\] once normalised/,
+      );
+    });
+
+    it("rejects the formula screen's fields and its reveal", () => {
+      throws(picture({ grid: V1.grid }), /grid belongs to a formula screen/);
+      throws(picture({ answerCell: "B7" }), /answerCell belongs to a formula screen/);
+      throws(picture({ expect: { value: 1 } }), /expect belongs to a formula screen/);
+      throws(picture({ reference: "=SUM(B2:B6)" }), /reference is a formula screen's reveal/);
+    });
+
+    it("rejects a hint filed under a rule a picture screen never reports", () => {
+      throws(picture({ hints: { error: "no" } }), /hints\.error is not a failure a picture screen reports/);
+    });
+
+    it("keeps the answer fields off a formula screen", () => {
+      throws(
+        v2({ screens: [screenFrom(V1, { answers: ["B5"] })] }),
+        /answers belongs to a picture screen/,
+      );
+      throws(
+        v2({ screens: [screenFrom(V1, { image: PICTURE.image })] }),
+        /image belongs to a picture screen/,
+      );
+    });
+  });
+
   describe("rejections", () => {
     const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
 
@@ -185,8 +265,8 @@ describe("lesson schema v2", () => {
 
     it("rejects a known type that cannot be graded yet", () => {
       throws(
-        v2({ screens: [screenFrom(V1, { type: "picture" })] }),
-        /type "picture" does not render yet — only formula screens can be graded today/,
+        v2({ screens: [screenFrom(V1, { type: "chord" })] }),
+        /type "chord" does not render yet — only formula, picture screens can be graded today/,
       );
     });
 

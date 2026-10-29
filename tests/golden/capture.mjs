@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 
 import { normalizeLesson } from "../../packages/content/schema.js";
-import { grade } from "../../packages/grader/index.js";
+import { grade, gradeAnswer } from "../../packages/grader/index.js";
 import { AUDIT, auditRows } from "../audit.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -39,8 +39,11 @@ const jsonSafe = (value) => {
 
 const byInput = (a, b) => (a.input < b.input ? -1 : a.input > b.input ? 1 : 0);
 
+/** A picture screen is graded from typed answers, so its verdicts come from gradeAnswer. */
+const graderFor = (screen) => (screen.type === "picture" ? gradeAnswer : grade);
+
 const settle = (screen, input) => {
-  const result = grade(screen, input);
+  const result = graderFor(screen)(screen, input);
   const entry = {
     input,
     ok: result.ok,
@@ -82,15 +85,20 @@ export function capture() {
     // recorded before, and a screen that arrives later can only add entries.
     const verdicts = { accepted: [], rejected: [], audit: [] };
     screens.forEach((screen, index) => {
-      if (!screen.fixtures) {
+      // A picture screen answers in typed text, so it ships no formula fixtures: the audit row
+      // below is its whole vocabulary and still records the verdicts.
+      const picture = screen.type === "picture";
+      if (!picture && !screen.fixtures) {
         throw new Error(`content/exercises/${file} screen ${index + 1} carries no fixtures; cannot capture ${id}`);
       }
       const audit = audits[index];
       if (!audit) throw new Error(`tests/audit.js has no row for ${id} screen ${index + 1}`);
-      verdicts.accepted.push(...screen.fixtures.accept.map((input) => settle(screen, input)));
-      verdicts.rejected.push(
-        ...screen.fixtures.reject.map((entry) => settle(screen, typeof entry === "string" ? entry : entry.formula)),
-      );
+      if (!picture) {
+        verdicts.accepted.push(...screen.fixtures.accept.map((input) => settle(screen, input)));
+        verdicts.rejected.push(
+          ...screen.fixtures.reject.map((entry) => settle(screen, typeof entry === "string" ? entry : entry.formula)),
+        );
+      }
       verdicts.audit.push(...[audit.reference, ...audit.wrong].map((input) => settle(screen, input)));
     });
 

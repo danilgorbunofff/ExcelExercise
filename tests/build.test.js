@@ -74,7 +74,7 @@ describe("build", () => {
     ]) {
       assert.doesNotThrow(() => readFileSync(join(out, file)), `${file} was not written`);
     }
-    assert.equal(summary.grader, 9, "every grader module must be copied as an ES module");
+    assert.equal(summary.grader, 10, "every grader module must be copied as an ES module");
     assert.equal(summary.session, 4, "every session module must be copied as an ES module");
     assert.equal(summary.fonts, 4);
   });
@@ -222,11 +222,19 @@ describe("build", () => {
       payload.screens.forEach((sent, position) => {
         const screen = screens[position];
         assert.equal(sent.position, position);
-        assert.equal(sent.answerCell, screen.answerCell, `${exercise.slug} screen ${position + 1} answerCell`);
-        assert.deepEqual(sent.grid.rows, screen.grid.rows);
+        assert.equal(sent.type, screen.type);
         assert.deepEqual(sent.expect, screen.expect);
-        assert.deepEqual(sent.require, screen.require);
-        assert.equal(sent.reference, screen.reference ?? exercise.docs.reference);
+        if (screen.type === "picture") {
+          // A picture screen carries the image and the answers it accepts, and no grid to grade.
+          assert.equal(sent.answerCell, undefined, `${exercise.slug} screen ${position + 1} needs no answer cell`);
+          assert.deepEqual(sent.answers, screen.answers);
+          assert.equal(sent.reference, screen.expect.value, "the reveal is the first accepted answer");
+        } else {
+          assert.equal(sent.answerCell, screen.answerCell, `${exercise.slug} screen ${position + 1} answerCell`);
+          assert.deepEqual(sent.grid.rows, screen.grid.rows);
+          assert.deepEqual(sent.require, screen.require);
+          assert.equal(sent.reference, screen.reference ?? exercise.docs.reference);
+        }
       });
       assert.equal(payload.docs.reference, exercise.docs.reference);
       assert.equal(payload.track.total, lessons.length);

@@ -206,7 +206,7 @@ window in which two shapes are both live.
 - [ ] **8. Cohorts.** Ten lessons per batch, each green in `content:check` and through a human
       accuracy review before it merges. **Cohort two is 2 of 10 in.** Lesson 11 is VLOOKUP approximate
       match (`11-vlookup-approximate-match-needs-a-sorted-column`), catalog slot 37, published as
-      lesson 8 of 11 — the first file whose number disagrees with where the page sits, because the
+      lesson 8 of 12 — the first file whose number disagrees with where the page sits, because the
       slot decides the reading order and the file name only records the order lessons were written.
       The drill is a commission band table read with `TRUE`; `match-type` (the fourth argument) is the
       rule the lesson exists for, so `=VLOOKUP(A6,A2:B5,2)` and `=VLOOKUP(A6,A2:B5,2,FALSE)` are both

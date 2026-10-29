@@ -26,7 +26,7 @@ node --version          # 22 or newer — `node --test` expands the test globs; 
 npm install             # Next.js and React, for the new app shell only
 npm test                # 362 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
-npm run build           # writes legacy/dist — 12 pages, one stylesheet, the assets
+npm run build           # writes legacy/dist — 13 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
 npm run check           # all of it, including the Next.js build
 npm run dev             # build, then serve legacy/dist at http://localhost:4173
@@ -42,7 +42,7 @@ while the port is in progress.
 |---|---|---|
 | `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 362 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
-| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 12 pages, exit 0 |
+| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 13 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
 | `npm run content:fixtures -- --lesson 6` | Prints every fixture for one lesson with declared vs reported rule | one row per fixture, all `✓`/`·` |
 | `npm run content:new -- --lesson 13 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
@@ -53,7 +53,7 @@ while the port is in progress.
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
 | `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 13 prerendered routes, exit 0 |
-| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 12 pages match |
+| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 13 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
 | `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 13 tests pass |
 

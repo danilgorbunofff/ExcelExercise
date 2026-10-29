@@ -201,26 +201,35 @@ describe("formula input", () => {
 });
 
 describe("payload guard", () => {
-  const valid = {
-    id: "01-sum-basics",
-    answerCell: "B5",
+  const screen = {
     prompt: "Add the three months in B2:B4.",
+    answerCell: "B5",
     grid: { startCell: "A1", rows: [[1]] },
     expect: { value: 3580 },
+  };
+  const valid = {
+    id: "01-sum-basics",
+    screens: [screen],
     track: { free: true },
   };
 
   it("accepts the shape the page inlines", () => {
     assert.deepEqual(parsePayload(JSON.stringify(valid)), valid);
+    const two = { ...valid, screens: [screen, { ...screen, answerCell: "B6" }] };
+    assert.deepEqual(parsePayload(JSON.stringify(two)), two);
   });
 
   it("names the missing field instead of failing later", () => {
-    for (const key of ["id", "answerCell", "prompt"]) {
-      const broken = { ...valid, [key]: undefined };
-      assert.throws(() => parsePayload(JSON.stringify(broken)), new RegExp(`missing ${key}`));
+    assert.throws(() => parsePayload(JSON.stringify({ ...valid, id: undefined })), /missing id/);
+    for (const key of ["answerCell", "prompt"]) {
+      const broken = { id: valid.id, screens: [{ ...screen, [key]: undefined }], track: valid.track };
+      assert.throws(() => parsePayload(JSON.stringify(broken)), new RegExp(`screen 1 is missing ${key}`));
     }
-    assert.throws(() => parsePayload(JSON.stringify({ ...valid, grid: {} })), /grid\.rows/);
-    assert.throws(() => parsePayload(JSON.stringify({ ...valid, expect: {} })), /expect\.value/);
+    const second = { id: valid.id, screens: [screen, { ...screen, prompt: "" }], track: valid.track };
+    assert.throws(() => parsePayload(JSON.stringify(second)), /screen 2 is missing prompt/);
+    assert.throws(() => parsePayload(JSON.stringify({ ...valid, screens: [] })), /at least one screen/);
+    assert.throws(() => parsePayload(JSON.stringify({ ...valid, screens: [{ ...screen, grid: {} }] })), /grid\.rows/);
+    assert.throws(() => parsePayload(JSON.stringify({ ...valid, screens: [{ ...screen, expect: {} }] })), /expect\.value/);
     assert.throws(() => parsePayload(JSON.stringify({ ...valid, track: {} })), /track\.free/);
     assert.throws(() => parsePayload("{"), /not JSON/);
     assert.throws(() => parsePayload("[]"), /must be an object/);
@@ -259,7 +268,7 @@ describe("drill.js source", () => {
 
   it("imports the real grader rather than a copy of the rules", () => {
     assert.match(code, /from "\.\.\/grader\/index\.js"/);
-    assert.match(code, /\bgrade\(payload, raw\)/);
+    assert.match(code, /\bgrade\(activeScreen\(\), raw\)/);
   });
 
   it("never turns content or learner input into markup", () => {
@@ -271,7 +280,7 @@ describe("drill.js source", () => {
   });
 
   it("keeps the grader call guarded so a throw cannot strand the learner", () => {
-    assert.match(code, /try \{\s*result = grade\(payload, raw\);\s*\} catch/);
+    assert.match(code, /try \{\s*result = grade\(activeScreen\(\), raw\);\s*\} catch/);
   });
 
   it("keeps state.js free of browser globals so Node can test it", () => {
@@ -281,14 +290,14 @@ describe("drill.js source", () => {
   });
 
   it("emits the funnel events under the names the phase document lists", () => {
+    // The page owns the navigation and commerce events; grading belongs to the score
+    // loop, which names its own four. Asserting each at its source keeps a rename from
+    // slipping through both.
     for (const event of [
       "screen_view",
       "drill_start",
-      "check_correct",
-      "check_wrong",
       "hint_open",
       "solution_reveal",
-      "lesson_complete",
       "lesson_exhausted",
       "paywall_view",
       "paywall_email",
@@ -296,6 +305,13 @@ describe("drill.js source", () => {
     ]) {
       assert.match(code, new RegExp(`track\\("${event}"`), `${event} is never emitted`);
     }
+    const loopCode = stripComments(
+      readFileSync(join(ROOT, "packages/session/score.js"), "utf8"),
+    );
+    for (const event of ["check_correct", "check_wrong", "screen_complete", "lesson_complete"]) {
+      assert.match(loopCode, new RegExp(`type: "${event}"`), `${event} is never emitted by the loop`);
+    }
+    assert.match(code, /emitLoop\(/, "the loop's events must reach the page's sink");
   });
 
   it("reaches the shared session sink instead of its own buffer", () => {
@@ -313,7 +329,10 @@ describe("drill.js source", () => {
   });
 
   it("asks the shared predicate before grading", () => {
-    assert.match(code, /if \(!canGrade\(\{ selected, answerCell: payload\.answerCell, disabled: ui\.input\.disabled \}\)\) return;/);
+    assert.match(
+      code,
+      /if \(!canGrade\(\{ selected, answerCell: activeScreen\(\)\.answerCell, disabled: ui\.input\.disabled \}\)\) return;/,
+    );
   });
 
   it("announces exhaustion once, on the third miss", () => {
@@ -321,8 +340,24 @@ describe("drill.js source", () => {
     assert.doesNotMatch(code, />= MAX_ATTEMPTS\) \{\s*if \(ui\.showAnswer\) ui\.showAnswer\.hidden = false;/);
   });
 
+  it("re-offers the reveal on a later screen of an exhausted lesson", () => {
+    // `exhausted` dedupes the event; it must not gate the button, because entering a screen hides it
+    // and a learner who spent three misses on screen 1 would otherwise reach screen 2 with no way out.
+    assert.match(
+      code,
+      /if \(screenMisses === MAX_ATTEMPTS\) \{\s*if \(ui\.showAnswer\) ui\.showAnswer\.hidden = false;\s*if \(!exhausted\) \{/,
+    );
+  });
+
+  it("keeps the reveal visible on a return visit that finished with help", () => {
+    // enterScreen clears `offeredSolution` on the way in, so the mount has to re-read the record
+    // before it paints or a helped completion comes back looking like a clean solve.
+    assert.match(code, /offeredSolution = progress\.done\[lessonId\]\.helped === true;\s*paintSolved\(\);/);
+  });
+
   it("restores the reveal for a lesson that was already exhausted", () => {
-    assert.match(code, /attemptsFor\(progress, lessonId\) >= MAX_ATTEMPTS\) ui\.showAnswer\.hidden = false;/);
+    assert.match(code, /if \(attemptsFor\(progress, lessonId\) >= MAX_ATTEMPTS && ui\.showAnswer\) \{/);
+    assert.match(code, /ui\.showAnswer\.hidden = false;/);
   });
 
   it("keeps the typed address out of the event buffer", () => {

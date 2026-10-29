@@ -73,7 +73,7 @@ describe("verify", () => {
   it("catches an empty reference answer", () => {
     const copy = copyOf(dist);
     try {
-      mutate(copy, LESSON, (html) => html.replace(/<pre class="reference"><code>[^<]*<\/code><\/pre>/, ""));
+      mutate(copy, LESSON, (html) => html.replace(/<pre class="reference"><code id="docs-reference">[^<]*<\/code><\/pre>/, ""));
       const failures = verify({ dist: copy, env: ENV }).failures;
       assert.equal(failures.length, 1);
       assert.match(failures[0], /sum-basics\.html reference answer/);
@@ -101,7 +101,7 @@ describe("verify", () => {
       mutate(copy, LESSON, (html) => html.replace('"answerCell":"B5"', '"answerCell":"B9"'));
       const failures = verify({ dist: copy, env: ENV }).failures;
       assert.equal(failures.length, 1);
-      assert.match(failures[0], /payload answerCell is "B9"/);
+      assert.match(failures[0], /payload screens\[0\]\.answerCell is "B9"/);
     } finally {
       rmSync(copy, { recursive: true, force: true });
     }
@@ -133,7 +133,7 @@ describe("verify", () => {
       mutate(copy, LESSON, (html) => html.replace('<p class="task">', '<p class="task-gone">'));
       const failures = verify({ dist: copy, env: ENV }).failures;
       assert.equal(failures.length, 1);
-      assert.match(failures[0], /sum-basics\.html prompt/);
+      assert.match(failures[0], /sum-basics\.html screen 1 prompt/);
     } finally {
       rmSync(copy, { recursive: true, force: true });
     }

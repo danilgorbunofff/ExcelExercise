@@ -16,6 +16,15 @@ async function openDrill(page, slug) {
   await expect(page.locator("#formula")).toBeVisible();
 }
 
+/** A drill past the free ones: the paywall opens the first time an email is entered, and the trial
+ *  is remembered in this browser, so this is the real path to a later lesson. */
+async function openGatedDrill(page, slug) {
+  await page.goto(`/learn/excel/${slug}`);
+  await page.fill("#paywall-email", "learner@example.com");
+  await page.click("#paywall-form button[type='submit']");
+  await expect(page.locator("#formula")).toBeVisible();
+}
+
 async function check(page, formula) {
   await page.fill("#formula", formula);
   await page.click("#check");
@@ -59,6 +68,29 @@ test("a formula that cannot be read points at the character", async ({ page }) =
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await expect(page.locator("#feedback-head")).toHaveText("The formula cannot be read");
   await expect(page.locator(".feedback-caret")).toBeVisible();
+});
+
+test("a two-screen lesson advances to screen 2 and completes on the last answer", async ({ page }) => {
+  await openGatedDrill(page, "xlookup-search-from-the-bottom");
+
+  // Screen 2 exists in the markup from the first paint, so it is hidden rather than absent: the
+  // panel is what a real browser has to switch, not something a script has to build.
+  await expect(page.locator("#screen-position")).toHaveText("screen 1 of 2 · ");
+  await expect(page.locator("#screen-answer-cell")).toHaveText("B7");
+  await expect(page.locator("[data-screen='1']")).toBeVisible();
+  await expect(page.locator("[data-screen='2']")).toBeHidden();
+
+  await check(page, "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+  await expect(page.locator("#feedback .feedback-meta")).toHaveText("Right first time. Screen 2 of 2.");
+  await expect(page.locator("[data-screen='1']")).toBeHidden();
+  await expect(page.locator("[data-screen='2']")).toBeVisible();
+  await expect(page.locator("#screen-answer-cell")).toHaveText("B8");
+
+  await check(page, "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)");
+  await expect(page.locator("#feedback-head")).toHaveText("Correct");
+  await expect(page.locator("#feedback-body")).toHaveText("B8 holds 16.25.");
+  await expect(page.locator(".rail-item[data-lesson='16-xlookup-search-from-the-bottom']")).toHaveClass(/is-done/);
 });
 
 test("progress survives a reload on the same device", async ({ page }) => {

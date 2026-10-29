@@ -24,6 +24,9 @@ const track = readJson(join(ROOT, "legacy/content/track.json"));
 // Catalog order is the published order: a lesson written into an earlier slot is numbered before the
 // ones written after it, so the file name is not where a page sits in the book.
 const byId = new Map(LESSONS.map(({ exercise }) => [exercise.id, exercise]));
+// The payload carries the screens, so the check reads the normalized lesson rather than the
+// single-screen view.
+const screensById = new Map(LESSONS.map(({ lesson }) => [lesson.id, lesson.screens]));
 const lessons = track.lessons.filter((entry) => entry.id).map(({ id }) => byId.get(id));
 
 const htmlFiles = (dir) => {
@@ -149,7 +152,7 @@ describe("build", () => {
 
   it("emits the mount contract the client will use", () => {
     const html = readFileSync(join(out, "excel", "sum-basics.html"), "utf8");
-    for (const id of ["drill", "sheet", "sheet-grid", "formula-bar", "ref-chip", "formula", "check", "feedback", "hint", "solution", "progress-count", "exercise-data"]) {
+    for (const id of ["drill", "drill-screens", "sheet-0", "sheet-grid-0", "screen-answer-cell", "formula-bar", "ref-chip", "formula", "check", "feedback", "hint", "solution", "progress-count", "exercise-data"]) {
       assert.match(html, new RegExp(`id="${id}"`), `#${id} is missing`);
     }
     assert.match(html, /<section class="sheet-card" id="drill"/);
@@ -214,10 +217,17 @@ describe("build", () => {
       assert.ok(match, `${exercise.slug}: no exercise-data script`);
       const payload = JSON.parse(match[1]);
       assert.equal(payload.id, exercise.id);
-      assert.equal(payload.answerCell, exercise.answerCell);
-      assert.deepEqual(payload.grid.rows, exercise.grid.rows);
-      assert.deepEqual(payload.expect, exercise.expect);
-      assert.deepEqual(payload.require, exercise.require);
+      const screens = screensById.get(exercise.id);
+      assert.equal(payload.screens.length, screens.length);
+      payload.screens.forEach((sent, position) => {
+        const screen = screens[position];
+        assert.equal(sent.position, position);
+        assert.equal(sent.answerCell, screen.answerCell, `${exercise.slug} screen ${position + 1} answerCell`);
+        assert.deepEqual(sent.grid.rows, screen.grid.rows);
+        assert.deepEqual(sent.expect, screen.expect);
+        assert.deepEqual(sent.require, screen.require);
+        assert.equal(sent.reference, screen.reference ?? exercise.docs.reference);
+      });
       assert.equal(payload.docs.reference, exercise.docs.reference);
       assert.equal(payload.track.total, lessons.length);
       assert.equal(payload.track.nextPath, exercise.slug === lessons.at(-1).slug ? null : `/excel/${lessons[lessons.indexOf(exercise) + 1].slug}`);

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
 import { KNOWN_FUNCTIONS, buildCells, grade, indexToCol, parseRef } from "../packages/grader/index.js";
-import { AUDIT } from "./audit.js";
+import { AUDIT, auditRows } from "./audit.js";
 import { LESSONS, readJson } from "./lessons.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "legacy");
@@ -12,6 +12,23 @@ const CONTENT = join(ROOT, "content");
 
 const track = readJson(join(CONTENT, "track.json"));
 const lessons = LESSONS.map(({ name, exercise }) => ({ name, exercise }));
+
+/** Every screen as its own drill row: a screen is what the grader grades and the page shows. */
+const screens = LESSONS.flatMap(({ lesson, screens: views }) =>
+  views.map(({ exercise }, index) => ({
+    label: views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id,
+    exercise,
+  })),
+);
+
+/** The same rows, paired with the hand-computed expectations for that screen. */
+const audited = LESSONS.flatMap(({ lesson, screens: views }) =>
+  views.map(({ exercise }, index) => ({
+    label: views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id,
+    exercise,
+    audit: auditRows(AUDIT[lesson.id])[index],
+  })),
+);
 
 /** Addresses covered by the grid rectangle, row-major from startCell. */
 function gridAddresses(exercise) {
@@ -99,48 +116,48 @@ describe("content: exercise schema", () => {
   });
 
   it("loads every grid through buildCells without throwing", () => {
-    for (const { exercise } of lessons) {
+    for (const { label, exercise } of screens) {
       const cells = buildCells(exercise);
-      assert.ok(Object.keys(cells).length > 0, `${exercise.id} has an empty grid`);
+      assert.ok(Object.keys(cells).length > 0, `${label} has an empty grid`);
     }
   });
 
   it("puts a blank answer cell inside the grid", () => {
-    for (const { exercise } of lessons) {
+    for (const { label, exercise } of screens) {
       const cells = buildCells(exercise);
       assert.ok(
         gridAddresses(exercise).includes(exercise.answerCell),
-        `${exercise.id}: answerCell ${exercise.answerCell} is outside the grid`,
+        `${label}: answerCell ${exercise.answerCell} is outside the grid`,
       );
-      assert.equal(cells[exercise.answerCell] ?? null, null, `${exercise.id}: answer cell must start blank`);
+      assert.equal(cells[exercise.answerCell] ?? null, null, `${label}: answer cell must start blank`);
     }
   });
 
   it("uses only functions phase 1 implements", () => {
-    for (const { exercise } of lessons) {
+    for (const { label, exercise } of screens) {
       for (const func of declaredFunctions(exercise)) {
-        assert.ok(KNOWN_FUNCTIONS.has(func), `${exercise.id} declares unimplemented ${func}`);
+        assert.ok(KNOWN_FUNCTIONS.has(func), `${label} declares unimplemented ${func}`);
       }
     }
   });
 
   it("points requireRef at a cell that really holds data", () => {
-    for (const { exercise } of lessons) {
+    for (const { label, exercise } of screens) {
       const cells = buildCells(exercise);
-      assert.ok(exercise.requireRef, `${exercise.id} has no requireRef`);
+      assert.ok(exercise.requireRef, `${label} has no requireRef`);
       const value = cells[exercise.requireRef];
-      assert.ok(value !== null && value !== undefined, `${exercise.id}: ${exercise.requireRef} is blank`);
+      assert.ok(value !== null && value !== undefined, `${label}: ${exercise.requireRef} is blank`);
     }
   });
 
   it("gives every rule the grader can emit its own hint", () => {
-    for (const { exercise } of lessons) {
+    for (const { label, exercise } of screens) {
       const keys = new Set(Object.keys(exercise.hints));
       // hintFor() accepts either spelling of the requireRef key.
       const has = (rule) =>
         keys.has(rule) || (rule === "require-ref" && (keys.has("requireRef") || keys.has("require-ref")));
       for (const rule of emittableRules(exercise)) {
-        assert.ok(has(rule), `${exercise.id} has no hint for the "${rule}" rule`);
+        assert.ok(has(rule), `${label} has no hint for the "${rule}" rule`);
       }
     }
   });
@@ -165,45 +182,51 @@ describe("content: exercise schema", () => {
 });
 
 describe("content: reference answers", () => {
-  it("has a hand-computed audit row for every lesson", () => {
-    for (const { exercise } of lessons) {
-      assert.ok(AUDIT[exercise.id], `${exercise.id} has no audit row`);
+  it("has a hand-computed audit row for every screen", () => {
+    for (const { lesson } of LESSONS) {
+      const rows = auditRows(AUDIT[lesson.id]);
+      assert.equal(rows.length, lesson.screens.length, `${lesson.id} needs one audit row per screen`);
+      for (const [index, row] of rows.entries()) {
+        const label = lesson.screens.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id;
+        assert.ok(row.expected !== undefined && row.reference && row.wrong.length, `${label} has an incomplete audit row`);
+      }
     }
-    assert.equal(Object.keys(AUDIT).length, lessons.length);
+    assert.equal(Object.keys(AUDIT).length, lessons.length, "an audit row has no lesson file");
   });
 
   it("expects exactly the hand-computed value", () => {
-    for (const { exercise } of lessons) {
-      const audit = AUDIT[exercise.id];
-      assert.equal(typeof exercise.expect.value, typeof audit.expected, `${exercise.id} value type`);
-      assert.equal(exercise.expect.value, audit.expected, `${exercise.id} expect.value drifted from the audit`);
+    for (const { label, exercise, audit } of audited) {
+      assert.equal(typeof exercise.expect.value, typeof audit.expected, `${label} value type`);
+      assert.equal(exercise.expect.value, audit.expected, `${label} expect.value drifted from the audit`);
     }
   });
 
   it("keeps the published reference answer in step with the audit", () => {
-    for (const { exercise } of lessons) {
-      const audit = AUDIT[exercise.id];
-      assert.equal(exercise.docs.reference, audit.reference, `${exercise.id} docs.reference drifted from the audit`);
-      assert.equal(grade(exercise, exercise.docs.reference).ok, true, `${exercise.id} publishes a reference answer the grader rejects`);
+    for (const { lesson } of LESSONS) {
+      const [first] = auditRows(AUDIT[lesson.id]);
+      assert.equal(lesson.docs.reference, first.reference, `${lesson.id} docs.reference drifted from the audit`);
+    }
+    for (const { label, exercise, audit } of audited) {
+      assert.equal(grade(exercise, audit.reference).ok, true, `${label} publishes a reference answer the grader rejects`);
     }
   });
 
   it("grades the reference answer as correct", () => {
-    for (const { exercise } of lessons) {
-      const result = grade(exercise, AUDIT[exercise.id].reference);
-      assert.equal(result.ok, true, `${exercise.id} rejected its own reference answer (${result.rule})`);
-      assert.equal(result.value, AUDIT[exercise.id].expected, `${exercise.id} computed a different value`);
-      assert.equal(result.expected, AUDIT[exercise.id].expected);
+    for (const { label, exercise, audit } of audited) {
+      const result = grade(exercise, audit.reference);
+      assert.equal(result.ok, true, `${label} rejected its own reference answer (${result.rule})`);
+      assert.equal(result.value, audit.expected, `${label} computed a different value`);
+      assert.equal(result.expected, audit.expected);
       assert.equal(result.hint, "");
     }
   });
 
-  it("rejects three plausible wrong answers per lesson", () => {
-    for (const { exercise } of lessons) {
-      for (const formula of AUDIT[exercise.id].wrong) {
+  it("rejects three plausible wrong answers per screen", () => {
+    for (const { label, exercise, audit } of audited) {
+      for (const formula of audit.wrong) {
         const result = grade(exercise, formula);
-        assert.equal(result.ok, false, `${exercise.id} accepted the wrong answer ${formula}`);
-        assert.ok(result.hint.length > 0, `${exercise.id} gave no hint for ${formula}`);
+        assert.equal(result.ok, false, `${label} accepted the wrong answer ${formula}`);
+        assert.ok(result.hint.length > 0, `${label} gave no hint for ${formula}`);
       }
     }
   });
@@ -225,8 +248,8 @@ describe("content: reference answers", () => {
   });
 
   it("keeps the message shape stable for every outcome", () => {
-    for (const { exercise } of lessons) {
-      for (const formula of [AUDIT[exercise.id].reference, ...AUDIT[exercise.id].wrong, "=SUM("]) {
+    for (const { exercise, audit } of audited) {
+      for (const formula of [audit.reference, ...audit.wrong, "=SUM("]) {
         const result = grade(exercise, formula);
         assert.deepEqual(Object.keys(result).sort(), [
           "code",
@@ -256,9 +279,9 @@ describe("content: error copy", () => {
     // The reference answer satisfies every rule, so appending `+1/0` can only
     // fail during evaluation: the learner must get the error copy, not the
     // generic "that is not the answer" fallback.
-    for (const { exercise } of lessons) {
-      const result = grade(exercise, `${AUDIT[exercise.id].reference}+1/0`);
-      assert.equal(result.ok, false, `${exercise.id} accepted a broken formula`);
+    for (const { label, exercise, audit } of audited) {
+      const result = grade(exercise, `${audit.reference}+1/0`);
+      assert.equal(result.ok, false, `${label} accepted a broken formula`);
       assert.equal(result.rule, "error", `${exercise.id} reported "${result.rule}" instead of error`);
       assert.ok(result.code, `${exercise.id} reported an error with no code`);
       assert.equal(result.hint, exercise.hints.error, `${exercise.id} fell back to another hint`);

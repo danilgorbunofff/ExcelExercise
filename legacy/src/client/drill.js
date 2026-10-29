@@ -7,6 +7,13 @@
  */
 
 import { grade } from "../grader/index.js";
+import {
+  createSession,
+  currentScreen,
+  emitAll,
+  isComplete as loopComplete,
+  recordVerdict,
+} from "../session/index.js";
 import { createSink } from "../session/index.js";
 import {
   PROGRESS_KEY,
@@ -126,8 +133,12 @@ function mountDrill(payloadNode) {
 
   const ui = {
     card: document.getElementById("drill"),
-    sheet: document.getElementById("sheet"),
-    grid: document.getElementById("sheet-grid"),
+    screens: document.getElementById("drill-screens"),
+    position: document.getElementById("screen-position"),
+    answerNote: document.getElementById("screen-answer-cell"),
+    docsCode: document.getElementById("docs-example-code"),
+    docsValue: document.getElementById("docs-example-value"),
+    docsReference: document.getElementById("docs-reference"),
     bar: document.getElementById("formula-bar"),
     chip: document.getElementById("ref-chip"),
     input: document.getElementById("formula"),
@@ -145,7 +156,7 @@ function mountDrill(payloadNode) {
     railFill: document.getElementById("progress-fill"),
   };
 
-  if (!ui.grid || !ui.input || !ui.check || !ui.feedback) {
+  if (!ui.screens || !ui.input || !ui.check || !ui.feedback) {
     console.warn("[es] the page is missing part of the drill mount contract");
     return;
   }
@@ -156,15 +167,43 @@ function mountDrill(payloadNode) {
 
   const lessonId = payload.id;
   const total = payload.track.total || 1;
-  const cells = [...ui.grid.querySelectorAll("[role=gridcell]")];
-  const byKey = new Map(cells.map((cell) => [cell.dataset.cell, cell]));
-  const targetCell = byKey.get(payload.answerCell) ?? null;
+  const screenCount = payload.screens.length;
 
-  let selected = payload.answerCell;
+  // A lesson is complete once every screen has been answered correctly: one screen is
+  // worth the whole cap, four screens a quarter each. The loop therefore ends on the last
+  // screen of an honest run, and only recycles when a screen was skipped — which is what
+  // "answer them all" means, and what the single-screen drill did before there were screens.
+  let loop = createSession({
+    screens: screenCount,
+    scoring: { correct: Math.ceil(100 / screenCount), incorrect: 0, cap: 100 },
+  });
+
+  let active = 0;
+  let cells = [];
+  let byKey = new Map();
+  let targetCell = null;
+
+  let selected = payload.screens[0].answerCell;
   let draft = "";
   let started = false;
+  let screenMisses = 0;
+  let exhausted = false;
   let solved = isComplete(progress, lessonId);
   let offeredSolution = solved && progress.done[lessonId].helped === true;
+
+  /** The screen being answered. Everything that used to read a single `payload.screen` reads this. */
+  function activeScreen() {
+    return payload.screens[active];
+  }
+
+  function activePanels() {
+    return ui.screens ? [...ui.screens.children] : [];
+  }
+
+  function activeGrid() {
+    const panel = activePanels()[active];
+    return panel ? panel.querySelector("table[role=grid]") : null;
+  }
 
   function saveProgress() {
     store.write(PROGRESS_KEY, serializeProgress(progress));
@@ -191,7 +230,7 @@ function mountDrill(payloadNode) {
    */
   function barText() {
     if (!solved) return draft;
-    return draft || payload.docs?.reference || "";
+    return draft || activeScreen().reference || "";
   }
 
   function selectCell(key, { focus = false } = {}) {
@@ -205,21 +244,24 @@ function mountDrill(payloadNode) {
     }
     if (focus) cell.focus();
 
-    for (const head of ui.grid.querySelectorAll(".col-head.is-active, .row-head.is-active")) {
-      head.classList.remove("is-active");
+    const grid = activeGrid();
+    if (grid) {
+      for (const head of grid.querySelectorAll(".col-head.is-active, .row-head.is-active")) {
+        head.classList.remove("is-active");
+      }
+      const headRow = grid.tHead?.rows[0];
+      if (headRow) headRow.children[cell.cellIndex]?.classList.add("is-active");
     }
-    const headRow = ui.grid.tHead?.rows[0];
-    if (headRow) headRow.children[cell.cellIndex]?.classList.add("is-active");
     cell.closest("tr")?.querySelector(".row-head")?.classList.add("is-active");
 
-    const onAnswer = key === payload.answerCell;
+    const onAnswer = key === activeScreen().answerCell;
     ui.chip.textContent = key;
     // A disabled input cannot be submitted, and a disabled button cannot submit it.
     if (ui.check) ui.check.disabled = !onAnswer;
     if (onAnswer) {
       ui.input.disabled = false;
       ui.input.value = barText();
-      ui.input.setAttribute("aria-label", `Your formula for ${payload.answerCell}`);
+      ui.input.setAttribute("aria-label", `Your formula for ${activeScreen().answerCell}`);
     } else {
       ui.input.disabled = true;
       ui.input.value = display(cell.textContent);
@@ -298,7 +340,7 @@ function mountDrill(payloadNode) {
   }
 
   function setHint() {
-    const text = payload.hints?.value ?? "";
+    const text = activeScreen().hints?.value ?? "";
     ui.hintText.textContent = text;
     if (ui.hint) ui.hint.hidden = !text;
     if (!text) ui.hintText.hidden = true;
@@ -313,17 +355,68 @@ function mountDrill(payloadNode) {
 
   function paintSolved() {
     solved = true;
+    const screen = activeScreen();
     if (targetCell) {
-      targetCell.textContent = display(payload.expect.value);
+      targetCell.textContent = display(screen.expect.value);
       targetCell.classList.remove("cell-wrong");
       targetCell.classList.add("cell-correct");
       targetCell.setAttribute(
         "aria-label",
-        `Answer cell ${payload.answerCell}, ${offeredSolution ? "shown" : "correct"}: ${display(payload.expect.value)}`,
+        `Answer cell ${screen.answerCell}, ${offeredSolution ? "shown" : "correct"}: ${display(screen.expect.value)}`,
       );
     }
     if (offeredSolution) ui.solution.hidden = false;
     paintProgress();
+  }
+
+  /** Put one screen on the page and point the bar, the docs and the hint at it. */
+  function enterScreen(position, { focus = false } = {}) {
+    active = position;
+    activePanels().forEach((panel, index) => {
+      panel.hidden = index !== position;
+    });
+    const screen = activeScreen();
+    cells = [...(activeGrid()?.querySelectorAll("[role=gridcell]") ?? [])];
+    byKey = new Map(cells.map((cell) => [cell.dataset.cell, cell]));
+    targetCell = byKey.get(screen.answerCell) ?? null;
+
+    draft = "";
+    screenMisses = 0;
+    offeredSolution = false;
+
+    clearFeedback();
+    ui.solution.hidden = true;
+    ui.solution.classList.remove("is-live");
+    ui.hintText.textContent = "";
+    ui.hintText.hidden = true;
+    if (ui.hint) {
+      ui.hint.hidden = true;
+      ui.hint.setAttribute("aria-expanded", "false");
+    }
+    if (ui.showAnswer) ui.showAnswer.hidden = true;
+    if (ui.position) ui.position.textContent = `screen ${position + 1} of ${screenCount} · `;
+    if (ui.answerNote) ui.answerNote.textContent = screen.answerCell;
+    if (ui.docsCode) ui.docsCode.textContent = screen.reference;
+    if (ui.docsReference) ui.docsReference.textContent = screen.reference;
+    if (ui.docsValue) ui.docsValue.textContent = display(screen.expect.value);
+
+    setHint();
+    selectCell(screen.answerCell, { focus });
+  }
+
+  /** One graded answer through the score loop. The caller emits what comes back. */
+  function verdict(ok) {
+    const result = recordVerdict(loop, ok);
+    loop = result.session;
+    return result.events;
+  }
+
+  /**
+   * The loop's events, stamped with what only the page knows: which lesson, whether the answer was
+   * the reference one, and how much of the track is done. The loop's own props win a collision.
+   */
+  function emitLoop(events, extra = {}) {
+    emitAll({ emit: (type, props) => sink.emit(type, { id: lessonId, ...extra, ...props }) }, events);
   }
 
   function successLabel(missed) {
@@ -331,47 +424,66 @@ function mountDrill(payloadNode) {
     return `Solved after ${missed} ${missed === 1 ? "wrong attempt" : "wrong attempts"}.`;
   }
 
+  // Attempts are counted per screen: three misses on this screen open the reference answer,
+  // and the next screen starts with a clean three even if the lesson kept a longer tally.
   function attemptLabel() {
-    const tries = attemptsFor(progress, lessonId);
-    if (tries >= MAX_ATTEMPTS) return `${tries} attempts. The reference answer is available below.`;
-    return `Attempt ${tries} of ${MAX_ATTEMPTS}.`;
+    if (screenMisses >= MAX_ATTEMPTS) {
+      return `${screenMisses} attempts on this screen. The reference answer is available below.`;
+    }
+    return `Attempt ${screenMisses} of ${MAX_ATTEMPTS}.`;
   }
 
-  function onCorrect(result) {
-    const missed = progress.tries[lessonId] ?? 0;
-    progress = registerCompletion(progress, lessonId, {
-      at: new Date().toISOString(),
-      helped: offeredSolution,
-    });
-    saveProgress();
-    paintSolved();
-    const next = payload.track.nextPath
-      ? { path: payload.track.nextPath, label: `Next: ${payload.track.nextTitle ?? "the next drill"}` }
-      : { path: "/", label: "Back to all drills" };
+  function onCorrect() {
+    const answered = activeScreen();
+    const missed = screenMisses;
+    const helped = offeredSolution;
+    const events = verdict(true);
+    const finished = loopComplete(loop);
+
+    if (finished) {
+      progress = registerCompletion(progress, lessonId, { at: new Date().toISOString(), helped });
+      saveProgress();
+      paintSolved();
+    }
+    emitLoop(events, { helped, completed: completedCount(progress) });
+
+    if (finished) {
+      const next = payload.track.nextPath
+        ? { path: payload.track.nextPath, label: `Next: ${payload.track.nextTitle ?? "the next drill"}` }
+        : { path: "/", label: "Back to all drills" };
+      showFeedback({
+        state: "is-correct",
+        head: "Correct",
+        body: helped
+          ? `${answered.answerCell} holds ${display(answered.expect.value)}. Counted as completed with the reference answer.`
+          : `${answered.answerCell} holds ${display(answered.expect.value)}.`,
+        meta: helped ? "Completed with help." : successLabel(missed),
+        next,
+      });
+      return;
+    }
+
+    enterScreen(loop.index, { focus: true });
+    const right = missed === 0 ? "Right first time." : `After ${missed} ${missed === 1 ? "wrong attempt" : "wrong attempts"}.`;
     showFeedback({
       state: "is-correct",
       head: "Correct",
-      body: offeredSolution
-        ? `${payload.answerCell} holds ${display(payload.expect.value)}. Counted as completed with the reference answer.`
-        : `${payload.answerCell} holds ${display(payload.expect.value)}.`,
-      meta: offeredSolution ? "Completed with help." : successLabel(missed),
-      next,
+      body: `${answered.answerCell} holds ${display(answered.expect.value)}.`,
+      meta: `${right} Screen ${currentScreen(loop)} of ${screenCount}.`,
     });
-    track("check_correct", {
+    track("screen_view", {
       id: lessonId,
-      attempts: attemptsFor(progress, lessonId),
-      helped: offeredSolution,
-    });
-    track("lesson_complete", {
-      id: lessonId,
-      helped: offeredSolution,
-      completed: completedCount(progress),
+      screen: currentScreen(loop),
+      of: screenCount,
+      gated: !payload.track.free,
+      solved: false,
     });
   }
 
   function onWrong(result) {
     progress = registerAttempt(progress, lessonId);
     saveProgress();
+    screenMisses += 1;
     markTarget("wrong");
     const caret = result.position === null || result.position === undefined ? "" : caretLine(normaliseFormula(ui.input.value), result.position);
     showFeedback({
@@ -382,10 +494,15 @@ function mountDrill(payloadNode) {
       meta: attemptLabel(),
     });
     if (result.hint) ui.hintText.textContent = result.hint;
-    track("check_wrong", { id: lessonId, rule: result.rule, attempts: attemptsFor(progress, lessonId) });
-    if (attemptsFor(progress, lessonId) === MAX_ATTEMPTS) {
+    emitLoop(verdict(false), { rule: result.rule });
+    // Three misses on *this* screen open the reveal; `exhausted` only dedupes the event, because a
+    // learner who spent their three on screen 1 must still be able to ask on screen 2.
+    if (screenMisses === MAX_ATTEMPTS) {
       if (ui.showAnswer) ui.showAnswer.hidden = false;
-      track("lesson_exhausted", { id: lessonId });
+      if (!exhausted) {
+        exhausted = true;
+        track("lesson_exhausted", { id: lessonId, screen: currentScreen(loop) });
+      }
     }
     paintProgress();
   }
@@ -393,7 +510,7 @@ function mountDrill(payloadNode) {
   function check() {
     // Clicking a data cell makes the bar read-only; grading the value it shows would
     // spend an attempt and answer "not accepted" to a cell the learner cannot edit.
-    if (!canGrade({ selected, answerCell: payload.answerCell, disabled: ui.input.disabled })) return;
+    if (!canGrade({ selected, answerCell: activeScreen().answerCell, disabled: ui.input.disabled })) return;
     const raw = normaliseFormula(ui.input.value);
     if (raw === "") {
       clearFeedback();
@@ -404,7 +521,7 @@ function mountDrill(payloadNode) {
     }
     let result;
     try {
-      result = grade(payload, raw);
+      result = grade(activeScreen(), raw);
     } catch (error) {
       console.error("[es] grader threw", error);
       showFeedback({
@@ -421,7 +538,7 @@ function mountDrill(payloadNode) {
   function revealSolution() {
     offeredSolution = true;
     track("solution_reveal", { id: lessonId });
-    ui.solutionCode.textContent = payload.docs.reference;
+    ui.solutionCode.textContent = activeScreen().reference;
     ui.solution.hidden = false;
     ui.solution.classList.add("is-live");
     if (!solved) {
@@ -432,8 +549,8 @@ function mountDrill(payloadNode) {
     showFeedback({
       state: "is-hint",
       head: "Reference answer",
-      body: `${payload.docs.reference} returns ${display(payload.expect.value)}. This counts as completed with help.`,
-      meta: attemptsFor(progress, lessonId) ? attemptLabel() : "",
+      body: `${activeScreen().reference} returns ${display(activeScreen().expect.value)}. This counts as completed with help.`,
+      meta: screenMisses ? attemptLabel() : "",
     });
   }
 
@@ -480,9 +597,9 @@ function mountDrill(payloadNode) {
     const form = el("form", { class: "paywall-form", id: "paywall-form", novalidate: true }, [input, submit, error]);
     paywall.append(form, el("p", { class: "paywall-note", text: "No card required. Nothing is sent anywhere: the trial is stored in this browser." }));
 
-    for (const node of [ui.sheet, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = true;
+    for (const node of [ui.screens, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = true;
     if (ui.solution) ui.solution.hidden = true;
-    (document.querySelector(".task") ?? ui.card)?.after(paywall);
+    (ui.card?.querySelector(".sheet-head") ?? ui.card)?.after(paywall);
     track("paywall_view", { id: lessonId });
 
     form.addEventListener("submit", (event) => {
@@ -500,7 +617,7 @@ function mountDrill(payloadNode) {
       track("paywall_email", { id: lessonId });
       track("trial_start", { id: lessonId, days: trialDaysLeft(trial) });
       paywall.remove();
-      for (const node of [ui.sheet, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = false;
+      for (const node of [ui.screens, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = false;
       clearFeedback();
       showFeedback({
         state: "is-hint",
@@ -524,7 +641,7 @@ function mountDrill(payloadNode) {
     check();
   });
   ui.input.addEventListener("input", () => {
-    if (selected === payload.answerCell) draft = ui.input.value;
+    if (selected === activeScreen().answerCell) draft = ui.input.value;
     if (!started && ui.input.value.trim() !== "") {
       started = true;
       track("drill_start", { id: lessonId });
@@ -541,26 +658,36 @@ function mountDrill(payloadNode) {
       clearFeedback();
     }
   });
-  ui.grid.addEventListener("click", (event) => {
+  // Delegated from the screens container: every screen's grid, including ones the loop has not
+  // reached yet, answers to the same two listeners.
+  ui.screens.addEventListener("click", (event) => {
     const cell = event.target.closest?.("[role=gridcell][data-cell]");
     if (cell) selectCell(cell.dataset.cell);
   });
-  ui.grid.addEventListener("keydown", onGridKey);
+  ui.screens.addEventListener("keydown", onGridKey);
   if (ui.hint) ui.hint.addEventListener("click", toggleHint);
   if (ui.showAnswer) ui.showAnswer.addEventListener("click", revealSolution);
 
-  setHint();
   paintProgress();
-  if (solved) paintSolved();
-  else if (ui.showAnswer && attemptsFor(progress, lessonId) >= MAX_ATTEMPTS) ui.showAnswer.hidden = false;
+  enterScreen(0);
+  // A lesson exhausted on an earlier visit keeps its reveal: the record already holds
+  // the three misses, and hiding the only way out would trap the learner.
+  if (attemptsFor(progress, lessonId) >= MAX_ATTEMPTS && ui.showAnswer) {
+    exhausted = true;
+    ui.showAnswer.hidden = false;
+  }
+  if (solved) {
+    // enterScreen reset the flag; a return visit that finished with the reveal must keep showing it.
+    offeredSolution = progress.done[lessonId].helped === true;
+    paintSolved();
+  }
 
   if (gate()) {
     paintProgress();
     return;
   }
 
-  selectCell(payload.answerCell);
-  track("screen_view", { id: lessonId, gated: !payload.track.free, solved });
+  track("screen_view", { id: lessonId, screen: currentScreen(loop), of: screenCount, gated: !payload.track.free, solved });
 
   // Focus the bar only when the drill is actually on screen: autofocus on a long page
   // scrolls the reader past the lesson title.

@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
-import { SCHEMA_VERSION, normalizeLesson, screenAt } from "../packages/content/index.js";
+import { SCHEMA_VERSION, normalizeLesson, referenceOf, screenAt } from "../packages/content/index.js";
 import { readRawLesson, toV1 } from "./lessons.js";
 
 const FILE = "01-sum-basics.json";
@@ -55,6 +55,7 @@ describe("lesson schema v2", () => {
         "hints",
         "id",
         "prompt",
+        "reference",
         "require",
         "requireRef",
         "rules",
@@ -103,7 +104,10 @@ describe("lesson schema v2", () => {
     it("keeps every screen, in order, with its own id and type", () => {
       const lesson = normalizeLesson(
         v2({
-          screens: [screenFrom(V1, { id: "warm-up" }), screenFrom(V1, { id: "main", answerCell: "B5" })],
+          screens: [
+            screenFrom(V1, { id: "warm-up", reference: "=SUM(B2:B4)" }),
+            screenFrom(V1, { id: "main", answerCell: "B5", reference: "=SUM(B2:B4)*2" }),
+          ],
         }),
         FILE,
       );
@@ -115,6 +119,7 @@ describe("lesson schema v2", () => {
       );
       assert.equal(screenAt(lesson, 1).answerCell, "B5");
       assert.equal(screenAt(lesson, 0).id, "warm-up");
+      assert.equal(referenceOf(lesson, screenAt(lesson, 1)), "=SUM(B2:B4)*2");
     });
 
     it("defaults the optional rule lists so a renderer can read them unguarded", () => {

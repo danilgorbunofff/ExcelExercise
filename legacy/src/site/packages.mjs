@@ -22,4 +22,4 @@ try {
 const [grader, content] = packages;
 
 export const { KNOWN_FUNCTIONS, addressOf, indexToCol, parseRef } = grader;
-export const { LEVELS, loadContent, screenAt, validateLesson } = content;
+export const { LEVELS, loadContent, referenceOf, screenAt, validateLesson } = content;

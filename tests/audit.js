@@ -3,7 +3,13 @@
  * the content suite and the fixture suite can hold the JSON to the same literal.
  * The arithmetic for every row is recorded in docs/phases/02-exercise-content.md;
  * these literals are typed from that audit trail, never copied from the evaluator.
+ *
+ * A lesson with one screen lists its row inline. A lesson with several screens lists one row per
+ * screen under `screens` — each screen is a separate answer a learner can get right, so each one
+ * gets its own hand computation.
  */
+export const auditRows = (audit) => audit.screens ?? [audit];
+
 export const AUDIT = {
   "01-sum-basics": {
     expected: 3580, // 1200 + 1450 + 930
@@ -98,5 +104,30 @@ export const AUDIT = {
     expected: 9.5, // TX-103 is the third SKU, so the third price is the answer
     reference: "=XLOOKUP(A6,A2:A5,D2:D5)",
     wrong: ["=XLOOKUP(A6,A2:A5,C2:C5)", "=XLOOKUP(A6,A2:A5,D1:D4)", "=XLOOKUP(A6,B2:B5,D2:D5)"],
+  },
+  "16-xlookup-search-from-the-bottom": {
+    screens: [
+      {
+        // Two TX-101 rows: row 2 at 19.99 and row 4 at 21.5. Searching from the bottom starts
+        // at row 6 and walks up, so the first match it meets is row 4.
+        expected: 21.5,
+        reference: "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)",
+        wrong: [
+          "=XLOOKUP(A7,A2:A6,B2:B6)", // default search mode returns row 2, the 19.99 price
+          '=XLOOKUP("TX-101",A2:A6,B2:B6,,0,-1)', // the SKU typed into the formula, not read from A7
+          "=VLOOKUP(A7,A2:B6,2,FALSE)", // VLOOKUP can only return the first match
+        ],
+      },
+      {
+        // Same table, second SKU: TX-102 at 14 in row 3 and 16.25 in row 6.
+        expected: 16.25,
+        reference: "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)",
+        wrong: [
+          "=XLOOKUP(A8,A2:A6,B2:B6)",
+          '=XLOOKUP("TX-102",A2:A6,B2:B6,,0,-1)',
+          "=VLOOKUP(A8,A2:B6,2,FALSE)",
+        ],
+      },
+    ],
   },
 };

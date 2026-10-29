@@ -5,19 +5,18 @@
  */
 
 import { esc, inlineIcon, jsonScript } from "./html.mjs";
-import { screenAt } from "./packages.mjs";
+import { referenceOf, screenAt } from "./packages.mjs";
 import { renderByline, renderDocument, renderRail } from "./shell.mjs";
 import { renderDocs, renderFeedback, renderFormulaBar, renderHint, renderSheet } from "./sheet.mjs";
 
-/** What the client needs to grade and teach, and nothing it would only duplicate. */
-function exercisePayload({ config, track, index, entry, screen }) {
-  const { exercise } = entry;
+/** One screen's share of the payload: exactly what the client grades and teaches with. */
+function screenPayload(exercise, screen, position) {
   return {
-    id: exercise.id,
-    slug: exercise.slug,
-    level: exercise.level,
-    title: exercise.title,
+    position,
+    id: screen.id,
+    type: screen.type,
     prompt: screen.prompt,
+    reference: referenceOf(exercise, screen),
     answerCell: screen.answerCell,
     grid: screen.grid,
     expect: screen.expect,
@@ -26,6 +25,18 @@ function exercisePayload({ config, track, index, entry, screen }) {
     requireRef: screen.requireRef,
     rules: screen.rules,
     hints: screen.hints,
+  };
+}
+
+/** What the client needs to grade and teach, and nothing it would only duplicate. */
+function exercisePayload({ config, track, index, entry }) {
+  const { exercise } = entry;
+  return {
+    id: exercise.id,
+    slug: exercise.slug,
+    level: exercise.level,
+    title: exercise.title,
+    screens: exercise.screens.map(screenPayload.bind(null, exercise)),
     docs: {
       syntax: exercise.docs.syntax,
       reference: exercise.docs.reference,
@@ -69,6 +80,26 @@ function lessonJsonLd({ config, track, entry }) {
   };
 }
 
+/**
+ * Every screen of the lesson, server-rendered. Only the first is visible, so the page is complete
+ * without JavaScript — a reader without it can still see what the whole lesson asks — and the client
+ * only toggles `hidden` as the score loop moves.
+ */
+function renderScreens(exercise, { icons }) {
+  return `<div id="drill-screens">${exercise.screens
+    .map(
+      (screen, position) => `
+              <div data-screen="${position + 1}"${position === 0 ? "" : " hidden"}>
+                <p class="task">${esc(screen.prompt)}</p>
+                <div class="sheet" id="sheet-${position}">
+                  ${renderSheet(exercise, screen, { icons, id: `sheet-grid-${position}` })}
+                </div>
+              </div>`,
+    )
+    .join("")}
+            </div>`;
+}
+
 function renderPager({ entry, icons }) {
   const back = `<a class="pager-link pager-prev" href="${esc(entry.prevPath)}" rel="prev">
             ${inlineIcon(icons["arrow-right"], { size: 14, className: "icon flip" })}<span class="pager-label">${
@@ -101,6 +132,7 @@ function renderPager({ entry, icons }) {
 export function prepareExercisePage({ config, track, index, entry, icons = {}, clientAvailable = false }) {
   const { exercise } = entry;
   const screen = screenAt(exercise);
+  const screens = exercise.screens;
   const counter = `Drill ${entry.number} of ${index.length}`;
   const description =
     exercise.docs.outcome.length <= 155 ? exercise.docs.outcome : `${exercise.docs.outcome.slice(0, 152)}…`;
@@ -120,12 +152,11 @@ export function prepareExercisePage({ config, track, index, entry, icons = {}, c
           <section class="sheet-card" id="drill" aria-labelledby="drill-heading">
             <div class="sheet-head">
               <h2 class="sheet-name" id="drill-heading">${esc(exercise.docs.dataset)}</h2>
-              <p class="sheet-note">Read-only data · answer in <code>${esc(screen.answerCell)}</code></p>
+              <p class="sheet-note">Read-only data · ${
+                screens.length > 1 ? `<span id="screen-position">screen 1 of ${screens.length} · </span>` : ""
+              }answer in <code id="screen-answer-cell">${esc(screen.answerCell)}</code></p>
             </div>
-            <p class="task">${esc(screen.prompt)}</p>
-            <div class="sheet" id="sheet">
-              ${renderSheet(exercise, screen, { icons })}
-            </div>
+            ${renderScreens(exercise, { icons })}
             ${renderFormulaBar(screen, { icons })}
             ${renderFeedback()}
             ${renderHint({ icons })}
@@ -133,7 +164,7 @@ export function prepareExercisePage({ config, track, index, entry, icons = {}, c
               <p class="noscript-note">Checking needs JavaScript. The sheet and the notes are readable without it.</p>
             </noscript>
             <script type="application/json" id="exercise-data">${jsonScript(
-              exercisePayload({ config, track, index, entry, screen }),
+              exercisePayload({ config, track, index, entry }),
             )}</script>
           </section>
 

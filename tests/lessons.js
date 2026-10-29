@@ -4,6 +4,8 @@
  * Lesson files are schema v2: the drill lives on `screens[]`. `exercise` here is the lesson with its
  * first screen lifted beside its own fields, which is the object a single-screen surface grades and
  * renders, so a test that wants "the drill for lesson 1" does not have to know about `screens`.
+ * `screens` carries that same view for every screen, so a test that grades answers can cover all of
+ * them instead of silently checking only the first.
  *
  * `toV1` writes the same lesson the old way — the drill's fields flat on the lesson — because that
  * shape is still readable during the deprecation window and is what a validator test wants to mutate
@@ -46,20 +48,19 @@ export function toV1(raw) {
 export function loadLesson(name) {
   const raw = readRawLesson(name);
   const lesson = normalizeLesson(raw, name);
-  const screen = screenAt(lesson, 0);
-  const fixtures = screen.fixtures ?? { accept: [], reject: [] };
   const { screens, schemaVersion, ...identity } = lesson;
-  const { id: screenId, type, ...drill } = screen;
-  return {
-    name,
-    raw,
-    lesson,
-    screen,
-    // The single-screen view: lesson identity and docs, plus everything the grader reads. The
-    // screen's own `id` and `type` stay behind — a single-screen surface never shows them.
-    exercise: { ...identity, ...drill },
-    fixture: { accepted: fixtures.accept ?? [], rejected: fixtures.reject ?? [] },
-  };
+  // The single-screen view: lesson identity and docs, plus everything the grader reads. The
+  // screen's own `id` and `type` stay behind — a single-screen surface never shows them.
+  const views = screens.map((screen) => {
+    const { id: screenId, type, ...drill } = screen;
+    const fixtures = screen.fixtures ?? { accept: [], reject: [] };
+    return {
+      screen,
+      exercise: { ...identity, ...drill },
+      fixture: { accepted: fixtures.accept ?? [], rejected: fixtures.reject ?? [] },
+    };
+  });
+  return { name, raw, lesson, screens: views, ...views[0] };
 }
 
 export const LESSONS = lessonFiles.map(loadLesson);

@@ -20,7 +20,7 @@ import { isDeepStrictEqual } from "node:util";
 import { siteConfig } from "./site/config.mjs";
 import { loadContent } from "./site/content.mjs";
 import { esc } from "./site/html.mjs";
-import { screenAt } from "./site/packages.mjs";
+import { referenceOf, screenAt } from "./site/packages.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -68,9 +68,15 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     has(html, `<h1>${esc(exercise.title)}</h1>`, `${label} title`);
     // Anchored to the element: the same text also sits in #exercise-data, so a bare
     // `includes` would stay green with the visible task statement deleted.
-    has(html, `<p class="task">${esc(screen.prompt)}</p>`, `${label} prompt`);
+    exercise.screens.forEach((s, position) =>
+      has(html, `<p class="task">${esc(s.prompt)}</p>`, `${label} screen ${position + 1} prompt`),
+    );
     for (const id of DOCS_SECTIONS) has(html, `id="${id}"`, `${label} ${id} section`);
-    has(html, `<pre class="reference"><code>${esc(exercise.docs.reference)}</code></pre>`, `${label} reference answer`);
+    has(
+      html,
+      `<pre class="reference"><code id="docs-reference">${esc(referenceOf(exercise, screen))}</code></pre>`,
+      `${label} reference answer`,
+    );
     has(html, `<pre class="syntax"><code>${esc(exercise.docs.syntax)}</code></pre>`, `${label} syntax block`);
 
     // The client is the only consumer of this block, so a silent shape change would
@@ -85,12 +91,29 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
       }
       if (payload) {
         ok(payload.id === exercise.id, `${label} payload id`, `is "${payload.id}", expected "${exercise.id}"`);
-        ok(payload.answerCell === screen.answerCell, `${label} payload answerCell`, `is "${payload.answerCell}"`);
         ok(
-          isDeepStrictEqual(payload.expect, screen.expect),
-          `${label} payload expect`,
-          "does not match the exercise",
+          Array.isArray(payload.screens) && payload.screens.length === exercise.screens.length,
+          `${label} payload screens`,
+          `lists ${payload.screens?.length} of ${exercise.screens.length}`,
         );
+        exercise.screens.forEach((s, position) => {
+          const sent = payload.screens?.[position];
+          ok(
+            sent?.answerCell === s.answerCell,
+            `${label} payload screens[${position}].answerCell`,
+            `is "${sent?.answerCell}"`,
+          );
+          ok(
+            isDeepStrictEqual(sent?.expect, s.expect),
+            `${label} payload screens[${position}].expect`,
+            "does not match the exercise",
+          );
+          ok(
+            sent?.reference === referenceOf(exercise, s),
+            `${label} payload screens[${position}].reference`,
+            "does not match the exercise",
+          );
+        });
         ok(
           payload.docs?.reference === exercise.docs.reference,
           `${label} payload docs.reference`,

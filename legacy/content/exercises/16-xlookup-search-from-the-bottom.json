@@ -1,0 +1,263 @@
+{
+  "id": "16-xlookup-search-from-the-bottom",
+  "slug": "xlookup-search-from-the-bottom",
+  "level": 3,
+  "title": "XLOOKUP: search from the bottom",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, return the most recent price logged for the SKU in A7, which the log records twice.",
+      "reference": "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "SKU",
+            "Price"
+          ],
+          [
+            "TX-101",
+            19.99
+          ],
+          [
+            "TX-102",
+            14
+          ],
+          [
+            "TX-101",
+            21.5
+          ],
+          [
+            "TX-103",
+            9.5
+          ],
+          [
+            "TX-102",
+            16.25
+          ],
+          [
+            "TX-101",
+            null
+          ],
+          [
+            "TX-102",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 21.5
+      },
+      "require": [
+        {
+          "id": "func-xlookup",
+          "func": "XLOOKUP",
+          "minArgs": 6
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A7",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close every bracket: =XLOOKUP(A7,A2:A6,B2:B6,,0,-1).",
+        "func-xlookup": "XLOOKUP takes six arguments here: the key, the keys, the prices, the text to show when nothing matches, the match mode, and the search direction.",
+        "require-ref": "Point the first argument at the cell holding the SKU. Typing the SKU into the formula answers for one row and freezes the moment the cell changes.",
+        "value": "That is the first entry for the SKU, not the latest one. Search mode 1 walks the keys from the top down, and the log appends, so the newest entry is the last match.",
+        "error": "Read the code: #N/A means the key was not found in the range you searched, and #VALUE! means the key range and the price range are different sizes, so there is no row to pair with."
+      },
+      "fixtures": {
+        "accept": [
+          "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)",
+          "=xlookup(a7,a2:a6,b2:b6,,0,-1)",
+          "=XLOOKUP(A7,$A$2:$A$6,$B$2:$B$6,,0,-1)",
+          "=XLOOKUP(A7,A2:A6,B2:B6,\"none\",0,-1)",
+          "=XLOOKUP(A7,A2:A6,B2:B6,0,0,-1)",
+          "=XLOOKUP( A7 , A2:A6 , B2:B6 , , 0 , -1 )",
+          "=XLOOKUP(A7,A1:A6,B1:B6,,0,-1)",
+          "=XLOOKUP(A7,A2:A5,B2:B5,,0,-1)"
+        ],
+        "reject": [
+          {
+            "formula": "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1",
+            "rule": "syntax",
+            "why": "unclosed parenthesis, so nothing runs at all"
+          },
+          {
+            "formula": "=VLOOKUP(A7,A2:B6,2,FALSE)",
+            "rule": "func-xlookup",
+            "why": "the older function, which cannot search upwards from the bottom"
+          },
+          {
+            "formula": "=INDEX(B2:B6,MATCH(A7,A2:A6,0))",
+            "rule": "func-xlookup",
+            "why": "the right answer in the older two-function shape"
+          },
+          {
+            "formula": "=XLOOKUP(A7,A2:A6,B2:B6)",
+            "rule": "func-xlookup",
+            "why": "three arguments, so there is no search direction to set"
+          },
+          {
+            "formula": "=XLOOKUP(\"TX-101\",A2:A6,B2:B6,,0,-1)",
+            "rule": "require-ref",
+            "why": "the SKU typed into the formula instead of read from the cell"
+          },
+          {
+            "formula": "=XLOOKUP(A7,A2:A6,B2:B6,,0,1)",
+            "rule": "value",
+            "why": "the default search direction, so it answers with the earliest entry, 19.99"
+          },
+          {
+            "formula": "=XLOOKUP(A7,C2:C6,B2:B6,,0,-1)",
+            "rule": "value",
+            "why": "an empty column has nothing to match, so the formula answers a blank instead of the latest price"
+          },
+          {
+            "formula": "=XLOOKUP(A7,A2:A6,B2:B5,,0,-1)",
+            "rule": "error",
+            "why": "a key range and a price range of different sizes, so no row in one pairs with the other"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B8, do the same for the SKU in A8, whose two entries are the second and the last in the log.",
+      "reference": "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "SKU",
+            "Price"
+          ],
+          [
+            "TX-101",
+            19.99
+          ],
+          [
+            "TX-102",
+            14
+          ],
+          [
+            "TX-101",
+            21.5
+          ],
+          [
+            "TX-103",
+            9.5
+          ],
+          [
+            "TX-102",
+            16.25
+          ],
+          [
+            "TX-101",
+            null
+          ],
+          [
+            "TX-102",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B8",
+      "expect": {
+        "value": 16.25
+      },
+      "require": [
+        {
+          "id": "func-xlookup",
+          "func": "XLOOKUP",
+          "minArgs": 6
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A8",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close every bracket: =XLOOKUP(A7,A2:A6,B2:B6,,0,-1).",
+        "func-xlookup": "XLOOKUP takes six arguments here: the key, the keys, the prices, the text to show when nothing matches, the match mode, and the search direction.",
+        "require-ref": "Point the first argument at the cell holding the SKU. Typing the SKU into the formula answers for one row and freezes the moment the cell changes.",
+        "value": "That is the first entry for the SKU, not the latest one. Search mode 1 walks the keys from the top down, and the log appends, so the newest entry is the last match.",
+        "error": "Read the code: #N/A means the key was not found in the range you searched, and #VALUE! means the key range and the price range are different sizes, so there is no row to pair with."
+      },
+      "fixtures": {
+        "accept": [
+          "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)",
+          "=xlookup(a8,a2:a6,b2:b6,,0,-1)",
+          "=XLOOKUP(A8,$A$2:$A$6,$B$2:$B$6,,0,-1)",
+          "=XLOOKUP(A8,A2:A6,B2:B6,\"none\",0,-1)",
+          "=XLOOKUP(A8,A2:A6,B2:B6,0,0,-1)",
+          "=XLOOKUP( A8 , A2:A6 , B2:B6 , , 0 , -1 )",
+          "=XLOOKUP(A8,A1:A6,B1:B6,,0,-1)"
+        ],
+        "reject": [
+          {
+            "formula": "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1",
+            "rule": "syntax",
+            "why": "unclosed parenthesis, so nothing runs at all"
+          },
+          {
+            "formula": "=VLOOKUP(A8,A2:B6,2,FALSE)",
+            "rule": "func-xlookup",
+            "why": "the older function, which cannot search upwards from the bottom"
+          },
+          {
+            "formula": "=INDEX(B2:B6,MATCH(A8,A2:A6,0))",
+            "rule": "func-xlookup",
+            "why": "the right answer in the older two-function shape"
+          },
+          {
+            "formula": "=XLOOKUP(A8,A2:A6,B2:B6)",
+            "rule": "func-xlookup",
+            "why": "three arguments, so there is no search direction to set"
+          },
+          {
+            "formula": "=XLOOKUP(\"TX-102\",A2:A6,B2:B6,,0,-1)",
+            "rule": "require-ref",
+            "why": "the SKU typed into the formula instead of read from the cell"
+          },
+          {
+            "formula": "=XLOOKUP(A8,A2:A6,B2:B6,,0,1)",
+            "rule": "value",
+            "why": "the default search direction, so it answers with the earliest entry, 14"
+          },
+          {
+            "formula": "=XLOOKUP(A8,C2:C6,B2:B6,,0,-1)",
+            "rule": "value",
+            "why": "an empty column has nothing to match, so the formula answers a blank instead of the latest price"
+          },
+          {
+            "formula": "=XLOOKUP(A8,A2:A6,B2:B5,,0,-1)",
+            "rule": "error",
+            "why": "a key range and a price range of different sizes, so no row in one pairs with the other"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
+    "explain": "The log is append-only, so the newest price for a SKU is the last row that names it, and search mode -1 walks the key column from the bottom up until the first match. TX-101 appears in rows 2 and 4 and the answer is row 4's 21.5; with the default search mode the same formula answers 19.99, which is a real price from a real row and wrong only because it is the wrong day's price. The fourth and fifth arguments are skipped with empty commas because there is no missing-value text and the match stays exact, so the search direction is the sixth argument and cannot be moved. A sorted log searched with VLOOKUP's approximate match, or a MAXIFS over the date column, can reach the same number, but both depend on an order the sheet has to keep; this one reads the order the sheet already has.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The key is not in the range XLOOKUP searched, which happens when the key range points at the price column or stops before the last row."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The key range and the return range are different sizes, so a row in one has nothing to pair with in the other."
+      }
+    ],
+    "atWork": "Price logs, stock movements and status changes where the same key is written again on a later date, so the newest row wins.",
+    "outcome": "Return the newest entry for a key in an append-only log without sorting or filtering it first.",
+    "teaches": "XLOOKUP",
+    "dataset": "Activity log with repeat SKUs",
+    "reference": "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)"
+  }
+}

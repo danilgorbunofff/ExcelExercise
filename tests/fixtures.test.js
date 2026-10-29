@@ -2,11 +2,19 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { grade } from "../packages/grader/index.js";
-import { AUDIT } from "./audit.js";
+import { AUDIT, auditRows } from "./audit.js";
 import { HOSTILE, OUTCOME_KEYS } from "./corpus.js";
 import { LESSONS as lessons } from "./lessons.js";
 
-const covered = lessons;
+/** Each screen with its own fixtures: every screen is a drill a learner has to get through. */
+const covered = lessons.flatMap(({ lesson, screens: views }) =>
+  views.map(({ exercise, fixture }, index) => ({
+    label: views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id,
+    exercise,
+    fixture,
+    audit: auditRows(AUDIT[lesson.id])[index],
+  })),
+);
 
 /** A rejection is `{ formula, rule, why }` in the shipped corpus; the schema also allows a bare string. */
 const formulaOf = (rejection) => (typeof rejection === "string" ? rejection : rejection.formula);
@@ -78,10 +86,10 @@ describe("fixtures: accepted formulas grade correct", () => {
   }
 
   it("includes the hand-computed reference answer for every exercise", () => {
-    for (const { exercise, fixture } of covered) {
+    for (const { label, fixture, audit } of covered) {
       assert.ok(
-        fixture.accepted.includes(AUDIT[exercise.id].reference),
-        `${exercise.id}: the reference answer from tests/audit.js is not in the accepted fixtures`,
+        fixture.accepted.includes(audit.reference),
+        `${label}: the reference answer from tests/audit.js is not in the accepted fixtures`,
       );
     }
   });

@@ -201,17 +201,26 @@ export function parsePayload(text) {
     throw new Error(`exercise payload is not JSON: ${error.message}`);
   }
   if (!isPlainObject(payload)) throw new Error("exercise payload must be an object");
-  for (const key of ["id", "answerCell", "prompt"]) {
-    if (typeof payload[key] !== "string" || payload[key] === "") {
-      throw new Error(`exercise payload is missing ${key}`);
+  if (typeof payload.id !== "string" || payload.id === "") {
+    throw new Error("exercise payload is missing id");
+  }
+  if (!Array.isArray(payload.screens) || payload.screens.length === 0) {
+    throw new Error("exercise payload must carry at least one screen");
+  }
+  payload.screens.forEach((screen, index) => {
+    if (!isPlainObject(screen)) throw new Error(`exercise payload screen ${index + 1} must be an object`);
+    for (const key of ["prompt", "answerCell"]) {
+      if (typeof screen[key] !== "string" || screen[key] === "") {
+        throw new Error(`exercise payload screen ${index + 1} is missing ${key}`);
+      }
     }
-  }
-  if (!isPlainObject(payload.grid) || !Array.isArray(payload.grid.rows)) {
-    throw new Error("exercise payload is missing grid.rows");
-  }
-  if (!isPlainObject(payload.expect) || payload.expect.value === undefined) {
-    throw new Error("exercise payload is missing expect.value");
-  }
+    if (!isPlainObject(screen.grid) || !Array.isArray(screen.grid.rows)) {
+      throw new Error(`exercise payload screen ${index + 1} is missing grid.rows`);
+    }
+    if (!isPlainObject(screen.expect) || screen.expect.value === undefined) {
+      throw new Error(`exercise payload screen ${index + 1} is missing expect.value`);
+    }
+  });
   if (!isPlainObject(payload.track) || typeof payload.track.free !== "boolean") {
     throw new Error("exercise payload is missing track.free");
   }

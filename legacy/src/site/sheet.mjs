@@ -5,7 +5,7 @@
  * JavaScript arrives. The client only ever fills these in; it never builds structure.
  */
 
-import { addressOf, indexToCol, parseRef } from "./packages.mjs";
+import { addressOf, indexToCol, parseRef, referenceOf } from "./packages.mjs";
 import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
 
 function splitCell(address) {
@@ -14,8 +14,11 @@ function splitCell(address) {
   return parsed;
 }
 
-/** The sheet: column letters, row numbers, read-only data, one target cell. */
-export function renderSheet(exercise, screen, { icons = {} } = {}) {
+/**
+ * The sheet: column letters, row numbers, read-only data, one target cell. `id` is per screen,
+ * because a lesson may show several sheets and two elements cannot share an id.
+ */
+export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } = {}) {
   const start = splitCell(screen.grid.startCell);
   const rows = screen.grid.rows;
   const width = rows[0].length;
@@ -49,7 +52,7 @@ export function renderSheet(exercise, screen, { icons = {} } = {}) {
   });
 
   return `<table${attrs({
-    id: "sheet-grid",
+    id,
     class: "sheet-grid",
     role: "grid",
     "aria-label": `${exercise.docs.dataset}, read-only data`,
@@ -122,6 +125,7 @@ export function renderHint({ icons = {} } = {}) {
 /** The docs block: what it does, syntax, a worked example, what goes wrong, at work. */
 export function renderDocs(exercise, screen) {
   const docs = exercise.docs;
+  const reference = referenceOf(exercise, screen);
   const errorRows = docs.errors
     .map((entry) => `            <tr><th scope="row"><code>${esc(entry.code)}</code></th><td>${esc(entry.text)}</td></tr>`)
     .join("\n");
@@ -134,10 +138,10 @@ export function renderDocs(exercise, screen) {
         <pre class="syntax"><code>${esc(docs.syntax)}</code></pre>
 
         <h2 id="docs-example">Worked example</h2>
-        <p>On <em>${esc(docs.dataset)}</em>, <code>${esc(docs.reference)}</code> returns <strong>${esc(
+        <p>On <em>${esc(docs.dataset)}</em>, <code id="docs-example-code">${esc(reference)}</code> returns <strong id="docs-example-value">${esc(
           formatCell(screen.expect.value),
         )}</strong>.</p>
-        <pre class="reference"><code>${esc(docs.reference)}</code></pre>
+        <pre class="reference"><code id="docs-reference">${esc(reference)}</code></pre>
 
         <h2 id="docs-errors">Common errors</h2>
         <table class="error-table">

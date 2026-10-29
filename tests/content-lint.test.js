@@ -72,13 +72,14 @@ describe("content-lint: the real corpus", () => {
   });
 
   it("replays the fixtures each screen declares inline", () => {
-    const screens = readdirSync(join(CONTENT, "exercises"))
+    const lessons = readdirSync(join(CONTENT, "exercises"))
       .filter((name) => name.endsWith(".json"))
-      .flatMap((name) => readJson(join(CONTENT, "exercises", name)).screens);
+      .map((name) => readJson(join(CONTENT, "exercises", name)));
+    const screens = lessons.flatMap((lesson) => lesson.screens);
     const accepted = screens.reduce((sum, screen) => sum + screen.fixtures.accept.length, 0);
     const rejected = screens.reduce((sum, screen) => sum + screen.fixtures.reject.length, 0);
-    assert.equal(report.stats.lessons, screens.length, "one lesson file per lesson");
-    assert.equal(report.stats.screens, screens.length, "each lesson has one screen so far");
+    assert.equal(report.stats.lessons, lessons.length, "one lesson file per lesson");
+    assert.equal(report.stats.screens, screens.length, "every screen is counted, not just the first");
     assert.equal(report.stats.accepted, accepted);
     assert.equal(report.stats.rejected, rejected);
     assert.ok(accepted >= screens.length && rejected >= screens.length);
@@ -280,6 +281,39 @@ describe("content-lint: prompts and links", () => {
   });
 });
 
+describe("content-lint: per-screen references", () => {
+  const TWO_SCREEN = "16-xlookup-search-from-the-bottom";
+
+  /** Rewrites one screen of the two-screen lesson by index, which `editScreen` can only do for the first. */
+  const editSecond = (content, edit) => {
+    const path = lessonPath(content, TWO_SCREEN);
+    const lesson = readJson(path);
+    writeJson(path, { ...lesson, screens: [lesson.screens[0], edit(lesson.screens[1])] });
+  };
+
+  it("fails two screens that show the same reference", () => {
+    const { report } = sandbox(({ content }) => {
+      editSecond(content, (screen) => ({ ...screen, reference: readJson(lessonPath(content, TWO_SCREEN)).screens[0].reference }));
+    });
+    assert.match(
+      messages(report).join("\n"),
+      /screens\[1\]\.reference repeats screens\[0\]\.reference — the reveal would show the same formula twice/,
+    );
+  });
+
+  it("fails a docs.reference that disagrees with screen 1", () => {
+    const { report } = sandbox(({ content }) => {
+      const path = lessonPath(content, TWO_SCREEN);
+      const lesson = readJson(path);
+      writeJson(path, { ...lesson, docs: { ...lesson.docs, reference: "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)" } });
+    });
+    assert.match(
+      messages(report).join("\n"),
+      /docs\.reference must match screens\[0\]\.reference \("=XLOOKUP\(A7,A2:A6,B2:B6,,0,-1\)"\)/,
+    );
+  });
+});
+
 describe("content-lint: the catalog", () => {
   /** Rewrites track.json in the sandbox. The loader reads it, so a broken catalog is one error. */
   function editTrack(content, edit) {
@@ -435,7 +469,9 @@ describe("content-lint: the authoring CLI", () => {
 
       const check = run(["check"], { content, fixtures });
       assert.equal(check.status, 0, check.stdout);
-      assert.match(check.stdout, new RegExp(`content: ${number} of 88 catalogued lessons, 16 groups, ${number} screens, `));
+      // Every earlier lesson has one screen; the scaffold writes one more, and the slot it took
+      // no longer holds a planned entry, so the screen count is the lesson count plus the extra.
+      assert.match(check.stdout, new RegExp(`content: ${number} of 88 catalogued lessons, 16 groups, ${number + 1} screens, `));
     });
   });
 

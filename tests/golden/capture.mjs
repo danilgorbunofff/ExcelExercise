@@ -17,9 +17,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 
-import { normalizeLesson, screenAt } from "../../packages/content/schema.js";
+import { normalizeLesson } from "../../packages/content/schema.js";
 import { grade } from "../../packages/grader/index.js";
-import { AUDIT } from "../audit.js";
+import { AUDIT, auditRows } from "../audit.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const EXERCISES = join(ROOT, "legacy", "content", "exercises");
@@ -74,18 +74,30 @@ export function capture() {
     // The screen, not the file: `grade` reads one drill, and a v2 lesson keeps its drill and its
     // fixtures inside `screens[]`. Loading through the schema means this capture follows the same
     // shape the renderer grades, so a migration cannot make the snapshot disagree with the site.
-    const screen = screenAt(normalizeLesson(readJson(join(EXERCISES, file)), file), 0);
-    if (!screen?.fixtures) {
-      throw new Error(`content/exercises/${file} carries no fixtures on its first screen; cannot capture ${id}`);
-    }
-    const fixture = { accepted: screen.fixtures.accept, rejected: screen.fixtures.reject };
-    const audit = AUDIT[id];
-    if (!audit) throw new Error(`tests/audit.js has no row for ${id}`);
+    const { screens } = normalizeLesson(readJson(join(EXERCISES, file)), file);
+    const audits = auditRows(AUDIT[id]);
+    if (!audits[0]) throw new Error(`tests/audit.js has no row for ${id}`);
+
+    // One flat list per section across every screen: a single-screen lesson records exactly what it
+    // recorded before, and a screen that arrives later can only add entries.
+    const verdicts = { accepted: [], rejected: [], audit: [] };
+    screens.forEach((screen, index) => {
+      if (!screen.fixtures) {
+        throw new Error(`content/exercises/${file} screen ${index + 1} carries no fixtures; cannot capture ${id}`);
+      }
+      const audit = audits[index];
+      if (!audit) throw new Error(`tests/audit.js has no row for ${id} screen ${index + 1}`);
+      verdicts.accepted.push(...screen.fixtures.accept.map((input) => settle(screen, input)));
+      verdicts.rejected.push(
+        ...screen.fixtures.reject.map((entry) => settle(screen, typeof entry === "string" ? entry : entry.formula)),
+      );
+      verdicts.audit.push(...[audit.reference, ...audit.wrong].map((input) => settle(screen, input)));
+    });
 
     lessons[id] = {
-      accepted: fixture.accepted.map((input) => settle(screen, input)).sort(byInput),
-      rejected: fixture.rejected.map((entry) => settle(screen, typeof entry === "string" ? entry : entry.formula)).sort(byInput),
-      audit: [audit.reference, ...audit.wrong].map((input) => settle(screen, input)).sort(byInput),
+      accepted: verdicts.accepted.sort(byInput),
+      rejected: verdicts.rejected.sort(byInput),
+      audit: verdicts.audit.sort(byInput),
     };
   }
 

@@ -86,6 +86,13 @@ function validateRules(rules, field, where, check) {
 function validateScreen(screen, label, where, version) {
   requireText(screen.prompt, `${label}prompt`, where, { max: PROMPT_LIMIT[version] });
 
+  // A multi-screen lesson teaches a different formula on each screen, so the screen may carry its own
+  // reference. Single-screen lessons leave it off and the lesson-level `docs.reference` is the answer.
+  if (screen.reference !== undefined) {
+    const reference = requireText(screen.reference, `${label}reference`, where, { max: 200 });
+    if (!reference.startsWith("=")) failAt(where, `${label}reference must be a formula starting with =`);
+  }
+
   const { grid } = screen;
   if (!grid || !Array.isArray(grid.rows) || grid.rows.length === 0) {
     failAt(where, `${label}grid.rows must be a non-empty array`);
@@ -190,6 +197,7 @@ function pickScreen(screen, id, type) {
     id,
     type,
     prompt: screen.prompt.trim(),
+    reference: screen.reference,
     grid: screen.grid,
     answerCell: screen.answerCell,
     expect: screen.expect,
@@ -262,6 +270,18 @@ export function normalizeLesson(raw, file) {
       validateScreen(screen, label, where, 2);
       return pickScreen(screen, screenId, screen.type);
     });
+    // The reveal has to show *this* screen's answer; with one screen the lesson reference is that
+    // answer, so only a multi-screen lesson has to repeat itself per screen.
+    if (screens.length > 1) {
+      screens.forEach((screen, index) => {
+        if (screen.reference === undefined) {
+          failExercise(
+            file,
+            `screens[${index}].reference is required once a lesson has more than one screen — the reveal would otherwise show the wrong formula`,
+          );
+        }
+      });
+    }
   }
 
   return { id, slug, level: raw.level, title: raw.title.trim(), docs: raw.docs, schemaVersion: version, screens };
@@ -270,6 +290,14 @@ export function normalizeLesson(raw, file) {
 /** The screen a single-screen surface renders. Phase 2's player passes an index. */
 export function screenAt(lesson, index = 0) {
   return lesson.screens[index] ?? null;
+}
+
+/**
+ * The formula the reveal shows for a screen. A lesson that teaches several formulas writes one per
+ * screen; a single-screen lesson keeps its answer in `docs.reference`, where it has always lived.
+ */
+export function referenceOf(lesson, screen) {
+  return screen?.reference ?? lesson.docs.reference;
 }
 
 /**

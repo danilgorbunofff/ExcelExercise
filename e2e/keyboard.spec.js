@@ -19,19 +19,36 @@ function focused(page) {
   });
 }
 
+/** The rail is server-rendered, but `data-full` is written by the client the first time it paints
+ *  progress, so its presence is the honest "the module graph has run" signal. Pressing Tab into a
+ *  document that is still being replaced loses the focus the walk had already earned. */
+async function waitForClient(page) {
+  await expect(page.locator("#progress-fill")).toHaveAttribute("data-full", /^(true|false)$/);
+}
+
 /** Walk the tab order until the named element has it. A bounded walk, so a page that cannot reach the
- *  control fails with the step it stopped at instead of hanging. */
+ *  control fails with the trail it took instead of hanging — and a walk that falls back to `body`
+ *  after it had focus fails immediately, because that is a stolen or lost focus, not a tab order. */
 async function tabTo(page, wanted, limit = 30) {
+  const trail = [];
+  let started = false;
   for (let step = 0; step <= limit; step += 1) {
-    if ((await focused(page)) === wanted) return;
+    const at = await focused(page);
+    if (at === wanted) return;
+    if (at === "body" && started) {
+      throw new Error(`focus fell back to body after ${trail.join(" -> ")}; it was lost, not walked`);
+    }
+    if (at !== "body") started = true;
+    trail.push(at);
     await page.keyboard.press("Tab");
   }
-  throw new Error(`tab order never reached ${wanted}; it stopped at ${await focused(page)}`);
+  throw new Error(`tab order never reached ${wanted} in ${limit} presses: ${trail.join(" -> ")}`);
 }
 
 test("a whole drill is passable without a mouse", async ({ page }) => {
   await page.goto("/learn/excel/sum-basics");
   await expect(page.locator("#formula")).toBeVisible();
+  await waitForClient(page);
 
   await tabTo(page, "#formula");
   await expect(page.locator("#formula")).toBeFocused();
@@ -58,6 +75,7 @@ test("a whole drill is passable without a mouse", async ({ page }) => {
 
 test("the hint and the reveal are reachable, and the reveal says what it will do", async ({ page }) => {
   await page.goto("/learn/excel/sum-basics");
+  await waitForClient(page);
   await tabTo(page, "#formula");
 
   // The reveal is offered only after a screen's misses, so it is not in the tab order before that.

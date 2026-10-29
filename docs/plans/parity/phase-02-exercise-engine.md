@@ -10,13 +10,14 @@
 
 ## Status
 
-**Landed — the engine, the first multi-screen player, and every screen type.** Items 1, 2, 3, 4, 5, 6, 7, 8, 9
-and 11 ship: the loop and the event sink as a tested package (`packages/session`,
-`docs/player-contract.md`), screen dispatch, a `formula` player, a `picture` player, the chord/sequence
-keyboard player and a `workbook` player, proven end to end by `16-xlookup-search-from-the-bottom` — the first
-lesson with three screens, the last of them a picture. No catalog lesson ships a workbook yet, so its page,
-file and build path are proven from a temp content copy rather than from the shipped corpus. Items 10 and 12
-are untouched, and the clock is read but not enforced.
+**Landed — the engine, the first multi-screen player, every screen type, and the help a miss earns.** Items
+1–11 ship: the loop and the event sink as a tested package (`packages/session`, `docs/player-contract.md`),
+screen dispatch, a `formula` player, a `picture` player, the chord/sequence keyboard player, a `workbook`
+player, and the hint vocabulary, reveal threshold and per-screen notes, proven end to end by
+`16-xlookup-search-from-the-bottom` — the first lesson with three screens, the last of them a picture. No
+catalog lesson ships a workbook yet, so its page, file and build path are proven from a temp content copy
+rather than from the shipped corpus. Item 12 (accessibility) is untouched, and the clock is read but not
+enforced.
 
 - [x] **11. Events.** `packages/session/events.js` owns the vocabulary (14 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
@@ -60,8 +61,9 @@ are untouched, and the clock is read but not enforced.
       `gradeAnswer` (`packages/grader/answers.js`): case, spacing, `$` and a leading `=` folded, the first
       answer is the reference, and a miss never echoes it. The bar renders with no target chip and
       `aria-label="Your answer"`, and the note under the sheet says "the bar" instead of naming a cell.
-      A picture screen without `hints.value` warns in the gate, matching the formula path's per-rule
-      hint warning. **Zoom is
+      A picture screen without `hints.value` warns in the gate (item 10 gives the formula path a
+      stricter rule — an unknown hint key is an error there, since only a formula screen has rules to key
+      on). **Zoom is
       deferred** — the plan asked for it, but the pilot image is a 640 px vector that is legible at 100 %
       on a 375 px viewport, so a zoom control would be a button with nothing to reveal until a raster
       screenshot forces one. The `alt` text is required and carries the whole image, so the screen is
@@ -100,6 +102,33 @@ are untouched, and the clock is read but not enforced.
       payload and non-interactive preview) and `tests/workbook-build.test.js` (a build from a temp content
       copy: one file per screen, the link on the page, `verify()` clean, and two screens whose ids collapse
       to one file name throwing instead of one silently winning).
+
+- [x] **10. Hints and help.** Three surfaces, each with one owner. The *hint* is the grader's: `hintFor` in
+      `packages/grader/grade.js` answers with the failing rule's own line, then its alias (`require-ref` →
+      `requireRef`, `matchType` → `match`), then the screen's `hints.value`, and `outcome` attaches it to the
+      verdict — so the player only displays `result.hint` and cannot drift from the grader about which
+      failure the learner is looking at. The client keeps `hints.value` as its own fallback for a rule the
+      grader says nothing about, because an empty panel under a wrong answer is worse than a general
+      nudge. The *reveal* threshold moved into content: `showAnswerAfter` in `track.json`, normalised by
+      `packages/content/schema.js` to an integer 1–10, carried in the drill payload with the track, and read
+      by the client as `revealAfter` — the `MAX_ATTEMPTS` constant it replaced is gone. **Default is 3, not
+      the plan's 1**, deliberately: one miss would hand over the answer, and the reveal exists for a
+      learner who is stuck, not for the first typo. The *notes* are the screen's: an optional `docs` block
+      (`syntax`, `explain`, `reference`, capped at 120/400/200 characters) rendered by `renderScreenDocs`
+      inside the screen's own panel, so an explanation of a formula shape sits next to the sheet it
+      describes. Recorded deviation: the plan asked for a docs *drawer*; the drawer is one lesson-wide
+      block (`#docs`, unchanged), and putting a second body of text behind a toggle inside a three-screen
+      lesson hides the one thing the screen is teaching. The schema range-checks the block rather than only
+      rendering it — this is what caught two real content bugs: hint keys the corpus never wrote (a
+      `hints.<key>` must name a failure the screen can actually report: `value`, `syntax`, `error`, the
+      lesson's own rule ids, and `require-ref` only when the screen pins a cell with `requireRef`), and a
+      stale syntax hint on lesson 16's second screen that rebuilt the first screen's formula. The golden
+      snapshot moved by exactly that one line. Proven by `tests/grader.test.js` (the hint precedence chain),
+      `tests/schema-v2.test.js` (the hint vocabulary, the notes block, a v1 screen never gaining `docs`),
+      `tests/track-schema.test.js` (the threshold's default and its rejections), `tests/screen-docs.test.js`
+      (the notes render in the right panel, hidden with it, once, and never leak into the drawer or the
+      payload) and `tests/client.test.js` (the player reads the threshold from the track and falls back to
+      `hints.value`).
 
 Two acceptance criteria are now true of the site — "a lesson with several screens terminates at 100"
 passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson 16's three screens in
@@ -178,8 +207,14 @@ design system, with accessibility and browser-resilience the reference does not 
 - [x] Recycling works: a lesson with 5 screens still terminates at 100.
 - [ ] Chord drills pass manual matrix on Chrome/Safari/Firefox × macOS/Windows.
 - [ ] At least one real browser-reserved combination degrades to the fallback instead of dead-ending.
-- [ ] Wrong answer shows the authored hint for the actual failure mode, not a generic message.
-- [ ] Show-answer threshold is configurable and respected.
+- [x] Wrong answer shows the authored hint for the actual failure mode, not a generic message. Proven in
+      `tests/grader.test.js`, which walks the precedence chain (own rule → alias → `hints.value`), and in
+      `tests/client.test.js`, which pins that the player shows `result.hint` and falls back to the screen's
+      general line rather than to nothing.
+- [x] Show-answer threshold is configurable and respected. `showAnswerAfter` is content
+      (`tests/track-schema.test.js` pins the default and the 1–10 bounds), travels in the payload, and the
+      player gates the reveal and its restore path on it (`tests/client.test.js`; the visible counter in
+      `e2e/drill.spec.js` reads "Attempt N of 3" from that same value).
 - [x] Workbook preview renders offline, with no third-party request. Proven in
       `tests/workbook-page.test.js`, whose fixture asserts the preview table is server-rendered markup.
 - [ ] axe: zero critical/serious on the player.

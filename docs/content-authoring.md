@@ -135,6 +135,13 @@ key per id you actually declared. Anything the grader cannot find falls back to 
 rejection that lands on a rule with no hint is a warning in the gate: the learner got told no and
 nothing else.
 
+**Only a failure the screen can actually report may be keyed.** The gate rejects a formula screen whose
+`hints` carries a key outside `value`, `syntax`, `error`, the ids in its own `require`/`forbid`/`rules`,
+and `require-ref` when it pins a cell with `requireRef` — a hint filed under a rule you renamed or never
+wrote is unreachable prose that reads correct in review. `hints.value` is required and must be text: it
+is the layer under every other hint, and the player shows it when the grader has nothing more specific to
+say. Each hint is one sentence under 300 characters.
+
 Hints are prose the learner reads at the moment they are stuck, so write them in the same voice as the
 prompt: what to change, in one sentence, without leaking the answer to the whole drill.
 
@@ -194,6 +201,24 @@ single-line prose in the JSON file — no newlines inside a string.
 than a description of `SUM`, and a learner who spots a wrong number in the explanation stops trusting
 the page. `docs.errors` is the only place error codes are explained; the hints are for the *next
 attempt*, these are for the post-mortem.
+
+### One screen's notes
+
+A lesson with several screens can also give a screen its own `docs`, with the same three prose fields and
+tighter limits — `syntax` 120, `explain` 400, `reference` 200:
+
+```json
+"docs": {
+  "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
+  "explain": "This is the same shape as the screen above, one row lower...",
+  "reference": "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)"
+}
+```
+
+It renders inside that screen's panel, above the cheat sheet, and it is for *this* screen only — the
+lesson's own `docs` is still the page's drawer and the thing search engines index. Reach for it when a
+later screen changes the tool, the range or the direction of the search, and leave it out when the
+lesson's `docs` already says it. A single-screen lesson cannot have one: it is the lesson.
 
 Links in `docs` and `hints` must point at pages that exist: `/learn/excel/<slug>`, `/excel/<slug>`, or
 `/`. Anything else fails the gate, including `/lessons` and `/learn/excel`, which the site never serves.
@@ -307,12 +332,17 @@ A group a learner can reach owes an `intro` (150–250 words, authored). If you 
 in a group, write its intro in the same change; the gate fails the run otherwise. `freeLessonCount`
 decides how many published lessons the trial covers.
 
+`showAnswerAfter` (default 3, integer 1–10) is how many misses a screen takes before it offers the
+reference answer. It is one number for the whole track rather than per screen: it encodes how much
+struggle the site thinks is useful, and a learner should not be able to tell which lesson they are on
+from the number of tries they get.
+
 ## Definition of done
 
 - [ ] `id` matches the file name, `slug` is kebab, `title` is under 60 and not used by another slot.
 - [ ] The prompt is one imperative sentence that names the cell, the task and any input the answer must use.
 - [ ] The grid is small enough to check by hand, with the answer cell inside it and `expect.value` computed, not guessed.
-- [ ] At least one `require` rule, and every rule has a hint keyed by its own id.
+- [ ] At least one `require` rule, and every rule has a hint keyed by its own id — no key a screen cannot report.
 - [ ] Six accepted fixtures, six rejected, all seven kinds of rejection covered, every advertised rule reached.
 - [ ] `docs` complete: `reference` is an accepted formula, `explain` carries the arithmetic, `errors` are real codes.
 - [ ] The catalog slot points at the file, and the group has an intro.

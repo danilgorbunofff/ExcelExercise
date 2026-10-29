@@ -3,73 +3,132 @@
   "slug": "countif-open-tickets",
   "level": 1,
   "title": "COUNTIF: count one condition",
-  "prompt": "In B10, count how many tickets have the status \"Open\".",
-  "answerCell": "B10",
-  "grid": {
-    "startCell": "A1",
-    "rows": [
-      [
-        "Ticket",
-        "Status"
-      ],
-      [
-        "T-1001",
-        "Open"
-      ],
-      [
-        "T-1002",
-        "Closed"
-      ],
-      [
-        "T-1003",
-        "Open"
-      ],
-      [
-        "T-1004",
-        "Pending"
-      ],
-      [
-        "T-1005",
-        "Open"
-      ],
-      [
-        "T-1006",
-        "Closed"
-      ],
-      [
-        "T-1007",
-        "Open"
-      ],
-      [
-        "T-1008",
-        "Escalated"
-      ],
-      [
-        "Open tickets",
-        null
-      ]
-    ]
-  },
-  "expect": {
-    "value": 4
-  },
-  "require": [
+  "schemaVersion": 2,
+  "screens": [
     {
-      "id": "func-countif",
-      "func": "COUNTIF",
-      "minArgs": 2
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B10, count how many tickets have the status \"Open\".",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Ticket",
+            "Status"
+          ],
+          [
+            "T-1001",
+            "Open"
+          ],
+          [
+            "T-1002",
+            "Closed"
+          ],
+          [
+            "T-1003",
+            "Open"
+          ],
+          [
+            "T-1004",
+            "Pending"
+          ],
+          [
+            "T-1005",
+            "Open"
+          ],
+          [
+            "T-1006",
+            "Closed"
+          ],
+          [
+            "T-1007",
+            "Open"
+          ],
+          [
+            "T-1008",
+            "Escalated"
+          ],
+          [
+            "Open tickets",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B10",
+      "expect": {
+        "value": 4
+      },
+      "require": [
+        {
+          "id": "func-countif",
+          "func": "COUNTIF",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "The criteria is text, so it needs quotes: =COUNTIF(B2:B9,\"Open\").",
+        "func-countif": "COUNTIF counts the rows that match a condition. COUNT cannot help you here: it counts numbers, and the status column is text.",
+        "require-ref": "The first argument has to be the status column itself, not the answer.",
+        "value": "One of the four Open rows is being missed. Check the range reaches the last ticket, and that \"Open\" is quoted exactly as it appears.",
+        "error": "#VALUE! here almost always means the criteria lost its quotes, so Excel tried to read Open as a cell name. Wrap the word in double quotes and keep the range as B2:B9."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTIF(B2:B9,\"Open\")",
+          "=countif(b2:b9,\"open\")",
+          "=COUNTIF($B$2:$B$9,\"Open\")",
+          "=COUNTIF(B2:B9,\"O*\")",
+          "=COUNTIF(B2:B9,\"=Open\")",
+          "=COUNTIF(B2:B9,\"Open\")+0"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTIF(B2:B9,\"Closed\")",
+            "rule": "value",
+            "why": "counts the wrong status"
+          },
+          {
+            "formula": "=COUNTIF(B2:B7,\"Open\")",
+            "rule": "value",
+            "why": "range stops one row short, so the last Open ticket is missed"
+          },
+          {
+            "formula": "=COUNTIF(B2:B9,\"Open\")*2",
+            "rule": "value",
+            "why": "doubles the count to 8"
+          },
+          {
+            "formula": "=COUNT(B2:B9)",
+            "rule": "func-countif",
+            "why": "COUNT counts non-empty cells, not ones that match"
+          },
+          {
+            "formula": "=COUNTIF(B2:B9)",
+            "rule": "func-countif",
+            "why": "COUNTIF is given no criteria"
+          },
+          {
+            "formula": "=COUNTIF(A2:A9,\"Open\")",
+            "rule": "require-ref",
+            "why": "points at the ticket IDs instead of the status column"
+          },
+          {
+            "formula": "=COUNTIF(B2:B9,Open)",
+            "rule": "error",
+            "why": "unquoted criteria is read as a name"
+          },
+          {
+            "formula": "=COUNTIF(B2:B9,\"Open\"",
+            "rule": "syntax",
+            "why": "unclosed bracket"
+          }
+        ]
+      }
     }
   ],
-  "forbid": [],
-  "requireRef": "B2",
-  "rules": [],
-  "hints": {
-    "syntax": "The criteria is text, so it needs quotes: =COUNTIF(B2:B9,\"Open\").",
-    "func-countif": "COUNTIF counts the rows that match a condition. COUNT cannot help you here: it counts numbers, and the status column is text.",
-    "require-ref": "The first argument has to be the status column itself, not the answer.",
-    "value": "One of the four Open rows is being missed. Check the range reaches the last ticket, and that \"Open\" is quoted exactly as it appears.",
-    "error": "#VALUE! here almost always means the criteria lost its quotes, so Excel tried to read Open as a cell name. Wrap the word in double quotes and keep the range as B2:B9."
-  },
   "docs": {
     "syntax": "=COUNTIF(range, criteria)",
     "explain": "COUNTIF walks the range and counts the cells that satisfy one condition. Eight tickets sit in B2:B9 with five different statuses, and exactly four of them read \"Open\", so COUNTIF(B2:B9,\"Open\") returns 4. Text conditions need quotation marks because the criteria is a string, while a numeric condition does not: COUNTIF(B2:B9,4) would count cells equal to the number four. The criteria also accepts comparisons and wildcards as text, so \">=5\", \"<>Closed\" and \"T-10*\" are all legal conditions. COUNTIF is not case-sensitive for text, which surprises people who expect \"open\" and \"Open\" to count separately.",

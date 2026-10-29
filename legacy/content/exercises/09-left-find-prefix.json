@@ -3,69 +3,138 @@
   "slug": "left-find-prefix",
   "level": 3,
   "title": "LEFT + FIND: pull out a prefix",
-  "prompt": "In B6, extract the three-letter prefix from the reference in B2 (everything before the first dash).",
-  "answerCell": "B6",
-  "grid": {
-    "startCell": "A1",
-    "rows": [
-      [
-        "Order",
-        "Reference",
-        "Customer"
-      ],
-      [
-        "SO-1",
-        "ORD-2024-0917",
-        "Ana"
-      ],
-      [
-        "SO-2",
-        "INV-2024-0612",
-        "Bo"
-      ],
-      [
-        "SO-3",
-        "ORD-2023-1180",
-        "Cy"
-      ],
-      [
-        null,
-        null,
-        null
-      ],
-      [
-        "Prefix for SO-1",
-        null,
-        null
-      ]
-    ]
-  },
-  "expect": {
-    "value": "ORD"
-  },
-  "require": [
+  "schemaVersion": 2,
+  "screens": [
     {
-      "id": "func-left",
-      "func": "LEFT",
-      "minArgs": 1
-    },
-    {
-      "id": "func-find",
-      "func": "FIND",
-      "minArgs": 2
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B6, extract the three-letter prefix from the reference in B2 (everything before the first dash).",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Order",
+            "Reference",
+            "Customer"
+          ],
+          [
+            "SO-1",
+            "ORD-2024-0917",
+            "Ana"
+          ],
+          [
+            "SO-2",
+            "INV-2024-0612",
+            "Bo"
+          ],
+          [
+            "SO-3",
+            "ORD-2023-1180",
+            "Cy"
+          ],
+          [
+            null,
+            null,
+            null
+          ],
+          [
+            "Prefix for SO-1",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": {
+        "value": "ORD"
+      },
+      "require": [
+        {
+          "id": "func-left",
+          "func": "LEFT",
+          "minArgs": 1
+        },
+        {
+          "id": "func-find",
+          "func": "FIND",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=LEFT(B2,FIND(\"-\",B2)-1) — FIND locates the dash, LEFT takes everything before it.",
+        "func-left": "LEFT takes the characters from the start of the text; it needs to know how many.",
+        "func-find": "FIND tells you where the dash is, so LEFT does not have to hard-code the length of the prefix.",
+        "require-ref": "Read the reference from B2 instead of typing the text into the formula.",
+        "value": "Close — the off-by-one is the usual culprit. FIND(\"-\",B2) returns 4, the dash itself, so LEFT needs 3 characters, not 4.",
+        "error": "#VALUE! means FIND could not see the dash at all: check the cell reference and that the dash is in quotes. #NAME? means a function name is misspelled — LEFT needs no dot, no space."
+      },
+      "fixtures": {
+        "accept": [
+          "=LEFT(B2,FIND(\"-\",B2)-1)",
+          "=left(b2,find(\"-\",b2)-1)",
+          "=LEFT($B$2,FIND(\"-\",$B$2)-1)",
+          "=LEFT(B2,FIND(\"-\",B2)-1)&\"\"",
+          "=LEFT(B2,FIND(\"-\",B2)+0-1)",
+          "=LEFT(B$2,FIND(\"-\",B$2)-1)"
+        ],
+        "reject": [
+          {
+            "formula": "=LEFT(B2,FIND(\"-\",B2))",
+            "rule": "value",
+            "why": "off by one: keeps the dash"
+          },
+          {
+            "formula": "=LEFT(B2,FIND(\"-\",B2)-2)",
+            "rule": "value",
+            "why": "off by one the other way: OR instead of ORD"
+          },
+          {
+            "formula": "=RIGHT(B2,4)",
+            "rule": "func-left",
+            "why": "takes the end of the reference"
+          },
+          {
+            "formula": "=MID(B2,1,FIND(\"-\",B2)-1)",
+            "rule": "func-left",
+            "why": "MID works here, but this lesson is about LEFT"
+          },
+          {
+            "formula": "=LEFT(B2,3)",
+            "rule": "func-find",
+            "why": "hardcodes the length instead of locating the dash"
+          },
+          {
+            "formula": "=LEFT(B2)",
+            "rule": "func-find",
+            "why": "no FIND, so the dash is never located"
+          },
+          {
+            "formula": "=\"ORD\"",
+            "rule": "func-left",
+            "why": "the prefix is typed, not extracted"
+          },
+          {
+            "formula": "=LEFT(B6,FIND(\"-\",B6)-1)",
+            "rule": "require-ref",
+            "why": "reads the answer row instead of the reference in B2"
+          },
+          {
+            "formula": "=LEFT(B2,FIND(\".\",B2)-1)",
+            "rule": "error",
+            "why": "FIND cannot locate a period in ORD-2024-0917"
+          },
+          {
+            "formula": "=LEFT(B2,FIND(\"-\",B2)-1",
+            "rule": "syntax",
+            "why": "unclosed bracket"
+          }
+        ]
+      }
     }
   ],
-  "forbid": [],
-  "requireRef": "B2",
-  "rules": [],
-  "hints": {
-    "syntax": "=LEFT(B2,FIND(\"-\",B2)-1) — FIND locates the dash, LEFT takes everything before it.",
-    "func-left": "LEFT takes the characters from the start of the text; it needs to know how many.",
-    "func-find": "FIND tells you where the dash is, so LEFT does not have to hard-code the length of the prefix.",
-    "require-ref": "Read the reference from B2 instead of typing the text into the formula.",
-    "value": "Close — the off-by-one is the usual culprit. FIND(\"-\",B2) returns 4, the dash itself, so LEFT needs 3 characters, not 4.",
-    "error": "#VALUE! means FIND could not see the dash at all: check the cell reference and that the dash is in quotes. #NAME? means a function name is misspelled — LEFT needs no dot, no space."
-  },
   "docs": {
     "syntax": "=LEFT(text, FIND(delimiter, text) - 1)",
     "explain": "The reference in B2 is ORD-2024-0917. FIND(\"-\",B2) scans from the left and returns 4, the position of the first dash — the count starts at 1, not 0. That 4 is one more than the prefix is long, because the dash is not part of the prefix, so the formula subtracts 1 and LEFT takes the first 3 characters: O, R and D, giving \"ORD\". The result is text, which is why it strings fine next to other text and why it will not match the number 3 without care. The pattern generalises to any delimiter and any prefix length, which is the point: LEFT(B2,3) would have worked today and silently broken on INV-2024-0612, where the prefix also happens to be three letters but the numbers are not always so kind.",

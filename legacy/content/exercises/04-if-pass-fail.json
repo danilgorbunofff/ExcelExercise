@@ -3,43 +3,107 @@
   "slug": "if-pass-fail",
   "level": 1,
   "title": "IF: one test, two answers",
-  "prompt": "In C2, write \"Pass\" if the score in B2 is 70 or more, otherwise \"Fail\".",
-  "answerCell": "C2",
-  "grid": {
-    "startCell": "A1",
-    "rows": [
-      [
-        "Student",
-        "Score",
-        "Result"
-      ],
-      [
-        "Ana",
-        70,
-        null
-      ]
-    ]
-  },
-  "expect": {
-    "value": "Pass"
-  },
-  "require": [
+  "schemaVersion": 2,
+  "screens": [
     {
-      "id": "func-if",
-      "func": "IF",
-      "minArgs": 3
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In C2, write \"Pass\" if the score in B2 is 70 or more, otherwise \"Fail\".",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Student",
+            "Score",
+            "Result"
+          ],
+          [
+            "Ana",
+            70,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": "Pass"
+      },
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=IF(B2>=70,\"Pass\",\"Fail\") — the test first, then the two outcomes in order.",
+        "func-if": "Use IF so the word changes by itself when the score changes. Typing Pass is right once and wrong forever after.",
+        "require-ref": "The test has to read the score cell, not a number you typed in.",
+        "value": "The test or the two branches are in the wrong order. IF returns the first value when the test is true, the second when it is false. Ana scored exactly 70, so 70>70 is false and 70>=70 is true — that boundary is the whole lesson.",
+        "error": "#NAME? means a branch was written without quotes, so Excel hunted for a name called Pass. Both text outcomes need double quotes, and IF needs all three arguments."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(B2>=70,\"Pass\",\"Fail\")",
+          "=if(B2>=70,\"Pass\",\"Fail\")",
+          "=IF($B$2>=70,\"Pass\",\"Fail\")",
+          "=IF(70<=B2,\"Pass\",\"Fail\")",
+          "=IF(B2>69,\"Pass\",\"Fail\")",
+          "=IF(B2>=70,\"Pass\",\"Fail\")&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=IF(B2>70,\"Pass\",\"Fail\")",
+            "rule": "value",
+            "why": "the boundary: 70>70 is false"
+          },
+          {
+            "formula": "=IF(B2>=70,\"Fail\",\"Pass\")",
+            "rule": "value",
+            "why": "the two branches are swapped"
+          },
+          {
+            "formula": "=IF(B2>=70,\"pass\",\"fail\")",
+            "rule": "value",
+            "why": "the cell would show pass, not the text the lesson asks for"
+          },
+          {
+            "formula": "=IF(B2>=80,\"Pass\",\"Fail\")",
+            "rule": "value",
+            "why": "threshold 80 instead of 70"
+          },
+          {
+            "formula": "=IF(B2>=70,\"Pass\")",
+            "rule": "func-if",
+            "why": "IF is given only two arguments"
+          },
+          {
+            "formula": "=\"Pass\"",
+            "rule": "func-if",
+            "why": "the answer is typed, not computed"
+          },
+          {
+            "formula": "=IF(TRUE,\"Pass\",\"Fail\")",
+            "rule": "require-ref",
+            "why": "the test ignores the score cell"
+          },
+          {
+            "formula": "=IF(B2>=70,Pass,Fail)",
+            "rule": "error",
+            "why": "unquoted text is read as a name"
+          },
+          {
+            "formula": "=IF(B2>=70,\"Pass\",\"Fail\"",
+            "rule": "syntax",
+            "why": "unclosed bracket"
+          }
+        ]
+      }
     }
   ],
-  "forbid": [],
-  "requireRef": "B2",
-  "rules": [],
-  "hints": {
-    "syntax": "=IF(B2>=70,\"Pass\",\"Fail\") — the test first, then the two outcomes in order.",
-    "func-if": "Use IF so the word changes by itself when the score changes. Typing Pass is right once and wrong forever after.",
-    "require-ref": "The test has to read the score cell, not a number you typed in.",
-    "value": "The test or the two branches are in the wrong order. IF returns the first value when the test is true, the second when it is false. Ana scored exactly 70, so 70>70 is false and 70>=70 is true — that boundary is the whole lesson.",
-    "error": "#NAME? means a branch was written without quotes, so Excel hunted for a name called Pass. Both text outcomes need double quotes, and IF needs all three arguments."
-  },
   "docs": {
     "syntax": "=IF(logical_test, value_if_true, value_if_false)",
     "explain": "IF evaluates one condition and returns one of two values. Ana scored exactly 70, the test 70>=70 is true, so =IF(B2>=70,\"Pass\",\"Fail\") returns \"Pass\". Change B2 to 68 and the same formula returns \"Fail\" with no editing at all. The order of the arguments matters: the true-value comes second, the false-value third. Both outcomes can be numbers, text, or other formulas, and leaving the third argument out is legal but returns FALSE rather than a blank, which is how columns end up showing FALSE where somebody expected an empty cell. Text outcomes always need quotation marks; without them Excel looks for a name called Pass and fails.",

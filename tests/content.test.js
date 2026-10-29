@@ -1,21 +1,17 @@
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
 import { KNOWN_FUNCTIONS, buildCells, grade, indexToCol, parseRef } from "../packages/grader/index.js";
 import { AUDIT } from "./audit.js";
+import { LESSONS, readJson } from "./lessons.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "legacy");
 const CONTENT = join(ROOT, "content");
-const EXERCISES = join(CONTENT, "exercises");
-
-const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 
 const track = readJson(join(CONTENT, "track.json"));
-const files = readdirSync(EXERCISES).filter((name) => name.endsWith(".json")).sort();
-const lessons = files.map((name) => ({ name, exercise: readJson(join(EXERCISES, name)) }));
+const lessons = LESSONS.map(({ name, exercise }) => ({ name, exercise }));
 
 /** Addresses covered by the grid rectangle, row-major from startCell. */
 function gridAddresses(exercise) {

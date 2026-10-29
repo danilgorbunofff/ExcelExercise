@@ -45,9 +45,9 @@ need not be adjacent, and planned slots sit wherever the curriculum reads best. 
 position among *authored* lessons, so inserting a planned slot never renumbers a page — publishing one
 does.
 
-Groups are `{ id, title, intro? }`. `intro` is the group's landing copy (multiline, ≤1800 characters)
-and is optional here because the pages that show it arrive with the category pages; the linter reports
-the debt until they do.
+Groups are `{ id, title, intro? }`. `intro` is the group's landing copy (multiline, ≤1800 characters).
+All 16 carry one. It stays optional in the schema because a group whose lessons are all still planned
+has nothing to introduce yet, but the linter fails a group a learner can already reach without one.
 
 ## Two shapes, one output
 
@@ -57,9 +57,10 @@ absent), where the lesson *was* one screen. Both leave `normalizeLesson()` as
 top level — a consumer that reads `lesson.prompt` gets `undefined`, loudly, instead of a copy that
 went stale. The *source* cannot be half-way either: a file that mixes the two shapes is rejected
 outright (see below) rather than resolved by precedence, so the shape a lesson has is the shape its
-file says it has. The flat shape is a one-release deprecation window: `@excelsupreme/content-lint` reads its fixtures
-from `tests/fixtures/<id>.json` today, and once the 10 existing lessons are migrated the sidecar path
-can be deleted and the flat shape rejected outright.
+file says it has. The flat shape is a one-release deprecation window: all 10 shipped lessons moved to
+`screens[]` with their fixtures inline, the `tests/fixtures/` sidecars are gone, and the loader still
+reads a flat lesson with a sidecar so an in-flight branch does not break. When that window closes the
+sidecar path in `@excelsupreme/content-lint` can be deleted and the flat shape rejected outright.
 
 Errors are `content/<file>: <problem>` so the build log points at the file to open. The strings are
 asserted by `tests/content.test.js` and `tests/build.test.js` — change them deliberately or not at all.

@@ -5,10 +5,12 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
 import { SCHEMA_VERSION, normalizeLesson, screenAt } from "../packages/content/index.js";
+import { readRawLesson, toV1 } from "./lessons.js";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const FILE = "01-sum-basics.json";
-const V1 = JSON.parse(readFileSync(join(ROOT, "legacy/content/exercises", FILE), "utf8"));
+/** The same drill written both ways: a v1 lesson (drill flat, fixtures in a sidecar) and the file on disk. */
+const V2 = readRawLesson(FILE);
+const V1 = toV1(V2);
 
 /** The fields a screen owns in v2, lifted off the v1 lesson so both versions describe the same drill. */
 const SCREEN_FIELDS = [
@@ -193,6 +195,18 @@ describe("lesson schema v2", () => {
         v2({ screens: [screenFrom(V1, { fixtures: { accept: ["=SUM(A1)", ""], reject: [] } })] }),
         /fixtures\.accept\[1\] must be a non-empty string/,
       );
+      throws(
+        v2({ screens: [screenFrom(V1, { fixtures: { accept: [], reject: [{ why: "no formula" }] } })] }),
+        /fixtures\.reject\[0\] must be a non-empty string/,
+      );
+    });
+
+    it("reads a rejection written with its rule and reason", () => {
+      const screen = screenFrom(V1, {
+        fixtures: { accept: ["=SUM(B2:B4)"], reject: [{ formula: "=B2+B3", rule: "func-sum", why: "adds by hand" }] },
+      });
+      const fixtures = normalizeLesson(v2({ screens: [screen] }), FILE).screens[0].fixtures;
+      assert.deepEqual(fixtures.reject, [{ formula: "=B2+B3", rule: "func-sum", why: "adds by hand" }]);
     });
   });
 

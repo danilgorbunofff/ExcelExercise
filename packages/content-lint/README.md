@@ -8,19 +8,48 @@ prompt copy-pasted from the lesson above it, a link to a page the site does not 
 schema errors — they are content errors, and they are invisible until a learner hits them.
 
 ```bash
-npm run content:check                        # the gate CI runs
-npm run content:fixtures -- --lesson 6       # one lesson, row per fixture
+npm run content:check                                  # the gate CI runs
+npm run content:fixtures -- --lesson 6                 # one lesson, row per fixture
+npm run content:new -- --lesson 11 --group lookup      # fill the next planned slot
+npm run content:preview -- --lesson 11                 # the drill as its page reads
 node packages/content-lint/cli.js check --content <dir> --fixtures <dir>
 ```
 
 Exit codes: `0` clean, `1` findings, `2` bad usage. Warnings never fail the run.
+
+## `new`: a planned slot becomes a lesson
+
+`content:new` reads `track.json`, takes the first planned slot — in `--group` when one is named, the
+first planned slot anywhere otherwise — and writes `exercises/<NN>-<slug>.json` for it, then rewrites
+that entry to `{ id, group }`. The lesson's title, level and group come from the slot, so a scaffold
+cannot land somewhere the site does not look for it, and the slug comes from the title, so the URL is
+not a second decision.
+
+`--lesson` is the number the *file* carries, and it has to be the next free one: ids are dense and
+follow the order lessons were written in, which is what keeps the folder sorted by creation. The
+number a lesson is *published* as is a different thing — position among authored lessons in catalog
+order — so a lesson written into an earlier group takes a lower published number than its file says,
+and every lesson after it moves up one. Both numbers are printed when the file is written.
+
+The skeleton is the smallest drill that passes every rule: a SUM total over two cells, six accepted
+and six rejected formulas, a hint per failure path it advertises, and docs that validate. What it
+cannot write is the lesson — the prompt and `docs.explain` say "replace this scaffold" in place, so a
+scaffold that is never edited reads as unfinished rather than as content.
+
+## `preview`: the page without the build
+
+`content:preview` prints what a reader gets: the title and URL, level, group and trial status, the
+prompt, the grid with the answer cell marked, the docs block, every hint by rule id, and the fixture
+table `fixtures` prints. It works on a half-written lesson — the loader only refuses what would not
+render — so it is the fastest way to read prose you just wrote without running `next:build`.
 
 ## API
 
 ```js
 import { lintContent, replayFixtures, MIN_FIXTURES } from "@excelsupreme/content-lint";
 
-const report = lintContent("legacy/content", { fixturesDir: "tests/fixtures" });
+const report = lintContent("legacy/content");
+// Pass { fixturesDir: "tests/fixtures" } only for a v1 lesson that keeps its fixtures in a sidecar.
 // { ok, errors: [{ where, message }], warnings: [...],
 //   stats: { lessons, screens, accepted, rejected, groups, planned }, lessons }
 ```
@@ -40,11 +69,15 @@ table.
 | `schemaVersion: 2` | `screens[].fixtures: { accept, reject }` | the screen owns its drill, so it owns the proof |
 | v1 flat | `tests/fixtures/<id>.json` | the shape predates screens; one file per lesson |
 
+Every shipped lesson is v2, so the sidecar path is a deprecation window rather than the normal home: it
+still reads, and `check` needs no fixture directory at all once nothing uses it.
+
 Declaring both is an error: there would be two answers to "which fixtures are real". A v2 lesson whose
 fixtures are still in the sidecar is also an error — the migration has to move them, not copy them.
 
-A rejection may be a bare formula (v2) or `{ formula, rule, why }` (sidecar). When `rule` is declared,
-the grader's reported rule must match it: that is what keeps `hints` honest.
+A rejection may be a bare formula or `{ formula, rule, why }`; the shipped corpus uses the object form
+so the gate can check the claim, not just the verdict. When `rule` is declared, the grader's reported
+rule must match it: that is what keeps `hints` honest.
 
 ## What it checks
 
@@ -69,9 +102,9 @@ the grader's reported rule must match it: that is what keeps `hints` honest.
 - **Catalog titles are unique** — across published *and* planned slots, compared trimmed and
   case-insensitively. A planned title that collides with a lesson already live is a collision now, so
   it fails now rather than the day it is authored.
-- **Groups with published lessons owe an intro** — a warning today, because the category pages that
-  show the copy do not exist yet; it becomes an error when they do. One line names every group still
-  blank rather than nine separate findings.
+- **Groups with published lessons owe an intro** — an error, because the copy is landing text and a
+  blank one is a hole on the page. One line names every reachable group still blank rather than nine
+  separate findings. A group whose lessons are all still planned owes nothing yet.
 
 Empty hints on a rejection are a warning, not an error: the drill still grades, it just teaches less.
 

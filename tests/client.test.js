@@ -12,6 +12,8 @@ import { describe, it } from "node:test";
 
 import { grade } from "../packages/grader/index.js";
 
+import { loadLesson } from "./lessons.js";
+
 import {
   PROGRESS_KEY,
   TRIAL_KEY,
@@ -168,14 +170,14 @@ describe("formula input", () => {
   });
 
   it("lines the caret up with the character the real grader blames", () => {
-    const exercise = JSON.parse(readFileSync(join(ROOT, "legacy/content/exercises/01-sum-basics.json"), "utf8"));
+    const { screen } = loadLesson("01-sum-basics.json");
     const cases = [
       ["=SUM(B2:B4))", 11], // the surplus ")"
       ["=SUM(", 1], // the function name that never closes
       ["=1+", 3], // one past the end: "unexpected the end of the formula"
     ];
     for (const [typed, column] of cases) {
-      const result = grade(exercise, typed);
+      const result = grade(screen, typed);
       const [text, marker] = caretLine(typed, result.position).split("\n");
       assert.equal(text, typed, `${typed}: the caret block must show what was typed`);
       assert.equal(marker.indexOf("^"), column, `${typed}: caret is not on the blamed character`);

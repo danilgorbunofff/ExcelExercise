@@ -13,6 +13,7 @@ import { siteConfig } from "../legacy/src/site/config.mjs";
 import { loadContent } from "../legacy/src/site/content.mjs";
 import { renderIndexPage } from "../legacy/src/site/index-page.mjs";
 import { esc } from "../legacy/src/site/html.mjs";
+import { LESSONS, readRawLesson, toV1 } from "./lessons.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
@@ -20,8 +21,7 @@ const ENV = { SITE_URL: "https://drills.example", SITE_BUILT_AT: "2026-10-28" };
 const BASE = ENV.SITE_URL;
 
 const track = readJson(join(ROOT, "legacy/content/track.json"));
-const lessonFiles = readdirSync(join(ROOT, "legacy/content/exercises")).filter((name) => name.endsWith(".json")).sort();
-const lessons = lessonFiles.map((name) => readJson(join(ROOT, "legacy/content/exercises", name)));
+const lessons = LESSONS.map(({ exercise }) => exercise);
 
 const htmlFiles = (dir) => {
   const out = [];
@@ -337,7 +337,9 @@ describe("the self-contained page gate", () => {
 });
 
 describe("build validation", () => {
-  const exercise = readJson(join(ROOT, "legacy/content/exercises/01-sum-basics.json"));
+  // Validation is shape-agnostic, and a flat lesson is the easiest object to break one field at a
+  // time; the loader still reads that shape during the deprecation window.
+  const exercise = toV1(readRawLesson("01-sum-basics.json"));
 
   /** A one-lesson catalog: real groups, only the lesson under test, opened up. */
   function only(copy, { extraLessons = [], ...overrides } = {}) {
@@ -404,7 +406,7 @@ describe("build validation", () => {
   });
 
   it("fails loudly when a lesson is not in the track", () => {
-    const other = readJson(join(ROOT, "legacy/content/exercises/02-average-scores.json"));
+    const other = toV1(readRawLesson("02-average-scores.json"));
     fails((copy) => ({ exercises: [copy, structuredClone(other)] }), /content\/exercises\/02-average-scores\.json: is not listed in track.json/);
   });
 
@@ -413,7 +415,7 @@ describe("build validation", () => {
   // order and filename order are the same list.
   it("numbers lessons in catalog order, not filename order", () => {
     const first = structuredClone(exercise);
-    const second = readJson(join(ROOT, "legacy/content/exercises/02-average-scores.json"));
+    const second = toV1(readRawLesson("02-average-scores.json"));
     const dir = mkdtempSync(join(tmpdir(), "es-order-"));
     try {
       mkdirSync(join(dir, "exercises"), { recursive: true });

@@ -70,9 +70,25 @@ program.
       `/lessons` namespace and no bare lesson index page, so a link to either fails in the gate rather
       than 404ing in production; a test reads `lib/site.js` and `next.config.mjs` and fails if either
       base moves without this list.
-- [~] **4. CLI.** `content-lint check` and `content-lint fixtures --lesson NN` ship. `content:new` and
-      `content:preview` wait for step 5: `--group` and a passing skeleton both need the lesson numbers
-      and groups to exist first.
+- [x] **4. CLI.** Four commands, all on `content-lint`, all wired as npm scripts. `check` is the gate
+      and `fixtures --lesson NN` is the author's table; both shipped with the validator. `new` fills the
+      first planned slot — in `--group` when one is named, the first planned slot anywhere otherwise —
+      and this is the one place a planned entry becomes an authored one, so a lesson cannot be created
+      somewhere the site does not look for it. The slot hands over title, level and group; the slug is
+      derived from the title so a URL is never a second decision; `--lesson` is the number stamped on
+      the *file* and must be the next free one, because ids are dense and follow the order lessons were
+      written in. That is deliberately not the published number, which is position among authored
+      lessons: scaffolding into `lookup` today writes `11-…` and publishes as lesson 8, and the command
+      prints both, plus how many lessons move up. What it writes is the smallest drill that passes
+      every rule (SUM over two cells, six accept + six reject, a hint per advertised path, validating
+      docs), because a skeleton that fails the gate teaches an author to stop trusting the gate; the
+      prompt and `docs.explain` say "replace this scaffold" in place, so an unedited scaffold reads as
+      unfinished. `preview` prints the page a reader gets — title and URL, level, group, trial status,
+      prompt, the grid with the target cell marked, docs, hints by rule id, and the fixture table — and
+      runs off the loader rather than the linter, so it works on a lesson that does not yet pass.
+      `tests/content-lint.test.js` scaffolds into a sandbox and then runs `check` on the result, which
+      is the acceptance criterion below enforced rather than asserted: the file, the rewritten slot and
+      the 11-of-88 tally are all checked after the CLI writes them.
 - [x] **5. Catalog.** `content/track.json` is the site map: **16 groups and 88 lesson slots** (10
       authored, 78 planned), one file instead of the `content/tracks/excel.json` this plan named —
       the repo already had `track.json`, and a second track file would be the same two-answers
@@ -93,16 +109,28 @@ program.
       16 groups, mapping each one; it reads the gitignored `reference/` mirror, so it stays out of CI
       and degrades to a note when the mirror is absent; a row it cannot read as either a lesson or an
       empty slot fails the run instead of quietly shrinking the inventory. The lint grew two catalog
-      rules: duplicate titles across planned and published slots are errors, and groups with published
-      lessons but no `intro` are reported in one warning until step 6 writes the copy — and that
-      warning cannot outlive its reason, because a test reads `app/` and fails if a page renders a
-      group while a blank intro is still only a warning. `tests/build.test.js` pins the ordering
-      contract with a catalog whose order disagrees with the filenames; the shipped corpus cannot
-      prove it, because there the two orders are the same list.
+      rules: duplicate titles across planned and published slots are errors, and a group a learner can
+      reach with no `intro` is an error too — the copy lands in step 6, and the rule was scoped to
+      reachable groups so a group whose lessons are all still planned owes nothing.
+      `tests/build.test.js` pins the ordering contract with a catalog whose order disagrees with the
+      filenames; the shipped corpus cannot prove it, because there the two orders are the same list.
 
 The renderer moved with the model rather than after it: `exercise-page.mjs`, `sheet.mjs` and
 `verify.mjs` now resolve `screenAt(entry.exercise)` and read the drill off the screen, so there is no
 window in which two shapes are both live.
+
+- [x] **6. Groups.** All 16 groups carry an `intro`: 150–250 words each, authored here rather than
+      lifted, because these are the pages search traffic lands on and a caption would be worse than
+      nothing. Each one names the functions the group actually teaches, states which levels its slots
+      sit at, and says which of them already run, so the copy cannot drift quietly out of date with
+      the catalog beside it. With the copy written the lint rule became an error: a group with a
+      published lesson and no `intro` fails `content:check` instead of warning, while a group whose
+      lessons are all still planned owes nothing. `tests/content-lint.test.js` pins both sides —
+      stripping every intro from a catalog copy yields exactly one error naming the nine reachable
+      groups, and stripping the one from a planned-only group yields none — and a third test keeps
+      the shipped 16 inside the word range the plan asked for. The temporary invariant that read
+      `app/` and promised to flip the rule when a category page appeared is gone along with its
+      reason: severity no longer depends on which routes exist.
 
 ## Out of scope
 
@@ -135,19 +163,39 @@ window in which two shapes are both live.
    example lesson.
 8. **Cohorts.** Publish lessons in batches of 10; each batch must pass `content:check` and a human
    accuracy review before merge.
-9. **Migration.** Convert the 10 existing lessons to schema v2; the old single-screen shape is
-   accepted by the loader during a one-release deprecation window.
+- [x] **9. Migration.** All ten lesson files are `schemaVersion: 2` with one `screens[]` entry each,
+      and the ten sidecars under `tests/fixtures/` are deleted. The move is provable because nothing
+      observable moved: `tests/golden/snapshot.json` is byte-identical, which required
+      `tests/golden/capture.mjs` to normalize the lesson and grade its first screen instead of reading
+      the flat file plus its sidecar. `content:check` still reports 10 lessons, 10 screens and 154
+      fixtures replayed, and `next:build` still emits the same 11 pages.
+
+      Three decisions are worth keeping. **The screens own their fixtures, reasoning included:** a v2
+      `reject` list holds `{ formula, rule, why }`, not bare formulas, so the reason a case is wrong
+      travels with the case it explains and the gate can check the *claim* (`rule`), not only the
+      verdict. `validateScreen` therefore reads `entry.formula` when the entry is an object and keeps
+      accepting the bare string; without that, the loader would have refused every migrated lesson
+      while the linter linted it happily — the two had specified the shape apart. **Nothing had to be
+      duplicated to keep the old shape working:** `tests/lessons.js` normalizes the corpus once and
+      hands each test either the merged single-screen `exercise` or `toV1()`, so `content.test.js`,
+      `fixtures.test.js`, `build.test.js` and `client.test.js` read one bridge instead of each
+      reimplementing the flatten; `toV1` deliberately drops `fixtures`, because a v1 lesson keeps
+      those in its sidecar and putting them flat would describe a shape v1 never had. **The sidecar
+      path stays readable, and tested:** `content-lint` still accepts a flat lesson with
+      `tests/fixtures/<id>.json`, still refuses a v2 lesson that left its fixtures behind, and still
+      refuses both at once; `check` needs no fixture directory at all now, which a test pins, because
+      silently creating it would hide the day a lesson loses its fixtures.
 
 ## Acceptance criteria
 
-- [ ] `content:new --lesson 11` produces a file that renders, grades and passes `content:check` with
+- [x] `content:new --lesson 11` produces a file that renders, grades and passes `content:check` with
       no framework knowledge.
 - [x] CI fails when any screen lacks 6 accepted or 6 rejected fixtures.
 - [x] Every fixture verdict matches its declared expectation across all authored lessons.
 - [ ] `content/tracks/excel.json` contains 88 lessons and 16 groups; counts match the catalog.
-- [ ] 10 migrated lessons keep their existing behaviour (golden snapshots from phase 0 unchanged).
-- [ ] Category intros authored for all 16 groups.
-- [ ] `docs/content-authoring.md` exists and a second person can author a lesson from it unaided.
+- [x] 10 migrated lessons keep their existing behaviour (golden snapshots from phase 0 unchanged).
+- [x] Category intros authored for all 16 groups (150–250 words each, enforced by a test).
+- [x] `docs/content-authoring.md` exists and a second person can author a lesson from it unaided.
 
 ## Content throughput assumption
 

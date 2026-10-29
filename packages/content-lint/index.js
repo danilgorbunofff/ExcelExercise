@@ -194,8 +194,8 @@ function checkLinks(value, prefix, { label, where, report, routes }) {
 /**
  * Catalog rules. A title that appears twice makes the index link to two lessons that read alike;
  * planned lessons are held to the same rule as published ones, because a slot that will collide once
- * authored collides now. Groups with published lessons owe an intro — the copy debt is reported until
- * category pages exist.
+ * authored collides now. A group a learner can reach owes an intro, and a blank one fails the gate
+ * rather than warns: it is landing copy, so its absence is a hole on the page, not a note in a log.
  */
 function checkCatalog(track, lessons, report) {
   const published = new Set(lessons.map((lesson) => lesson.id));
@@ -210,14 +210,13 @@ function checkCatalog(track, lessons, report) {
       seen.set(key, index);
     }
   });
-  // Step 6 writes the 16 intros; until then this stays a single warning rather than nine errors, and
-  // it becomes an error the moment a category page renders a group. The test that owns that flip reads
-  // the app tree, so adding such a page fails the suite until this line changes with it.
+  // Only reachable groups owe copy: a group whose lessons are all still planned has nothing to
+  // introduce yet, and demanding prose for it would make the catalog a draft fiction.
   const blank = track.groups
     .filter((group) => !group.intro && track.lessons.some((entry) => entry.group === group.id && published.has(entry.id)))
     .map((group) => group.id);
   if (blank.length > 0) {
-    report.warning("content/track.json", `${blank.length} group${blank.length === 1 ? "" : "s"} with published lessons and no intro yet: ${blank.join(", ")}`);
+    report.error("content/track.json", `${blank.length} group${blank.length === 1 ? "" : "s"} with published lessons and no intro: ${blank.join(", ")}`);
   }
 }
 

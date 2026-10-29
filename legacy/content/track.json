@@ -6,67 +6,83 @@
   "groups": [
     {
       "id": "intro",
-      "title": "Getting started"
+      "title": "Getting started",
+      "intro": "A formula is a recipe you type once and the sheet follows. Everything else here is built on that idea, so this group starts at the beginning: what the equals sign commits you to, how a cell reference points at a place rather than at a value, and why copying a formula down a column changes what it points at. You will write a total by hand, then watch AutoSum write the same one, then read the answer off the status bar without typing anything at all — three ways to answer a question you will ask a thousand times.\n\nNothing here assumes you have written a formula before; the level stays at 1 throughout. Each task is a small spreadsheet with a labelled answer cell, marked the moment you submit it. Finish the group and you will know the difference between a value and a reference, and you will never again wonder why =A1+B1 turned into something else after it was copied."
     },
     {
       "id": "sum",
-      "title": "Adding things up"
+      "title": "Adding things up",
+      "intro": "Most spreadsheet work is addition with a condition attached, and this group takes that seriously. It starts from the SUM you already know and grows into SUMIF and SUMIFS, where the sum range and the test range are different columns and swapping them is a mistake almost everyone makes once. Later lessons add only the positives with a bare SUMIF, total across several sheets without linking them by hand, and build a running total that stays correct when a row is inserted above it. One lesson is spent debugging a total that quietly skips a row, which is the fastest way to learn that SUM ignores text that looks like a number.\n\nThe group closes with a summary drill that asks which summing function a task needs, because choosing well is most of the skill. Nine slots, all at level 2, and every answer is graded on the sheet rather than on your memory of syntax."
     },
     {
       "id": "count",
-      "title": "Counting rows"
+      "title": "Counting rows",
+      "intro": "Counting looks trivial until the data is real. COUNT only sees numbers, COUNTA counts anything that is not empty, and COUNTBLANK counts the gaps — three functions, three different questions, and the wrong one still produces a number that looks plausible in a report. This group puts each of them on a sheet where the wrong choice is visible, so the drill can tell you what you counted and why it is not what you were asked for.\n\nFrom there it moves to conditions: COUNTIF for a single test, COUNTIFS for several at once, and wildcards for when the thing you are matching is buried inside a longer string. The levels stay at 1 and 2, so formulas stay short enough to hold in your head while the habit forms. Six slots, one already live, and each wrong answer names the count you actually wrote rather than just rejecting it. The last is a summary drill on picking the right count for a question."
     },
     {
       "id": "statistical",
-      "title": "Averages and ranks"
+      "title": "Averages and ranks",
+      "intro": "Averages lie in specific, predictable ways, and this group is about the cases where they do. It starts with MIN and MAX, then MEDIAN — the value that survives an outlier which would drag an AVERAGE anywhere it liked. MODE returns the most common value, which answers a different question than the one most people think they are asking. LARGE and SMALL return the nth value without sorting the list, which is how you write a top-five report on a sheet nobody is allowed to reorder. The ranking lesson puts RANK beside those values so you can see the difference between a position and a value.\n\nEach slot is one function, but each is a decision about which summary the number deserves, and a wrong summary is worse than no summary at all. Seven slots at levels 1 and 2, one already live. If you have ever sent a mean to a meeting that needed a median, start here."
     },
     {
       "id": "logical",
-      "title": "Decisions with IF"
+      "title": "Decisions with IF",
+      "intro": "IF is where a spreadsheet stops being a calculator and starts making decisions, and this group builds that step by step. It opens with TRUE and FALSE and the small surprise that a comparison like B2>100 is already a value, so IF is often just a wrapper around one. Then AND, OR and NOT for combining tests without nesting three IFs inside each other; IFS for when there are more than two outcomes and the nested version has become unreadable; SWITCH for matching a list of names rather than testing ranges; and the IS functions, which ask what a cell holds before you ask what it is worth.\n\nThe pass-fail drill is live now and is the shortest way to see the shape of the function. The group closes with a summary drill on choosing between them. Seven slots at levels 1 to 3. If you have ever written an IF inside an IF inside an IF rather than open the help pane, this is the group that replaces it."
     },
     {
       "id": "rounding",
-      "title": "Rounding money"
+      "title": "Rounding money",
+      "intro": "Rounding is a formatting decision until it is money, and then it is a policy. Two decimals on screen are not two decimals in the cell, and the difference compounds down a column of invoices. This group separates the cases: ROUND for the arithmetic everyone expects, ROUNDUP and ROUNDDOWN when a price or a fee has to move in one direction only, and MROUND and FLOOR when the unit of rounding is not a fraction but a multiple — five pence, a quarter of an hour, a box of twelve.\n\nEvery prompt names the rule and shows the unit, because \"round to the nearest 0.05\" and \"round up to the nearest 0.05\" differ by one word and produce different answers all the way down the column. Three slots, all at level 2, the shortest group here and the one where a small slip is most expensive. The markup drill is live now; the other two follow the same pattern."
     },
     {
       "id": "lookup",
-      "title": "Looking values up"
+      "title": "Looking values up",
+      "intro": "Looking a value up is the most requested formula in any office and the most commonly broken. VLOOKUP is usually the culprit: its fourth argument defaults to approximate match, so a formula that works perfectly on sorted data returns quietly wrong answers on unsorted data — no error, no warning, a number that is simply somebody else's. This group teaches VLOOKUP properly first, approximate match and its sorted-column requirement included, so you can recognise the failure when you inherit one.\n\nThen HLOOKUP for rows, wildcards for partial keys, and a two-way lookup built from VLOOKUP and MATCH. XLOOKUP gets lessons of its own: exact match without counting columns, searching from the bottom for the latest entry, and a fallback argument that replaces the IFERROR wrapper. The last slot builds both functions on the same table and compares what each asks you to know. Ten slots at levels 2 and 3, the largest group here for a reason."
     },
     {
       "id": "index-match",
-      "title": "INDEX and MATCH"
+      "title": "INDEX and MATCH",
+      "intro": "INDEX and MATCH are two ordinary functions that combine into the most flexible lookup in Excel. Neither is clever alone: MATCH returns the position of a value in a range, INDEX returns the value at a position you hand it. Put them together and you can look left of the key column, which VLOOKUP cannot, and survive a column being inserted in the middle of the table. This group builds them in that order, one function per lesson, so the combination is a conclusion rather than a formula to memorise.\n\nThe later slots cover the two-way lookup — MATCH on rows, MATCH on columns, INDEX at the intersection — and a summary drill that asks you to choose between INDEX MATCH, XLOOKUP and VLOOKUP for a given table. Six slots at levels 2 and 3, with the index-match drill live now. Read the group and you will read other people's spreadsheets differently."
     },
     {
       "id": "text-search",
-      "title": "Finding text"
+      "title": "Finding text",
+      "intro": "Half of the data you are handed is text that has to be measured before it can be used. This group starts with length and edges: LEN, LEFT and RIGHT, the tools that turn a code like INV-2024-0815 into its three useful parts. MID takes the middle, and FIND and SEARCH locate a delimiter — one is case-sensitive, one is not, and that decides whether your formula survives a typo in the source data. The wildcard lesson covers partial matches inside criteria, which is how you find every row mentioning a supplier whose name you only half remember.\n\nTEXTBEFORE and TEXTAFTER do the same split in one step on current versions, and the group closes with a summary drill on choosing between it and MID. Seven slots at levels 1 to 3, with the left-find-prefix drill already live. No regular expressions and no add-ins: just the functions already on every machine that opens your file."
     },
     {
       "id": "text-change",
-      "title": "Tidying text"
+      "title": "Tidying text",
+      "intro": "Imported data arrives with its own opinions about capitalisation, spacing and punctuation, and the report needs it to agree with everything else on the sheet. This group is the cleanup pass. CONCAT and the ampersand join pieces without caring what type they are; TEXTJOIN joins a whole range and can skip the blanks in it, which is the difference between a list and a list with gaps. UPPER, LOWER and PROPER normalise case, and PROPER is the one people forget until a mail merge turns into a refund of angry customers. SUBSTITUTE replaces one piece of text wherever it occurs, which is how you strip the non-breaking spaces that survived a paste from a web page.\n\nFour slots at levels 1 and 2, the shortest group in this section and the one you will reach for most often. Each prompt states the output you should see, so a tidy-up that changes the value is caught immediately rather than three reports later."
     },
     {
       "id": "errors",
-      "title": "Errors and blanks"
+      "title": "Errors and blanks",
+      "intro": "An error in a cell is information, not a failure, and reading it correctly saves an hour. This group teaches the vocabulary first: #N/A means the lookup found nothing, #VALUE! means a type is wrong, #REF! means a reference was deleted or moved off the sheet. Name the error and you can decide whether to fix it or to hide it deliberately. IFERROR catches everything and shows your own text; IFNA catches only the missing match, which is usually what people meant and is the difference between a clean report and one that hides real bugs.\n\nA lesson on blanks follows, because an empty cell and a zero are not the same thing and SUM does not agree with COUNT about either. Three slots at level 2 plus a summary drill that asks which handler a failure deserves. Short group, and the one that turns a wall of red into a to-do list."
     },
     {
       "id": "date",
-      "title": "Dates and deadlines"
+      "title": "Dates and deadlines",
+      "intro": "A date in Excel is a number wearing a costume, and every date problem is a problem with that number. This group starts with the volatile clock: TODAY and NOW recalculate whenever the file does, which is either exactly what you want or a slow leak, depending on where you put them. DATE builds a date from its parts, so a period can be constructed instead of typed. DAYS subtracts two dates properly, and DATEDIF counts whole months or years between them, which is what an age or a service-length column actually needs. The deadlines lesson combines that with a condition, turning a date column into an overdue flag.\n\nFour slots at levels 2 and 3, with a summary drill on picking the right distance between two dates. If a formula of yours has ever returned 45321 and you formatted your way out of it, this is the group that explains what you were looking at."
     },
     {
       "id": "aggregate",
-      "title": "SUMPRODUCT and friends"
+      "title": "SUMPRODUCT and friends",
+      "intro": "Some totals cannot be written with SUMIF, because the condition sits in one column and the numbers in another and the two have to be multiplied together. SUMPRODUCT survives that: it multiplies arrays element by element and adds the results, and with careful parentheses it replaces whole families of helper columns. SUBTOTAL totals only the rows you have not hidden, which is what a filtered table needs and what SUM gets wrong. AGGREGATE goes further and can ignore error values as well as hidden rows, which is the difference between a total and a #DIV/0! stretched across the whole column.\n\nFour slots at level 3, and the group where formulas stop being short: expect to read one out loud before you type it. AGGREGATE also takes an argument that decides what to ignore, and choosing it wrongly is the most common reason a total still breaks. Every task is graded on the resulting number, so a correct total written three different ways is accepted three times."
     },
     {
       "id": "arrays",
-      "title": "Dynamic arrays"
+      "title": "Dynamic arrays",
+      "intro": "Modern Excel spills: one formula returns a block of cells and the sheet resizes around it. This group covers the three functions that make that useful. UNIQUE collapses a column to one row per distinct value, the fastest way to build a validation list from data that keeps growing. FILTER returns the rows that meet a condition, replacing a chain of lookups and an autofilter with one formula that stays live as the data changes. SORT and its spilled ranges put rows in order without touching the source, and teach the part that catches people out: the block belongs to the formula, so typing inside it produces a #SPILL! error that names the cell in the way.\n\nThree slots at level 3. These functions need a current version of Excel, and the lessons say so before you start rather than after your formula fails. If you share workbooks with people on older versions, the group also tells you what to expect from the legacy alternative."
     },
     {
       "id": "modeling",
-      "title": "Real workbooks"
+      "title": "Real workbooks",
+      "intro": "This group is where the pieces combine into something a colleague would recognise. A commission sheet that updates itself, a headcount and payroll summary, an inventory reorder report and a monthly close checklist: each is a small workbook whose formulas have to agree with each other, and each is graded end to end rather than cell by cell. Every skill comes from earlier groups — SUMIFS for tiered rates, a lookup against a rate table, IF for the flag, dates for the cut-off.\n\nWhat is new is structure. Where named ranges earn their keep, why the input block sits apart from the calculation block, and how to lay a sheet out so the next person can audit it without asking you anything. Four slots at level 3, and no new functions: the work is composition. If you have finished the earlier groups and wondered what they are for, this is the answer."
     },
     {
       "id": "capstone",
-      "title": "Capstone projects"
+      "title": "Capstone projects",
+      "intro": "Capstones are larger tasks with less scaffolding. Each one gives you a business question and a workbook, and expects you to choose the techniques rather than telling you which function to use. A sales summary end to end, a lookup dashboard built from three tables, a cleanup of an imported list, a budget against actuals with a variance flag, and an audit of five deliberately broken sheets where the job is to find the mistakes rather than write anything new. They take longer than a drill and are graded on the finished sheet, so there is more than one right answer.\n\nThe audit is the slot people find most useful in practice: spotting a wrong VLOOKUP, a hard-coded total and a reference that drifted is a skill you only get by practising on someone else's mistakes. Six slots at level 3, one live now, and the natural end of the track."
     }
   ],
   "lessons": [

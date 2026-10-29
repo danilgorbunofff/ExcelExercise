@@ -150,15 +150,18 @@ function validateScreen(screen, label, where, version) {
     }
   });
 
-  // The authoring gate wants 6 + 6; the loader only needs to know that a fixture is a formula.
+  // The authoring gate wants 6 + 6; the loader only needs to know that a fixture is a formula. A
+  // rejection may also be written `{ formula, rule, why }` — the gate reads `rule` to catch a fixture
+  // filed under a rule the grader disagrees with, and the two shapes are otherwise one list.
   if (screen.fixtures !== undefined) {
     if (!isPlainObject(screen.fixtures)) failAt(where, `${label}fixtures must be an object`);
     for (const field of ["accept", "reject"]) {
       const list = screen.fixtures[field];
       if (!Array.isArray(list)) failAt(where, `${label}fixtures.${field} must be an array`);
-      list.forEach((formula, index) =>
-        requireText(formula, `${label}fixtures.${field}[${index}]`, where, { max: 200 }),
-      );
+      list.forEach((entry, index) => {
+        const fixture = isPlainObject(entry) ? entry.formula : entry;
+        requireText(fixture, `${label}fixtures.${field}[${index}]`, where, { max: 200 });
+      });
     }
   }
 }

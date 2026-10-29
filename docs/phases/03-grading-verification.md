@@ -10,7 +10,7 @@ formula is wrong", and that promise is only as good as the fixture suite behind 
 
 ```
 tests/fixtures/01-sum-basics.json      # per exercise, named after the exercise id
-...
+                                       # (phase 1's v2 migration moved these onto screens[].fixtures)
 tests/fixtures.test.js                  # invariants A–D, coverage, perf, message quality
 tests/corpus.js                         # shared hostile corpus (HOSTILE, OUTCOME_KEYS)
 tests/grader.test.js                    # unit tests; imports the same corpus

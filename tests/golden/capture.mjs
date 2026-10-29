@@ -12,17 +12,17 @@
  * asserts, and its verdicts are not semantic promises, so recording them would
  * only add churn.
  */
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 
+import { normalizeLesson, screenAt } from "../../packages/content/schema.js";
 import { grade } from "../../packages/grader/index.js";
 import { AUDIT } from "../audit.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const EXERCISES = join(ROOT, "legacy", "content", "exercises");
-const FIXTURES = join(ROOT, "tests", "fixtures");
 
 export const SNAPSHOT_PATH = join(ROOT, "tests", "golden", "snapshot.json");
 
@@ -39,8 +39,8 @@ const jsonSafe = (value) => {
 
 const byInput = (a, b) => (a.input < b.input ? -1 : a.input > b.input ? 1 : 0);
 
-const settle = (exercise, input) => {
-  const result = grade(exercise, input);
+const settle = (screen, input) => {
+  const result = grade(screen, input);
   const entry = {
     input,
     ok: result.ok,
@@ -61,29 +61,31 @@ const settle = (exercise, input) => {
   return entry;
 };
 
-const lessonIds = readdirSync(EXERCISES)
+const lessonFiles = readdirSync(EXERCISES)
   .filter((name) => name.endsWith(".json"))
-  .map((name) => name.replace(/\.json$/, ""))
   .sort();
 
 /** The snapshot object. Pure: same repo state in, same object out. */
 export function capture() {
   const lessons = {};
 
-  for (const id of lessonIds) {
-    const exercise = readJson(join(EXERCISES, `${id}.json`));
-    const fixturePath = join(FIXTURES, `${id}.json`);
-    if (!existsSync(fixturePath)) {
-      throw new Error(`tests/fixtures/${id}.json is missing; cannot capture ${id}`);
+  for (const file of lessonFiles) {
+    const id = file.replace(/\.json$/, "");
+    // The screen, not the file: `grade` reads one drill, and a v2 lesson keeps its drill and its
+    // fixtures inside `screens[]`. Loading through the schema means this capture follows the same
+    // shape the renderer grades, so a migration cannot make the snapshot disagree with the site.
+    const screen = screenAt(normalizeLesson(readJson(join(EXERCISES, file)), file), 0);
+    if (!screen?.fixtures) {
+      throw new Error(`content/exercises/${file} carries no fixtures on its first screen; cannot capture ${id}`);
     }
-    const fixture = readJson(fixturePath);
+    const fixture = { accepted: screen.fixtures.accept, rejected: screen.fixtures.reject };
     const audit = AUDIT[id];
     if (!audit) throw new Error(`tests/audit.js has no row for ${id}`);
 
     lessons[id] = {
-      accepted: fixture.accepted.map((input) => settle(exercise, input)).sort(byInput),
-      rejected: fixture.rejected.map((rejection) => settle(exercise, rejection.formula)).sort(byInput),
-      audit: [audit.reference, ...audit.wrong].map((input) => settle(exercise, input)).sort(byInput),
+      accepted: fixture.accepted.map((input) => settle(screen, input)).sort(byInput),
+      rejected: fixture.rejected.map((entry) => settle(screen, typeof entry === "string" ? entry : entry.formula)).sort(byInput),
+      audit: [audit.reference, ...audit.wrong].map((input) => settle(screen, input)).sort(byInput),
     };
   }
 

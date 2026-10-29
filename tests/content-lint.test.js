@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,9 +9,10 @@ import { describe, it } from "node:test";
 import { LESSON_BASES, lintContent, replayFixtures } from "../packages/content-lint/index.js";
 import { loadContent } from "../packages/content/index.js";
 
+import { toV1 } from "./lessons.js";
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CONTENT = join(ROOT, "legacy", "content");
-const FIXTURES = join(ROOT, "tests", "fixtures");
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const writeJson = (path, value) => writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
@@ -19,15 +20,15 @@ const writeJson = (path, value) => writeFileSync(path, `${JSON.stringify(value, 
 const messages = (report) => report.errors.map(({ where, message }) => (where ? `${where}: ${message}` : message));
 
 /**
- * Copies the real content and fixtures into a temp directory so a test can break one thing and see
- * exactly one error. Both directories are handed to the callback; cleanup is unconditional.
+ * Copies the real content into a temp directory so a test can break one thing and see exactly one
+ * error. The shipped corpus carries its fixtures inline, so `fixtures` is a path that does not exist
+ * unless a test creates it to prove the v1 sidecar contract still reads. Cleanup is unconditional.
  */
 function sandbox(mutate, { persist = false } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "es-lint-"));
   const content = join(dir, "content");
   const fixtures = join(dir, "fixtures");
   cpSync(CONTENT, content, { recursive: true });
-  cpSync(FIXTURES, fixtures, { recursive: true });
   mutate?.({ content, fixtures, dir });
   const report = lintContent(content, { fixturesDir: fixtures });
   if (!persist) rmSync(dir, { recursive: true, force: true });
@@ -35,21 +36,28 @@ function sandbox(mutate, { persist = false } = {}) {
 }
 
 const lessonPath = (content, id) => join(content, "exercises", `${id}.json`);
-const fixturePath = (fixtures, id) => join(fixtures, `${id}.json`);
+const sidecarPath = (fixtures, id) => join(fixtures, `${id}.json`);
 
-/** The real corpus, with one lesson rewritten as the schema v2 shape the linter has to accept. */
-function toV2(raw, fixture) {
-  const {
-    id, slug, level, title, docs,
-    prompt, grid, answerCell, expect, require, forbid, requireRef, rules, hints,
-  } = raw;
-  const screen = {
-    id: "formula-1", type: "formula",
-    prompt, grid, answerCell, expect, require, forbid, requireRef, rules, hints,
-    fixtures: { accept: fixture.accepted, reject: fixture.rejected.map((entry) => entry.formula) },
-  };
-  for (const key of Object.keys(screen)) if (screen[key] === undefined) delete screen[key];
-  return { id, slug, level, title, docs, schemaVersion: 2, screens: [screen] };
+/** Rewrites one lesson, handing the test its first screen — where v2 keeps the prompt and fixtures. */
+function editScreen(content, id, edit) {
+  const path = lessonPath(content, id);
+  const lesson = readJson(path);
+  const [first, ...rest] = lesson.screens;
+  writeJson(path, { ...lesson, screens: [edit(first), ...rest] });
+}
+
+function editFixtures(content, id, edit) {
+  editScreen(content, id, (screen) => ({ ...screen, fixtures: edit(screen.fixtures) }));
+}
+
+/** Moves a lesson back to the v1 shape with its fixtures in a sidecar, for the deprecation window. */
+function revertToV1(content, fixtures, id) {
+  const lesson = readJson(lessonPath(content, id));
+  const { accept, reject } = lesson.screens[0].fixtures;
+  mkdirSync(fixtures, { recursive: true });
+  writeJson(sidecarPath(fixtures, id), { accepted: accept, rejected: reject });
+  writeJson(lessonPath(content, id), toV1(lesson));
+  return sidecarPath(fixtures, id);
 }
 
 describe("content-lint: the real corpus", () => {
@@ -60,19 +68,27 @@ describe("content-lint: the real corpus", () => {
     assert.equal(report.ok, true);
   });
 
-  it("replays one fixture file per lesson", () => {
-    const files = readdirSync(FIXTURES).filter((name) => name.endsWith(".json"));
-    const accepted = files.reduce((sum, name) => sum + readJson(join(FIXTURES, name)).accepted.length, 0);
-    const rejected = files.reduce((sum, name) => sum + readJson(join(FIXTURES, name)).rejected.length, 0);
-    assert.equal(report.stats.lessons, files.length);
-    assert.equal(report.stats.screens, files.length, "v1 lessons are single-screen");
+  it("replays the fixtures each screen declares inline", () => {
+    const screens = readdirSync(join(CONTENT, "exercises"))
+      .filter((name) => name.endsWith(".json"))
+      .flatMap((name) => readJson(join(CONTENT, "exercises", name)).screens);
+    const accepted = screens.reduce((sum, screen) => sum + screen.fixtures.accept.length, 0);
+    const rejected = screens.reduce((sum, screen) => sum + screen.fixtures.reject.length, 0);
+    assert.equal(report.stats.lessons, screens.length, "one lesson file per lesson");
+    assert.equal(report.stats.screens, screens.length, "each lesson has one screen so far");
     assert.equal(report.stats.accepted, accepted);
     assert.equal(report.stats.rejected, rejected);
-    assert.ok(accepted >= files.length && rejected >= files.length);
+    assert.ok(accepted >= screens.length && rejected >= screens.length);
   });
 
-  it("warns about nothing worse than prompt style and the intro debt", () => {
-    for (const warning of report.warnings) assert.match(warning.message, /sentences|no intro yet/);
+  it("warns about nothing worse than prompt style", () => {
+    assert.ok(report.warnings.every(({ message }) => /sentences/.test(message)), report.warnings.map(({ message }) => message).join("\n"));
+  });
+
+  it("ships an intro for every one of the sixteen groups", () => {
+    const intros = readJson(join(CONTENT, "track.json")).groups.map(({ id, intro }) => ({ id, words: intro.trim().split(/\s+/).length }));
+    assert.deepEqual(intros.filter(({ words }) => words < 150 || words > 250).map(({ id }) => id), [], "intros are 150–250 words: landing copy, not a caption");
+    assert.equal(intros.length, 16);
   });
 
   it("reports the catalog the lessons sit in", () => {
@@ -83,75 +99,78 @@ describe("content-lint: the real corpus", () => {
 
 describe("content-lint: fixtures", () => {
   it("fails a screen with no fixtures at all", () => {
-    const { report } = sandbox(({ fixtures }) => rmSync(fixturePath(fixtures, "03-countif-open-tickets")));
+    const { report } = sandbox(({ content }) => {
+      editScreen(content, "03-countif-open-tickets", ({ fixtures, ...screen }) => screen);
+    });
     const found = messages(report);
     assert.equal(found.length, 1, found.join("\n"));
     assert.match(found[0], /has no fixtures/);
   });
 
   it("fails a screen below the six-and-six floor", () => {
-    const { report } = sandbox(({ fixtures }) => {
-      const path = fixturePath(fixtures, "01-sum-basics");
-      const fixture = readJson(path);
-      writeJson(path, { ...fixture, accepted: fixture.accepted.slice(0, 5) });
+    const { report } = sandbox(({ content }) => {
+      editFixtures(content, "01-sum-basics", (fixtures) => ({ ...fixtures, accept: fixtures.accept.slice(0, 5) }));
     });
     assert.match(messages(report).join("\n"), /has 5 accepted fixtures, the floor is 6/);
   });
 
   it("fails a formula the lesson calls accepted but the grader rejects", () => {
-    const { report } = sandbox(({ fixtures }) => {
-      const path = fixturePath(fixtures, "01-sum-basics");
-      const fixture = readJson(path);
-      writeJson(path, { ...fixture, accepted: [...fixture.accepted, "=AVERAGE(B2:B4)"] });
+    const { report } = sandbox(({ content }) => {
+      editFixtures(content, "01-sum-basics", (fixtures) => ({ ...fixtures, accept: [...fixtures.accept, "=AVERAGE(B2:B4)"] }));
     });
     assert.match(messages(report).join("\n"), /accepts "=AVERAGE\(B2:B4\)" but the grader rejects it \(func-sum/);
   });
 
   it("fails a formula the lesson calls rejected but the grader accepts", () => {
-    const { report } = sandbox(({ fixtures }) => {
-      const path = fixturePath(fixtures, "01-sum-basics");
-      const fixture = readJson(path);
-      writeJson(path, { ...fixture, rejected: [...fixture.rejected, { formula: "=SUM(B2:B4)", rule: "value", why: "wrong" }] });
+    const { report } = sandbox(({ content }) => {
+      editFixtures(content, "01-sum-basics", (fixtures) => ({
+        ...fixtures,
+        reject: [...fixtures.reject, { formula: "=SUM(B2:B4)", rule: "value", why: "wrong" }],
+      }));
     });
     assert.match(messages(report).join("\n"), /rejects "=SUM\(B2:B4\)" but the grader accepts it/);
   });
 
   it("fails a rejection filed under a rule the grader does not report", () => {
-    const { report } = sandbox(({ fixtures }) => {
-      const path = fixturePath(fixtures, "01-sum-basics");
-      const fixture = readJson(path);
-      const rejected = fixture.rejected.map((entry, index) => (index === 1 ? { ...entry, rule: "value" } : entry));
-      writeJson(path, { ...fixture, rejected });
+    const { report } = sandbox(({ content }) => {
+      editFixtures(content, "01-sum-basics", (fixtures) => ({
+        ...fixtures,
+        reject: fixtures.reject.map((entry, index) => (index === 1 ? { ...entry, rule: "value" } : entry)),
+      }));
     });
     assert.match(messages(report).join("\n"), /filed under "value" but the grader reports "func-sum"/);
   });
 
   it("fails a rule the lesson can report that no fixture ever triggers", () => {
-    const { report } = sandbox(({ fixtures }) => {
-      const path = fixturePath(fixtures, "01-sum-basics");
-      const fixture = readJson(path);
-      writeJson(path, { ...fixture, rejected: fixture.rejected.filter((entry) => entry.rule !== "func-sum") });
+    const { report } = sandbox(({ content }) => {
+      editFixtures(content, "01-sum-basics", (fixtures) => ({
+        ...fixtures,
+        reject: fixtures.reject.filter((entry) => entry.rule !== "func-sum"),
+      }));
     });
     assert.match(messages(report).join("\n"), /never exercises the "func-sum" failure/);
   });
 
-  it("fails a fixture file that belongs to no lesson", () => {    const { report } = sandbox(({ fixtures }) =>
-      writeJson(join(fixtures, "11-ghost.json"), { accepted: [], rejected: [] }),
-    );
+  it("fails a fixture file that belongs to no lesson", () => {
+    const { report } = sandbox(({ fixtures }) => {
+      mkdirSync(fixtures, { recursive: true });
+      writeJson(sidecarPath(fixtures, "11-ghost"), { accepted: [], rejected: [] });
+    });
     assert.match(messages(report).join("\n"), /tests\/fixtures\/11-ghost\.json: belongs to no lesson/);
   });
 
   it("refuses two sources of truth for one screen", () => {
-    const { report } = sandbox(({ content }) => {
-      const path = lessonPath(content, "01-sum-basics");
-      writeJson(path, { ...readJson(path), fixtures: { accept: ["=SUM(B2:B4)"], reject: ["=B2"] } });
+    const { report } = sandbox(({ content, fixtures }) => {
+      const { accept, reject } = readJson(lessonPath(content, "01-sum-basics")).screens[0].fixtures;
+      mkdirSync(fixtures, { recursive: true });
+      writeJson(sidecarPath(fixtures, "01-sum-basics"), { accepted: accept, rejected: reject });
     });
     assert.match(messages(report).join("\n"), /declares fixtures inline and in tests\/fixtures/);
   });
 
   it("reports an unreadable fixture file once, not as missing fixtures", () => {
-    const { report } = sandbox(({ fixtures }) => {
-      writeFileSync(fixturePath(fixtures, "01-sum-basics"), "{ not json");
+    const { report } = sandbox(({ content, fixtures }) => {
+      writeFileSync(revertToV1(content, fixtures, "01-sum-basics"), "{ not json");
     });
     const found = messages(report);
     assert.equal(found.length, 1, found.join("\n"));
@@ -159,14 +178,9 @@ describe("content-lint: fixtures", () => {
   });
 });
 
-describe("content-lint: schema v2", () => {
-  it("accepts fixtures inline on the screen, with no sidecar", () => {
-    const { report } = sandbox(({ content, fixtures }) => {
-      const id = "01-sum-basics";
-      const fixture = readJson(fixturePath(fixtures, id));
-      writeJson(lessonPath(content, id), toV2(readJson(lessonPath(content, id)), fixture));
-      rmSync(fixturePath(fixtures, id));
-    });
+describe("content-lint: fixture sources", () => {
+  it("still reads a v1 lesson whose fixtures live in a sidecar", () => {
+    const { report } = sandbox(({ content, fixtures }) => revertToV1(content, fixtures, "01-sum-basics"));
     assert.deepEqual(report.errors, []);
     assert.equal(report.ok, true);
   });
@@ -174,10 +188,11 @@ describe("content-lint: schema v2", () => {
   it("fails a v2 lesson whose fixtures are still in the sidecar", () => {
     const { report } = sandbox(({ content, fixtures }) => {
       const id = "01-sum-basics";
-      const fixture = readJson(fixturePath(fixtures, id));
-      const v2 = toV2(readJson(lessonPath(content, id)), fixture);
-      delete v2.screens[0].fixtures;
-      writeJson(lessonPath(content, id), v2);
+      const lesson = readJson(lessonPath(content, id));
+      const { fixtures: moved, ...screen } = lesson.screens[0];
+      mkdirSync(fixtures, { recursive: true });
+      writeJson(sidecarPath(fixtures, id), { accepted: moved.accept, rejected: moved.reject });
+      writeJson(lessonPath(content, id), { ...lesson, screens: [screen] });
     });
     assert.match(messages(report).join("\n"), /is schemaVersion 2 but its fixtures are still in tests\/fixtures/);
   });
@@ -186,18 +201,15 @@ describe("content-lint: schema v2", () => {
 describe("content-lint: prompts and links", () => {
   it("fails a prompt copy-pasted from another lesson", () => {
     const { report } = sandbox(({ content }) => {
-      const first = readJson(lessonPath(content, "01-sum-basics"));
-      const second = lessonPath(content, "02-average-scores");
-      writeJson(second, { ...readJson(second), prompt: `  ${first.prompt.toUpperCase()} ` });
+      const first = readJson(lessonPath(content, "01-sum-basics")).screens[0].prompt;
+      editScreen(content, "02-average-scores", (screen) => ({ ...screen, prompt: `  ${first.toUpperCase()} ` }));
     });
     assert.match(messages(report).join("\n"), /prompt is a duplicate of the one in content\/exercises\/01-sum-basics\.json/);
   });
 
   it("warns, but does not fail, when a prompt is two sentences", () => {
     const { report } = sandbox(({ content }) => {
-      const path = lessonPath(content, "01-sum-basics");
-      const lesson = readJson(path);
-      writeJson(path, { ...lesson, prompt: "Add up the column. Keep it short." });
+      editScreen(content, "01-sum-basics", (screen) => ({ ...screen, prompt: "Add up the column. Keep it short." }));
     });
     assert.deepEqual(report.errors, []);
     const prompts = report.warnings.filter(({ message }) => message.includes("sentences"));
@@ -249,25 +261,27 @@ describe("content-lint: the catalog", () => {
     writeJson(path, edit(readJson(path)));
   }
 
-  it("warns once about groups that hold published lessons but still owe their intro", () => {
-    const { report } = sandbox();
-    const intros = report.warnings.filter(({ message }) => message.includes("no intro yet"));
-    assert.equal(intros.length, 1);
-    assert.match(intros[0].message, /^9 groups with published lessons and no intro yet: sum, count, statistical, logical, rounding, lookup, index-match, text-search, capstone$/);
-  });
-
-  it("says nothing about intros once every published group has one", () => {
+  it("fails once when groups that hold published lessons lose their intro", () => {
     const { report } = sandbox(({ content }) => {
       editTrack(content, (track) => ({
         ...track,
-        groups: track.groups.map((group) => {
-          const published = track.lessons.some((lesson) => lesson.id && lesson.group === group.id);
-          return published ? { ...group, intro: `A short introduction to ${group.title}.` } : group;
-        }),
+        groups: track.groups.map(({ id, title }) => ({ id, title })),
+      }));
+    });
+    const intros = report.errors.filter(({ message }) => message.includes("no intro"));
+    assert.equal(intros.length, 1);
+    assert.match(intros[0].message, /^9 groups with published lessons and no intro: sum, count, statistical, logical, rounding, lookup, index-match, text-search, capstone$/);
+  });
+
+  it("asks for no copy from a group whose lessons are all still planned", () => {
+    const { report } = sandbox(({ content }) => {
+      editTrack(content, (track) => ({
+        ...track,
+        groups: track.groups.map((group) => (group.id === "text-change" ? { id: group.id, title: group.title } : group)),
       }));
     });
     assert.deepEqual(report.errors, []);
-    assert.equal(report.warnings.filter(({ message }) => message.includes("no intro yet")).length, 0);
+    assert.equal(report.warnings.filter(({ message }) => message.includes("intro")).length, 0);
   });
 
   it("fails a catalog where a planned slot repeats a published title", () => {
@@ -291,33 +305,6 @@ describe("content-lint: the catalog", () => {
       }));
     });
     assert.match(report.errors.map(({ message }) => message).join("\n"), /lessons\[89\] "a drill" repeats the title of lessons\[88\]/);
-  });
-
-  /**
-   * The intro rule is a warning only because nothing renders a group yet: the moment a route shows
-   * one, a blank intro is an empty section on a live page. This test reads the app tree rather than
-   * trusting the comment in `checkCatalog` to be flipped by hand.
-   */
-  it("stops treating a blank intro as debt the moment a page renders a group", () => {
-    const { report } = sandbox(({ content }) => {
-      editTrack(content, (track) => ({
-        ...track,
-        groups: track.groups.map(({ id, title }) => ({ id, title })),
-      }));
-    });
-    const pages = readdirSync(join(ROOT, "app"), { recursive: true, encoding: "utf8" }).filter(
-      (path) => path.endsWith("page.js") && (/\[group\]/.test(path) || /(^|\/)groups?\//.test(path)),
-    );
-    const mentions = (list) => list.filter(({ message }) => message.includes("intro"));
-    if (pages.length > 0) {
-      assert.equal(
-        mentions(report.errors).length,
-        1,
-        `a page renders a group (${pages.join(", ")}), so a missing intro must fail the lint, not warn`,
-      );
-    } else {
-      assert.equal(mentions(report.warnings).length, 1, "no page renders a group yet, so the debt is still a warning");
-    }
   });
 });
 
@@ -345,10 +332,8 @@ describe("content-lint: CLI", () => {
   });
 
   it("exits 1 when a fixture disagrees with the grader", () => {
-    const { dir } = sandbox(({ fixtures }) => {
-      const path = fixturePath(fixtures, "01-sum-basics");
-      const fixture = readJson(path);
-      writeJson(path, { ...fixture, accepted: [...fixture.accepted, "=SUM(B2:B3)"] });
+    const { dir } = sandbox(({ content }) => {
+      editFixtures(content, "01-sum-basics", (fixtures) => ({ ...fixtures, accept: [...fixtures.accept, "=SUM(B2:B3)"] }));
     }, { persist: true });
     try {
       const run = spawnSync(
@@ -372,6 +357,101 @@ describe("content-lint: CLI", () => {
   });
 });
 
+describe("content-lint: the authoring CLI", () => {
+  const CLI = join(ROOT, "packages", "content-lint", "cli.js");
+  const run = (args, { content, fixtures }) =>
+    spawnSync(process.execPath, [CLI, ...args, "--content", content, "--fixtures", fixtures], { encoding: "utf8" });
+
+  /** A sandbox the CLI is allowed to write into, with cleanup whatever the assertions do. */
+  function withSandbox(body, mutate) {
+    const { dir } = sandbox(mutate, { persist: true });
+    try {
+      return body({ content: join(dir, "content"), fixtures: join(dir, "fixtures") });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  it("scaffolds a lesson that passes the gate with no edits", () => {
+    withSandbox(({ content, fixtures }) => {
+      const created = run(["new", "--lesson", "11", "--group", "lookup"], { content, fixtures });
+      assert.equal(created.status, 0, created.stdout + created.stderr);
+      assert.match(created.stdout, /✓ created content\/exercises\/11-vlookup-approximate-match-needs-a-sorted-column\.json/);
+      assert.match(created.stdout, /takes catalog slot 37, published as lesson 8 of 11/);
+
+      const id = "11-vlookup-approximate-match-needs-a-sorted-column";
+      const lesson = readJson(lessonPath(content, id));
+      assert.equal(lesson.schemaVersion, 2, "new lessons ship in the v2 shape");
+      assert.equal(lesson.title, "VLOOKUP: approximate match needs a sorted column", "the slot's title, not a copy");
+      assert.equal(lesson.level, 2, "the slot's level");
+      assert.equal(lesson.screens[0].fixtures.accept.length + lesson.screens[0].fixtures.reject.length, 13);
+
+      const track = readJson(join(content, "track.json"));
+      assert.deepEqual(track.lessons[36], { id, group: "lookup" }, "the slot became the authored lesson");
+
+      const check = run(["check"], { content, fixtures });
+      assert.equal(check.status, 0, check.stdout);
+      assert.match(check.stdout, /content: 11 of 88 catalogued lessons, 16 groups, 11 screens, 167 fixtures replayed/);
+    });
+  });
+
+  it("takes the next free number when --lesson is omitted, and refuses one that skips it", () => {
+    withSandbox(({ content, fixtures }) => {
+      const skipped = run(["new", "--lesson", "14"], { content, fixtures });
+      assert.equal(skipped.status, 2);
+      assert.match(skipped.stderr, /lesson 14 cannot be created — 11 is the next free number/);
+
+      const bare = run(["new"], { content, fixtures });
+      assert.equal(bare.status, 0, bare.stdout + bare.stderr);
+      assert.match(bare.stdout, /✓ created content\/exercises\/11-what-a-formula-actually-does\.json/);
+    });
+  });
+
+  it("refuses a group the catalog does not have", () => {
+    withSandbox(({ content, fixtures }) => {
+      const created = run(["new", "--group", "nope"], { content, fixtures });
+      assert.equal(created.status, 2);
+      assert.match(created.stderr, /no group "nope" — the catalog has intro, sum, count, statistical/);
+      assert.ok(!existsSync(lessonPath(content, "11-nope")), "a refused scaffold writes nothing");
+    });
+  });
+
+  it("refuses a group whose slots are all written", () => {
+    withSandbox(
+      ({ content, fixtures }) => {
+        const created = run(["new", "--group", "rounding"], { content, fixtures });
+        assert.equal(created.status, 2);
+        assert.match(created.stderr, /group "rounding" has no planned slots left/);
+      },
+      ({ content }) => {
+        const path = join(content, "track.json");
+        const track = readJson(path);
+        writeJson(path, { ...track, lessons: track.lessons.filter((entry) => entry.id || entry.group !== "rounding") });
+      },
+    );
+  });
+
+  it("previews a lesson as its page will read it", () => {
+    withSandbox(({ content, fixtures }) => {
+      run(["new", "--lesson", "11", "--group", "lookup"], { content, fixtures });
+      const preview = run(["preview", "--lesson", "11"], { content, fixtures });
+      assert.equal(preview.status, 0, preview.stdout + preview.stderr);
+      assert.match(preview.stdout, /^8\. VLOOKUP: approximate match needs a sorted column — \/learn\/excel\//m);
+      assert.match(preview.stdout, /\[answer\]/, "the target cell is marked in the grid");
+      assert.match(preview.stdout, /answer B4 · grid A1:B4/);
+      assert.match(preview.stdout, /✓ =SUM\(B2:B3\)\s+accepted/);
+      assert.match(preview.stdout, /· =SUM\(120,180\)\s+rejected \(require-ref\)/);
+    });
+  });
+
+  it("previews a shipped lesson from its inline fixtures", () => {
+    const preview = spawnSync(process.execPath, [CLI, "preview", "--lesson", "6"], { encoding: "utf8" });
+    assert.equal(preview.status, 0, preview.stderr);
+    assert.match(preview.stdout, /^6\. ROUND: money to two decimals — \/learn\/excel\/round-markup$/m);
+    assert.match(preview.stdout, /· =ROUND\(B2\*1\.08,2\)\s+rejected \(func-sum\)/);
+  });
+});
+
 describe("content-lint: the route list matches the site", () => {
   it("uses the bases the two builds actually publish", () => {
     const [canonical, legacy] = LESSON_BASES;
@@ -390,8 +470,9 @@ describe("content-lint: replay", () => {
   it("returns the rows `fixtures` prints, with declared and reported rules side by side", () => {
     const content = loadContent(CONTENT);
     const lesson = content.exercises.find((entry) => entry.id === "01-sum-basics");
-    const [screen] = replayFixtures(lesson, { fixturesDir: FIXTURES });
-    assert.equal(screen.rows.length, readJson(join(FIXTURES, "01-sum-basics.json")).accepted.length + readJson(join(FIXTURES, "01-sum-basics.json")).rejected.length);
+    const [screen] = replayFixtures(lesson);
+    const { accept, reject } = lesson.screens[0].fixtures;
+    assert.equal(screen.rows.length, accept.length + reject.length);
     for (const row of screen.rows) {
       assert.equal(row.result.ok, row.expected === "accept", row.formula);
       if (row.expected === "reject") assert.equal(row.result.rule, row.declared, row.formula);
@@ -400,14 +481,13 @@ describe("content-lint: replay", () => {
 });
 
 describe("content-lint: missing directories", () => {
-  it("fails cleanly when the fixture directory is absent", () => {
+  it("needs no sidecar directory once every fixture is inline", () => {
     const dir = mkdtempSync(join(tmpdir(), "es-lint-"));
     cpSync(CONTENT, join(dir, "content"), { recursive: true });
     try {
       const report = lintContent(join(dir, "content"), { fixturesDir: join(dir, "nope") });
-      assert.equal(report.ok, false);
-      assert.equal(report.errors.length, 10, "every lesson is missing its fixtures");
-      assert.ok(!existsSync(join(dir, "nope")));
+      assert.deepEqual(report.errors, []);
+      assert.ok(!existsSync(join(dir, "nope")), "the linter must not create the directory it reads");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

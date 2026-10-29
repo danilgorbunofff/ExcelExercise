@@ -38,7 +38,8 @@ shortcut-drill and lifetime-pricing non-goals in phase 7.
 - [x] **2 — exercise content.** `content/track.json` + 10 lesson JSON files, with every expected
       value hand-computed and the arithmetic recorded in
       [the audit trail](02-exercise-content.md#arithmetic-audit-trail).
-- [x] **3 — grading fixtures.** `tests/fixtures/*.json` (154 formulas across the ten lessons),
+- [x] **3 — grading fixtures.** `tests/fixtures/*.json` (154 formulas across the ten lessons; since
+      moved inline onto `screens[].fixtures` by [phase 1](../plans/parity/phase-01-curriculum-content-factory.md)),
       `tests/fixtures.test.js`, and the hostile corpus shared through `tests/corpus.js`. The suite
       caught six rule-order misunderstandings in [the phase doc](03-grading-verification.md#where-the-fixtures-corrected-the-plan).
 - [x] **4 — static pages.** `src/build.mjs`, `src/serve.mjs`, `src/site/*` templates, 11 SSR pages with

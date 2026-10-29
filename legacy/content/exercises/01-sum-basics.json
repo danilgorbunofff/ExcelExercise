@@ -3,58 +3,117 @@
   "slug": "sum-basics",
   "level": 1,
   "title": "SUM: total a column",
-  "prompt": "In B5, total Q1 revenue for all three regions with one function.",
-  "answerCell": "B5",
-  "grid": {
-    "startCell": "A1",
-    "rows": [
-      [
-        "Region",
-        "Q1",
-        "Q2"
-      ],
-      [
-        "North",
-        1200,
-        900
-      ],
-      [
-        "South",
-        1450,
-        1100
-      ],
-      [
-        "West",
-        930,
-        700
-      ],
-      [
-        "Total Q1",
-        null,
-        null
-      ]
-    ]
-  },
-  "expect": {
-    "value": 3580
-  },
-  "require": [
+  "schemaVersion": 2,
+  "screens": [
     {
-      "id": "func-sum",
-      "func": "SUM",
-      "minArgs": 1
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B5, total Q1 revenue for all three regions with one function.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Q1",
+            "Q2"
+          ],
+          [
+            "North",
+            1200,
+            900
+          ],
+          [
+            "South",
+            1450,
+            1100
+          ],
+          [
+            "West",
+            930,
+            700
+          ],
+          [
+            "Total Q1",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B5",
+      "expect": {
+        "value": 3580
+      },
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close every bracket: =SUM(B2:B4).",
+        "func-sum": "Add the three cells with SUM instead of typing 1200+1450+930.",
+        "require-ref": "Your answer has to point at the Q1 cells, not repeat a total you worked out yourself.",
+        "value": "Close, but that is not the Q1 total. Check that the range covers all three regions and none of the Q2 column.",
+        "error": "SUM only fails on what you feed it: #VALUE! means a cell in the range holds text instead of a number, #REF! means the range was pointed at something deleted. Re-select B2:B4 and let Excel write the range for you."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B2:B4)",
+          "=sum(b2:b4)",
+          "=SUM($B$2:$B$4)",
+          "=SUM(B2,B3,B4)",
+          "=SUM(B2:B4)+0",
+          "=SUM(B$2:B$4)"
+        ],
+        "reject": [
+          {
+            "formula": "=B2+B3+B4",
+            "rule": "func-sum",
+            "why": "adds the cells by hand instead of using SUM"
+          },
+          {
+            "formula": "=AVERAGE(B2:B4)",
+            "rule": "func-sum",
+            "why": "the right cells, the wrong function"
+          },
+          {
+            "formula": "=SUM(B2:B3)",
+            "rule": "value",
+            "why": "range stops one row short, so West is missing"
+          },
+          {
+            "formula": "=SUM(B2:B4)*2",
+            "rule": "value",
+            "why": "doubles the total to 7160"
+          },
+          {
+            "formula": "=SUM(B2:C4)",
+            "rule": "value",
+            "why": "picks up the Q2 column as well as Q1"
+          },
+          {
+            "formula": "=SUM(1200,1450,930)",
+            "rule": "require-ref",
+            "why": "types the numbers into SUM instead of pointing at B2:B4"
+          },
+          {
+            "formula": "=SUM(B2:B4)/0",
+            "rule": "error",
+            "why": "the total is right, then it is divided by zero"
+          },
+          {
+            "formula": "=SUM(B2:B4",
+            "rule": "syntax",
+            "why": "unclosed bracket"
+          }
+        ]
+      }
     }
   ],
-  "forbid": [],
-  "requireRef": "B2",
-  "rules": [],
-  "hints": {
-    "syntax": "Start with = and close every bracket: =SUM(B2:B4).",
-    "func-sum": "Add the three cells with SUM instead of typing 1200+1450+930.",
-    "require-ref": "Your answer has to point at the Q1 cells, not repeat a total you worked out yourself.",
-    "value": "Close, but that is not the Q1 total. Check that the range covers all three regions and none of the Q2 column.",
-    "error": "SUM only fails on what you feed it: #VALUE! means a cell in the range holds text instead of a number, #REF! means the range was pointed at something deleted. Re-select B2:B4 and let Excel write the range for you."
-  },
   "docs": {
     "syntax": "=SUM(number1, [number2], ...)",
     "explain": "SUM adds up every number you point it at. Here the Q1 column holds 1200, 1450 and 930, and SUM(B2:B4) returns 3580 because 1200 + 1450 + 930 = 3580. Nothing has to be typed twice: change the South figure to 1500 and the total follows, which is the entire reason a spreadsheet exists. SUM ignores text and empty cells inside a range, so a stray label in the middle of a column will not break the answer — the trap is the other way around, a number stored as text, which SUM silently skips. If a region is missing from the total, look for a left-aligned number in the column.",

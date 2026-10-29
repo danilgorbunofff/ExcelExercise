@@ -1,45 +1,25 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
 import { grade } from "../packages/grader/index.js";
 import { AUDIT } from "./audit.js";
 import { HOSTILE, OUTCOME_KEYS } from "./corpus.js";
+import { LESSONS as lessons } from "./lessons.js";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const EXERCISES = join(ROOT, "legacy", "content", "exercises");
-const FIXTURES = join(ROOT, "tests", "fixtures");
+const covered = lessons;
 
-const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
-
-// A missing fixture must fail as a named test, not as a module-load ENOENT that hides which lesson.
-const readFixture = (name) => {
-  const path = join(FIXTURES, name);
-  return existsSync(path) ? readJson(path) : null;
-};
-
-const files = readdirSync(EXERCISES).filter((name) => name.endsWith(".json")).sort();
-const lessons = files.map((name) => ({
-  name,
-  exercise: readJson(join(EXERCISES, name)),
-  fixture: readFixture(name),
-}));
-const covered = lessons.filter((lesson) => lesson.fixture);
+/** A rejection is `{ formula, rule, why }` in the shipped corpus; the schema also allows a bare string. */
+const formulaOf = (rejection) => (typeof rejection === "string" ? rejection : rejection.formula);
 
 const MEDIAN_FLOOR = 6;
 
 describe("fixtures: shape", () => {
-  it("has one fixture per exercise, and no strays", () => {
-    const exerciseIds = lessons.map((lesson) => lesson.exercise.id).sort();
-    const fixtureIds = readdirSync(FIXTURES)
-      .filter((name) => name.endsWith(".json"))
-      .map((name) => name.replace(/\.json$/, ""))
-      .sort();
-    assert.deepEqual(fixtureIds, exerciseIds);
-    for (const lesson of lessons) {
-      assert.ok(lesson.fixture, `${lesson.name}: expected tests/fixtures/${lesson.name} to exist`);
+  it("carries both lists on every screen, with nothing empty", () => {
+    assert.ok(lessons.length >= 10, `only ${lessons.length} lessons ship fixtures`);
+    for (const { name, screen, fixture } of lessons) {
+      assert.ok(screen.fixtures, `${name}: screen has no fixtures inline`);
+      assert.ok(fixture.accepted.length > 0, `${name}: no accepted fixtures`);
+      assert.ok(fixture.rejected.length > 0, `${name}: no rejected fixtures`);
     }
   });
 
@@ -59,6 +39,7 @@ describe("fixtures: shape", () => {
   it("documents every rejection with a rule the exercise can actually report and a reason", () => {
     for (const { exercise, fixture } of covered) {
       for (const rejection of fixture.rejected) {
+        assert.equal(typeof rejection, "object", `${exercise.id}: every rejection carries its rule and reason`);
         assert.ok(rejection.formula?.trim(), `${exercise.id}: rejected entry without a formula`);
         assert.ok(
           Object.hasOwn(exercise.hints, rejection.rule),
@@ -75,11 +56,12 @@ describe("fixtures: shape", () => {
   it("does not list the same formula as both accepted and rejected", () => {
     for (const { exercise, fixture } of covered) {
       const accepted = new Set(fixture.accepted);
-      for (const { formula } of fixture.rejected) {
+      for (const rejection of fixture.rejected) {
+        const formula = formulaOf(rejection);
         assert.ok(!accepted.has(formula), `${exercise.id}: "${formula}" is in both lists`);
       }
       assert.equal(new Set(fixture.accepted).size, fixture.accepted.length, `${exercise.id}: duplicate accepted entry`);
-      const rejected = fixture.rejected.map(({ formula }) => formula);
+      const rejected = fixture.rejected.map(formulaOf);
       assert.equal(new Set(rejected).size, rejected.length, `${exercise.id}: duplicate rejected entry`);
     }
   });
@@ -109,7 +91,7 @@ describe("fixtures: rejected formulas are rejected for the documented reason", (
   for (const { exercise, fixture } of covered) {
     it(`${exercise.id}: ${fixture.rejected.length} rejected formulas report the documented rule`, () => {
       for (const rejection of fixture.rejected) {
-        const result = grade(exercise, rejection.formula);
+        const result = grade(exercise, formulaOf(rejection));
         assert.equal(result.ok, false, `${exercise.id}: "${rejection.formula}" was accepted`);
         assert.equal(
           result.rule,
@@ -121,7 +103,7 @@ describe("fixtures: rejected formulas are rejected for the documented reason", (
 
     it(`${exercise.id}: rejections explain themselves and carry a hint`, () => {
       for (const rejection of fixture.rejected) {
-        const result = grade(exercise, rejection.formula);
+        const result = grade(exercise, formulaOf(rejection));
         assert.ok(result.message.length > 15, `${exercise.id}: "${rejection.formula}" message is too short: "${result.message}"`);
         assert.doesNotMatch(result.message, /^incorrect\b/i, `${exercise.id}: "${rejection.formula}" gets a bare "Incorrect"`);
         assert.notEqual(result.hint.trim(), "", `${exercise.id}: "${rejection.formula}" (${result.rule}) has no hint`);
@@ -133,7 +115,7 @@ describe("fixtures: rejected formulas are rejected for the documented reason", (
 describe("fixtures: coverage", () => {
   it("reaches every hint the exercise ships, so no copy is dead", () => {
     for (const { exercise, fixture } of covered) {
-      const reached = new Set(fixture.rejected.map((rejection) => grade(exercise, rejection.formula).rule));
+      const reached = new Set(fixture.rejected.map((rejection) => grade(exercise, formulaOf(rejection)).rule));
       for (const ruleId of Object.keys(exercise.hints)) {
         assert.ok(
           reached.has(ruleId),
@@ -171,7 +153,7 @@ describe("fixtures: performance", () => {
   it("grades 1,000 answers quickly and prints a per-exercise summary", () => {
     const samples = covered.map(({ exercise, fixture }) => ({
       exercise,
-      formulas: [...fixture.accepted, ...fixture.rejected.map((rejection) => rejection.formula)],
+      formulas: [...fixture.accepted, ...fixture.rejected.map(formulaOf)],
     }));
     const runs = 1000;
     const started = performance.now();

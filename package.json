@@ -13,6 +13,8 @@
     "check": "npm test && npm run content:check && npm run next:build && npm run next:check && node legacy/src/verify.mjs",
     "content:check": "node packages/content-lint/cli.js check",
     "content:fixtures": "node packages/content-lint/cli.js fixtures",
+    "content:new": "node packages/content-lint/cli.js new",
+    "content:preview": "node packages/content-lint/cli.js preview",
     "catalog:reference": "node scripts/reference-catalog.mjs",
     "vendor:check": "node legacy/src/vendor-check.mjs",
     "next:dev": "npm run build && node scripts/next-assets.mjs && next dev",

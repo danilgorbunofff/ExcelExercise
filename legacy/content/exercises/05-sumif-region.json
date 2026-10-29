@@ -3,61 +3,125 @@
   "slug": "sumif-region",
   "level": 2,
   "title": "SUMIF: total one region",
-  "prompt": "In B7, total the North amounts from the sales table in A1:B6.",
-  "answerCell": "B7",
-  "grid": {
-    "startCell": "A1",
-    "rows": [
-      [
-        "Region",
-        "Amount"
-      ],
-      [
-        "North",
-        320
-      ],
-      [
-        "South",
-        250
-      ],
-      [
-        "North",
-        180
-      ],
-      [
-        "West",
-        300
-      ],
-      [
-        "North",
-        400
-      ],
-      [
-        "North total",
-        null
-      ]
-    ]
-  },
-  "expect": {
-    "value": 900
-  },
-  "require": [
+  "schemaVersion": 2,
+  "screens": [
     {
-      "id": "func-sumif",
-      "func": "SUMIF",
-      "minArgs": 3
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, total the North amounts from the sales table in A1:B6.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Amount"
+          ],
+          [
+            "North",
+            320
+          ],
+          [
+            "South",
+            250
+          ],
+          [
+            "North",
+            180
+          ],
+          [
+            "West",
+            300
+          ],
+          [
+            "North",
+            400
+          ],
+          [
+            "North total",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 900
+      },
+      "require": [
+        {
+          "id": "func-sumif",
+          "func": "SUMIF",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUMIF(A2:A6,\"North\",B2:B6) — condition range, condition, then the numbers to add.",
+        "func-sumif": "SUMIF adds only the rows that match. SUM would give you the total of every region, which is a different question.",
+        "require-ref": "The sum range has to be the amount column, not the region column.",
+        "value": "That is not the North total. Check the third argument: with only two arguments SUMIF adds the region names, which is zero.",
+        "error": "#VALUE! means the criteria range and the sum range are different shapes — A2:A6 and B2:B6 have to line up row for row. If the region column is in the sum slot, expect zero rather than an error."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIF(A2:A6,\"North\",B2:B6)",
+          "=sumif($A$2:$A$6,\"north\",$B$2:$B$6)",
+          "=SUMIF(A2:A6,\"N*\",B2:B6)",
+          "=SUMIF(A2:A6,\"North\",B2)",
+          "=SUMIF(A2:A6,\"North\",B2:B6)+0",
+          "=SUMIF(A2:A6,\"North\",B2:B6)/1"
+        ],
+        "reject": [
+          {
+            "formula": "=SUMIF(A2:A6,\"North\")",
+            "rule": "func-sumif",
+            "why": "no sum range, so SUMIF sums the region names"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\"North\",A2:A6)",
+            "rule": "value",
+            "why": "the ranges are swapped, so it sums the text column"
+          },
+          {
+            "formula": "=SUMIF(A2:A6,\"South\",B2:B6)",
+            "rule": "value",
+            "why": "South total, 250, instead of North's 900"
+          },
+          {
+            "formula": "=SUMIF(A2:A5,\"North\",B2:B5)",
+            "rule": "value",
+            "why": "stops before the last North row"
+          },
+          {
+            "formula": "=SUM(B2:B6)",
+            "rule": "func-sumif",
+            "why": "adds every region instead of filtering"
+          },
+          {
+            "formula": "=SUMIF(A3:A6,\"North\",B3:B6)",
+            "rule": "require-ref",
+            "why": "the region column starts at A3, so A2 is never read and the first North row is skipped"
+          },
+          {
+            "formula": "=SUMIF(A2:A6,\"North\",C2:C6)",
+            "rule": "require-ref",
+            "why": "sums the empty column instead of B2:B6"
+          },
+          {
+            "formula": "=SUMIF(A2:A6,\"North\",B2:B6)/0",
+            "rule": "error",
+            "why": "divides the total by zero"
+          },
+          {
+            "formula": "=SUMIF(A2:A6,\"North\",B2:B6",
+            "rule": "syntax",
+            "why": "unclosed bracket"
+          }
+        ]
+      }
     }
   ],
-  "forbid": [],
-  "requireRef": "B2",
-  "rules": [],
-  "hints": {
-    "syntax": "=SUMIF(A2:A6,\"North\",B2:B6) — condition range, condition, then the numbers to add.",
-    "func-sumif": "SUMIF adds only the rows that match. SUM would give you the total of every region, which is a different question.",
-    "require-ref": "The sum range has to be the amount column, not the region column.",
-    "value": "That is not the North total. Check the third argument: with only two arguments SUMIF adds the region names, which is zero.",
-    "error": "#VALUE! means the criteria range and the sum range are different shapes — A2:A6 and B2:B6 have to line up row for row. If the region column is in the sum slot, expect zero rather than an error."
-  },
   "docs": {
     "syntax": "=SUMIF(range, criteria, [sum_range])",
     "explain": "SUMIF asks two questions at once: which rows match, and which column should be added. The region column is A2:A6, the condition is \"North\", and the amounts live in B2:B6. Three rows match — 320, 180 and 400 — and 320 + 180 + 400 = 900, so =SUMIF(A2:A6,\"North\",B2:B6) returns 900 while the whole table holds 1450. The third argument is optional and that is the trap: leave it out and SUMIF adds the cells in the condition range, which are words, so the answer collapses to 0. The condition works like COUNTIF, so \">=200\" or \"N*\" are legal, and the two ranges are matched by position rather than by address, which means both should be the same shape.",

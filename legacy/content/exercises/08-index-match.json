@@ -3,99 +3,168 @@
   "slug": "index-match",
   "level": 3,
   "title": "INDEX + MATCH: lookup either way",
-  "prompt": "In E3, return the salary for the ID in D3 with INDEX and MATCH instead of VLOOKUP.",
-  "answerCell": "E3",
-  "grid": {
-    "startCell": "A1",
-    "rows": [
-      [
-        "ID",
-        "Name",
-        "Salary",
-        "Lookup",
-        "Result"
-      ],
-      [
-        "E-101",
-        "Ana",
-        61500,
-        null,
-        null
-      ],
-      [
-        "E-102",
-        "Bo",
-        57000,
-        "E-103",
-        null
-      ],
-      [
-        "E-103",
-        "Cy",
-        88000,
-        null,
-        null
-      ],
-      [
-        "E-104",
-        "Dee",
-        54000,
-        null,
-        null
-      ],
-      [
-        "E-105",
-        "Eli",
-        49500,
-        null,
-        null
-      ]
-    ]
-  },
-  "expect": {
-    "value": 88000
-  },
-  "require": [
+  "schemaVersion": 2,
+  "screens": [
     {
-      "id": "func-index",
-      "func": "INDEX",
-      "minArgs": 2
-    },
-    {
-      "id": "func-match",
-      "func": "MATCH",
-      "minArgs": 3
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In E3, return the salary for the ID in D3 with INDEX and MATCH instead of VLOOKUP.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "ID",
+            "Name",
+            "Salary",
+            "Lookup",
+            "Result"
+          ],
+          [
+            "E-101",
+            "Ana",
+            61500,
+            null,
+            null
+          ],
+          [
+            "E-102",
+            "Bo",
+            57000,
+            "E-103",
+            null
+          ],
+          [
+            "E-103",
+            "Cy",
+            88000,
+            null,
+            null
+          ],
+          [
+            "E-104",
+            "Dee",
+            54000,
+            null,
+            null
+          ],
+          [
+            "E-105",
+            "Eli",
+            49500,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "E3",
+      "expect": {
+        "value": 88000
+      },
+      "require": [
+        {
+          "id": "func-index",
+          "func": "INDEX",
+          "minArgs": 2
+        },
+        {
+          "id": "func-match",
+          "func": "MATCH",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [
+        {
+          "id": "no-vlookup",
+          "func": "VLOOKUP"
+        }
+      ],
+      "requireRef": "A2",
+      "rules": [
+        {
+          "id": "match-exact",
+          "type": "matchType",
+          "func": "MATCH",
+          "arg": 3,
+          "values": [
+            0,
+            false
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "=INDEX(C2:C6,MATCH(D3,A2:A6,0)) — MATCH finds the row number, INDEX reads that row.",
+        "func-index": "INDEX is the half that returns the value; it needs the column of salaries and a row number.",
+        "func-match": "MATCH supplies the row number. It needs the column of IDs and the 0 for an exact match, or the row will be approximate.",
+        "no-vlookup": "This lesson is about the alternative. VLOOKUP cannot look to the left, which is exactly why INDEX + MATCH exists.",
+        "match-exact": "The third argument of MATCH must be 0. Anything else is an approximate match, which assumes sorted data.",
+        "require-ref": "Point the formula at the ID cell and at the table, so it still works when payroll adds a row.",
+        "value": "Check which column INDEX is reading and which one MATCH is searching — they have to be the same rows.",
+        "error": "#N/A is the honest error here: MATCH did not find the ID in A2:A6. #REF! means the row number fell outside C2:C6, and #VALUE! usually means MATCH was given a range where a single cell belongs."
+      },
+      "fixtures": {
+        "accept": [
+          "=INDEX(C2:C6,MATCH(D3,A2:A6,0))",
+          "=index(c2:c6,match(d3,a2:a6,0))",
+          "=INDEX(C2:C6,MATCH(D3,A2:A6,FALSE))",
+          "=INDEX($C$2:$C$6,MATCH($D$3,$A$2:$A$6,0))",
+          "=INDEX(C2:C6,MATCH(D3,A2:A6,0))+0",
+          "=INDEX(C2:C6,MATCH(D3,A2:A6,0))*1"
+        ],
+        "reject": [
+          {
+            "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6,1))",
+            "rule": "match-exact",
+            "why": "approximate MATCH"
+          },
+          {
+            "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6))",
+            "rule": "func-match",
+            "why": "MATCH is given two arguments, so the match type is missing entirely"
+          },
+          {
+            "formula": "=INDEX(B2:B6,MATCH(D3,A2:A6,0))",
+            "rule": "value",
+            "why": "INDEX reads the name column"
+          },
+          {
+            "formula": "=INDEX(C2:C6,3)",
+            "rule": "func-match",
+            "why": "the row number is typed, so nothing matches dynamically"
+          },
+          {
+            "formula": "=MATCH(D3,A2:A6,0)",
+            "rule": "func-index",
+            "why": "returns a row position, not the salary"
+          },
+          {
+            "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6,0))+VLOOKUP(D3,A2:A6,2,FALSE)",
+            "rule": "no-vlookup",
+            "why": "VLOOKUP is exactly what this lesson replaces"
+          },
+          {
+            "formula": "=INDEX(C2:C6,MATCH(\"E-103\",B2:B6,0))",
+            "rule": "require-ref",
+            "why": "matches against the name column instead of the ID column"
+          },
+          {
+            "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6,0))/0",
+            "rule": "error",
+            "why": "divides the salary by zero"
+          },
+          {
+            "formula": "=88000",
+            "rule": "func-index",
+            "why": "the salary is typed, not looked up"
+          },
+          {
+            "formula": "=INDEX(C2:C6,MATCH(D3,A2:A6,0)",
+            "rule": "syntax",
+            "why": "unclosed brackets"
+          }
+        ]
+      }
     }
   ],
-  "forbid": [
-    {
-      "id": "no-vlookup",
-      "func": "VLOOKUP"
-    }
-  ],
-  "requireRef": "A2",
-  "rules": [
-    {
-      "id": "match-exact",
-      "type": "matchType",
-      "func": "MATCH",
-      "arg": 3,
-      "values": [
-        0,
-        false
-      ]
-    }
-  ],
-  "hints": {
-    "syntax": "=INDEX(C2:C6,MATCH(D3,A2:A6,0)) — MATCH finds the row number, INDEX reads that row.",
-    "func-index": "INDEX is the half that returns the value; it needs the column of salaries and a row number.",
-    "func-match": "MATCH supplies the row number. It needs the column of IDs and the 0 for an exact match, or the row will be approximate.",
-    "no-vlookup": "This lesson is about the alternative. VLOOKUP cannot look to the left, which is exactly why INDEX + MATCH exists.",
-    "match-exact": "The third argument of MATCH must be 0. Anything else is an approximate match, which assumes sorted data.",
-    "require-ref": "Point the formula at the ID cell and at the table, so it still works when payroll adds a row.",
-    "value": "Check which column INDEX is reading and which one MATCH is searching — they have to be the same rows.",
-    "error": "#N/A is the honest error here: MATCH did not find the ID in A2:A6. #REF! means the row number fell outside C2:C6, and #VALUE! usually means MATCH was given a range where a single cell belongs."
-  },
   "docs": {
     "syntax": "=INDEX(return_column, MATCH(lookup_value, search_column, 0))",
     "explain": "MATCH answers one question: on which row does this value appear? Searching E-103 in A2:A6 returns 3, because it is the third row of that range. INDEX answers the other question: what is on row 3 of this column? Reading C2:C6 at position 3 returns 88000, and the two nested together give =INDEX(C2:C6,MATCH(D3,A2:A6,0)) = 88000. The 0 in MATCH is the exact-match flag and it is not optional in practice: omit it and MATCH assumes sorted data, so an ID that is not in the list returns the row before it instead of #N/A. The pair matters because each half can point at any column, so the return column no longer has to sit to the right of the search column.",

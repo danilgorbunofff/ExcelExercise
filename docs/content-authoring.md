@@ -242,6 +242,61 @@ high-density display, and weighs less than a screenshot of the same sheet. Draw 
 actually shows it — same values, same highlight — because the prompt and the image disagreeing is the
 one bug a reader cannot catch from the JSON.
 
+## Shortcut screens
+
+Two screen types ask for the keyboard instead of the formula bar: `chord` for one shortcut, `sequence`
+for Excel's ribbon access keys, which are several presses in order. Reach for one when the lesson is
+about reaching a feature rather than computing an answer.
+
+```json
+{
+  "id": "chord-1",
+  "type": "chord",
+  "prompt": "Turn filters on for the table without touching the mouse.",
+  "keys": ["Ctrl+Shift+L"],
+  "hints": {
+    "value": "Filters sit at the end of the Data tab's Sort & Filter group — and they are a toggle, so the same keys turn them off."
+  }
+}
+```
+
+```json
+{
+  "id": "sequence-1",
+  "type": "sequence",
+  "prompt": "Reach the number-format menu from the ribbon's access keys.",
+  "steps": ["Alt", "H", "N", "O"],
+  "hints": {
+    "value": "Alt opens the ribbon's access keys, then one letter per tab and per item."
+  }
+}
+```
+
+- **`keys`** are the accepted presses of one shortcut, best first — the first is what the reveal prints,
+  and the rest are other spellings of the same press. Order of modifiers is not a spelling: `Ctrl+Shift+L`
+  and `Shift+Ctrl+L` are one press, so listing both is a gate failure, not a second answer. Write `Mod`
+  when Excel documents Ctrl and the shortcut should follow the platform (Command on a Mac); write `Ctrl`
+  when the platform really is Ctrl.
+- **`steps`** are presses in order, each parsed as a press rather than a chord, so a modifier on its own
+  (`Alt`) is a step. Anything the learner presses out of order starts the sequence over.
+- **`expect.value` is written from the list**, not by you: the schema stores `"Ctrl + Shift + L"` or
+  `"Alt then H then N then O"` for the reveal and for the solved line. The page prints the keys in the
+  learner's own words (`⌘⇧L` on a Mac) whatever the content says.
+- **No formula fields.** `grid`, `answerCell`, `expect`, `require`, `forbid`, `requireRef`, `rules`,
+  `fixtures` and `reference` are rejected, the same way they are on a picture screen. `docs.reference`
+  names the shortcut itself — `"Ctrl+Shift+L"` — because a lesson whose screens are all shortcuts has no
+  formula to work, and the worked example is hidden on the page.
+- **A reserved chord needs the typed fallback to be honest about it.** `Ctrl+T` and friends are eaten by
+  the browser before the page sees them; `content-lint` warns so the lesson does not become unpassable,
+  and the learner can always type the shortcut into the bar instead.
+- **`hints` takes `value` only**, and a missing one warns — a miss that explains nothing teaches nothing.
+
+The page puts the caps in a focusable panel and focuses it, so the first press lands on the page rather
+than in the bar. A bare letter typed while the panel has the focus is not graded, because it is on its
+way to the bar; only the first press of a sequence, a press with a modifier, or a named key (`Enter`,
+`Tab`, `Escape`, `ArrowDown`…) counts. `Escape` starts a mistake-strewn sequence over without spending
+an attempt.
+
 ## The catalog slot
 
 `legacy/content/track.json` is the site map: 16 groups, 88 slots. A planned slot is

@@ -58,8 +58,25 @@ Items 3–5, 7, 10, 12 are untouched, and the clock is read but not enforced.
       on a 375 px viewport, so a zoom control would be a button with nothing to reveal until a raster
       screenshot forces one. The `alt` text is required and carries the whole image, so the screen is
       solvable without seeing it.
-- [ ] **3–5, 7, 10, 12.** Chord and sequence screens, capability detection and the fallback, workbook
-      screens, `packages/sheet` as a module, the hint/docs panels, accessibility. Next up, in that order.
+- [x] **3, 4, 5.** Chord and sequence screens, with capability detection and a fallback. The key model is
+      `packages/keys` — `parseChord`/`parsePress`, `labelsOf`/`chordText`, `matchesEvent`, `matchesTyped`
+      (`matchesTypedSteps`), `isReserved` — so the template, the client and the gate cannot disagree about
+      what `Ctrl+Shift+L` means. `renderKeys` draws the presses as `kbd` caps and the panel takes the
+      focus, because a press only reaches the document while a field does not have it; `paintKeys`
+      re-labels every cap for the platform, so a Mac reads `⌘⇧L` from the same content. Grading is
+      `matchesEvent` for a press and `matchesTyped` for the bar, and only a *deliberate* press spends an
+      attempt (the first of a sequence, one with a modifier, or a named key), so a plain letter on its way
+      to the bar does not burn one. A missed step restarts the sequence; `Escape` restarts it for free;
+      a held key does not grade the screen it just advanced to; a non-Latin layout falls back to
+      `event.code`. Two decisions did not follow the plan, deliberately: the fallback is the formula bar
+      rather than a multiple-choice panel — the bar already exists, it grades the same list, and a
+      generated distractor set is content nobody authored — and no `chord_fallback` event is emitted,
+      since the bar is not a mode the learner switches into. Nothing is *blocked* on either.
+      **Chord content is not authored yet**: `track.json` has no shortcuts group, because the reference's
+      13 shortcut lessons are phase-9B scope. `tests/keys-page.test.js` renders a shortcut lesson from a
+      temp content copy, which is what proves the server half until that group exists.
+- [ ] **7, 10, 12.** Workbook screens, `packages/sheet` as a module, the hint/docs panels, accessibility.
+      Next up, in that order.
 
 Two acceptance criteria are now true of the site — "a lesson with several screens terminates at 100"
 passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson 16's three screens in

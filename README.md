@@ -198,7 +198,9 @@ The full procedure — every field limit, the fixture checklist and a worked exa
    in that file. `screens[0].fixtures` holds `accept` (formulas that must grade `ok`) and `reject`
    (`{ formula, rule, why }`, where `rule` is the id the grader reports); the gate wants six of each.
    A `type: "picture"` screen has none of those — just `image`, `alt`, `answers` and a `value` hint; see
-   [picture screens](docs/content-authoring.md#picture-screens).
+   [picture screens](docs/content-authoring.md#picture-screens). A `chord` or `sequence` screen is graded
+   by its presses instead — `keys` or `steps` plus a `value` hint; see
+   [shortcut screens](docs/content-authoring.md#shortcut-screens).
 3. `npm run content:preview -- --lesson 17`, `npm run content:fixtures -- --lesson 17`, then
    `npm run content:check`. A group that gains its first published lesson owes an `intro` in
    `track.json`.

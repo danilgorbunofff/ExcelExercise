@@ -62,7 +62,10 @@ export function summaryLine({ completed, total, stale = 0, needsPractice = 0 }) 
   return parts.join(" ");
 }
 
-/** The label and the reason on the up-next button. */
+/**
+ * The label and the reason on the up-next button. `finished` is the honest end of the track: there is no
+ * button, no daily challenge and no certificate, because this site has neither yet.
+ */
 export function nextCopy({ next, nextReason }) {
   if (!next) {
     return {
@@ -70,11 +73,11 @@ export function nextCopy({ next, nextReason }) {
       why: "Nothing is stale and nothing wants practice. Come back in a couple of weeks and this page will say what has gone cold.",
     };
   }
-  const verb = nextReason === "resume" ? "Resume" : nextReason === "review" ? "Revisit" : "Start";
+  const verb = nextReason === "resume" ? "Resume" : nextReason === "practice" ? "Revisit" : "Start";
   const why = {
     start: "The first drill you have not finished.",
     resume: "You have already had a go at this one, so it is the next thing to finish.",
-    review: "Every drill is finished, and this one wants a second look.",
+    practice: "Every drill is finished, and this is the one that has gone the coldest.",
   };
   return { label: `${verb} drill ${next.number} · ${next.title}`, why: why[nextReason] ?? "" };
 }
@@ -98,8 +101,12 @@ export function ago(at, now = Date.now()) {
 /**
  * The whole dashboard in one call. `plan` is the published lessons in order, each
  * `{ id, number, title, path, group }`. `nextReason` is `resume` when the up-next lesson already has a
- * failed check against it, `start` when it is untouched, `review` when everything is complete but
- * something wants a second look, and `done` when there is nothing left to suggest.
+ * failed check against it, `start` when it is untouched, `practice` when everything is complete but
+ * something wants a second look, and `finished` when there is nothing left to suggest.
+ *
+ * `practice` picks the coldest lesson that wants attention — oldest completion first, across both
+ * `needs_practice` and `stale` — because with the track behind them the useful question stops being
+ * "what is next" and becomes "what will I have forgotten".
  */
 export function summarise({ plan, progress = null, now = Date.now() }) {
   const rows = plan.map((entry) => ({ ...entry, badge: badgeFor(progress, entry.id, now) }));
@@ -125,15 +132,18 @@ export function summarise({ plan, progress = null, now = Date.now() }) {
 
   const unfinished = rows.find((row) => !solved(row));
   let next = null;
-  let nextReason = "done";
+  let nextReason = "finished";
   if (unfinished) {
     next = unfinished;
     nextReason = unfinished.badge === "in_progress" ? "resume" : "start";
   } else {
-    const review = rows.find((row) => row.badge === "needs_practice") ?? rows.find((row) => row.badge === "stale");
-    if (review) {
-      next = review;
-      nextReason = "review";
+    const coldest = rows
+      .filter((row) => row.badge === "needs_practice" || row.badge === "stale")
+      .map((row) => ({ row, at: Date.parse(progress.done[row.id]?.at ?? "") || 0 }))
+      .sort((a, b) => a.at - b.at)[0];
+    if (coldest) {
+      next = coldest.row;
+      nextReason = "practice";
     }
   }
 

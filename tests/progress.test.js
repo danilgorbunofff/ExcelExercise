@@ -15,6 +15,7 @@ import {
   ago,
   badgeFor,
   badgeLabel,
+  nextCopy,
   summarise,
 } from "../packages/progress/index.js";
 
@@ -105,6 +106,23 @@ describe("ago", () => {
   });
 });
 
+describe("nextCopy", () => {
+  const row = { number: 4, title: "Average scores" };
+
+  it("names the verb the reason earned", () => {
+    assert.equal(nextCopy({ next: row, nextReason: "start" }).label, "Start drill 4 · Average scores");
+    assert.equal(nextCopy({ next: row, nextReason: "resume" }).label, "Resume drill 4 · Average scores");
+    assert.equal(nextCopy({ next: row, nextReason: "practice" }).label, "Revisit drill 4 · Average scores");
+    assert.ok(nextCopy({ next: row, nextReason: "practice" }).why.length > 0);
+  });
+
+  it("promises nothing when there is nothing left", () => {
+    const copy = nextCopy({ next: null, nextReason: "finished" });
+    assert.equal(copy.label, "You have finished the track");
+    assert.match(copy.why, /nothing is stale/i);
+  });
+});
+
 describe("summarise", () => {
   it("counts nothing done on a fresh browser", () => {
     const summary = summarise({ plan: PLAN, progress: progressOf(), now: NOW });
@@ -187,7 +205,20 @@ describe("summarise", () => {
     const summary = summarise({ plan: PLAN, progress, now: NOW });
     assert.equal(summary.completed, 3);
     assert.equal(summary.next.id, "02-b");
-    assert.equal(summary.nextReason, "review");
+    assert.equal(summary.nextReason, "practice");
+  });
+
+  it("revises the coldest lesson, not the first one in order", () => {
+    const progress = progressOf({
+      done: {
+        "01-a": { at: at(30), tries: 1, helped: false },
+        "02-b": { at: at(1), tries: 1, helped: true },
+        "03-c": { at: at(2), tries: 1, helped: false },
+      },
+    });
+    const summary = summarise({ plan: PLAN, progress, now: NOW });
+    assert.equal(summary.next.id, "01-a", "01-a was solved a month ago, 02-b was solved yesterday");
+    assert.equal(summary.nextReason, "practice");
   });
 
   it("recommends nothing only when the track is complete and healthy", () => {
@@ -200,7 +231,7 @@ describe("summarise", () => {
     });
     const summary = summarise({ plan: PLAN, progress, now: NOW });
     assert.equal(summary.next, null);
-    assert.equal(summary.nextReason, "done");
+    assert.equal(summary.nextReason, "finished");
     assert.equal(summary.remaining, 0);
   });
 

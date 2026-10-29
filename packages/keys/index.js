@@ -329,6 +329,20 @@ function flagsOf(chord, os) {
  * (holding Ctrl before the key is how a chord is typed) and the keys a keyboard sends that are not
  * part of any shortcut.
  */
+/** `code` for a key that prints a letter or a digit in a Latin layout: `KeyL` → `l`, `Digit1` → `1`. */
+const CODE_KEY = /^(?:Key([A-Z])|Digit([0-9]))$/;
+
+/**
+ * The key this event typed, for a layout we can read. A non-Latin layout reports the character it
+ * prints — `д` on a Cyrillic keyboard where Excel's shortcut says `L` — so a character outside ASCII
+ * is read from the physical key instead, which is the key the shortcut was written for.
+ */
+function readableKey(event) {
+  if (event.key.length === 1 && /^[\x20-\x7e]$/.test(event.key)) return event.key.toLowerCase();
+  const code = CODE_KEY.exec(typeof event.code === "string" ? event.code : "");
+  return code === null ? null : (code[1] ?? code[2]).toLowerCase();
+}
+
 export function chordFromEvent(event, { solo = false } = {}) {
   if (!event || typeof event.key !== "string") return null;
   const modifier = MODIFIER_EVENT_KEYS.get(event.key);
@@ -343,7 +357,7 @@ export function chordFromEvent(event, { solo = false } = {}) {
   }
   if (MODIFIER_KEYS.has(event.key)) return null;
   const named = EVENT_KEYS.get(event.key);
-  const key = named ?? (event.key.length === 1 ? event.key.toLowerCase() : null);
+  const key = named ?? readableKey(event);
   if (key === null) return null;
 
   const mods = [];

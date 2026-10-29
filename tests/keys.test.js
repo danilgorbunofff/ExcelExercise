@@ -23,9 +23,9 @@ import {
   uncapturable,
 } from "../packages/keys/index.js";
 
-/** A `KeyboardEvent` stand-in: the pure module only ever reads these five fields. */
-function press(key, { ctrl = false, meta = false, alt = false, shift = false } = {}) {
-  return { key, ctrlKey: ctrl, metaKey: meta, altKey: alt, shiftKey: shift };
+/** A `KeyboardEvent` stand-in: the pure module only reads these fields. */
+function press(key, { ctrl = false, meta = false, alt = false, shift = false, code } = {}) {
+  return { key, code, ctrlKey: ctrl, metaKey: meta, altKey: alt, shiftKey: shift };
 }
 
 describe("parseChord", () => {
@@ -186,6 +186,16 @@ describe("chordFromEvent / matchesEvent", () => {
     assert.ok(!matchesEvent(press("l", { meta: true }), chord, { os: "other" }));
     assert.ok(matchesEvent(press("l", { meta: true }), chord, { os: "mac" }));
     assert.ok(!matchesEvent(press("l", { ctrl: true }), chord, { os: "mac" }));
+  });
+
+  it("reads a non-Latin layout off the physical key", () => {
+    // A Cyrillic keyboard reports the character it prints; the shortcut is written for the key.
+    const chord = parseChord("Ctrl+Shift+L");
+    assert.ok(matchesEvent(press("д", { ctrl: true, shift: true, code: "KeyL" }), chord));
+    assert.ok(matchesEvent(press("Д", { ctrl: true, shift: true, code: "KeyL" }), chord));
+    assert.ok(!matchesEvent(press("д", { ctrl: true, code: "KeyK" }), chord), "the code decides the key");
+    // Nothing left to read: a currency symbol with no physical key we know.
+    assert.equal(chordFromEvent(press("€", { ctrl: true })), null);
   });
 
   it("treats Ctrl++ as Shift+Plus, the way Excel documents it", () => {

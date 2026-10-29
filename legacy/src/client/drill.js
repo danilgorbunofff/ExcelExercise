@@ -1005,6 +1005,9 @@ function mountDrill(payloadNode) {
   // that is the fallback spelling of the same answer — so the handler stands aside for it.
   document.addEventListener("keydown", (event) => {
     if (event.isTrusted === false) return;
+    // A held key repeats, and a chord that lands would otherwise be graded again on the screen the
+    // loop just advanced to — a miss the learner never made.
+    if (event.repeat) return;
     if (event.target?.closest?.("input, textarea, select, [contenteditable=true]")) return;
     pressKeys(event);
   });

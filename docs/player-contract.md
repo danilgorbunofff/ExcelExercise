@@ -35,7 +35,7 @@ A screen is what `legacy/content/exercises/<slot>-<slug>.json` already ships und
 | Field | Meaning |
 |---|---|
 | `id` | stable across edits; the join key for events and saved progress |
-| `type` | `formula` \| `chord` \| `sequence` \| `picture` \| `workbook` — picks the component; `formula` and `picture` are the two that ship |
+| `type` | `formula` \| `chord` \| `sequence` \| `picture` \| `workbook` — picks the component; every type but `workbook` ships |
 | `prompt` | the question, plain text |
 | `grid` | the sheet the screen renders (columns, rows, highlighted range, locked cells) |
 | `answerCell` | the cell the grader reads; also where a successful result is written back |
@@ -66,8 +66,33 @@ spelling, and a screen with no `hints.value` draws a lint warning, since that mi
 The page still renders a formula bar for it — no target chip, `aria-label="Your answer"`, and the note
 under the sheet says "the bar" where a formula screen names a cell.
 
+The two shortcut types are graded by a list of presses instead of by rules, and they are the only
+types that read the keyboard:
+
+| Field | Meaning |
+|---|---|
+| `keys` | a `chord` screen's accepted presses, first one being the reference; each is parsed by `parseChord`, and modifier order is not a spelling (`ctrl+shift+l` and `shift+ctrl+l` are one press, so listing both is a build failure) |
+| `steps` | a `sequence` screen's presses, in order; each is parsed by `parsePress`, so a modifier on its own (`alt`) is a step |
+
+No `grid`, `answerCell`, `expect`, `require`, `forbid`, `requireRef` or `reference` — the schema rejects
+those rather than ignoring them. `expect.value` is written by the schema from the list itself
+(`"Ctrl + Shift + L"`, `"Alt then H then N then O"`), so one field means one reveal on every screen type.
+
+Grading a shortcut screen accepts a press or the same shortcut typed into the bar. `matchesEvent` reads
+the event's modifiers and key, `matchesTyped`/`matchesTypedSteps` read the bar's text, so a learner whose
+browser will not deliver the keys is not locked out. Two rules keep the keyboard from grading by accident:
+
+- **Only a deliberate press spends an attempt.** The first press of a sequence, or any press with a
+  modifier, or a named key (`Enter`, `Escape`, `Tab`, `ArrowDown`, …) is a candidate; a bare letter typed
+  while the panel has the focus is not, because it is on its way to the bar.
+- **A missed press costs what a missed answer costs**, and a sequence restarts from its first step so the
+  learner cannot walk past a mistake. `Escape` resets a started sequence without spending anything.
+
+The panel takes the focus when the screen opens, so the first press lands on the page rather than in the
+bar; the bar is still there, and typing into it grades the same shortcut.
+
 A lesson carries one or more screens: `legacy/content/exercises/16-xlookup-search-from-the-bottom.json`
-is the first with three, the third being a `picture`. The other three types are phase-2 work; see
+is the first with three, the third being a `picture`. `workbook` is phase-2 work; see
 `docs/plans/parity/phase-02-exercise-engine.md`.
 
 The page server-renders every screen into `#drill-screens` as `<div data-screen="N">`, with the first
@@ -183,8 +208,8 @@ Two limits are deliberate and documented rather than accidental:
 **Waiting.** Everything that needs a transport, more screens or a real decision:
 
 - enforcing the budget (`expired()` → what a learner sees), if it is ever enforced at all;
-- the five other screen types (`chord`, `sequence`, `picture`, `workbook`), which is what makes a screen
-  anything more than a formula;
+- the `workbook` screen type, which is what makes a screen anything more than a formula, a picture or a
+  shortcut;
 - `session_id`/`anon_id` in the envelope, `lesson_abandon` (needs a leave intent), and `paywall_view`
   deduplication across screens;
 - the transport (`POST /api/events`, phase 10) and postgres persistence (phase 4).

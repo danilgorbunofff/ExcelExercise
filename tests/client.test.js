@@ -394,6 +394,8 @@ describe("drill.js source", () => {
     // The typed fallback lives in the bar, so a keydown that came from a field is never captured.
     assert.match(code, /if \(event\.target\?\.closest\?\.\("input, textarea, select, \[contenteditable=true\]"\)\) return;/);
     assert.match(code, /event\.isTrusted === false/);
+    // A held chord repeats after it solves the screen; the repeat must not grade the screen after it.
+    assert.match(code, /if \(event\.repeat\) return;/);
   });
 
   it("starts a sequence over on Escape", () => {

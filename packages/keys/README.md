@@ -32,6 +32,9 @@ Rules the tests pin, because each one is a screen that would otherwise never mat
 - **Shift is folded to the physical key.** `?` is `Slash`, `_` is `Minus`, so `Ctrl+Slash` matches
   the key a learner actually presses. Excel's own "Ctrl++" is written `Mod+Shift+Plus`, because `+`
   is the separator and cannot appear as a key.
+- **A layout we cannot read is read from the physical key.** A Cyrillic keyboard reports `д` where the
+  shortcut says `L`; anything outside printable ASCII falls back to `event.code` (`KeyL`, `Digit1`), so
+  a shortcut stays pressable in the layout the learner actually types in.
 - **Reserved shortcuts use the platform's list.** `Cmd+Q` is reserved on a Mac and not on Windows;
   `Ctrl+T` is reserved on both. `uncapturable` is how content-lint and the client find the chords
   that need the typed fallback.

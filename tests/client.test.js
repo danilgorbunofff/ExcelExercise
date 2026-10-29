@@ -337,6 +337,19 @@ describe("drill.js source", () => {
     assert.match(code, /emitLoop\(/, "the loop's events must reach the page's sink");
   });
 
+  it("reports that a note was filed without reporting the note", () => {
+    const feedbackCode = stripComments(readFileSync(join(ROOT, "legacy/src/client/feedback.js"), "utf8"));
+    assert.match(feedbackCode, /sink\.emit\("feedback_sent"/, "the dialog never reports itself");
+    // A note is free text: it can hold a name, an employer, a password typed into the wrong box. The
+    // event carries how long it was, never what it said.
+    const emit = feedbackCode.slice(feedbackCode.indexOf('sink.emit("feedback_sent"'));
+    const props = emit.slice(emit.indexOf("{"), emit.indexOf("}"));
+    assert.match(props, /mood:/);
+    assert.match(props, /chars: entry\.text\.length/, "the length is the only thing said about the note");
+    assert.equal(/\btext:/.test(props), false, "the note itself is in the event");
+    assert.equal(/value/.test(props), false, "a field's value is in the event");
+  });
+
   it("reads the shared clock instead of timing the drill itself", () => {
     assert.match(code, /import \{[^}]*\bcreateClock\b[^}]*\} from "\.\.\/session\/index\.js"/s);
     assert.match(code, /const clock = createClock\(\);/);

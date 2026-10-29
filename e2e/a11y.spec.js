@@ -119,3 +119,20 @@ test("the picture screen of a multi-screen drill passes", async ({ page }) => {
   await expect(page.locator("[data-screen='3'] img")).toBeVisible();
   await scan(page, "a lesson's picture screen");
 });
+
+test("the feedback dialog passes while it is open", async ({ page }) => {
+  await page.goto("/");
+  await page.click("#feedback-open");
+  await expect(page.locator("#feedback-dialog")).toBeVisible();
+  // The error line is part of the form a learner meets, so it is scanned with a message in it.
+  await page.click("#feedback-form button[type='submit']");
+  await expect(page.locator("#feedback-error")).not.toBeEmpty();
+  await scan(page, "the feedback dialog");
+
+  // And so is the confirmation, which replaces the form and so has to stand on its own.
+  await page.check("input[name='mood'][value='stuck']");
+  await page.fill("#feedback-text", "scanned");
+  await page.click("#feedback-form button[type='submit']");
+  await expect(page.locator("#feedback-done")).toBeVisible();
+  await scan(page, "the feedback confirmation");
+});

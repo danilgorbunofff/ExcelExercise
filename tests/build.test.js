@@ -78,15 +78,31 @@ describe("build", () => {
       "assets/progress/index.js",
       "assets/keys/index.js",
       "assets/client/dashboard.js",
+      "assets/client/feedback.js",
       "sitemap.xml",
       "robots.txt",
     ]) {
       assert.doesNotThrow(() => readFileSync(join(out, file)), `${file} was not written`);
     }
     assert.equal(summary.grader, 10, "every grader module must be copied as an ES module");
-    assert.equal(summary.session, 4, "every session module must be copied as an ES module");
+    assert.equal(summary.session, 5, "every session module must be copied as an ES module");
     assert.equal(summary.progress, 1, "the progress read model is one module");
     assert.equal(summary.fonts, 4);
+  });
+
+  it("gives every page the same feedback dialog, server-rendered", () => {
+    // Rendered rather than built by the script: a dialog made in the browser would either flash or
+    // need a second copy of this markup, and a learner without JavaScript loses only the button.
+    for (const page of ["index.html", "learn/index.html", "learn/groups/sum.html", "excel/sum-basics.html"]) {
+      const html = readFileSync(join(out, page), "utf8");
+      assert.match(html, /<dialog class="feedback-dialog" id="feedback-dialog"/, `${page} has no dialog`);
+      assert.match(html, /id="feedback-open"[^>]*aria-haspopup="dialog"/, `${page} has no button`);
+      assert.match(html, /<textarea[^>]*id="feedback-text"[^>]*maxlength="500"/, `${page} has no capped note`);
+      assert.match(html, /name="mood" value="stuck"/, `${page} has no satisfaction choice`);
+      assert.match(html, /src="\/assets\/client\/feedback\.js"/, `${page} does not load the dialog`);
+      // The promise and the behaviour have to be the same sentence.
+      assert.match(html, /Nothing is sent yet/, `${page} does not say nothing is sent`);
+    }
   });
 
   it("ships no dotfiles", () => {
@@ -180,10 +196,15 @@ describe("build", () => {
   });
 
   it("mounts the client from a path its own imports resolve", () => {
-    for (const file of ["assets/client/drill.js", "assets/client/state.js", "assets/grader/index.js"]) {
+    for (const file of [
+      "assets/client/drill.js",
+      "assets/client/state.js",
+      "assets/client/feedback.js",
+      "assets/grader/index.js",
+    ]) {
       assert.doesNotThrow(() => readFileSync(join(out, file)), `${file} was not written`);
     }
-    assert.equal(summary.client, 3, "drill.js, its state module, and the dashboard island");
+    assert.equal(summary.client, 4, "drill.js, its state module, the dashboard island, the feedback dialog");
 
     for (const page of ["excel/sum-basics.html", "index.html"]) {
       const html = readFileSync(join(out, page), "utf8");

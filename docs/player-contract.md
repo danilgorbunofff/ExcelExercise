@@ -2,8 +2,8 @@
 
 Phase 2's handoff artifact: what a screen is, what the score loop promises, what the clock
 promises, and what an event looks like once it leaves the player. The engine half of that contract
-and the first multi-screen lesson that consumes it both exist today; the clock is the piece the
-player still does not read.
+and the first multi-screen lesson that consumes it both exist today; the player reads the clock, the
+budget stays unenforced.
 
 Writing the contract down before the player exists is deliberate. The reference's loop is the one place
 where a bug looks like "the lesson never ends", and a typed event name is a database column once phase
@@ -16,7 +16,7 @@ read.
 |---|---|---|
 | `packages/session/events.js` | `EVENT_TYPES`, `MAX_EVENTS`, `createSink` | browser (wired) and node (tests) |
 | `packages/session/score.js` | `createSession`, `recordVerdict`, `emitAll`, `nextIndex`, `currentScreen`, `isComplete`, `progress`, `DEFAULT_SCORING`, `DEFAULT_RECYCLE_FROM` | browser (wired) and node (tests) |
-| `packages/session/clock.js` | `createClock`, `DEFAULT_SESSION_MINUTES` | node (tests) today, browser when the player reads it |
+| `packages/session/clock.js` | `createClock`, `DEFAULT_SESSION_MINUTES` | node tests and the browser player |
 | `packages/session/index.js` | everything above | — |
 
 Nothing in the package touches the DOM, `Date.now()` or the network directly: time and the write
@@ -105,6 +105,14 @@ any other, and `lesson_complete` follows it.
   elapsed, never negative.
 - `sessionMinutes` must be a positive finite number; anything else throws.
 
+**What the player does with it.** One clock per mount, paused while `document.hidden` and resumed on
+`visibilitychange` (also paused at load, for a tab opened in the background), and never enforced: a
+wall-clock stop would throw away a zero-signup learner's unfinished lesson, so `expired()` and
+`remainingMs()` stay unread. What it buys instead is honest time on task — working events carry
+`elapsed`, whole seconds since the clock started, so a tab left in the background for an hour does not
+show up in the funnel as an hour of practice. There is no countdown to render: the reference has none,
+and inventing one would be the parity drift, not the parity.
+
 ## The event envelope
 
 `createSink({ write, context, now })` → `{ emit(type, props), count }`.
@@ -154,9 +162,9 @@ Two limits are deliberate and documented rather than accidental:
   per lesson — a return visit that already spent its three attempts re-shows the button without
   re-emitting it — because a learner who has been shown the answer has been shown all of it.
 
-**Waiting.** Everything that needs the clock or a transport:
+**Waiting.** Everything that needs a transport, more screens or a real decision:
 
-- `visibilitychange` → `clock.pause()`/`resume()`, and what happens at `expired()`;
+- enforcing the budget (`expired()` → what a learner sees), if it is ever enforced at all;
 - the five other screen types (`chord`, `sequence`, `picture`, `workbook`), which is what makes a screen
   anything more than a formula;
 - `session_id`/`anon_id` in the envelope, `lesson_abandon` (needs a leave intent), and `paywall_view`

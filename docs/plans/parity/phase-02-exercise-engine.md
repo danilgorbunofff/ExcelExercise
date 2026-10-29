@@ -14,7 +14,7 @@
 event sink as a tested package (`packages/session`, `docs/player-contract.md`) and a `formula` screen
 player that drives them, proven end to end by `16-xlookup-search-from-the-bottom`, the first lesson with
 two screens. Items 1, 3–7, 10 and 12 are untouched: the screen router still only has one component to
-pick, and the clock is the one engine piece nothing calls yet.
+pick, and the clock is read but not enforced.
 
 - [x] **11. Events.** `packages/session/events.js` owns the vocabulary (14 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
@@ -28,8 +28,12 @@ pick, and the clock is the one engine piece nothing calls yet.
       `correct >= 1` and a finite cap are validated, so the zero-weight "recycles forever" bug cannot be
       built. A verdict after completion returns the unchanged session and no events.
 - [x] **9. Timers (the clock half).** `clock.js`: wall-clock session budget (default 60 min), idempotent
-      `pause`/`resume` for `visibilitychange`, backwards clock steps clamped to zero. Per-screen elapsed
-      time is not implemented: it belongs to the screen component, which does not exist.
+      `pause`/`resume` for `visibilitychange`, backwards clock steps clamped to zero. The player mounts
+      one clock, pauses it while `document.hidden` and resumes on `visibilitychange`, and stamps
+      `elapsed` (whole seconds on task) on the working events, so the funnel sees time spent practicing
+      rather than time the tab sat open. The budget is deliberately not enforced — a wall-clock stop
+      would throw away a local learner's unfinished lesson. Per-screen elapsed time is not implemented:
+      it belongs to the screen component, which does not exist.
 - [x] **2. Formula screen (multi-screen).** The lesson page server-renders every screen into
       `#drill-screens` and the client advances by toggling `hidden`. The section, one drill per screen,
       is the same graded object: `createSession` → `recordVerdict` → `emitAll`. Screens carry their own
@@ -37,13 +41,13 @@ pick, and the clock is the one engine piece nothing calls yet.
       each screen its own reference — `packages/content-lint` fails the copy that would reveal the same
       formula twice.
 - [ ] **1, 3–7, 10, 12.** Screen router and the four other screen types, `packages/sheet` as a module,
-      the hint/docs panels' wiring to the clock, accessibility. Next up, in that order, starting with the
+      the hint/docs panels, accessibility. Next up, in that order, starting with the
       router and the three additional `formula`-shaped screens that need no new grid work.
 
-One acceptance criterion is now true of the site — "a lesson with several screens terminates at 100"
+Two acceptance criteria are now true of the site — "a lesson with several screens terminates at 100"
 passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson 16's two screens in
-a browser. "The session timer pauses when the tab is hidden" still holds only at the engine level: nothing
-calls `clock.pause()` from `visibilitychange` yet.
+a browser, and "the session timer pauses when the tab is hidden" is proven there too: the spec hides the
+tab, waits, and asserts the next event's `elapsed` did not grow by the hidden second.
 
 ---
 
@@ -120,7 +124,7 @@ design system, with accessibility and browser-resilience the reference does not 
 - [ ] Workbook preview renders offline, with no third-party request.
 - [ ] axe: zero critical/serious on the player.
 - [ ] Keyboard-only learner completes a full lesson.
-- [ ] Session timer pauses when the tab is hidden.
+- [x] Session timer pauses when the tab is hidden.
 
 ## Test plan
 

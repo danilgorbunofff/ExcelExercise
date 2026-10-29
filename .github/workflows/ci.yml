@@ -95,7 +95,8 @@ jobs:
       - name: install chromium
         run: npx playwright install --with-deps chromium
 
-      # `playwright.config.js` starts `next start` itself; only the build has to happen here.
+      # `playwright.config.js` starts both servers itself — `next start` on 4174 and the static file
+      # server over `legacy/dist` on 4175 — so only the build has to happen here.
       - name: build
         run: npm run next:build
 

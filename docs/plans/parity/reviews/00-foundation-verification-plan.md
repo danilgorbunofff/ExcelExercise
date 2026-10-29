@@ -77,10 +77,14 @@ deployable is driven in the same browser instead of being crawled as HTML only.
    than being allowed to drift silently.
 4. **The two deployables differ by ~4× in first-load JavaScript.** Measured on the same rules
    (page totals, not one route's closure against the other's framework): the static lesson page is
-   161,188 B raw / 53,917 B gzipped including its two client scripts; the same lesson through Next is
-   625,089 B raw / 192,293 B gzipped — **3.9× raw, 3.6× gzip**. The static `drill.js`-entry closure
-   alone is 156,694 B / 52,125 B over 20 modules. The previously quoted 3.4× compared the static
-   closure with a wider Next set; the honest ratio is slightly worse, not better. Phase 0's "bundle size documented"
+   161,187 B raw / 53,917 B gzipped including its two client scripts; the same lesson through Next is
+   621,731 B raw / 190,461 B gzipped of scripts Chromium executes — **3.86× raw, 3.53× gzip** — or
+   734,325 B / 229,934 B / **4.56× raw, 4.26× gzip** if the `noModule` fallback chunk the HTML also
+   names is counted. The static `drill.js`-entry closure alone is 156,693 B / 52,125 B over 20
+   modules. The previously quoted 3.9× / 3.6× (625,089 / 192,293) came from counting that `noModule`
+   chunk while omitting the eighteen package modules and `state.js` the Next page also fetches; the
+   two errors nearly cancelled, so the ratio was right to two significant figures for the wrong
+   reason. Phase 0's "bundle size documented"
    criterion was satisfied by measuring the static route. That is defensible — the static route is
    what deploys — but the number must be quoted with its route, never as "the page is 52 kB".
 5. **Two proofs mirror the code they check.** `tests/five-types.test.js` re-implements
@@ -116,8 +120,8 @@ deployable is driven in the same browser instead of being crawled as HTML only.
 | Vendored files | 25 | `vendor:check` |
 | Static build bytes (HTML+CSS) | 740.0 kB | build summary |
 | Dashboard first paint | 21.4 kB gzip of a 40 kB budget | `verify` |
-| Static lesson JS graph | 52,125 B gzip over 20 modules (53,917 B with `feedback.js`) | manual rollup |
-| Next lesson JS | 192,293 B gzip as a page total (176,017 B framework+app chunks) | manual rollup |
+| Static lesson JS graph | 52,125 B gzip over 20 modules (53,917 B with `feedback.js`) | manual rollup, `zip` rules below |
+| Next lesson JS | 190,461 B gzip over the scripts Chromium runs (229,934 B counting the `noModule` fallback; 176,017 B is the framework+app chunks alone) | manual rollup, re-measured 2026-10-29 |
 | Gate wall time | ≈ 6 s | `time npm run check` |
 | Node (local / CI) | 25.9.0 local / 24 in CI — both measured green, CI by execution | `node -v`; workflow runs 40929762382, 40929766766 |
 | CI runs (GitHub Actions) | 2 of 2 green on first attempt; every number above reproduced on Node 24 / `ubuntu-latest` | `gh run list` |

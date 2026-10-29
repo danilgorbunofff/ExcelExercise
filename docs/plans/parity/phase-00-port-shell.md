@@ -190,25 +190,32 @@ identical, but the foundation for accounts, payments and 600 screens is in place
 ## Bundle baseline
 
 Re-measured on this tree with a production build (`legacy/dist` from `npm run build`, `.next` from
-`npm run next:build`), summing every byte the page actually fetches. The **static** route is the one
-that deploys and is the denominator phase-10 budgets must be written against; the Next route is
-quoted only next to it. gzip means `zlib.gzipSync` at its default level; fonts are excluded on both
-sides (each route loads two woff2 files).
+`npm run next:build`), summing every byte the page actually fetches. `node scripts/bundle-measure.mjs`
+prints all of it, rules and file lists included; the rule letters below are its output. The **static**
+route is the one that deploys and is the denominator phase-10 budgets must be written against; the
+Next route is quoted only next to it. gzip means `zlib.gzipSync` at its default level; fonts are
+excluded on both sides (each route loads two woff2 files).
 
 | Route | JS | CSS | HTML |
 |---|---|---|---|
-| `legacy/dist` lesson page (`/excel/sum-basics`, served at `/learn/excel/…`) | `drill.js` entry graph: 20 modules, 156,694 B raw / 52,125 B gzip. The page also loads `feedback.js`, so the page total is 21 modules, 161,188 B raw / 53,917 B gzip | `/assets/styles.css`: 64,640 B raw / 13,390 B gzip | 31,612 B raw / 6,090 B gzip |
-| Next lesson page (`/learn/excel/sum-basics`) | framework + app chunks: 573,138 B raw / 176,017 B gzip; plus the same two client scripts (51,951 B raw / 16,276 B gzip) the page also loads → 625,089 B raw / 192,293 B gzip | 47,488 B raw / 10,057 B gzip | 82,846 B raw / 14,358 B gzip |
+| `legacy/dist` lesson page (`/excel/sum-basics`, served at `/learn/excel/…`) | (A) `drill.js` entry graph: 20 modules, 156,693 B raw / 52,125 B gzip. (B) The page also loads `feedback.js`, so the page total is 21 files, 161,187 B raw / 53,917 B gzip | `/assets/styles.css`: 65,765 B raw / 13,746 B gzip | 31,612 B raw / 6,090 B gzip |
+| Next lesson page (`/learn/excel/sum-basics`) | (C) every `/_next/static/chunks/*.js` the HTML names: 7 files, 573,138 B raw / 176,017 B gzip — one of them carries `noModule` and no modern browser fetches it. (D) without it: 6 files, 460,544 B raw / 136,544 B gzip. (E) the page a browser runs: D + B = 621,731 B raw / 190,461 B gzip. (F) every named script: C + B = 734,325 B raw / 229,934 B gzip | 47,822 B raw / 10,122 B gzip | 82,846 B raw / 14,360 B gzip |
 
-Compare like with like: the page totals are 3.9× raw (625,089 / 161,188) and 3.6× gzipped
-(192,293 / 53,917). Quoting the Next framework chunks against the static page's full graph — which is
-what "3.4×" used to do — mixes the two rules; the honest ratio is slightly worse, not better. That gap
-is the known cost of the shell, not a regression, and it is why "the page is 52 kB" is never a correct
-sentence without the route.
+Compare like with like, and say which rule you are comparing: the page a browser runs is **3.86× raw
+(621,731 / 161,187) and 3.53× gzipped (190,461 / 53,917)**; counting every script the HTML names it is
+**4.56× / 4.26×**. Quoting the Next framework chunks against the static page's full graph — the
+"3.4×" this doc used to defend — mixes the two rules and understates the shell. An earlier revision
+of this table said 3.9× / 3.6×; that figure counted the `noModule` chunk *and* dropped the eighteen
+package modules and `state.js` the Next page fetches, and the two mistakes nearly cancelled. The
+corrected number is slightly worse, not better, and the direction matters more than the digits.
 
-The measurements in `reviews/phase-00-port-shell-verification-plan.md` (155,784 B / 51,842 B gzip,
-20 modules) were taken on `30629e8` under the `drill.js`-only rule and still reproduce from this
-history: the extra 910 B raw / 283 B gzip here is the storage probe defect (a) added to `drill.js`.
+The gap is the known cost of the shell, not a regression, and it is why "the page is 52 kB" is never a
+correct sentence without the route and the rule.
+
+The numbers this doc inherited from `reviews/phase-00-port-shell-verification-plan.md`
+(`155,784 B / 51,842 B gzip`, 20 modules) were taken on `30629e8` under the `drill.js`-only rule; the
+1,909 B raw / 283 B gzip growth since is the storage probe defect (a) added to `drill.js`, with the
+module count unchanged.
 
 ## Test plan
 

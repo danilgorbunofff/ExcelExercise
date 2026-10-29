@@ -13,30 +13,48 @@ the eight Phase-0 acceptance boxes are ticked, each with a test or a real CI run
 eighth (a preview deploy) needs a deploy provider this checkout does not have.
 
 The High-Risk hole was *accounting*, not code: "bundle size for a lesson page documented" had only
-ever been satisfied by measuring the **static** route. The Next route is 3.9× larger raw (3.6×
-gzip). The criterion
+ever been satisfied by measuring the **static** route. The Next route is 3.86× larger raw (3.53×
+gzip) counting only the scripts a browser runs, 4.56× / 4.26× counting every script the HTML names.
+The criterion
 was met, but the number every future budget will be compared against was never written down with its
 route attached. *Closed in this verification run:* the phase doc now carries a `## Bundle baseline`
-table with both routes labelled.
+table with both routes labelled, and *re-closed on 2026-10-29* with named rules, because the first
+"page total" for the Next route had counted a `noModule` chunk no modern browser fetches while
+omitting nineteen modules it does fetch.
 
 ## Critical Failure Modes
 
-**1. Bundle accounting is ambiguous and under-measured.**
-A lesson page costs 52,125 B gzip of JS on the static route and 176,017 B gzip of Next chunks on the
-Next route (plus 16,276 B gzip for the same two client scripts, 10,057 B gzip of CSS and 14,359 B
-gzip of HTML). Phase 10 budgets will be written against
+**1. Bundle accounting is ambiguous and under-measured — closed 2026-10-29.**
+A lesson page costs 53,917 B gzip of JS on the static route and 190,461 B gzip of JS on the Next
+route (plus 10,122 B gzip of CSS and 14,360 B gzip of HTML against the static route's 13,746 B and
+6,090 B). Phase 10 budgets will be written against
 whichever number someone finds first. The static route is the correct denominator — it is the one
 that deploys — but the doc must say so, and the Next route must not be quoted as "the page".
 
-*Measured provenance, added during this verification run:* both figures reproduce, but under
-different rules. The static figure is the `drill.js` entry graph (20 modules, excluding the separately
-loaded `feedback.js`); the Next figure is framework + app chunks, excluding the two `/assets/client/`
-scripts the page also fetches. Both were taken on `30629e8`. On this tree the same rules give
-156,694 B raw / 52,125 B gzip for `drill.js` — 910 B / 283 B more, because defect (a) added the
-storage probe — and 573,138 B / 176,017 B for the Next chunks, unchanged. Counting every script each
-page loads, like for like, the Next route is 625,089 B / 192,293 B gzip against 161,188 B / 53,917 B
-gzip, i.e. **3.9× raw, 3.6× gzip** — slightly worse than the 3.4× implied by comparing the two
-different rules. Phase 10 should re-measure rather than inherit either number.
+*Measured provenance, added during this verification run and corrected on 2026-10-29:* the two
+figures were taken under different rules, and the "page total" built from them was wrong twice over.
+The static figure is the `drill.js` entry graph (20 modules, excluding the separately loaded
+`feedback.js`); the Next figure is every `/_next/static/chunks/*.js` the page's HTML names, *including
+the `noModule` fallback* that Chromium never downloads. On this tree the same rules give
+156,693 B raw / 52,125 B gzip for `drill.js` (the earlier note said 156,694; one byte apart with an
+identical gzip length, so it is the same module set) and 573,138 B / 176,017 B for the Next chunks,
+reproduced to the byte.
+
+The correction is in the client graph: the Next page also fetches the `drill.js` graph itself —
+`/assets/client/{drill,state,feedback}.js` plus the eighteen `/assets/{grader,keys,progress,session,sheet}/*.js`
+modules, 21 files, 161,187 B / 53,917 B gzip — which the older page total reduced to "the same two
+client scripts" (51,951 B / 16,276 B). Counting every script the page loads, like for like:
+
+| Rule | JS raw | JS gzip |
+|---|---|---|
+| Static lesson page: `drill.js` graph (20 modules) + `feedback.js` | 161,187 | 53,917 |
+| Next lesson page, scripts Chromium runs (6 chunks + the same 21 client files) | 621,731 | 190,461 |
+| Next lesson page, every script the HTML names (7 chunks, `noModule` included, + 21 client files) | 734,325 | 229,934 |
+
+So the ratio is **3.86× raw / 3.53× gzip** as a browser experiences it, and **4.56× / 4.26×** on the
+every-named-script rule. The earlier 3.9× / 3.6× (625,089 / 192,293) was accidentally close: it added
+a chunk Chrome skips while dropping 109,237 B / 37,641 B of modules Chrome loads, and the two errors
+nearly cancelled. Phase 10 should quote a rule with the number, not inherit any of these bare.
 
 **2. `/api/health` returns `"sha":"unknown"` unless `GIT_SHA` is set at build time.**
 It is prerendered: `.next/server/app/api/health.body` is baked during `next build`. A deploy that
@@ -135,10 +153,12 @@ read from a real deployment (item 10). Item 9 is closed — see the closure tabl
 
 **Closeable now, and worth closing:** item 8 (the deterministic half of the SHA criterion) and the
 bundle baseline — record the **page totals** for both routes, labelled by route, in the phase doc:
-`161,188 B raw / 53,917 B gzip` static and `625,089 B raw / 192,293 B gzip` Next (**3.9× raw, 3.6×
-gzip**). Quoting the static `drill.js`-entry closure (`156,694 B / 52,125 B`) against Next's
+`161,187 B raw / 53,917 B gzip` static and `621,731 B raw / 190,461 B gzip` Next (**3.86× raw, 3.53×
+gzip**), or `734,325 B / 229,934 B` / **4.56×, 4.26×** when the `noModule` fallback chunk is counted
+too. Quoting the static `drill.js`-entry closure (`156,693 B / 52,125 B`) against Next's
 framework+app chunks (`573,138 B / 176,017 B`) is what produced the earlier "3.4×" — two different
-rules. The honest ratio is slightly worse, not better.
+rules. `node scripts/bundle-measure.mjs` prints all six rules, both ratios and the file lists, so the
+next person does not have to reconstruct them.
 
 ## Closure evidence (this verification run)
 
@@ -198,8 +218,8 @@ The workbook screen has since run on CI as well, again green on the first attemp
 `111 accepted and 157 rejected`; `built 27 pages (739.4 kB of HTML+CSS)`;
 `next routes: 27 prerendered pages match the shared templates`; `verified … 839 checks passed`;
 `52 passed (16.3s)`; `vendor: 25 files match manifest.json`.
-The per-route JS/CSS byte rows in the baseline below were measured on `30629e8` and are due a
-re-measure; only the build total (which the build prints) has been updated.
+The per-route JS/CSS byte rows in the baseline below were re-measured on 2026-10-29 with
+`node scripts/bundle-measure.mjs`; see the re-measure section for what moved and why.
 
 ### Re-pin, 2026-10-29 — the workbook preview prints values, not formulas
 
@@ -238,6 +258,50 @@ missed the caption and a `500` for an asset the old build had not emitted. After
 cold load logs no response above `399` and `B7` reads `44.8`. No code changed for that: it was a stale
 artifact, not a defect.
 
+### Re-measure, 2026-10-29 — bundle accounting, with the rules written down
+
+Failure mode 1 was marked closed with a page total that had been assembled by hand, and the assembly
+was wrong twice: it counted a `noModule` fallback chunk that Chromium never downloads, and it reduced
+the client graph to "the same two client scripts", omitting the eighteen package modules and
+`state.js` that the Next page fetches for itself. The two errors nearly cancelled, which is why the
+ratio looked stable while the number underneath it was not. `scripts/bundle-measure.mjs` now prints
+every rule, both routes, the ratios and the file lists, so the figure cannot be reconstructed wrongly:
+
+```
+$ node scripts/bundle-measure.mjs
+Static route — legacy/dist
+A  drill.js entry graph: 20 files, 156693 B raw / 52125 B gzip
+B  lesson page (A + feedback.js): 21 files, 161187 B raw / 53917 B gzip
+   /assets/styles.css: 1 files, 65765 B raw / 13746 B gzip
+   lesson HTML: 1 files, 31612 B raw / 6090 B gzip
+
+Next route — .next/static, resolved from the served HTML
+C  every chunk the HTML names: 7 files, 573138 B raw / 176017 B gzip
+D  C minus the noModule fallback (what Chromium runs): 6 files, 460544 B raw / 136544 B gzip
+E  Next lesson page, executed (D + B): 27 files, 621731 B raw / 190461 B gzip
+F  Next lesson page, every named script (C + B): 28 files, 734325 B raw / 229934 B gzip
+   lesson CSS: 1 files, 47822 B raw / 10122 B gzip
+   lesson HTML: 82846 B raw / 14360 B gzip
+
+E against B (a browser's experience): 3.86× raw, 3.53× gzip
+F against B (every named script): 4.56× raw, 4.26× gzip
+A against C (the mixed rule that produced "3.4×"): 3.66× raw, 3.38× gzip
+```
+
+| Row | Was (`30629e8`) | Now | Why it moved |
+|---|---|---|---|
+| Static lesson JS | `155,784` / `51,842` (20 modules) | `156,693` / `52,125` (20 modules) | Defect (a)'s storage probe, as recorded; the module count is unchanged, so the graph did not grow. |
+| Next lesson JS, chunks | `573,138` / `176,017` | unchanged, to the byte | Same seven chunks: the rule reproduces exactly, which is what proves the file set is the same. |
+| Next lesson JS, page total | `625,089` / `192,293` (**3.9× / 3.6×**) | `621,731` / `190,461` (**3.86× / 3.53×**) executed; `734,325` / `229,934` (**4.56× / 4.26×**) every named script | The client graph is 21 files, not 2: `+109,237` raw / `+37,641` gzip against the old total, and `-112,594` / `-39,473` for the `noModule` chunk dropped from the executed rule. |
+| Next lesson CSS | `47,488` / `10,057` | `47,822` / `10,122` | The workbook preview's caption and grid rules, `+334` raw. |
+| Next lesson HTML | `82,846` / `14,359` | `82,846` / `14,360` | Same bytes; the gzip total is one byte higher under this Node's zlib. The served page is unchanged because `sum-basics` has no workbook screen. |
+| Static lesson CSS / HTML | not previously recorded | `65,765` / `13,746`; `31,612` / `6,090` | Recorded now so both routes have the same three columns. |
+
+The honest headline: the Next route is **3.86×** the static page for a browser that runs the page,
+**4.56×** if every script the HTML names is counted, and neither is "3.9× by luck". The direction of
+the correction is against the port, not for it — the shell costs more first-load JavaScript than this
+doc previously said, and phase 10 now has a command instead of a paragraph.
+
 ## Baseline
 
 | Metric | Value |
@@ -248,10 +312,11 @@ artifact, not a defect.
 | Verify checks | 839 |
 | Browser tests | 52 (Chromium: 49 Next + 3 static) |
 | Static build HTML+CSS | 740.0 kB |
-| Static lesson route JS | 155,784 B raw / 51,842 B gzip (20 modules) |
-| Next lesson route JS | 573,138 B raw / 176,017 B gzip |
-| Next lesson route CSS | 47,488 B raw / 10,057 B gzip |
-| Next lesson route HTML | 82,846 B raw / 14,359 B gzip |
+| Static lesson route JS | 156,693 B raw / 52,125 B gzip (20 modules); 161,187 B / 53,917 B gzip as a page total with `feedback.js` |
+| Next lesson route JS | 460,544 B raw / 136,544 B gzip of chunks Chromium runs (573,138 B / 176,017 B counting the `noModule` fallback); 621,731 B / 190,461 B gzip as a page total (734,325 B / 229,934 B on the every-named-script rule) |
+| Next lesson route CSS | 47,822 B raw / 10,122 B gzip |
+| Next lesson route HTML | 82,846 B raw / 14,360 B gzip |
+| Static lesson route CSS / HTML | 65,765 B raw / 13,746 B gzip; 31,612 B raw / 6,090 B gzip |
 | `/api/health` without `GIT_SHA` | `{"status":"ok","sha":"30629e8"}` (git fallback); `"unknown"` only outside a git checkout |
 | Vendored files | 25 |
 | CI Node pin / local Node | 24 / 25.9.0 |

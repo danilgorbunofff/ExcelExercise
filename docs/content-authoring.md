@@ -163,7 +163,8 @@ Write rejections as objects so the reasoning travels with the case:
 ```
 
 `rule` is checked, not trusted: the gate compares it to what the grader reports and fails the fixture if
-they disagree. That is how a rule name cannot quietly drift. `why` is for the next author.
+they disagree. That is how a rule name cannot quietly drift. `why` is for the next author, and the gate
+refuses one shorter than fifteen characters — a reason that says "wrong" is not a reason.
 
 Rules run before evaluation, so a formula can be rejected for the *shape* even when it would also error:
 `=VLOOKUP(A6,A2:B5,2,FALSE)` reports `match-type`, not `#N/A`. Declare what the gate reports; if you
@@ -363,6 +364,8 @@ written to be actionable:
 - `never exercises the "x" failure, so that path ships untested` — add a fixture, do not delete the rule.
 - `has N accepted fixtures, the floor is 6` — the floor exists because six is roughly the point where a
   drill stops passing for the wrong reasons.
+- `"..." needs { formula, rule, why }` — a rejection written as a bare string; it has no rule to check and
+  no reason to read, so retype it as an object.
 - `prompt is a duplicate of the one in <file>` / `links to "/...", which is not a page that
   exists` — copy-paste, usually.
 

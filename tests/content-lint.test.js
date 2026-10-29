@@ -144,6 +144,29 @@ describe("content-lint: fixtures", () => {
     assert.match(messages(report).join("\n"), /filed under "value" but the grader reports "func-sum"/);
   });
 
+  it("fails a rejection that does not ship its rule and reason", () => {
+    const { report } = sandbox(({ content }) => {
+      editFixtures(content, "01-sum-basics", (fixtures) => ({
+        ...fixtures,
+        reject: [...fixtures.reject.slice(1), "=B2+B4"],
+      }));
+    });
+    assert.match(
+      messages(report).join("\n"),
+      /"=B2\+B4" needs \{ formula, rule, why \} with a why of at least 15 characters/,
+    );
+  });
+
+  it("fails a rejection whose why is too short to explain anything", () => {
+    const { report } = sandbox(({ content }) => {
+      editFixtures(content, "01-sum-basics", (fixtures) => ({
+        ...fixtures,
+        reject: fixtures.reject.map((entry, index) => (index === 1 ? { ...entry, why: "wrong" } : entry)),
+      }));
+    });
+    assert.match(messages(report).join("\n"), /a why of at least 15 characters/);
+  });
+
   it("fails a rule the lesson can report that no fixture ever triggers", () => {
     const { report } = sandbox(({ content }) => {
       editFixtures(content, "01-sum-basics", (fixtures) => ({
@@ -404,6 +427,11 @@ describe("content-lint: the authoring CLI", () => {
       assert.equal(lesson.title, before.lessons[slot].title, "the slot's title, not a copy");
       assert.equal(lesson.level, before.lessons[slot].level, "the slot's level");
       assert.equal(lesson.screens[0].fixtures.accept.length + lesson.screens[0].fixtures.reject.length, 13);
+      for (const rejection of lesson.screens[0].fixtures.reject) {
+        assert.equal(typeof rejection, "object", "a rejection ships its rule and reason, not a bare string");
+        assert.ok(rejection.rule, `${rejection.formula}: rejection names the rule it expects`);
+        assert.ok(rejection.why.length >= 15, `${rejection.formula}: the reason is a sentence`);
+      }
 
       const check = run(["check"], { content, fixtures });
       assert.equal(check.status, 0, check.stdout);

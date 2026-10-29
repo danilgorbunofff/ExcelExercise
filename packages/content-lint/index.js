@@ -20,6 +20,9 @@ import { grade } from "../grader/index.js";
 /** The phase-1 floor. Twelve is the number the plan asks for; six is the number CI refuses to go under. */
 export const MIN_FIXTURES = 6;
 
+/** `tests/fixtures.test.js` refuses a shorter reason, so the gate has to refuse it first. */
+const MIN_WHY = 15;
+
 /** Rules the grader reports for behaviour every formula lesson can produce. */
 const UNIVERSAL_RULES = ["syntax", "value", "error"];
 
@@ -123,10 +126,19 @@ function checkFixtures(screen, source, { label, where, report, stats }) {
   }
 
   for (const entry of rejected) {
-    const formula = typeof entry === "string" ? entry : entry?.formula;
+    const shaped = typeof entry === "object" && entry !== null;
+    const formula = shaped ? entry.formula : entry;
     if (typeof formula !== "string" || formula.trim() === "") {
-      report.error(where, `${label}rejected fixtures must be strings or { formula } objects`);
+      report.error(where, `${label}rejected fixtures must be { formula, rule, why } objects`);
       continue;
+    }
+    // The shipped corpus is `{ formula, rule, why }`, and `npm test` rejects a bare string. Catching
+    // it here keeps `content:check` from going green on fixtures the gate will refuse.
+    if (!shaped || typeof entry.rule !== "string" || String(entry.why ?? "").trim().length < MIN_WHY) {
+      report.error(
+        where,
+        `${label}"${formula}" needs { formula, rule, why } with a why of at least ${MIN_WHY} characters`,
+      );
     }
     stats.rejected += 1;
     const result = runGrade(screen, formula, { label, where, report });

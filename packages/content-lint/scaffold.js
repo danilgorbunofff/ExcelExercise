@@ -87,14 +87,45 @@ function skeleton({ id, slug, level, title }) {
         },
         fixtures: {
           accept: ["=SUM(B2:B3)", "=sum(b2:b3)", "=SUM($B$2:$B$3)", "=SUM(B2,B3)", "=SUM(B2:B3)+0", "=SUM(B$2:B$3)"],
+          // Rejections are `{ formula, rule, why }` because the gate reads `rule` against what the
+          // grader reports and ships `why` as the fixture's own explanation; a bare string is not
+          // shippable content, so the scaffold does not write one.
           reject: [
-            "=B2+B3",
-            "=AVERAGE(B2:B3)",
-            "=SUM(B2:B2)",
-            "=SUM(B2:B3)*2",
-            "=SUM(120,180)",
-            "=SUM(B2:B3)/0",
-            "=SUM(B2:B3",
+            {
+              formula: "=B2+B3",
+              rule: "func-sum",
+              why: "the two cells added by hand instead of with SUM",
+            },
+            {
+              formula: "=AVERAGE(B2:B3)",
+              rule: "func-sum",
+              why: "the average of the months, not their total",
+            },
+            {
+              formula: "=SUM(B2:B2)",
+              rule: "value",
+              why: "the range stops at January, so only 120 is added",
+            },
+            {
+              formula: "=SUM(B2:B3)*2",
+              rule: "value",
+              why: "the right total doubled, so 600 instead of 300",
+            },
+            {
+              formula: "=SUM(120,180)",
+              rule: "require-ref",
+              why: "the numbers typed in, so the total stops updating",
+            },
+            {
+              formula: "=SUM(B2:B3)/0",
+              rule: "error",
+              why: "a total divided by zero returns #DIV/0!",
+            },
+            {
+              formula: "=SUM(B2:B3",
+              rule: "syntax",
+              why: "the closing bracket is missing, so nothing runs",
+            },
           ],
         },
       },

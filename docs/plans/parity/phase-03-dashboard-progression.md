@@ -11,10 +11,10 @@
 ## Status
 
 **Landed — the dashboard and the badge machine.** Items 1, 2 (as a single page rather than a grid of
-tiles), 3, 7 and 9 ship: `/learn` lists every drill in track order, grouped, with a badge per row, a
+tiles), 3, 4, 7 and 9 ship: `/learn` lists every drill in track order, grouped, with a badge per row, a
 count, an up-next button and a two-step reset, and the badges come from a pure read model that both the
-server template and the island import. Items 4, 5, 6 and 8 are open, and the plan's accuracy-based
-badge rule is replaced by what the record can actually prove.
+server template and the island import. Items 5, 6 and 8 are open, and the plan's accuracy-based badge
+rule is replaced by what the record can actually prove.
 
 - [x] **1. Progress read model.** `packages/progress` — `summarise({ plan, progress, now })` returns
       `{ total, completed, remaining, stale, needsPractice, next, nextReason, groups, recent, rows }`,
@@ -42,8 +42,14 @@ badge rule is replaced by what the record can actually prove.
       practice history, not an account.
 - [x] **9. SEO meta.** `noindex` on `/learn` in both builds, and the sitemap and `next:check` assert the
       page is absent from the crawl surface. Whatever a crawler sees would be one browser's zeroes.
-- [ ] **4. Category pages.** `/learn/groups/<id>` is not built: the dashboard's sections carry the ids
-      the deep links would use, so the route is a redirect-shaped addition, not a redesign.
+- [x] **4. Category pages.** `/learn/groups/<id>`, one page per group with a drill, built by the same
+      renderer as `/learn` so the two cannot drift: back link, the group's prose split into its two
+      authored paragraphs, the legend, one section with numbered rows and the same island — the counters
+      read the full plan payload, not the page's own slice. Deep links exist because the dashboard's
+      group `<h2>` is the link; the page is `noindex` and stays out of the sitemap (it is one browser's
+      zeroes, exactly like `/learn`), and a group with no drills has no page rather than an empty one,
+      so 9 of the 16 groups render today. The syllabus table the plan asked for is the grouped row list
+      already built for the dashboard: same columns minus accuracy, which the record cannot prove.
 - [ ] **5. Gating (`canStart`).** Open, deliberately. The order gate needs an account to be more than a
       dead end — with local-only progress, clearing a browser would lock a learner out of the track
       forever — so the existing `freeLessonCount` trial gate stays the only wall until phase 4.
@@ -55,7 +61,10 @@ Two acceptance criteria are now true and proven in `e2e/dashboard.spec.js`: "sig
 lesson updates immediately after a completion" (the spec finishes a drill on its own page and reads the
 dashboard, which is the same assertion without an account), and "reset progress asks twice and cannot be
 triggered by a stray keypress". The stale row is proven there too — a 2020 completion reads `Stale`, never
-`Complete`. The gating and category criteria stay open with items 4 and 5.
+`Complete` — and the category criterion is proven: every group page renders its own drills and no
+others, counts sum to the track total, no drill appears in two groups (`tests/dashboard-page.test.js`
+covers the first two, `legacy/src/verify.mjs` the third across all 9 pages). The gating criterion stays
+open with item 5.
 
 ---
 
@@ -122,7 +131,7 @@ Reference behaviour being reproduced: completed count, category grid with per-ca
 - [ ] Signed-out learner sees lessons 1–3 open and every other row as a sign-in prompt that works.
 - [ ] Signed-in learner's next lesson updates immediately after a completion.
 - [ ] Badge precedence verified: a stale lesson never shows `COMPLETE`.
-- [ ] Category counts sum to the track total; no lesson is in two groups.
+- [x] Category counts sum to the track total; no lesson is in two groups.
 - [ ] Dashboard renders in < 1 s on a throttled connection (no blocking client fetch for first paint).
 - [ ] Empty state (new user) and error state (progress fetch fails) both designed and implemented.
 - [ ] Reset progress asks twice and cannot be triggered by a stray keypress.

@@ -1,0 +1,11 @@
+{
+  "name": "@excelsupreme/sheet",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "description": "The sheet grid as data: cell addresses, the answer cell, and keyboard navigation. No DOM, no state."
+}

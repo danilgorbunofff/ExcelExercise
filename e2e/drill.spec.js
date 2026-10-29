@@ -179,6 +179,29 @@ test("progress survives a reload on the same device", async ({ page }) => {
   await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
 });
 
+test("a drill in a browser that refuses storage warns before the work evaporates", async ({ page }) => {
+  // The failure mode this closes: `createStore().write` swallows the throw by design, so a finished
+  // lesson vanishes on reload with no explanation. The dashboard already owned the honest sentence;
+  // the drill repeats it where the save happens.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      get() {
+        throw new DOMException("storage is blocked", "SecurityError");
+      },
+    });
+  });
+  await openDrill(page, "sum-basics");
+
+  await expect(page.locator("#rail-blocked")).toBeVisible();
+  await expect(page.locator("#rail-blocked")).toHaveText(
+    "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.",
+  );
+  // Only the memory is gone; the drill still grades.
+  await check(page, "=SUM(B2:B4)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+});
+
 test("arrow keys move the selection and stop at the edge of the block", async ({ page }) => {
   await openDrill(page, "sum-basics");
   const cell = (key) => page.locator(`.cell[data-cell='${key}']`);

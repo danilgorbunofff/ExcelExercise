@@ -538,6 +538,25 @@ describe("drill.js source", () => {
     assert.doesNotMatch(code, /track\("paywall_email"[^)]*email[^)]*\)/);
     assert.doesNotMatch(code, /track\("paywall_email"[^)]*input\.value/);
   });
+
+  it("says storage is blocked on the drill page instead of losing the save in silence", () => {
+    // `createStore().write` still swallows a quota/private-mode throw — that is the recorded
+    // behaviour, not something to change here. What was missing is the warning: the dashboard
+    // owns the sentence, and the drill must say the same one once the probe has failed.
+    const sentence =
+      "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.";
+    const dashboard = stripComments(readFileSync(join(ROOT, "legacy/src/client/dashboard.js"), "utf8"));
+    assert.ok(dashboard.includes(sentence), "the dashboard sentence moved; update both pages together");
+    assert.ok(code.includes(sentence), "the drill does not repeat the dashboard's blocked-storage sentence");
+    assert.match(code, /const storage = safeStorage\(\);\s*const store = createStore\(storage\);\s*if \(!storage\) mountStorageWarning\(\);/);
+    assert.match(code, /rail\.querySelector\("\.rail-count"\)/);
+    // The note is prose, not a count. It shares the rail meta typography through `.rail-note`;
+    // borrowing `.rail-count` would tell the stylesheet (and any reader) a false story.
+    assert.match(code, /class: "rail-note",/);
+    assert.equal(/class: "rail-count",/.test(code), false);
+    const railCss = readFileSync(join(ROOT, "legacy/src/styles/components.css"), "utf8");
+    assert.match(railCss, /\.rail-count,\s*\.rail-note\s*\{/);
+  });
 });
 
 describe("dashboard.js source", () => {

@@ -329,7 +329,8 @@
   color: var(--text);
 }
 
-.rail-count {
+.rail-count,
+.rail-note {
   margin-top: 2px;
   color: var(--text-muted);
   font-size: var(--fs-meta);

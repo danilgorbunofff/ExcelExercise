@@ -102,6 +102,25 @@ function safeStorage() {
   }
 }
 
+/**
+ * The rail is server-rendered before any browser has answered the probe, so the warning is added
+ * here rather than in the template. It is the dashboard's sentence, word for word: a learner whose
+ * browser refuses storage must not be told they have done nothing, and a completed lesson that will
+ * not survive a reload must say so before the learner closes the tab.
+ */
+function mountStorageWarning() {
+  const rail = document.querySelector(".rail");
+  if (!rail || document.getElementById("rail-blocked")) return;
+  const note = el("p", {
+    class: "rail-note",
+    id: "rail-blocked",
+    text: "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.",
+  });
+  const count = rail.querySelector(".rail-count");
+  if (count) count.after(note);
+  else rail.prepend(note);
+}
+
 function createStore(storage) {
   return {
     read(key) {
@@ -250,7 +269,9 @@ function mountDrill(payloadNode) {
     return;
   }
 
-  const store = createStore(safeStorage());
+  const storage = safeStorage();
+  const store = createStore(storage);
+  if (!storage) mountStorageWarning();
   let progress = parseProgress(store.read(PROGRESS_KEY));
   let trial = parseTrial(store.read(TRIAL_KEY));
 

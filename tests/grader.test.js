@@ -886,6 +886,14 @@ describe("typed answers", () => {
     assert.equal(normaliseAnswer("  A  B \n"), "a b");
   });
 
+  it("accepts the answer typed the way the site teaches it, with a leading =", () => {
+    for (const typed of ["=B2:B6", " =$B$2:$B$6", "= b2:b6", "= B2:B6"]) {
+      assert.equal(gradeAnswer(picture, typed).ok, true, typed);
+    }
+    // One `=` is the formula prefix; it is not a character of the answer.
+    assert.equal(normaliseAnswer("=="), "=");
+  });
+
   it("rejects a near miss without printing the answer it wanted", () => {
     const result = gradeAnswer(picture, "C2:C6");
     assert.equal(result.ok, false);

@@ -114,8 +114,9 @@ test("a multi-screen lesson walks to its picture screen and completes on typed t
   await expect(page.locator("#feedback-body")).toHaveText("That is not what the image shows.");
   await expect(page.locator("#formula")).toHaveValue("C2:C6");
 
-  // `$B$2:$B$6` names the same range as the accepted spelling, so the absolute markers are no trap.
-  await check(page, "$B$2:$B$6");
+  // `$B$2:$B$6` names the same range as the accepted spelling, and `=` is the prefix every lesson
+  // in the track teaches, so neither is a trap on the one screen that grades typed text.
+  await check(page, "=$B$2:$B$6");
   await expect(page.locator("#feedback-head")).toHaveText("Correct");
   await expect(page.locator("#feedback-body")).toHaveText("The answer is B2:B6.");
   await expect(page.locator(".rail-item[data-lesson='16-xlookup-search-from-the-bottom']")).toHaveClass(/is-done/);

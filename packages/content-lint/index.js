@@ -267,6 +267,11 @@ function checkPicture(screen, { label, where, report, contentDir }) {
       report.error(where, `${label}answers[${index}] "${answer}" is too short to be a specific answer`);
     }
   }
+  // Formula screens warn per rejected fixture when a rule ships no hint; a picture screen has no
+  // fixtures to replay, so the same dead end is only visible here.
+  if (typeof screen.hints?.value !== "string" || screen.hints.value.trim() === "") {
+    report.warning(where, `${label}hints.value is missing, so a miss tells the learner nothing about where to look`);
+  }
 }
 
 /**

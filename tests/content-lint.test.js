@@ -367,6 +367,16 @@ describe("content-lint: picture screens", () => {
     });
     assert.match(messages(report).join("\n"), /screens\[2\]\.answers\[1\] "B" is too short/);
   });
+
+  it("warns when a miss would leave the learner with no guidance", () => {
+    const { report } = sandbox(({ content }) => {
+      editPicture(content, ({ hints, ...screen }) => screen);
+    });
+    assert.deepEqual(report.errors, []);
+    const warnings = report.warnings.map(({ where, message }) => (where ? `${where}: ${message}` : message));
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /screens\[2\]\.hints\.value is missing, so a miss tells the learner nothing about where to look$/);
+  });
 });
 
 describe("content-lint: the catalog", () => {

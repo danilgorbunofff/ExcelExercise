@@ -12,13 +12,15 @@ const ZERO_WIDTH = /[\u200B-\u200D\u2060\uFEFF]/g;
 
 /**
  * One spelling of an answer. Case, spacing and the absolute markers are presentation: a learner who
- * copies `$B$2:$B$6` out of the bar has named the same range as one who types `b2:b6`.
+ * copies `$B$2:$B$6` out of the bar has named the same range as one who types `b2:b6`. The leading
+ * `=` is presentation too: the site teaches "start with =", so `=B2:B6` must not be a wrong answer.
  */
 export function normaliseAnswer(raw) {
   return String(raw ?? "")
     .replace(ZERO_WIDTH, "")
     .replace(/\s+/g, " ")
     .trim()
+    .replace(/^=\s*/, "")
     .toLowerCase()
     .replace(/\$/g, "");
 }

@@ -223,6 +223,21 @@ fixture floors did not:
 `verified … 839 checks passed` and `52 passed` are unchanged: the fix changes three cells and adds
 one caption on one page, and `verify` does not pin the preview's cells.
 
+CI ran the re-pinned content on Node 24 / `ubuntu-latest` and reproduced every number, green on the
+first attempt: [run 40951865484](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40951865484)
+(`phase-0-port-shell`) and [run 40951866057](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40951866057)
+(`main`) — `tests 653` / `suites 105` / `pass 653` / `fail 0`;
+`content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed`;
+`111 accepted and 157 rejected`; `built 27 pages (740.0 kB of HTML+CSS)`;
+`next routes: 27 prerendered pages match the shared templates`; `verified … 839 checks passed`;
+`52 passed (18.5s)`; `vendor: 25 files match manifest.json`.
+
+The same pass found that `npm run next:start` serves whatever `.next` holds, so a browser opened
+before `npm run next:build` shows the previous build — which is how an earlier reading of this page
+missed the caption and a `500` for an asset the old build had not emitted. After the rebuild the same
+cold load logs no response above `399` and `B7` reads `44.8`. No code changed for that: it was a stale
+artifact, not a defect.
+
 ## Baseline
 
 | Metric | Value |

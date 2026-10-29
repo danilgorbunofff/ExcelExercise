@@ -25,6 +25,15 @@ summary's workbook count is no longer `0`, and the fixture builds that used to b
 proof (`tests/five-types.test.js`, `tests/keys-page.test.js`, `tests/workbook-page.test.js`) now
 prove the five types coexist rather than that they exist.
 
+"Reachable" here means the page exists and renders the type on a live lesson; it is not a claim about
+how many clicks away it is. `blockingGate()` in `legacy/src/client/drill.js:936` still enforces the
+product's own order gate and free-trial paywall, so on a cold load: lesson 03's chord and sequence are
+free and open once lessons 01–02 are done, while the capstone's workbook is the tenth lesson and needs
+lessons 01–09, or `#gate-unlock` (the documented in-browser unlock, which also stamps the
+`gated: true` view event). Both are the intended funnel, not a defect — but an automated proof that
+wants the workbook screen has to clear the gate first, and a reader who takes "reachable" to mean
+"one click from the index" would be wrong.
+
 ## Critical Failure Modes
 
 **1. A screen type that no live lesson renders is a type that ships silently broken — closed.**
@@ -112,7 +121,7 @@ Run from `/Users/danil/Desktop/excelsupreme` on `30629e8`, Node `v25.9.0` (macOS
 
 | Row | Status | Evidence |
 |---|---|---|
-| 1 | **closed** | `node --test tests/keys.test.js tests/five-types.test.js tests/workbook-build.test.js tests/workbook-page.test.js tests/keys-page.test.js tests/session.test.js tests/sheet.test.js tests/client.test.js tests/grader.test.js` → `ℹ tests 255`, `ℹ suites 42`, `ℹ pass 255`, `ℹ fail 0` |
+| 1 | **closed** | `node --test tests/keys.test.js tests/five-types.test.js tests/workbook-build.test.js tests/workbook-page.test.js tests/keys-page.test.js tests/session.test.js tests/sheet.test.js tests/client.test.js tests/grader.test.js` → `ℹ tests 262`, `ℹ suites 43`, `ℹ pass 262`, `ℹ fail 0` (re-pinned 2026-10-29 from `tests 255` / `suites 42`: six `preview:` cases in `sheet.test.js` and *shows the value the file shows, not the formula the row holds* in `workbook-page.test.js`) |
 | 2 | **closed** | `npx playwright test e2e/drill.spec.js e2e/keyboard.spec.js e2e/a11y.spec.js` → `23 passed (7.5s)` (re-pinned 2026-10-29: `drill` gained *a workbook lesson hands over the file and grades the answer it asks for*, `a11y` gained *the workbook panel of a shipped lesson passes*; the run before that was `21 passed (7.3s)`, then `19 passed (6.8s)`, with one earlier run reporting `18 passed` plus one retried flake on `keyboard.spec.js:59`) |
 | 3 | **closed** | `node legacy/src/verify.mjs` → `verified 16 lesson pages, the index, the dashboard and 9 group pages — 839 checks passed` (re-pinned 2026-10-29 twice, `817` → `827` for the two shortcut screens, then `827` → `839` for the workbook screen's download link, grid and labels) |
 | 4 | **closed** | `npm run content:check` → `content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed`, `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` (re-pinned 2026-10-29 from `18 screens` → `20` → `21`; the verdict counts did not move, which is the point — a workbook screen ships answers, not formulas) |

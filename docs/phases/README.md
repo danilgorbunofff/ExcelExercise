@@ -65,19 +65,24 @@ shortcut-drill and lifetime-pricing non-goals in phase 7.
 
 ## Rules that apply to every phase
 
-- **No package installs; vendored static assets instead.** This environment blocks `npm install`, and
-  the runtime carries no build step: native ES modules, `node --test`, Node's built-in HTTP server.
-  Third-party *presentation* assets are allowed only as committed files under `vendor/`, pinned by
-  version, recorded with a `sha256` in `vendor/manifest.json`, and shipped with their licence. No
-  runtime CDN, no bundler, no framework. Anything with runtime JavaScript needs a written argument in
-  the phase document — see the rejected list in [05a-design-system.md](05a-design-system.md#3-library-budget).
+- **The static site installs nothing; vendored static assets instead.** `legacy/` carries no build
+  step and no dependencies: native ES modules, `node --test`, Node's built-in HTTP server.
+  Third-party *presentation* assets are allowed only as committed files under `legacy/vendor/`, pinned
+  by version, recorded with a `sha256` in `legacy/vendor/manifest.json`, and shipped with their
+  licence. No runtime CDN, no bundler, no framework. Anything with runtime JavaScript needs a written
+  argument in the phase document — see the rejected list in [05a-design-system.md](05a-design-system.md#3-library-budget).
+  The rules were written before the shell existed: in phase 0 of the parity plan the Next.js app and
+  its npm workspaces were admitted deliberately, so `app/`, `packages/`, the root `package.json` and
+  the Playwright suite are outside this rule. They are held to the same asset discipline — the drill
+  still loads `/assets` and `/grader` as static files, never as a React island — and the reasoning is
+  recorded in [the shell plan](../plans/parity/phase-00-port-shell.md).
 - **Grader messages are plain text.** `grade()` echoes learner input inside its messages, so the drill
   must insert them with `textContent`/`createTextNode`, never `innerHTML`. Same rule for the exercise
   dataset, which comes from a JSON file that may end up in a CMS later.
-- **Grader is UI-free.** `src/grader/` must never import DOM, `window`, `document`, or Node built-ins.
-  It is the portability guarantee for the Next.js version.
+- **Grader is UI-free.** `packages/grader/` must never import DOM, `window`, `document`, or Node
+  built-ins. It is the portability guarantee for the Next.js version.
 - **Content is data, not code.** A new exercise is a JSON file. If adding a lesson requires touching
-  `src/grader/`, the schema is wrong.
+  `packages/grader/`, the schema is wrong.
 - **Errors teach.** Every rejection must map to a named rule and a human sentence naming the
   mistake. "Incorrect" is a bug.
 - **Accept equivalents.** Case, whitespace, absolute refs, argument order, and equivalent syntax pass.

@@ -2,7 +2,10 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    # `main` is the default branch; the parity phases land on `phase-*` branches first, and a push to
+    # one of those has to run the gate too — otherwise the only check is the PR, and a direct push
+    # would go unverified.
+    branches: [main, "phase-*"]
   pull_request:
 
 # Every step below is also a local `npm run …`, so a green CI run never proves something the

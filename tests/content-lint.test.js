@@ -379,6 +379,56 @@ describe("content-lint: picture screens", () => {
   });
 });
 
+describe("content-lint: shortcut screens", () => {
+  const SHORTCUT_LESSON = "16-xlookup-search-from-the-bottom";
+
+  /** Rewrites the third screen — a picture — into a screen answered on the keyboard. */
+  const editShortcut = (content, edit) => {
+    const path = lessonPath(content, SHORTCUT_LESSON);
+    const lesson = readJson(path);
+    const index = lesson.screens.findIndex((screen) => screen.type === "picture");
+    assert.ok(index > 0, `${SHORTCUT_LESSON} no longer ships a screen to swap`);
+    const chord = { id: "chord-1", type: "chord", prompt: lesson.screens[index].prompt, keys: ["Ctrl+Shift+Plus"], hints: { value: "Row and column commands live on the Home tab." } };
+    const screens = lesson.screens.map((screen, at) => (at === index ? edit(chord) : screen));
+    writeJson(path, { ...lesson, screens });
+    return index;
+  };
+
+  const warningsOf = (report) => report.warnings.map(({ where, message }) => (where ? `${where}: ${message}` : message));
+
+  it("passes a shortcut the browser delivers, with no fixtures and no reference", () => {
+    const { report } = sandbox(({ content }) => editShortcut(content, (screen) => screen));
+    assert.deepEqual(messages(report), []);
+    assert.deepEqual(warningsOf(report), []);
+  });
+
+  it("warns rather than fails when the browser keeps the shortcut for itself", () => {
+    // Ctrl+L is a reserved shortcut on the platform that does not own Cmd, so it never reaches the
+    // page as a keypress: the typed fallback grades it, the keyboard alone does not.
+    const { report } = sandbox(({ content }) => editShortcut(content, (screen) => ({ ...screen, keys: ["Ctrl+L", "Mod+Shift+Plus"] })));
+    assert.deepEqual(report.errors, []);
+    const warnings = warningsOf(report);
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /screens\[2\]\.keys\[0\] "Ctrl\+L" is a Windows browser shortcut/);
+  });
+
+  it("warns per step when a sequence presses a key the browser keeps", () => {
+    const { report } = sandbox(({ content }) =>
+      editShortcut(content, (screen) => ({ ...screen, type: "sequence", keys: undefined, steps: ["Alt", "Mod+T"] })),
+    );
+    assert.deepEqual(report.errors, []);
+    assert.match(warningsOf(report).join("\n"), /screens\[2\]\.steps\[1\] "Mod\+T" is a (Windows|Mac) browser shortcut/);
+  });
+
+  it("warns when a miss would leave the learner with no guidance", () => {
+    const { report } = sandbox(({ content }) => {
+      editShortcut(content, ({ hints, ...screen }) => screen);
+    });
+    assert.deepEqual(report.errors, []);
+    assert.match(warningsOf(report).join("\n"), /screens\[2\]\.hints\.value is missing, so a miss tells the learner nothing about which keys to press$/);
+  });
+});
+
 describe("content-lint: the catalog", () => {
   /** Rewrites track.json in the sandbox. The loader reads it, so a broken catalog is one error. */
   function editTrack(content, edit) {

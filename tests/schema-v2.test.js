@@ -43,6 +43,27 @@ const PICTURE = {
   hints: { value: "The price lives in column B." },
 };
 
+/** A screen answered on the keyboard: one shortcut, in any spelling of it. */
+const CHORD = {
+  id: "chord-a",
+  type: "chord",
+  prompt: "Which shortcut inserts a row above the selected cell?",
+  keys: ["Mod+Shift+Plus"],
+  hints: { value: "Row and column commands live on the Home tab." },
+};
+
+/** A screen answered with presses in order: Excel's ribbon access keys. */
+const SEQUENCE = {
+  id: "sequence-a",
+  type: "sequence",
+  prompt: "Which keys open the ribbon's number formats without the mouse?",
+  steps: ["Alt", "H", "O"],
+  hints: { value: "Alt puts the focus on the ribbon, then the tab, then the command." },
+};
+
+/** A lesson with no formula screen names a shortcut where a formula lesson names its formula. */
+const SHORTCUT_DOCS = { ...V1.docs, reference: "Mod+Shift+Plus" };
+
 /** A v2 lesson carries its drill on the screens and nowhere else — the loader rejects both halves. */
 function v2({ screens = [screenFrom(V1)], ...overrides } = {}) {
   const lesson = { ...V1, schemaVersion: 2, ...overrides, screens };
@@ -225,6 +246,118 @@ describe("lesson schema v2", () => {
     });
   });
 
+  describe("a chord screen", () => {
+    const chord = (overrides = {}) => v2({ docs: SHORTCUT_DOCS, screens: [{ ...CHORD, ...overrides }] });
+    const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+
+    it("normalises to the keys it accepts, with no grid and no rules", () => {
+      const lesson = normalizeLesson(chord(), FILE);
+      const screen = screenAt(lesson, 0);
+
+      assert.deepEqual(Object.keys(screen).sort(), ["expect", "hints", "id", "keys", "prompt", "type"]);
+      assert.deepEqual(screen.keys, ["Mod+Shift+Plus"]);
+      // One string for every solved message and every reveal, whatever the screen type.
+      assert.deepEqual(screen.expect, { value: "Ctrl + Shift + +" });
+      assert.equal(revealOf(lesson, screen), "Ctrl + Shift + +");
+    });
+
+    it("keeps alternative spellings of the same shortcut", () => {
+      const screen = screenAt(normalizeLesson(chord({ keys: ["Ctrl+L", "Shift+F10"] }), FILE), 0);
+      assert.deepEqual(screen.keys, ["Ctrl+L", "Shift+F10"]);
+      assert.equal(screen.expect.value, "Ctrl + L or Shift + F10", "the first spelling leads the reveal");
+    });
+
+    it("rejects a shortcut the player could never match", () => {
+      throws(chord({ keys: ["Ctrl+"] }), /screens\[0\]\.keys\[0\] "Ctrl\+" has an empty key or modifier/);
+      throws(chord({ keys: ["Hyper+L"] }), /keys\[0\] "Hyper\+L" names "hyper"/);
+      throws(chord({ keys: [""] }), /screens\[0\]\.keys\[0\] must be a non-empty string/);
+      throws(chord({ keys: [] }), /screens\[0\]\.keys must be a non-empty array/);
+    });
+
+    it("rejects two spellings that are the same shortcut", () => {
+      throws(chord({ keys: ["Ctrl+L", "ctrl+l"] }), /screens\[0\]\.keys\[1\] repeats screens\[0\]\.keys\[0\]/);
+    });
+
+    it("rejects the fields the other screen types own", () => {
+      throws(chord({ grid: V1.grid }), /grid belongs to a formula screen — a chord screen is graded by its keys alone/);
+      throws(chord({ answers: ["B2"] }), /answers belongs to a picture screen/);
+      throws(chord({ steps: ["Alt"] }), /steps belongs to a sequence screen/);
+      throws(chord({ reference: "=SUM(A1)" }), /reference is a formula screen's reveal/);
+    });
+
+    it("rejects a hint filed under a rule a chord screen never reports", () => {
+      throws(chord({ hints: { error: "no" } }), /hints\.error is not a failure a chord screen reports/);
+    });
+
+    it("keeps a chord's keys off a formula screen and a picture screen", () => {
+      assert.throws(
+        () => normalizeLesson(v2({ screens: [screenFrom(V1, { keys: ["Mod+L"] })] }), FILE),
+        /keys belongs to a chord or sequence screen — a formula screen is graded by its grid/,
+      );
+      assert.throws(
+        () => normalizeLesson(v2({ screens: [{ ...PICTURE, keys: ["Mod+L"] }] }), FILE),
+        /keys belongs to a chord or sequence screen — a picture screen is graded by its answers alone/,
+      );
+    });
+  });
+
+  describe("a sequence screen", () => {
+    const sequence = (overrides = {}) => v2({ docs: SHORTCUT_DOCS, screens: [{ ...SEQUENCE, ...overrides }] });
+    const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+
+    it("normalises to the presses in order, with no grid and no rules", () => {
+      const lesson = normalizeLesson(sequence(), FILE);
+      const screen = screenAt(lesson, 0);
+
+      assert.deepEqual(Object.keys(screen).sort(), ["expect", "hints", "id", "prompt", "steps", "type"]);
+      assert.deepEqual(screen.steps, ["Alt", "H", "O"]);
+      assert.deepEqual(screen.expect, { value: "Alt then H then O" });
+      assert.equal(revealOf(lesson, screen), "Alt then H then O");
+    });
+
+    it("accepts a step that is a chord, and one that is a modifier alone", () => {
+      const screen = screenAt(normalizeLesson(sequence({ steps: ["Ctrl+A", "Ctrl+C"] }), FILE), 0);
+      assert.deepEqual(screen.steps, ["Ctrl+A", "Ctrl+C"]);
+      assert.equal(screen.expect.value, "Ctrl + A then Ctrl + C");
+    });
+
+    it("rejects a step that is not a press at all", () => {
+      throws(sequence({ steps: [] }), /screens\[0\]\.steps must be a non-empty array/);
+      throws(sequence({ steps: ["Alt", "NotAKey"] }), /steps\[1\] "NotAKey" ends on "notakey"/);
+      throws(sequence({ steps: ["Mod"] }), /steps\[0\] "Mod" is the platform's primary modifier alone/);
+    });
+
+    it("rejects a step that repeats an earlier one", () => {
+      throws(sequence({ steps: ["Alt", "alt"] }), /screens\[0\]\.steps\[1\] repeats screens\[0\]\.steps\[0\]/);
+    });
+
+    it("rejects the fields the other screen types own", () => {
+      throws(sequence({ keys: ["Mod+L"] }), /keys belongs to a chord screen/);
+      throws(sequence({ require: V1.require }), /require belongs to a formula screen/);
+      throws(sequence({ image: PICTURE.image }), /image belongs to a picture screen/);
+    });
+  });
+
+  describe("docs for a lesson with no formula screen", () => {
+    it("names a shortcut instead of a formula", () => {
+      const lesson = normalizeLesson(v2({ docs: SHORTCUT_DOCS, screens: [CHORD] }), FILE);
+      assert.equal(lesson.docs.reference, "Mod+Shift+Plus");
+    });
+
+    it("rejects a reference that is neither, and still demands = when a formula screen exists", () => {
+      const shortcutDocs = { ...V1.docs, reference: "NotAKey" };
+      assert.throws(
+        () => normalizeLesson(v2({ docs: shortcutDocs, screens: [CHORD] }), FILE),
+        /docs\.reference "NotAKey" ends on "notakey"/,
+      );
+      // A lesson with a formula screen keeps the stricter rule, so a typo cannot slip through as a chord.
+      assert.throws(
+        () => normalizeLesson(v2({ docs: shortcutDocs, screens: [CHORD, screenFrom(V1)] }), FILE),
+        /docs\.reference must be a formula starting with =/,
+      );
+    });
+  });
+
   describe("rejections", () => {
     const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
 
@@ -265,8 +398,8 @@ describe("lesson schema v2", () => {
 
     it("rejects a known type that cannot be graded yet", () => {
       throws(
-        v2({ screens: [screenFrom(V1, { type: "chord" })] }),
-        /type "chord" does not render yet — only formula, picture screens can be graded today/,
+        v2({ screens: [screenFrom(V1, { type: "workbook" })] }),
+        /type "workbook" does not render yet — only formula, chord, sequence, picture screens can be graded today/,
       );
     });
 

@@ -571,7 +571,7 @@ describe("build validation", () => {
     try {
       for (const dir of ["content", "vendor", "src"]) cpSync(join(ROOT, "legacy", dir), join(real, dir), { recursive: true });
       // The build reads the packages from ../packages/, so the copy needs both as siblings.
-      for (const name of ["grader", "content", "progress"]) {
+      for (const name of ["grader", "content", "keys", "progress"]) {
         cpSync(join(ROOT, "packages", name), join(container, "packages", name), { recursive: true });
       }
       try {

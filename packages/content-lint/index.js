@@ -16,6 +16,7 @@ import { join } from "node:path";
 import { loadContent, revealOf } from "../content/index.js";
 import { SCHEMA_VERSION } from "../content/schema.js";
 import { grade, normaliseAnswer } from "../grader/index.js";
+import { isReserved, parseChord, parsePress } from "../keys/index.js";
 
 /** The phase-1 floor. Twelve is the number the plan asks for; six is the number CI refuses to go under. */
 export const MIN_FIXTURES = 6;
@@ -217,8 +218,9 @@ function checkLinks(value, prefix, { label, where, report, routes }) {
 function checkReferences(lesson, { file, report }) {
   const seen = new Map();
   lesson.screens.forEach((screen, index) => {
-    // A picture screen reveals the answer it accepts, not a formula, so it has no reference to repeat.
-    if (screen.type === "picture") return;
+    // A shortcut or picture screen reveals the answer it accepts, not a formula, so it has no
+    // reference to repeat and no claim on the docs example.
+    if (screen.type !== "formula") return;
     const reference = screen.reference ?? lesson.docs.reference;
     const key = reference.replace(/\s+/g, "").toLowerCase();
     if (seen.has(key)) {
@@ -231,8 +233,8 @@ function checkReferences(lesson, { file, report }) {
     }
   });
   // The docs example is a formula, so it is compared against the first formula screen — the one the
-  // docs block is built from — no matter where a picture screen sits in the lesson.
-  const first = lesson.screens.findIndex((screen) => screen.type !== "picture");
+  // docs block is built from — no matter where a shortcut or picture screen sits in the lesson.
+  const first = lesson.screens.findIndex((screen) => screen.type === "formula");
   if (lesson.screens.length > 1 && first === -1) {
     report.error(file, "has no formula screen — the lesson's docs.reference would never be shown");
   } else if (lesson.screens.length > 1) {
@@ -271,6 +273,32 @@ function checkPicture(screen, { label, where, report, contentDir }) {
   // fixtures to replay, so the same dead end is only visible here.
   if (typeof screen.hints?.value !== "string" || screen.hints.value.trim() === "") {
     report.warning(where, `${label}hints.value is missing, so a miss tells the learner nothing about where to look`);
+  }
+}
+
+/**
+ * A shortcut screen ships a list of presses and a hint, not fixtures and rules. What a learner can
+ * trip over is the keyboard itself: a shortcut the browser keeps for itself never reaches the player,
+ * and a screen with no hint leaves a wrong answer with nothing to learn from.
+ */
+function checkKeys(screen, { label, where, report }) {
+  const field = screen.type === "chord" ? "keys" : "steps";
+  const parse = screen.type === "chord" ? parseChord : parsePress;
+  screen[field].forEach((entry, index) => {
+    // The typed fallback still grades a reserved shortcut, which is why this is a warning: the
+    // learner who types it is graded, the one who presses it watches the browser open a tab.
+    const os = ["mac", "other"].find((candidate) => isReserved(parse(entry), { os: candidate }));
+    if (os) {
+      report.warning(
+        where,
+        `${label}${field}[${index}] "${entry}" is a ${os === "mac" ? "Mac" : "Windows"} browser shortcut — the player cannot intercept it, so it grades only what is typed`,
+      );
+    }
+  });
+  // Formula screens warn per rejected fixture when a rule ships no hint; a shortcut screen has no
+  // fixtures to replay, so the same dead end is only visible here.
+  if (typeof screen.hints?.value !== "string" || screen.hints.value.trim() === "") {
+    report.warning(where, `${label}hints.value is missing, so a miss tells the learner nothing about which keys to press`);
   }
 }
 
@@ -349,10 +377,12 @@ export function lintContent(contentDir, { fixturesDir } = {}) {
     lesson.screens.forEach((screen, index) => {
       const label = lesson.screens.length > 1 ? `screens[${index}].` : "";
 
-      if (screen.type === "picture") {
-        // No fixtures, no rules, no reference: a picture screen's grading is its answer list, so the
-        // checks below would each be a false alarm. The prompt and link checks still apply.
-        checkPicture(screen, { label, where: file, report, contentDir });
+      if (screen.type !== "formula") {
+        // No fixtures, no rules, no reference: a picture screen is graded by its answer list and a
+        // shortcut screen by the keys it lists, so the fixture checks below would each be a false
+        // alarm. The prompt and link checks still apply to every screen.
+        if (screen.type === "picture") checkPicture(screen, { label, where: file, report, contentDir });
+        else checkKeys(screen, { label, where: file, report });
         checkPrompt(screen, { label, where: file, report, seenPrompts });
         checkLinks({ prompt: screen.prompt, hints: screen.hints }, "screen", { label, where: file, report, routes });
         return;

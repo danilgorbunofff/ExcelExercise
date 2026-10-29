@@ -12,6 +12,7 @@
  */
 
 import { KNOWN_FUNCTIONS, normaliseAnswer, parseRef } from "../grader/index.js";
+import { chordText, parseChord, parsePress } from "../keys/index.js";
 
 export const LEVELS = { 1: "Beginner", 2: "Intermediate", 3: "Advanced" };
 
@@ -19,7 +20,7 @@ export const SCHEMA_VERSION = 2;
 
 /** Every screen type the plan defines. Only these can be graded today; phase 2 adds the rest. */
 export const SCREEN_TYPES = ["formula", "chord", "sequence", "picture", "workbook"];
-const IMPLEMENTED = new Set(["formula", "picture"]);
+const IMPLEMENTED = new Set(["formula", "chord", "sequence", "picture"]);
 
 /** The grader applies these and silently skips anything else, so the loader must reject the rest. */
 const RULE_TYPES = new Set(["matchType"]);
@@ -29,6 +30,9 @@ const PICTURE_FIELDS = ["image", "alt", "answers"];
 
 /** The inverse: fields a picture screen has no use for, and a formula screen's grader cannot read. */
 const FORMULA_FIELDS = ["grid", "answerCell", "expect", "require", "forbid", "requireRef", "rules", "fixtures"];
+
+/** The two key screens' own fields, which neither a formula screen nor a picture screen can render. */
+const KEY_FIELDS = ["keys", "steps"];
 
 /**
  * Where a picture screen's image may live. The build copies `content/images/` flat onto
@@ -98,6 +102,8 @@ function validateRules(rules, field, where, check) {
 function validateScreen(screen, label, where, version) {
   requireText(screen.prompt, `${label}prompt`, where, { max: PROMPT_LIMIT[version] });
   if (screen.type === "picture") validatePictureScreen(screen, label, where);
+  else if (screen.type === "chord") validateChordScreen(screen, label, where);
+  else if (screen.type === "sequence") validateSequenceScreen(screen, label, where);
   else validateFormulaScreen(screen, label, where);
 }
 
@@ -110,6 +116,11 @@ function validatePictureScreen(screen, label, where) {
   for (const field of FORMULA_FIELDS) {
     if (screen[field] !== undefined) {
       failAt(where, `${label}${field} belongs to a formula screen — a picture screen is graded by its answers alone`);
+    }
+  }
+  for (const field of KEY_FIELDS) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a chord or sequence screen — a picture screen is graded by its answers alone`);
     }
   }
   if (screen.reference !== undefined) {
@@ -139,17 +150,97 @@ function validatePictureScreen(screen, label, where) {
     seen.set(key, index);
   });
 
-  if (screen.hints !== undefined) {
-    if (!isPlainObject(screen.hints)) failAt(where, `${label}hints must be an object`);
-    // A picture answer is right or wrong; "value" is the only failure it can report, so a hint
-    // filed under any other rule id would never be shown.
-    for (const key of Object.keys(screen.hints)) {
-      if (key !== "value") {
-        failAt(where, `${label}hints.${key} is not a failure a picture screen reports — use hints.value`);
-      }
+  checkAnswerHints(screen, label, where, "picture screen");
+}
+
+/**
+ * A screen graded by a list rather than by rules — a picture's accepted answers, a chord's accepted
+ * key combinations — is right or wrong. "value" is the only failure it can report, so a hint filed
+ * under any other rule id would never be shown.
+ */
+function checkAnswerHints(screen, label, where, kind) {
+  if (screen.hints === undefined) return;
+  if (!isPlainObject(screen.hints)) failAt(where, `${label}hints must be an object`);
+  for (const key of Object.keys(screen.hints)) {
+    if (key !== "value") {
+      failAt(where, `${label}hints.${key} is not a failure a ${kind} reports — use hints.value`);
     }
-    requireText(screen.hints.value, `${label}hints.value`, where, { max: 300 });
   }
+  requireText(screen.hints.value, `${label}hints.value`, where, { max: 300 });
+}
+
+/**
+ * The list of accepted presses for one screen: a chord's `keys`, a sequence's `steps`. Each entry is
+ * parsed here, so a shortcut this player could never match is a build failure naming the string
+ * instead of a screen whose answer nobody can type.
+ */
+function checkPressList(list, label, where, { parse, uniq, kind }) {
+  if (!Array.isArray(list) || list.length === 0) failAt(where, `${label} must be a non-empty array`);
+  const seen = new Map();
+  return list.map((entry, index) => {
+    const text = requireText(entry, `${label}[${index}]`, where, { max: 60 });
+    let press;
+    try {
+      press = parse(text);
+    } catch (error) {
+      failAt(where, `${label}[${index}] ${error.message}`);
+    }
+    const key = [press.solo ? "press" : "chord", ...press.mods, press.key].join("+");
+    const previous = seen.get(key);
+    if (previous !== undefined) {
+      failAt(where, `${label}[${index}] repeats ${label}[${previous}] — one of them is dead`);
+    }
+    seen.set(key, index);
+    return text;
+  });
+}
+
+/**
+ * A chord screen: one shortcut, asked for in words and answered on the keyboard. There is no grid
+ * and no rules — `keys` is the whole grade, the first entry is the answer the reveal shows, and any
+ * other entry is another spelling of the same shortcut.
+ */
+function validateChordScreen(screen, label, where) {
+  for (const field of FORMULA_FIELDS) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a formula screen — a chord screen is graded by its keys alone`);
+    }
+  }
+  for (const field of ["image", "alt", "answers"]) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a picture screen — a chord screen asks for a shortcut`);
+    }
+  }
+  if (screen.steps !== undefined) failAt(where, `${label}steps belongs to a sequence screen — a chord screen asks for one press`);
+  if (screen.reference !== undefined) {
+    failAt(where, `${label}reference is a formula screen's reveal — a chord screen reveals its first key combination`);
+  }
+  checkPressList(screen.keys, `${label}keys`, where, { parse: parseChord });
+  checkAnswerHints(screen, label, where, "chord screen");
+}
+
+/**
+ * A sequence screen: the presses in order, which is how Excel's own shortcuts work — `Alt`, `H`, `O`
+ * opens the ribbon's number format. A step may be a modifier on its own, so it is parsed as a press
+ * rather than as a chord.
+ */
+function validateSequenceScreen(screen, label, where) {
+  for (const field of FORMULA_FIELDS) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a formula screen — a sequence screen is graded by its steps alone`);
+    }
+  }
+  for (const field of ["image", "alt", "answers"]) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a picture screen — a sequence screen asks for key presses`);
+    }
+  }
+  if (screen.keys !== undefined) failAt(where, `${label}keys belongs to a chord screen — a sequence screen lists its steps`);
+  if (screen.reference !== undefined) {
+    failAt(where, `${label}reference is a formula screen's reveal — a sequence screen reveals its presses`);
+  }
+  checkPressList(screen.steps, `${label}steps`, where, { parse: parsePress });
+  checkAnswerHints(screen, label, where, "sequence screen");
 }
 
 /** The drill the site has always had: a grid, a target cell, rules, and formulas to grade. */
@@ -157,6 +248,11 @@ function validateFormulaScreen(screen, label, where) {
   for (const field of PICTURE_FIELDS) {
     if (screen[field] !== undefined) {
       failAt(where, `${label}${field} belongs to a picture screen — a formula screen is graded by its grid`);
+    }
+  }
+  for (const field of KEY_FIELDS) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a chord or sequence screen — a formula screen is graded by its grid`);
     }
   }
 
@@ -247,7 +343,28 @@ function validateFormulaScreen(screen, label, where) {
   }
 }
 
-function validateDocs(docs, where) {
+/**
+ * What `docs.reference` has to be, decided from the screens before they are validated so the two
+ * problems are reported in the order an author fixes them. A malformed `screens` array, a type this
+ * loop does not know, and the v1 flat drill all keep the stricter formula rule: a broken file should
+ * hear about the formula rather than the friendlier shortcut rule, and an unknown type should hear
+ * about itself instead of about its docs.
+ */
+function referenceKind(raw, version) {
+  if (version === 1 || !Array.isArray(raw.screens)) return "formula";
+  // A type the player cannot grade is read as a formula screen: its own error is the one to report.
+  const types = raw.screens.map((screen) => (IMPLEMENTED.has(screen?.type) ? screen.type : "formula"));
+  if (types.includes("formula")) return "formula";
+  return types.some((type) => type !== "picture") ? "shortcut" : "unconstrained";
+}
+
+/**
+ * The docs block. Its "worked example" is the formula a lesson works, so `docs.reference` is one on
+ * any lesson with a formula screen. A shortcuts lesson has no formula to work — its reference is the
+ * shortcut itself — and a lesson of pictures alone works nothing, so its reference is unconstrained:
+ * demanding a formula on either would be a fiction the page never renders.
+ */
+function validateDocs(docs, where, { reference }) {
   if (!docs || typeof docs !== "object") failAt(where, "docs is required");
   requireText(docs.syntax, "docs.syntax", where, { max: 120 });
   requireText(docs.explain, "docs.explain", where);
@@ -256,7 +373,15 @@ function validateDocs(docs, where) {
   requireText(docs.teaches, "docs.teaches", where, { max: 80 });
   requireText(docs.reference, "docs.reference", where, { max: 120 });
   requireText(docs.dataset, "docs.dataset", where, { max: 60 });
-  if (!docs.reference.startsWith("=")) failAt(where, "docs.reference must be a formula starting with =");
+  if (reference === "formula") {
+    if (!docs.reference.startsWith("=")) failAt(where, "docs.reference must be a formula starting with =");
+  } else if (reference === "shortcut") {
+    try {
+      parsePress(docs.reference);
+    } catch (error) {
+      failAt(where, `docs.reference ${error.message} — this lesson has no formula screen, so it names a shortcut`);
+    }
+  }
   if (!Array.isArray(docs.errors) || docs.errors.length === 0) failAt(where, "docs.errors must be a non-empty array");
   docs.errors.forEach((entry, index) => {
     if (!entry || typeof entry !== "object") failAt(where, `docs.errors[${index}] must be an object`);
@@ -285,6 +410,15 @@ function pickScreen(screen, id, type) {
       // published there: one field means one shape for the player, whatever the screen type.
       expect: { value: answers[0] },
     };
+  }
+
+  if (type === "chord" || type === "sequence") {
+    const list = (type === "chord" ? screen.keys : screen.steps).map((entry) => entry.trim());
+    const parse = type === "chord" ? parseChord : parsePress;
+    // The reveal is one string on every screen type, so it is written here, once, and the client
+    // re-renders it for the keyboard in front of the learner.
+    const spoken = list.map((entry) => chordText(parse(entry))).join(type === "chord" ? " or " : " then ");
+    return { ...common, [type === "chord" ? "keys" : "steps"]: list, expect: { value: spoken } };
   }
 
   return {
@@ -330,7 +464,7 @@ export function normalizeLesson(raw, file) {
     failExercise(file, `level must be 1, 2 or 3 (got ${JSON.stringify(raw.level)})`);
   }
   requireText(raw.title, "title", where, { max: 60 });
-  validateDocs(raw.docs, where);
+  validateDocs(raw.docs, where, { reference: referenceKind(raw, version) });
 
   let screens;
   if (version === 1) {
@@ -365,8 +499,8 @@ export function normalizeLesson(raw, file) {
     // answer, so only a multi-screen lesson has to repeat itself per screen.
     if (screens.length > 1) {
       screens.forEach((screen, index) => {
-        // A picture screen's reveal is the answer it accepts, so it carries no reference to lose.
-        if (screen.type === "picture") return;
+        // A list-graded screen's reveal is the answer it accepts, so it carries no reference to lose.
+        if (screen.type !== "formula") return;
         if (screen.reference === undefined) {
           failExercise(
             file,
@@ -399,7 +533,9 @@ export function referenceOf(lesson, screen) {
  */
 export function revealOf(lesson, screen) {
   if (!screen) return lesson.docs.reference;
-  return screen.type === "picture" ? screen.expect.value : referenceOf(lesson, screen);
+  // A formula screen reveals its formula; every list-graded screen — picture, chord, sequence —
+  // reveals the first answer it accepts, which `pickScreen` already folded into `expect.value`.
+  return screen.type === "formula" ? referenceOf(lesson, screen) : screen.expect.value;
 }
 
 /**

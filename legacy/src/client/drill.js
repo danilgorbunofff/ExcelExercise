@@ -8,6 +8,7 @@
 
 import { grade } from "../grader/index.js";
 import {
+  createClock,
   createSession,
   currentScreen,
   emitAll,
@@ -178,6 +179,11 @@ function mountDrill(payloadNode) {
     scoring: { correct: Math.ceil(100 / screenCount), incorrect: 0, cap: 100 },
   });
 
+  // Wall-clock time on this lesson. The budget is not enforced — a zero-signup reader whose
+  // progress is in their own browser loses nothing by working on — so the clock is read for the
+  // funnel only, and pausing it keeps a background tab from inflating the numbers.
+  const clock = createClock();
+
   let active = 0;
   let cells = [];
   let byKey = new Map();
@@ -190,6 +196,11 @@ function mountDrill(payloadNode) {
   let exhausted = false;
   let solved = isComplete(progress, lessonId);
   let offeredSolution = solved && progress.done[lessonId].helped === true;
+
+  /** Whole seconds on the drill, the unit the funnel reports. */
+  function seconds() {
+    return Math.round(clock.elapsedMs() / 1000);
+  }
 
   /** The screen being answered. Everything that used to read a single `payload.screen` reads this. */
   function activeScreen() {
@@ -416,7 +427,8 @@ function mountDrill(payloadNode) {
    * the reference one, and how much of the track is done. The loop's own props win a collision.
    */
   function emitLoop(events, extra = {}) {
-    emitAll({ emit: (type, props) => sink.emit(type, { id: lessonId, ...extra, ...props }) }, events);
+    const base = { id: lessonId, elapsed: seconds(), ...extra };
+    emitAll({ emit: (type, props) => sink.emit(type, { ...base, ...props }) }, events);
   }
 
   function successLabel(missed) {
@@ -477,6 +489,7 @@ function mountDrill(payloadNode) {
       of: screenCount,
       gated: !payload.track.free,
       solved: false,
+      elapsed: seconds(),
     });
   }
 
@@ -501,7 +514,7 @@ function mountDrill(payloadNode) {
       if (ui.showAnswer) ui.showAnswer.hidden = false;
       if (!exhausted) {
         exhausted = true;
-        track("lesson_exhausted", { id: lessonId, screen: currentScreen(loop) });
+        track("lesson_exhausted", { id: lessonId, screen: currentScreen(loop), elapsed: seconds() });
       }
     }
     paintProgress();
@@ -537,7 +550,7 @@ function mountDrill(payloadNode) {
 
   function revealSolution() {
     offeredSolution = true;
-    track("solution_reveal", { id: lessonId });
+    track("solution_reveal", { id: lessonId, elapsed: seconds() });
     ui.solutionCode.textContent = activeScreen().reference;
     ui.solution.hidden = false;
     ui.solution.classList.add("is-live");
@@ -561,7 +574,7 @@ function mountDrill(payloadNode) {
     if (!expanded) {
       ui.hintText.classList.add("is-live");
       if (!ui.hintText.textContent) setHint();
-      track("hint_open", { id: lessonId, attempts: attemptsFor(progress, lessonId) });
+      track("hint_open", { id: lessonId, attempts: attemptsFor(progress, lessonId), elapsed: seconds() });
     }
   }
 
@@ -644,7 +657,7 @@ function mountDrill(payloadNode) {
     if (selected === activeScreen().answerCell) draft = ui.input.value;
     if (!started && ui.input.value.trim() !== "") {
       started = true;
-      track("drill_start", { id: lessonId });
+      track("drill_start", { id: lessonId, elapsed: seconds() });
     }
   });
   // On the form, not the input: after a mouse click the focus is on Check, and the
@@ -668,6 +681,15 @@ function mountDrill(payloadNode) {
   if (ui.hint) ui.hint.addEventListener("click", toggleHint);
   if (ui.showAnswer) ui.showAnswer.addEventListener("click", revealSolution);
 
+  // A hidden tab is not time on task, and `visibilitychange` is the only signal for it that every
+  // browser we support fires. Both calls are idempotent, so a repeated event cannot double-count
+  // the gap, and a page that loads hidden starts paused rather than counting the tab it sits in.
+  if (document.hidden) clock.pause();
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) clock.pause();
+    else clock.resume();
+  });
+
   paintProgress();
   enterScreen(0);
   // A lesson exhausted on an earlier visit keeps its reveal: the record already holds
@@ -687,7 +709,14 @@ function mountDrill(payloadNode) {
     return;
   }
 
-  track("screen_view", { id: lessonId, screen: currentScreen(loop), of: screenCount, gated: !payload.track.free, solved });
+  track("screen_view", {
+    id: lessonId,
+    screen: currentScreen(loop),
+    of: screenCount,
+    gated: !payload.track.free,
+    solved,
+    elapsed: seconds(),
+  });
 
   // Focus the bar only when the drill is actually on screen: autofocus on a long page
   // scrolls the reader past the lesson title.

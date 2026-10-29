@@ -314,6 +314,26 @@ describe("drill.js source", () => {
     assert.match(code, /emitLoop\(/, "the loop's events must reach the page's sink");
   });
 
+  it("reads the shared clock instead of timing the drill itself", () => {
+    assert.match(code, /import \{[^}]*\bcreateClock\b[^}]*\} from "\.\.\/session\/index\.js"/s);
+    assert.match(code, /const clock = createClock\(\);/);
+    assert.doesNotMatch(code, /\bnew Date\(\).*elapsed/i);
+  });
+
+  it("pauses the clock while the tab is hidden and resumes it when it comes back", () => {
+    assert.match(
+      code,
+      /if \(document\.hidden\) clock\.pause\(\);\s*document\.addEventListener\("visibilitychange", \(\) => \{\s*if \(document\.hidden\) clock\.pause\(\);\s*else clock\.resume\(\);/,
+    );
+  });
+
+  it("stamps the working events with whole seconds on task", () => {
+    assert.match(code, /function seconds\(\) \{\s*return Math\.round\(clock\.elapsedMs\(\) \/ 1000\);/);
+    // Both screen_views, the loop's base props, the first keystroke, hint, reveal and exhaustion.
+    assert.equal(code.match(/elapsed: seconds\(\)/g)?.length, 7);
+    assert.match(code, /const base = \{ id: lessonId, elapsed: seconds\(\), \.\.\.extra \};/);
+  });
+
   it("reaches the shared session sink instead of its own buffer", () => {
     assert.match(code, /import \{ createSink \} from "\.\.\/session\/index\.js";/);
     assert.match(code, /const sink = createSink\(\{/);

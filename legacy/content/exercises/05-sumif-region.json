@@ -3,7 +3,7 @@
   "slug": "sumif-region",
   "level": 2,
   "title": "SUMIF: total one region",
-  "prompt": "In B7, total the North amounts. The sales table sits in A1:B6.",
+  "prompt": "In B7, total the North amounts from the sales table in A1:B6.",
   "answerCell": "B7",
   "grid": {
     "startCell": "A1",

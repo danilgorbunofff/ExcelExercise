@@ -1,0 +1,14 @@
+{
+  "name": "@excelsupreme/content-lint",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The authoring gate: fixtures replayed through the grader, prompts and links checked. Can fail a build; never renders.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "bin": {
+    "content-lint": "./cli.js"
+  }
+}

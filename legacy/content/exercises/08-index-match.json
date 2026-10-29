@@ -3,7 +3,7 @@
   "slug": "index-match",
   "level": 3,
   "title": "INDEX + MATCH: lookup either way",
-  "prompt": "In E3, return the salary for the ID in D3. Use INDEX and MATCH, not VLOOKUP.",
+  "prompt": "In E3, return the salary for the ID in D3 with INDEX and MATCH instead of VLOOKUP.",
   "answerCell": "E3",
   "grid": {
     "startCell": "A1",

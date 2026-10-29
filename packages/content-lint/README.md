@@ -1,0 +1,84 @@
+# `@excelsupreme/content-lint`
+
+The authoring gate. `content` answers "can this lesson be rendered?"; this answers "can it be shipped?".
+
+It exists because a drill can be perfectly well-formed and still be broken: a formula the lesson calls
+accepted but the grader rejects, a failure path documented in `hints` that no fixture ever triggers, a
+prompt copy-pasted from the lesson above it, a link to a page the site does not emit. None of those are
+schema errors — they are content errors, and they are invisible until a learner hits them.
+
+```bash
+npm run content:check                        # the gate CI runs
+npm run content:fixtures -- --lesson 6       # one lesson, row per fixture
+node packages/content-lint/cli.js check --content <dir> --fixtures <dir>
+```
+
+Exit codes: `0` clean, `1` findings, `2` bad usage. Warnings never fail the run.
+
+## API
+
+```js
+import { lintContent, replayFixtures, MIN_FIXTURES } from "@excelsupreme/content-lint";
+
+const report = lintContent("legacy/content", { fixturesDir: "tests/fixtures" });
+// { ok, errors: [{ where, message }], warnings: [...],
+//   stats: { lessons, screens, accepted, rejected, groups, planned }, lessons }
+```
+
+`lintContent` never throws for bad content: a schema error is reported as a single error (with
+`where: null`, because the loader's own message already names the file) and the run stops, because
+there is nothing to lint. Everything else is collected, so an author gets the whole list at once.
+
+`replayFixtures(lesson, { fixturesDir })` returns the rows the `fixtures` command prints —
+`{ screen, rows: [{ formula, expected, declared, result }] }` — for tools that want the data, not the
+table.
+
+## Where fixtures live
+
+| Lesson shape | Fixtures | Why |
+|---|---|---|
+| `schemaVersion: 2` | `screens[].fixtures: { accept, reject }` | the screen owns its drill, so it owns the proof |
+| v1 flat | `tests/fixtures/<id>.json` | the shape predates screens; one file per lesson |
+
+Declaring both is an error: there would be two answers to "which fixtures are real". A v2 lesson whose
+fixtures are still in the sidecar is also an error — the migration has to move them, not copy them.
+
+A rejection may be a bare formula (v2) or `{ formula, rule, why }` (sidecar). When `rule` is declared,
+the grader's reported rule must match it: that is what keeps `hints` honest.
+
+## What it checks
+
+- **Fixtures exist** — every screen has six accepted and six rejected formulas (`MIN_FIXTURES`). The
+  plan asks for twelve; six is the number CI refuses to go under.
+- **Every declared verdict is true** — each accepted formula grades `ok`, each rejected formula grades
+  `!ok`. Both directions are checked; a lesson that only proves rejects passes tests that only read
+  rejects.
+- **Every advertised failure path is exercised** — the rules the screen can report (`require` ids,
+  `forbid` ids, `rules` ids, `require-ref` when `requireRef` is set, plus the universal `syntax`,
+  `value` and `error`) must all appear in the replayed rejections. A hint nobody can reach is copy
+  nobody reads.
+- **Prompts are unique and one sentence** — duplicates are errors (that is a copy-paste, not a
+  lesson); more than one sentence is a warning, because a capstone may legitimately name three
+  techniques in one long sentence while two short ones mean the drill does two things.
+- **Links resolve** — markdown links to site-absolute paths must point at a page the site emits: the
+  index, or a lesson under one of the published bases in `LESSON_BASES` (`/learn/excel/<slug>`, the
+  canonical one, and `/excel/<slug>`, which `next.config.mjs` redirects onto it while the static build
+  still runs). There is no `/lessons` namespace and no bare lesson index page, so a link to either
+  fails here instead of 404ing in production. External links are not fetched: no network, ever.
+- **Fixture files belong to lessons** — a sidecar for a deleted lesson is a lie about coverage.
+- **Catalog titles are unique** — across published *and* planned slots, compared trimmed and
+  case-insensitively. A planned title that collides with a lesson already live is a collision now, so
+  it fails now rather than the day it is authored.
+- **Groups with published lessons owe an intro** — a warning today, because the category pages that
+  show the copy do not exist yet; it becomes an error when they do. One line names every group still
+  blank rather than nine separate findings.
+
+Empty hints on a rejection are a warning, not an error: the drill still grades, it just teaches less.
+
+## What it deliberately does not do
+
+- **Not a renderer.** Anything that would make a page unrenderable is rejected earlier, in
+  `packages/content/schema.js`. Duplicating that gate here would let the two drift.
+- **Not a style guide.** It does not measure reading level beyond sentence count, does not check voice,
+  and does not grade explanations. Those are review, not machine checks.
+- **No network.** No link crawler, no spell checker, no dependency. The build stays reproducible.

@@ -5,26 +5,27 @@
  */
 
 import { esc, inlineIcon, jsonScript } from "./html.mjs";
+import { screenAt } from "./packages.mjs";
 import { renderByline, renderDocument, renderRail } from "./shell.mjs";
 import { renderDocs, renderFeedback, renderFormulaBar, renderHint, renderSheet } from "./sheet.mjs";
 
 /** What the client needs to grade and teach, and nothing it would only duplicate. */
-function exercisePayload({ config, track, index, entry }) {
+function exercisePayload({ config, track, index, entry, screen }) {
   const { exercise } = entry;
   return {
     id: exercise.id,
     slug: exercise.slug,
     level: exercise.level,
     title: exercise.title,
-    prompt: exercise.prompt,
-    answerCell: exercise.answerCell,
-    grid: exercise.grid,
-    expect: exercise.expect,
-    require: exercise.require,
-    forbid: exercise.forbid,
-    requireRef: exercise.requireRef,
-    rules: exercise.rules,
-    hints: exercise.hints,
+    prompt: screen.prompt,
+    answerCell: screen.answerCell,
+    grid: screen.grid,
+    expect: screen.expect,
+    require: screen.require,
+    forbid: screen.forbid,
+    requireRef: screen.requireRef,
+    rules: screen.rules,
+    hints: screen.hints,
     docs: {
       syntax: exercise.docs.syntax,
       reference: exercise.docs.reference,
@@ -93,8 +94,13 @@ function renderPager({ entry, icons }) {
         </nav>`;
 }
 
-export function renderExercisePage({ config, track, index, entry, icons = {}, clientAvailable = false }) {
+/**
+ * The page as two pieces — `<main>` markup and the head metadata for it — so a host that renders its
+ * own `<head>` can reuse both. `renderExercisePage` below wraps them in a full document.
+ */
+export function prepareExercisePage({ config, track, index, entry, icons = {}, clientAvailable = false }) {
   const { exercise } = entry;
+  const screen = screenAt(exercise);
   const counter = `Drill ${entry.number} of ${index.length}`;
   const description =
     exercise.docs.outcome.length <= 155 ? exercise.docs.outcome : `${exercise.docs.outcome.slice(0, 152)}…`;
@@ -114,24 +120,24 @@ export function renderExercisePage({ config, track, index, entry, icons = {}, cl
           <section class="sheet-card" id="drill" aria-labelledby="drill-heading">
             <div class="sheet-head">
               <h2 class="sheet-name" id="drill-heading">${esc(exercise.docs.dataset)}</h2>
-              <p class="sheet-note">Read-only data · answer in <code>${esc(exercise.answerCell)}</code></p>
+              <p class="sheet-note">Read-only data · answer in <code>${esc(screen.answerCell)}</code></p>
             </div>
-            <p class="task">${esc(exercise.prompt)}</p>
+            <p class="task">${esc(screen.prompt)}</p>
             <div class="sheet" id="sheet">
-              ${renderSheet(exercise, { icons })}
+              ${renderSheet(exercise, screen, { icons })}
             </div>
-            ${renderFormulaBar(exercise, { icons })}
+            ${renderFormulaBar(screen, { icons })}
             ${renderFeedback()}
             ${renderHint({ icons })}
             <noscript>
               <p class="noscript-note">Checking needs JavaScript. The sheet and the notes are readable without it.</p>
             </noscript>
             <script type="application/json" id="exercise-data">${jsonScript(
-              exercisePayload({ config, track, index, entry }),
+              exercisePayload({ config, track, index, entry, screen }),
             )}</script>
           </section>
 
-          ${renderDocs(exercise)}
+          ${renderDocs(exercise, screen)}
 
           ${renderPager({ entry, icons })}
         </div>
@@ -140,9 +146,7 @@ export function renderExercisePage({ config, track, index, entry, icons = {}, cl
       </div>
     </main>${clientAvailable ? '\n  <script type="module" src="/assets/client/drill.js"></script>' : ""}`;
 
-  return renderDocument({
-    config,
-    icons,
+  return {
     body,
     page: {
       path: entry.path,
@@ -153,5 +157,10 @@ export function renderExercisePage({ config, track, index, entry, icons = {}, cl
       bodyClass: "lesson",
       jsonLd: jsonScript(lessonJsonLd({ config, track, entry })),
     },
-  });
+  };
+}
+
+export function renderExercisePage(args) {
+  const { body, page } = prepareExercisePage(args);
+  return renderDocument({ config: args.config, page, body, icons: args.icons });
 }

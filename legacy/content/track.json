@@ -3,16 +3,502 @@
   "title": "Excel formula drills",
   "promise": "Ten real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
   "freeLessonCount": 5,
+  "groups": [
+    {
+      "id": "intro",
+      "title": "Getting started"
+    },
+    {
+      "id": "sum",
+      "title": "Adding things up"
+    },
+    {
+      "id": "count",
+      "title": "Counting rows"
+    },
+    {
+      "id": "statistical",
+      "title": "Averages and ranks"
+    },
+    {
+      "id": "logical",
+      "title": "Decisions with IF"
+    },
+    {
+      "id": "rounding",
+      "title": "Rounding money"
+    },
+    {
+      "id": "lookup",
+      "title": "Looking values up"
+    },
+    {
+      "id": "index-match",
+      "title": "INDEX and MATCH"
+    },
+    {
+      "id": "text-search",
+      "title": "Finding text"
+    },
+    {
+      "id": "text-change",
+      "title": "Tidying text"
+    },
+    {
+      "id": "errors",
+      "title": "Errors and blanks"
+    },
+    {
+      "id": "date",
+      "title": "Dates and deadlines"
+    },
+    {
+      "id": "aggregate",
+      "title": "SUMPRODUCT and friends"
+    },
+    {
+      "id": "arrays",
+      "title": "Dynamic arrays"
+    },
+    {
+      "id": "modeling",
+      "title": "Real workbooks"
+    },
+    {
+      "id": "capstone",
+      "title": "Capstone projects"
+    }
+  ],
   "lessons": [
-    "01-sum-basics",
-    "02-average-scores",
-    "03-countif-open-tickets",
-    "04-if-pass-fail",
-    "05-sumif-region",
-    "06-round-markup",
-    "07-vlookup-exact",
-    "08-index-match",
-    "09-left-find-prefix",
-    "10-capstone-margin"
+    {
+      "title": "What a formula actually does",
+      "level": 1,
+      "group": "intro"
+    },
+    {
+      "title": "Cell references: relative and absolute",
+      "level": 1,
+      "group": "intro"
+    },
+    {
+      "title": "AutoSum and the status bar total",
+      "level": 1,
+      "group": "intro"
+    },
+    {
+      "id": "01-sum-basics",
+      "group": "sum"
+    },
+    {
+      "title": "SUMIFS: two conditions at once",
+      "level": 2,
+      "group": "sum"
+    },
+    {
+      "title": "SUMIF with a sum range on another column",
+      "level": 2,
+      "group": "sum"
+    },
+    {
+      "title": "Add only the positives",
+      "level": 2,
+      "group": "sum"
+    },
+    {
+      "title": "Debug a total that skips a row",
+      "level": 2,
+      "group": "sum"
+    },
+    {
+      "title": "SUM across several sheets",
+      "level": 2,
+      "group": "sum"
+    },
+    {
+      "title": "Running total down a column",
+      "level": 2,
+      "group": "sum"
+    },
+    {
+      "title": "Sum functions summary",
+      "level": 2,
+      "group": "sum"
+    },
+    {
+      "id": "02-average-scores",
+      "group": "statistical"
+    },
+    {
+      "title": "MIN and MAX: fastest and slowest",
+      "level": 1,
+      "group": "statistical"
+    },
+    {
+      "title": "LARGE and SMALL: the nth highest",
+      "level": 2,
+      "group": "statistical"
+    },
+    {
+      "title": "MEDIAN: the middle value",
+      "level": 2,
+      "group": "statistical"
+    },
+    {
+      "title": "MODE: the most common value",
+      "level": 2,
+      "group": "statistical"
+    },
+    {
+      "title": "Rank a list without sorting it",
+      "level": 2,
+      "group": "statistical"
+    },
+    {
+      "title": "Average functions summary",
+      "level": 2,
+      "group": "statistical"
+    },
+    {
+      "id": "03-countif-open-tickets",
+      "group": "count"
+    },
+    {
+      "title": "COUNT: numbers only, and what it skips",
+      "level": 1,
+      "group": "count"
+    },
+    {
+      "title": "COUNTA: count the non-empty cells",
+      "level": 1,
+      "group": "count"
+    },
+    {
+      "title": "COUNTIFS: several conditions",
+      "level": 2,
+      "group": "count"
+    },
+    {
+      "title": "COUNTIF with wildcards",
+      "level": 2,
+      "group": "count"
+    },
+    {
+      "title": "Count functions summary",
+      "level": 2,
+      "group": "count"
+    },
+    {
+      "id": "04-if-pass-fail",
+      "group": "logical"
+    },
+    {
+      "title": "TRUE and FALSE: what a comparison returns",
+      "level": 1,
+      "group": "logical"
+    },
+    {
+      "title": "AND, OR and NOT: combining tests",
+      "level": 2,
+      "group": "logical"
+    },
+    {
+      "title": "IFS: more than two outcomes",
+      "level": 2,
+      "group": "logical"
+    },
+    {
+      "title": "SWITCH: match a list of values",
+      "level": 3,
+      "group": "logical"
+    },
+    {
+      "title": "IS functions: test what a cell holds",
+      "level": 2,
+      "group": "logical"
+    },
+    {
+      "title": "Logical functions summary",
+      "level": 2,
+      "group": "logical"
+    },
+    {
+      "id": "05-sumif-region",
+      "group": "sum"
+    },
+    {
+      "id": "06-round-markup",
+      "group": "rounding"
+    },
+    {
+      "title": "ROUNDUP and ROUNDDOWN: one direction only",
+      "level": 2,
+      "group": "rounding"
+    },
+    {
+      "title": "MROUND and FLOOR: round to a multiple",
+      "level": 2,
+      "group": "rounding"
+    },
+    {
+      "id": "07-vlookup-exact",
+      "group": "lookup"
+    },
+    {
+      "title": "VLOOKUP: approximate match needs a sorted column",
+      "level": 2,
+      "group": "lookup"
+    },
+    {
+      "title": "HLOOKUP: look across a row",
+      "level": 2,
+      "group": "lookup"
+    },
+    {
+      "title": "VLOOKUP with a wildcard",
+      "level": 3,
+      "group": "lookup"
+    },
+    {
+      "title": "Two-way lookup with VLOOKUP and MATCH",
+      "level": 3,
+      "group": "lookup"
+    },
+    {
+      "title": "XLOOKUP: exact match, no column counting",
+      "level": 2,
+      "group": "lookup"
+    },
+    {
+      "title": "XLOOKUP: search from the bottom",
+      "level": 3,
+      "group": "lookup"
+    },
+    {
+      "title": "XLOOKUP with a fallback when nothing matches",
+      "level": 2,
+      "group": "lookup"
+    },
+    {
+      "title": "VLOOKUP and XLOOKUP on the same table",
+      "level": 3,
+      "group": "lookup"
+    },
+    {
+      "title": "Lookup functions summary",
+      "level": 3,
+      "group": "lookup"
+    },
+    {
+      "id": "08-index-match",
+      "group": "index-match"
+    },
+    {
+      "title": "MATCH: find a value's position",
+      "level": 2,
+      "group": "index-match"
+    },
+    {
+      "title": "INDEX: a value at a row and column",
+      "level": 2,
+      "group": "index-match"
+    },
+    {
+      "title": "INDEX MATCH: look left of the key",
+      "level": 3,
+      "group": "index-match"
+    },
+    {
+      "title": "Two-way INDEX MATCH",
+      "level": 3,
+      "group": "index-match"
+    },
+    {
+      "title": "INDEX and MATCH summary",
+      "level": 3,
+      "group": "index-match"
+    },
+    {
+      "id": "09-left-find-prefix",
+      "group": "text-search"
+    },
+    {
+      "title": "LEN, LEFT and RIGHT: count and cut",
+      "level": 1,
+      "group": "text-search"
+    },
+    {
+      "title": "MID: characters from the middle",
+      "level": 2,
+      "group": "text-search"
+    },
+    {
+      "title": "FIND and SEARCH: case-sensitive or not",
+      "level": 2,
+      "group": "text-search"
+    },
+    {
+      "title": "Wildcards in text criteria",
+      "level": 2,
+      "group": "text-search"
+    },
+    {
+      "title": "TEXTBEFORE and TEXTAFTER: split on a delimiter",
+      "level": 3,
+      "group": "text-search"
+    },
+    {
+      "title": "Text search summary",
+      "level": 2,
+      "group": "text-search"
+    },
+    {
+      "id": "10-capstone-margin",
+      "group": "capstone"
+    },
+    {
+      "title": "Sales summary end to end",
+      "level": 3,
+      "group": "capstone"
+    },
+    {
+      "title": "Lookup dashboard from three tables",
+      "level": 3,
+      "group": "capstone"
+    },
+    {
+      "title": "Clean up an imported list",
+      "level": 3,
+      "group": "capstone"
+    },
+    {
+      "title": "Budget versus actual with a variance flag",
+      "level": 3,
+      "group": "capstone"
+    },
+    {
+      "title": "Formula audit: fix five broken sheets",
+      "level": 3,
+      "group": "capstone"
+    },
+    {
+      "title": "CONCAT and the & operator",
+      "level": 2,
+      "group": "text-change"
+    },
+    {
+      "title": "TEXTJOIN: join a range and skip blanks",
+      "level": 2,
+      "group": "text-change"
+    },
+    {
+      "title": "UPPER, LOWER and PROPER",
+      "level": 1,
+      "group": "text-change"
+    },
+    {
+      "title": "SUBSTITUTE: replace one piece of text",
+      "level": 2,
+      "group": "text-change"
+    },
+    {
+      "title": "IFERROR: catch the error, show your text",
+      "level": 2,
+      "group": "errors"
+    },
+    {
+      "title": "IFNA: catch only a missing match",
+      "level": 2,
+      "group": "errors"
+    },
+    {
+      "title": "Read #N/A, #VALUE! and #REF!",
+      "level": 2,
+      "group": "errors"
+    },
+    {
+      "title": "Error handling summary",
+      "level": 2,
+      "group": "errors"
+    },
+    {
+      "title": "TODAY and NOW: the volatile clock",
+      "level": 2,
+      "group": "date"
+    },
+    {
+      "title": "DATE: build a date from parts",
+      "level": 2,
+      "group": "date"
+    },
+    {
+      "title": "DATEDIF: days, months or years between",
+      "level": 3,
+      "group": "date"
+    },
+    {
+      "title": "DAYS and simple date maths",
+      "level": 2,
+      "group": "date"
+    },
+    {
+      "title": "Date functions summary",
+      "level": 2,
+      "group": "date"
+    },
+    {
+      "title": "SUMPRODUCT: multiply, then add",
+      "level": 3,
+      "group": "aggregate"
+    },
+    {
+      "title": "SUBTOTAL: totals that ignore hidden rows",
+      "level": 3,
+      "group": "aggregate"
+    },
+    {
+      "title": "AGGREGATE: skip errors and hidden rows",
+      "level": 3,
+      "group": "aggregate"
+    },
+    {
+      "title": "Aggregate functions summary",
+      "level": 3,
+      "group": "aggregate"
+    },
+    {
+      "title": "UNIQUE: one row per distinct value",
+      "level": 3,
+      "group": "arrays"
+    },
+    {
+      "title": "FILTER: the rows that meet a condition",
+      "level": 3,
+      "group": "arrays"
+    },
+    {
+      "title": "SORT and spilled ranges",
+      "level": 3,
+      "group": "arrays"
+    },
+    {
+      "title": "A commission sheet that updates itself",
+      "level": 3,
+      "group": "modeling"
+    },
+    {
+      "title": "A headcount and payroll summary",
+      "level": 3,
+      "group": "modeling"
+    },
+    {
+      "title": "An inventory reorder report",
+      "level": 3,
+      "group": "modeling"
+    },
+    {
+      "title": "A monthly close checklist in formulas",
+      "level": 3,
+      "group": "modeling"
+    }
   ]
 }

@@ -127,8 +127,11 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const fonts = copyDir(join(vendorDir, "fonts"), join(dist, "assets/fonts"), { filter: (name) => name.endsWith(".woff2") });
   if (fonts === 0) throw new Error("vendor/fonts is empty — the pages preload two faces from it");
 
-  const grader = copyDir(join(root, "src/grader"), join(dist, "assets/grader"), { filter: (name) => name.endsWith(".js") });
-  if (grader === 0) throw new Error("src/grader is empty — the client cannot grade without it");
+  // The grader lives in packages/grader but ships at assets/grader/, which is the path
+  // client/drill.js imports (`../grader/index.js`) once it is copied to assets/client/.
+  const graderSource = resolve(root, "../packages/grader");
+  const grader = copyDir(graderSource, join(dist, "assets/grader"), { filter: (name) => name.endsWith(".js") });
+  if (grader === 0) throw new Error(`${graderSource} is empty — the client cannot grade without it`);
 
   const client = clientAvailable
     ? copyDir(join(root, "src/client"), join(dist, "assets/client"), { filter: (name) => name.endsWith(".js") })

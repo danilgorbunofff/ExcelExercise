@@ -77,7 +77,8 @@ function courseJsonLd({ config, track, index }) {
   };
 }
 
-export function renderIndexPage({ config, track, index, icons = {}, clientAvailable = false }) {
+/** The index as `<main>` markup plus its head metadata; see `prepareExercisePage` for why. */
+export function prepareIndexPage({ config, track, index, icons = {}, clientAvailable = false }) {
   const first = index[0];
   const gatedFrom = track.freeLessonCount + 1;
   const gateNote =
@@ -117,9 +118,7 @@ export function renderIndexPage({ config, track, index, icons = {}, clientAvaila
 ${renderLevels({ index, icons })}
     </main>${clientAvailable ? '\n  <script type="module" src="/assets/client/drill.js"></script>' : ""}`;
 
-  return renderDocument({
-    config,
-    icons,
+  return {
     body,
     page: {
       path: "/",
@@ -130,5 +129,10 @@ ${renderLevels({ index, icons })}
       bodyClass: "track",
       jsonLd: jsonScript(courseJsonLd({ config, track, index })),
     },
-  });
+  };
+}
+
+export function renderIndexPage(args) {
+  const { body, page } = prepareIndexPage(args);
+  return renderDocument({ config: args.config, page, body, icons: args.icons });
 }

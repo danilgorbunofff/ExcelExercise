@@ -20,6 +20,7 @@ import { isDeepStrictEqual } from "node:util";
 import { siteConfig } from "./site/config.mjs";
 import { loadContent } from "./site/content.mjs";
 import { esc } from "./site/html.mjs";
+import { screenAt } from "./site/packages.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -62,11 +63,12 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     if (!ok(existsSync(join(distDir, file)), label, "does not exist")) continue;
     const html = read(file);
     const { exercise } = entry;
+    const screen = screenAt(exercise);
 
     has(html, `<h1>${esc(exercise.title)}</h1>`, `${label} title`);
     // Anchored to the element: the same text also sits in #exercise-data, so a bare
     // `includes` would stay green with the visible task statement deleted.
-    has(html, `<p class="task">${esc(exercise.prompt)}</p>`, `${label} prompt`);
+    has(html, `<p class="task">${esc(screen.prompt)}</p>`, `${label} prompt`);
     for (const id of DOCS_SECTIONS) has(html, `id="${id}"`, `${label} ${id} section`);
     has(html, `<pre class="reference"><code>${esc(exercise.docs.reference)}</code></pre>`, `${label} reference answer`);
     has(html, `<pre class="syntax"><code>${esc(exercise.docs.syntax)}</code></pre>`, `${label} syntax block`);
@@ -83,9 +85,9 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
       }
       if (payload) {
         ok(payload.id === exercise.id, `${label} payload id`, `is "${payload.id}", expected "${exercise.id}"`);
-        ok(payload.answerCell === exercise.answerCell, `${label} payload answerCell`, `is "${payload.answerCell}"`);
+        ok(payload.answerCell === screen.answerCell, `${label} payload answerCell`, `is "${payload.answerCell}"`);
         ok(
-          isDeepStrictEqual(payload.expect, exercise.expect),
+          isDeepStrictEqual(payload.expect, screen.expect),
           `${label} payload expect`,
           "does not match the exercise",
         );

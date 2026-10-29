@@ -4,12 +4,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
-import { grade } from "../src/grader/index.js";
+import { grade } from "../packages/grader/index.js";
 import { AUDIT } from "./audit.js";
 import { HOSTILE, OUTCOME_KEYS } from "./corpus.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const EXERCISES = join(ROOT, "content", "exercises");
+const EXERCISES = join(ROOT, "legacy", "content", "exercises");
 const FIXTURES = join(ROOT, "tests", "fixtures");
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));

@@ -4,10 +4,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
-import { KNOWN_FUNCTIONS, buildCells, grade, indexToCol, parseRef } from "../src/grader/index.js";
+import { KNOWN_FUNCTIONS, buildCells, grade, indexToCol, parseRef } from "../packages/grader/index.js";
 import { AUDIT } from "./audit.js";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "legacy");
 const CONTENT = join(ROOT, "content");
 const EXERCISES = join(CONTENT, "exercises");
 
@@ -52,14 +52,28 @@ function declaredFunctions(exercise) {
 }
 
 describe("content: track", () => {
+  const authored = track.lessons.filter((lesson) => lesson.id);
+
   it("lists every exercise file exactly once, in file order", () => {
-    assert.deepEqual(track.lessons, lessons.map(({ exercise }) => exercise.id));
-    assert.equal(new Set(track.lessons).size, track.lessons.length);
+    assert.deepEqual(authored.map((lesson) => lesson.id), lessons.map(({ exercise }) => exercise.id));
+    assert.equal(new Set(authored.map((lesson) => lesson.id)).size, authored.length);
+  });
+
+  it("catalogues planned lessons alongside the live ones", () => {
+    assert.equal(track.groups.length, 16);
+    assert.equal(track.lessons.length, 88);
+    for (const lesson of track.lessons) {
+      assert.ok(track.groups.some((group) => group.id === lesson.group), `${lesson.group} is not a group`);
+      if (!lesson.id) assert.ok([1, 2, 3].includes(lesson.level), `${lesson.title} has a bad level`);
+    }
+    for (const group of track.groups) {
+      assert.ok(track.lessons.some((lesson) => lesson.group === group.id), `group ${group.id} is empty`);
+    }
   });
 
   it("keeps the paywall inside the track", () => {
     assert.ok(Number.isInteger(track.freeLessonCount));
-    assert.ok(track.freeLessonCount > 0 && track.freeLessonCount < track.lessons.length);
+    assert.ok(track.freeLessonCount > 0 && track.freeLessonCount < authored.length);
   });
 
   it("carries the copy the funnel needs", () => {

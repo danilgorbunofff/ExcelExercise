@@ -5,7 +5,7 @@
  * JavaScript arrives. The client only ever fills these in; it never builds structure.
  */
 
-import { addressOf, indexToCol, parseRef } from "../grader/address.js";
+import { addressOf, indexToCol, parseRef } from "./packages.mjs";
 import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
 
 function splitCell(address) {
@@ -15,9 +15,9 @@ function splitCell(address) {
 }
 
 /** The sheet: column letters, row numbers, read-only data, one target cell. */
-export function renderSheet(exercise, { icons = {} } = {}) {
-  const start = splitCell(exercise.grid.startCell);
-  const rows = exercise.grid.rows;
+export function renderSheet(exercise, screen, { icons = {} } = {}) {
+  const start = splitCell(screen.grid.startCell);
+  const rows = screen.grid.rows;
   const width = rows[0].length;
 
   const columnHeaders = Array.from({ length: width }, (_, offset) => {
@@ -29,7 +29,7 @@ export function renderSheet(exercise, { icons = {} } = {}) {
     const rowNumber = start.row + rowOffset;
     const cells = row.map((value, colOffset) => {
       const address = addressOf(start.colIndex + colOffset, rowNumber);
-      if (address === exercise.answerCell) {
+      if (address === screen.answerCell) {
         return `<td${attrs({
           class: "cell cell-target",
           role: "gridcell",
@@ -70,9 +70,9 @@ export function renderSheet(exercise, { icons = {} } = {}) {
  * The formula bar: target chip, input, Check. No control is named, so a submit
  * without JavaScript reloads the page instead of leaking the draft into the URL.
  */
-export function renderFormulaBar(exercise, { icons = {} } = {}) {
+export function renderFormulaBar(screen, { icons = {} } = {}) {
   return `<form class="formula-bar" id="formula-bar" method="get">
-          <span class="ref-chip" id="ref-chip">${esc(exercise.answerCell)}</span>
+          <span class="ref-chip" id="ref-chip">${esc(screen.answerCell)}</span>
           <span class="fx" aria-hidden="true">fx</span>
           <input${attrs({
             id: "formula",
@@ -84,7 +84,7 @@ export function renderFormulaBar(exercise, { icons = {} } = {}) {
             autocorrect: "off",
             spellcheck: "false",
             placeholder: "=...",
-            "aria-label": `Your formula for ${exercise.answerCell}`,
+            "aria-label": `Your formula for ${screen.answerCell}`,
             "aria-describedby": "feedback",
           })}>
           <button class="btn btn-check" id="check" type="submit">${inlineIcon(icons.check, {
@@ -120,7 +120,7 @@ export function renderHint({ icons = {} } = {}) {
 }
 
 /** The docs block: what it does, syntax, a worked example, what goes wrong, at work. */
-export function renderDocs(exercise) {
+export function renderDocs(exercise, screen) {
   const docs = exercise.docs;
   const errorRows = docs.errors
     .map((entry) => `            <tr><th scope="row"><code>${esc(entry.code)}</code></th><td>${esc(entry.text)}</td></tr>`)
@@ -135,7 +135,7 @@ export function renderDocs(exercise) {
 
         <h2 id="docs-example">Worked example</h2>
         <p>On <em>${esc(docs.dataset)}</em>, <code>${esc(docs.reference)}</code> returns <strong>${esc(
-          formatCell(exercise.expect.value),
+          formatCell(screen.expect.value),
         )}</strong>.</p>
         <pre class="reference"><code>${esc(docs.reference)}</code></pre>
 

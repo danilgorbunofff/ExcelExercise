@@ -1,0 +1,11 @@
+{
+  "name": "@excelsupreme/content",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Reads and validates the authored content/ directory. No I/O other than fs reads.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  }
+}

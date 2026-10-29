@@ -94,17 +94,30 @@ function renderFooter({ config }) {
     </footer>`;
 }
 
+/**
+ * The document furniture around `<main>`: skip link, site header, footer. Split out because a host
+ * that owns `<html>`/`<head>` itself (the Next.js shell) still wants this markup byte-identical.
+ */
+export function renderChrome({ config, page }) {
+  return {
+    skip: `<a class="skip" href="#main">Skip to the ${page.isHome ? "drills" : "drill"}</a>`,
+    header: renderSiteHeader({ config, page }),
+    footer: renderFooter({ config }),
+  };
+}
+
 export function renderDocument({ config, page, body, icons = {} }) {
+  const { skip, header, footer } = renderChrome({ config, page });
   return `<!doctype html>
 <html lang="${esc(config.inLanguage)}">
   <head>
     ${renderHead({ config, page })}
   </head>
   <body class="light ${esc(page.bodyClass)}">
-    <a class="skip" href="#main">Skip to the ${page.isHome ? "drills" : "drill"}</a>
-    ${renderSiteHeader({ config, page })}
+    ${skip}
+    ${header}
     ${body}
-    ${renderFooter({ config })}
+    ${footer}
   </body>
 </html>
 `;

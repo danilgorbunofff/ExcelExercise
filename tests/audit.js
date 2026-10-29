@@ -85,4 +85,13 @@ export const AUDIT = {
     reference: '=VLOOKUP(A7&"*",A1:C6,3,FALSE)',
     wrong: ["=VLOOKUP(A7,A1:C6,3,FALSE)", '=VLOOKUP("Northwind*",A1:C6,3,FALSE)', '=VLOOKUP(A7&"*",A1:C6,2,FALSE)'],
   },
+  "14-two-way-lookup-with-vlookup-and-match": {
+    expected: 110, // Widget is row 3 and MATCH puts Q2 in column 3, so the row's third value is 110
+    reference: "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)",
+    wrong: [
+      "=VLOOKUP(A6,A1:C5,2,FALSE)",
+      '=VLOOKUP(A6,A1:C5,MATCH("Q1",A1:C1,0),FALSE)',
+      "=VLOOKUP(A6,A1:C5,MATCH(B6,B1:C1,0),FALSE)",
+    ],
+  },
 };

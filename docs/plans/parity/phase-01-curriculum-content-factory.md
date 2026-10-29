@@ -204,7 +204,7 @@ window in which two shapes are both live.
       silently creating it would hide the day a lesson loses its fixtures.
 
 - [ ] **8. Cohorts.** Ten lessons per batch, each green in `content:check` and through a human
-      accuracy review before it merges. **Cohort two is 3 of 10 in.** Lesson 11 is VLOOKUP approximate
+      accuracy review before it merges. **Cohort two is 4 of 10 in.** Lesson 11 is VLOOKUP approximate
       match (`11-vlookup-approximate-match-needs-a-sorted-column`), catalog slot 37, published as
       lesson 8 of 12 — the first file whose number disagrees with where the page sits, because the
       slot decides the reading order and the file name only records the order lessons were written.
@@ -246,6 +246,16 @@ window in which two shapes are both live.
       `func-vlookup`. One grader gap surfaced while authoring and was left open deliberately: wildcard
       matching has no `~` escape, so `COUNTIF(A2:A9,"~*")` and friends diverge from Excel, and cycle
       detection stays off while lesson 09's reference formula reads the cell it fills.
+
+      Lesson 14 is the first drill with two keys and no new machinery: `=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)`
+      is catalog slot 40, published as lesson 11 of 14, and it is four rules that already existed —
+      `func-vlookup`, `func-match`, a `match-exact` on MATCH's third argument and a `match-type` on
+      VLOOKUP's fourth. The drill's whole
+      arithmetic is the offset contract: `MATCH` counts inside the range it is given and `VLOOKUP` counts
+      from the first column of its table, so the right answer read over `B1:C1` returns 90 on `value`
+      rather than 110, which is the mistake the lesson exists to catch. It also exposed the limit of
+      `requireRef` — one cell, so `B6` is enforced and a hardcoded product name still passes — and that
+      is now written down in phase 2 rather than worked around in content.
 
 ## Acceptance criteria
 

@@ -172,7 +172,7 @@ truthy rather than `#VALUE!` — neither appears in the ten lessons.
 
 ## Risks and traps
 
-- **Over-scoping the evaluator.** Only the 35 functions above (33 eager plus the lazy `IF`/`IFERROR`) are needed for 13 lessons. Resist
+- **Over-scoping the evaluator.** Only the 35 functions above (33 eager plus the lazy `IF`/`IFERROR`) are needed for 14 lessons. Resist
   `SUMPRODUCT`, array spill, and formatting.
 - **Greedy regex tokenizing.** `A1:B4` vs `A1` vs a function named `LOG10` — tokenize before
   classifying, and treat `:` as punctuation.

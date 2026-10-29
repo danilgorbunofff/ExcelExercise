@@ -82,6 +82,11 @@ was a whole block instead of one value), `successMessage`, and a per-rule `messa
 `B2` reference can be. The hint says why the literal is a bad idea and the docs say it again; the
 grader stays quiet. Adding a `literalArgs` rule type is a phase-3 schema question, not a content one.
 
+**One enforced cell.** `requireRef` names a single cell, so a drill with two keys can only pin one of
+them. Lesson 14 enforces `B6`, the quarter `MATCH` reads, and rejects `MATCH("Q2",…)` on `require-ref`;
+typing the product instead of `A6` still passes, because there is no second-reference rule. The prompt
+asks for both cells by name and the fixtures cover the half the grader can see.
+
 **Boundary data.** Lesson 4's one data row scores exactly 70, because a single answer cell can only
 catch the `>` / `>=` confusion the lesson warns about if the row sits on the threshold. A score of 74
 let `=IF(B2>0,…)` and `=IF(B2>=1,…)` grade correct — the lesson's own documented error was unpublishable.
@@ -146,10 +151,11 @@ only used to confirm. The literals live in `AUDIT` in `tests/audit.js`.
 | 11 | `=VLOOKUP(A6,A2:B5,2,TRUE)` | 4200 ≥ 1000 and < 5000, so the second column of the 1000 row | `0.05` |
 | 12 | `=HLOOKUP(B4,B1:D3,3,FALSE)` | Feb is column 2 of the block, and row 3 is the price row | `5` |
 | 13 | `=VLOOKUP(A7&"*",A1:C6,3,FALSE)` | three rows start with Northwind, Air is first, column 3 | `7` |
+| 14 | `=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)` | Widget is row 3; Q2 is the third column of A1:C1, so column 3 | `110` |
 
 ## Acceptance criteria
 
-- 13 valid JSON files that `buildCells()` can load without errors. **Done — each one's reference answer
+- 14 valid JSON files that `buildCells()` can load without errors. **Done — each one's reference answer
   and three wrong answers are pinned by hand in `AUDIT` (`tests/audit.js`).**
 - Every exercise solves correctly with its reference answer and fails with at least three plausible
   wrong answers.

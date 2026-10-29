@@ -62,7 +62,7 @@ Fixture shape:
 | 8 INDEX/MATCH | 3+ | 3+ (VLOOKUP forbidden, approximate MATCH, hardcoded) |
 | 10 capstone | 3+ | 4+ (no IFERROR, 2dp, wrong region, wrong denominator) |
 
-Actual counts: 6 accepted and 7–12 rejected per lesson (154 formulas in total: 60 accepted, 94 rejected).
+Actual counts: 6–8 accepted and 7–12 rejected per lesson (219 formulas in total: 88 accepted, 131 rejected).
 
 The remaining lessons follow the same pattern; 6+6 is the floor, not the target.
 

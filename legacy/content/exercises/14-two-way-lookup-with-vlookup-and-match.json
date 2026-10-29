@@ -1,0 +1,196 @@
+{
+  "id": "14-two-way-lookup-with-vlookup-and-match",
+  "slug": "two-way-lookup-with-vlookup-and-match",
+  "level": 3,
+  "title": "Two-way lookup with VLOOKUP and MATCH",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In C6, return the units for the product in A6 and the quarter in B6, using VLOOKUP and letting MATCH find the column.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Product",
+            "Q1",
+            "Q2"
+          ],
+          [
+            "Gizmo",
+            120,
+            140
+          ],
+          [
+            "Widget",
+            90,
+            110
+          ],
+          [
+            "Sprocket",
+            60,
+            75
+          ],
+          [
+            "Flange",
+            150,
+            165
+          ],
+          [
+            "Widget",
+            "Q2",
+            null
+          ]
+        ]
+      },
+      "answerCell": "C6",
+      "expect": {
+        "value": 110
+      },
+      "require": [
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 3
+        },
+        {
+          "id": "func-match",
+          "func": "MATCH",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B6",
+      "rules": [
+        {
+          "id": "match-exact",
+          "type": "matchType",
+          "func": "MATCH",
+          "arg": 3,
+          "values": [
+            0,
+            false
+          ]
+        },
+        {
+          "id": "match-type",
+          "type": "matchType",
+          "func": "VLOOKUP",
+          "arg": 4,
+          "values": [
+            false,
+            0
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE) — MATCH turns the quarter into the column number.",
+        "func-vlookup": "VLOOKUP is the half that fetches the number. It needs the product, the table, and the column number MATCH hands it.",
+        "func-match": "MATCH needs three arguments: the quarter, the header row A1:C1, and 0. Given two it reads nothing and reports a missing argument.",
+        "require-ref": "Point MATCH at B6. Typing \"Q2\" into the formula works until the cell changes, which is the one thing this drill is about.",
+        "match-exact": "MATCH's third argument must be 0 or FALSE. Anything else is an approximate match, which assumes the header is sorted.",
+        "value": "MATCH returns a position inside the range you gave it, and VLOOKUP counts columns from the first column of its table. Start both at the Product column and the positions line up.",
+        "error": "Read the code: #N/A means the product or the quarter matched nothing, #REF! means the column number reached past the last column, and #VALUE! means text landed where a number or a condition belongs.",
+        "match-type": "Write FALSE as VLOOKUP's fourth argument. TRUE is an approximate match, so VLOOKUP stops wherever it likes and answers with another row."
+      },
+      "fixtures": {
+        "accept": [
+          "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)",
+          "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),0)",
+          "=vlookup(a6,a1:c5,match(b6,a1:c1,0),false)",
+          "=VLOOKUP(A6,A1:C5,MATCH(B6,$A$1:$C$1,0),FALSE)",
+          "=VLOOKUP(A6,$A$1:$C$5,MATCH(B6,$A$1:$C$1,0),FALSE)",
+          "=VLOOKUP( A6 , A1:C5 , MATCH( B6 , A1:C1 , 0 ) , FALSE )",
+          "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,FALSE),FALSE)",
+          "=VLOOKUP(A6,A2:C5,MATCH(B6,A1:C1,0),FALSE)"
+        ],
+        "reject": [
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE",
+            "rule": "syntax",
+            "why": "unclosed parenthesis, so nothing runs"
+          },
+          {
+            "formula": "=INDEX(B2:C5,MATCH(A6,A2:A5,0),MATCH(B6,B1:C1,0))",
+            "rule": "func-vlookup",
+            "why": "the right answer with the wrong function"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,3,FALSE)",
+            "rule": "func-match",
+            "why": "the column number typed in, which breaks when a quarter is inserted"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1),FALSE)",
+            "rule": "func-match",
+            "why": "MATCH without the 0, so it is a two-argument call"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(\"Q2\",A1:C1,0),FALSE)",
+            "rule": "require-ref",
+            "why": "the quarter typed into the formula instead of read from B6"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,1),FALSE)",
+            "rule": "match-exact",
+            "why": "approximate MATCH on an unsorted header, which can land on any column"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(B6,B1:C1,0),FALSE)",
+            "rule": "value",
+            "why": "MATCH counted from B, so its 2 came out as Q1"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),TRUE)",
+            "rule": "match-type",
+            "why": "approximate VLOOKUP, which stops on the last row it saw"
+          },
+          {
+            "formula": "=VLOOKUP(A6&\"x\",A1:C5,MATCH(B6,A1:C1,0),FALSE)",
+            "rule": "error",
+            "why": "#N/A: no product matches Widgetx"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0)&\"x\",FALSE)",
+            "rule": "error",
+            "why": "#VALUE!: the column number became the text 3x"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),\"no\")",
+            "rule": "match-type",
+            "why": "the word no where TRUE or FALSE belongs, so the match mode is unreadable"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0)+5,FALSE)",
+            "rule": "error",
+            "why": "#REF!: column 8 in a three-column table"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=VLOOKUP(product, table, MATCH(quarter, header_row, 0), FALSE)",
+    "explain": "MATCH reads the header A1:C1 for the quarter in B6 and returns 3, because Q2 is the third column of the table. VLOOKUP then finds Widget on row 3 of A1:C5 and takes that row's 3rd value: 110. No digit in the formula names a column, so changing B6 to Q1 returns 90 without editing the formula. The two ranges have to start on the same column for this to work: MATCH counts inside the range it was given, and VLOOKUP counts from the first column of its table, so a MATCH over B1:C1 returns 2 and lands on Q1.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "MATCH could not find the quarter in the header, or VLOOKUP could not find the product in the first column."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "A text value reached an argument that needs a number, usually the MATCH position joined to characters, so VLOOKUP was handed a column number it cannot count with."
+      },
+      {
+        "code": "#REF!",
+        "text": "The column number from MATCH is wider than the table, which happens when MATCH reads a header that starts before the table does."
+      }
+    ],
+    "atWork": "Units by product and quarter, headcount by team and month, price by SKU and currency: any grid where the column you need is itself a lookup.",
+    "outcome": "Return one cell of a grid from a row key and a column key, without counting columns.",
+    "teaches": "VLOOKUP and MATCH",
+    "dataset": "Quarterly units by product",
+    "reference": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)"
+  }
+}

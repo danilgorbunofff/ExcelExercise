@@ -19,7 +19,7 @@ import { siteConfig } from "./site/config.mjs";
 import { loadContent } from "./site/content.mjs";
 import { renderExercisePage } from "./site/exercise-page.mjs";
 import { renderIndexPage } from "./site/index-page.mjs";
-import { renderDashboardPage } from "./site/dashboard-page.mjs";
+import { dashboardGroups, renderDashboardPage } from "./site/dashboard-page.mjs";
 import { spreadsheet, workbookName } from "./xlsx.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
@@ -119,6 +119,12 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     const html = renderExercisePage({ config, track, index, entry, icons, clientAvailable });
     assertSelfContained(html, config, `${entry.slug}.html`);
     pages.push({ file: `excel/${entry.slug}.html`, html });
+  }
+
+  for (const { id } of dashboardGroups({ track, index })) {
+    const html = renderDashboardPage({ config, track, index, icons, clientAvailable, group: id });
+    assertSelfContained(html, config, `learn/groups/${id}.html`);
+    pages.push({ file: `learn/groups/${id}.html`, html });
   }
 
   let bytes = 0;

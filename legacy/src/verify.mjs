@@ -210,6 +210,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
       if (!index.some((entry) => entry.group === group.id)) continue;
       has(html, `id="group-${group.id}"`, `learn/index.html ${group.id} group`);
       has(html, `data-group-count="${group.id}"`, `learn/index.html ${group.id} counter`);
+      has(html, `href="/learn/groups/${group.id}"`, `learn/index.html ${group.id} page link`);
     }
     ok(
       !html.includes('type="application/ld+json"'),
@@ -245,6 +246,35 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     }
   }
 
+  // --- group pages ------------------------------------------------------------------
+  // One page per group that has drills, for linking straight to a group. Same island, one group's rows,
+  // and `noindex` like `/learn`: the counts on it are one browser's, not something to rank.
+  let groupPages = 0;
+  for (const group of track.groups) {
+    const entries = index.filter((entry) => entry.group === group.id);
+    if (entries.length === 0) continue;
+    const file = `learn/groups/${group.id}.html`;
+    if (!ok(existsSync(join(distDir, file)), file, "does not exist")) continue;
+    groupPages += 1;
+    const html = read(file);
+    has(html, `<h1>${esc(group.title)}</h1>`, `${file} heading`);
+    has(html, '<meta name="robots" content="noindex">', `${file} noindex`);
+    has(html, 'href="/learn"', `${file} back link`);
+    has(html, `id="group-${group.id}"`, `${file} group section`);
+    has(html, `data-group-count="${group.id}"`, `${file} counter`);
+    has(html, 'id="dashboard-data"', `${file} progress payload`);
+    has(html, "/assets/client/dashboard.js", `${file} island script`);
+    for (const entry of entries) has(html, `href="${entry.path}"`, `${file} link to ${entry.path}`);
+    // And only this group's rows: a page that quietly listed the whole track would still pass every
+    // check above, because every link it needs is in there.
+    const rows = [...html.matchAll(/data-lesson="([^"]+)"/g)].map((match) => match[1]);
+    ok(
+      rows.length === entries.length && entries.every((entry) => rows.includes(entry.exercise.id)),
+      `${file} rows`,
+      `lists ${rows.length} of ${entries.length} drills`,
+    );
+  }
+
   // --- sitemap and robots -----------------------------------------------------------
   if (ok(existsSync(join(distDir, "sitemap.xml")), "sitemap.xml", "does not exist")) {
     const xml = read("sitemap.xml");
@@ -255,6 +285,11 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     for (const entry of index) {
       ok(locs.includes(`${config.baseUrl}${entry.path}`), "sitemap.xml", `does not list ${entry.path}`);
     }
+    ok(
+      !locs.some((loc) => loc.includes("/learn/groups/")),
+      "sitemap.xml",
+      "lists a group page, which is noindex",
+    );
   }
 
   if (ok(existsSync(join(distDir, "robots.txt")), "robots.txt", "does not exist")) {
@@ -297,7 +332,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     }
   }
 
-  return { pages: index.length, checks, failures };
+  return { pages: index.length, groupPages, checks, failures };
 }
 
 /** True when this file is the script node was asked to run, symlinked paths included. */
@@ -319,7 +354,9 @@ if (invokedDirectly()) {
       console.error(`verify: ${result.failures.length} of ${result.checks} checks failed`);
       process.exitCode = 1;
     } else {
-      console.log(`verified ${result.pages} lesson pages, the index and the dashboard — ${result.checks} checks passed`);
+      console.log(
+        `verified ${result.pages} lesson pages, the index, the dashboard and ${result.groupPages} group pages — ${result.checks} checks passed`,
+      );
     }
   } catch (error) {
     console.error(`verify failed: ${error.message}`);

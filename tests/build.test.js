@@ -11,6 +11,7 @@ import { createStaticServer, resolvePath, startServer } from "../legacy/src/serv
 import { buildStyles, readIcons } from "../legacy/src/site/assets.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
 import { loadContent } from "../legacy/src/site/content.mjs";
+import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
 import { renderIndexPage } from "../legacy/src/site/index-page.mjs";
 import { esc } from "../legacy/src/site/html.mjs";
 import { LESSONS, readRawLesson, toV1 } from "./lessons.js";
@@ -52,13 +53,17 @@ describe("build", () => {
     rmSync(out, { recursive: true, force: true });
   });
 
-  it("writes one page per lesson plus the index and the dashboard", () => {
+  it("writes one page per lesson plus the index, the dashboard and a page per group", () => {
     const pages = htmlFiles(out).map((file) => file.slice(out.length + 1));
-    assert.equal(pages.length, lessons.length + 2, `expected ${lessons.length + 2} pages, got ${pages.length}`);
+    const { index } = loadContent(join(ROOT, "legacy/content"));
+    const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
+    const expected = lessons.length + 2 + groupIds.length;
+    assert.equal(pages.length, expected, `expected ${expected} pages, got ${pages.length}`);
     assert.ok(pages.includes("index.html"));
     assert.ok(pages.includes("learn/index.html"));
     for (const exercise of lessons) assert.ok(pages.includes(`excel/${exercise.slug}.html`), `${exercise.slug} page is missing`);
-    assert.equal(summary.pages, lessons.length + 2);
+    for (const id of groupIds) assert.ok(pages.includes(`learn/groups/${id}.html`), `${id} group page is missing`);
+    assert.equal(summary.pages, expected);
   });
 
   it("copies the assets the pages ask for", () => {

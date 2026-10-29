@@ -4,8 +4,11 @@
  * crawler gets a real page. The island (`assets/client/dashboard.js`) then reads the progress record out
  * of `localStorage` and paints the counts, the badges and the up-next recommendation.
  *
- * The page is `noindex`: what it shows depends on one browser's storage, so there is nothing for a
- * search engine to rank and nothing worth advertising in a sitemap.
+ * `/learn/groups/<id>` is the same page for one group: its drills, its count, the same island. The
+ * island is safe there because every lookup it makes is guarded — it paints whatever the page has.
+ *
+ * Both are `noindex`: what they show depends on one browser's storage, so there is nothing for a search
+ * engine to rank and nothing worth advertising in a sitemap.
  */
 
 import { attrs, esc, inlineIcon, jsonScript } from "./html.mjs";
@@ -34,25 +37,62 @@ function renderRow({ entry, icons }) {
             </li>`;
 }
 
-function renderGroups({ groups, icons }) {
-  return groups
-    .map(
-      (group) => `        <section class="dash-group" id="group-${esc(group.id)}" aria-labelledby="group-${esc(
-        group.id,
-      )}-heading">
+/**
+ * Intros are authored with a blank line between paragraphs; an HTML `<p>` would collapse the pair into
+ * one wall of text, so each becomes its own.
+ */
+function proseParagraphs(text, className) {
+  return (text ?? "")
+    .split(/\n{2,}/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => `<p class="${className}">${esc(line)}</p>`)
+    .join("\n");
+}
+
+/** A meta description wants one line under ~155 characters; an intro is written for a page. */
+function shortDescription(text) {
+  const first = (text ?? "").split(/\n{2,}/)[0].replace(/\s+/g, " ").trim();
+  return first.length <= 155 ? first : `${first.slice(0, 152)}…`;
+}
+
+/**
+ * One group, with its drills. The dashboard renders this with its own heading; the group page has the
+ * title as the page `<h1>` already, so it drops the `<h2>`, drops the repeated intro, and names the
+ * section with `aria-label` instead.
+ */
+function renderGroup({ group, icons, heading = true }) {
+  const id = esc(group.id);
+  const label = heading ? `aria-labelledby="group-${id}-heading"` : `aria-label="${esc(group.title)}"`;
+  const count = `<p class="dash-group-count"><span data-group-count="${id}">0 of ${
+    group.entries.length
+  }</span> complete</p>`;
+  const title = `<a class="dash-group-link" href="/learn/groups/${id}">${esc(group.title)}</a>`;
+  const head = heading ? `<h2 id="group-${id}-heading">${title}</h2>\n            ${count}` : count;
+  const intro = heading ? `\n          ${proseParagraphs(group.intro, "dash-group-intro")}` : "";
+  return `        <section class="dash-group" id="group-${id}" ${label}>
           <div class="dash-group-head">
-            <h2 id="group-${esc(group.id)}-heading">${esc(group.title)}</h2>
-            <p class="dash-group-count"><span data-group-count="${esc(group.id)}">0 of ${
-              group.entries.length
-            }</span> complete</p>
-          </div>
-          <p class="dash-group-intro">${esc(group.intro ?? "")}</p>
+            ${head}
+          </div>${intro}
           <ol class="lesson-list">
 ${group.entries.map((entry) => renderRow({ entry, icons })).join("\n")}
           </ol>
-        </section>`,
-    )
-    .join("\n");
+        </section>`;
+}
+
+function renderGroups({ groups, icons }) {
+  return groups.map((group) => renderGroup({ group, icons })).join("\n");
+}
+
+/**
+ * The track's groups with their drills attached, in track order, minus any group left empty.
+ * `/learn`, every `/learn/groups/<id>` page and `scripts/check-next-pages.mjs` all start here, so the
+ * three cannot disagree about which groups exist.
+ */
+export function dashboardGroups({ track, index }) {
+  return track.groups
+    .map((group) => ({ ...group, entries: index.filter((entry) => entry.group === group.id) }))
+    .filter((group) => group.entries.length > 0);
 }
 
 /** The data the island needs, and nothing else: the plan in order, with the group each lesson is in. */
@@ -68,10 +108,44 @@ function planPayload(index) {
   };
 }
 
-export function prepareDashboardPage({ config, track, index, icons = {}, clientAvailable = false }) {
-  const groups = track.groups
-    .map((group) => ({ ...group, entries: index.filter((entry) => entry.group === group.id) }))
-    .filter((group) => group.entries.length > 0);
+export function prepareDashboardPage({ config, track, index, icons = {}, clientAvailable = false, group }) {
+  const groups = dashboardGroups({ track, index });
+  const island = clientAvailable ? '\n  <script type="module" src="/assets/client/dashboard.js"></script>' : "";
+
+  if (group !== undefined) {
+    const single = groups.find((candidate) => candidate.id === group);
+    if (!single) throw new Error(`prepareDashboardPage: no group "${group}" in the track`);
+
+    const body = `<main class="shell dashboard" id="main">
+      <p class="dash-back"><a class="link-btn" href="/learn">All groups</a></p>
+
+      <div class="page-head">
+        <p class="eyebrow">Group</p>
+        <h1>${esc(single.title)}</h1>
+      </div>
+
+${proseParagraphs(single.intro, "dash-group-intro")}
+
+      <p class="gate-note dash-legend">Stale is a drill you finished over two weeks ago. Needs practice is one that took a hint, or more than one try.</p>
+
+${renderGroup({ group: single, icons, heading: false })}
+
+      <script type="application/json" id="dashboard-data">${jsonScript(planPayload(index))}</script>
+    </main>${island}`;
+
+    return {
+      body,
+      page: {
+        path: `/learn/groups/${single.id}`,
+        title: single.title,
+        description: shortDescription(single.intro) || `The ${single.entries.length} drills in ${single.title}, in order.`,
+        counter: `${single.entries.length} drill${single.entries.length === 1 ? "" : "s"}`,
+        bodyClass: "dashboard-page",
+        skipLabel: "Skip to this group",
+        noindex: true,
+      },
+    };
+  }
 
   const first = index[0];
   const upNext = nextCopy({ next: planPayload(index).plan[0], nextReason: "start" });
@@ -120,7 +194,7 @@ ${renderGroups({ groups, icons })}
       </section>
 
       <script type="application/json" id="dashboard-data">${jsonScript(planPayload(index))}</script>
-    </main>${clientAvailable ? '\n  <script type="module" src="/assets/client/dashboard.js"></script>' : ""}`;
+    </main>${island}`;
 
   return {
     body,

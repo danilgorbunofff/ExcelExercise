@@ -162,13 +162,35 @@ Reference behaviour being reproduced: completed count, category grid with per-ca
 
 ## Acceptance criteria
 
-- [ ] Signed-out learner sees lessons 1–3 open and every other row as a sign-in prompt that works.
-- [ ] Signed-in learner's next lesson updates immediately after a completion.
-- [ ] Badge precedence verified: a stale lesson never shows `COMPLETE`.
+- [x] Signed-out learner sees lessons 1–3 open and every other row as a sign-in prompt that works.
+      **Restated for a site with no accounts, per the deviation recorded on item 5:** the first
+      `track.freeLessonCount` (5) drills are open to everyone and the rest are order-gated, so a fresh
+      visitor's open lessons are the ones the order allows rather than a count of three. A gated row is
+      still a link — it opens a gate page that names the drill to finish and offers the one-click
+      unlock — so "works" holds. `e2e/gate.spec.js` walks a gated lesson to the unlock and back;
+      `tests/progress.test.js` covers `canStart` for first, next and future lessons.
+- [x] Signed-in learner's next lesson updates immediately after a completion. There is no sign-in and no
+      server to wait on: the drill writes the progress record and `/learn` reads it on load, so
+      `e2e/dashboard.spec.js` finishes a drill on its own page and finds it counted here on the next
+      visit, with the recommendation moved on.
+- [x] Badge precedence verified: a stale lesson never shows `COMPLETE`. The eight combinations are
+      `tests/progress.test.js`; `e2e/dashboard.spec.js` seeds a completion old enough to be stale and
+      asserts the row reads "Needs practice" and the page note counts it as going stale.
 - [x] Category counts sum to the track total; no lesson is in two groups.
-- [ ] Dashboard renders in < 1 s on a throttled connection (no blocking client fetch for first paint).
-- [ ] Empty state (new user) and error state (progress fetch fails) both designed and implemented.
-- [ ] Reset progress asks twice and cannot be triggered by a stray keypress.
+- [x] Dashboard renders in < 1 s on a throttled connection (no blocking client fetch for first paint).
+      There is no fetch at all — the HTML is whole, `#dashboard-data` carries the plan inline and the
+      island only fills in counts — so the wait is bytes. `verify.mjs` prices the page plus its one
+      stylesheet at 21.4 kB gzipped against a 40 kB budget, half of what a 50 kB/s link delivers in a
+      second, and fails the build if a change spends it.
+- [x] Empty state (new user) and error state (progress fetch fails) both designed and implemented.
+      **Deviation, since nothing is fetched:** the analogous failure is a browser that refuses
+      `localStorage`, and it is said out loud instead of drawn — "This browser blocks local storage, so
+      nothing is saved…" — with the reset control withdrawn, because erasing nothing is a lie too.
+      `e2e/dashboard.spec.js` denies storage in an init script and asserts that note; the new-learner
+      state ("Nothing started yet…") is asserted by the same spec.
+- [x] Reset progress asks twice and cannot be triggered by a stray keypress. The button arms for six
+      seconds, Escape disarms it, and a second click erases; `e2e/dashboard.spec.js` clicks through the
+      arming and the erasure and then reads the storage back to prove the record is empty.
 
 ## Test plan
 

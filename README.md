@@ -24,9 +24,9 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 470 tests, no build step
+npm test                # 639 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
-npm run build           # writes legacy/dist — 18 pages, one stylesheet, the assets
+npm run build           # writes legacy/dist — 27 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
 npm run check           # all of it, including the Next.js build
 npm run dev             # build, then serve legacy/dist at http://localhost:4173
@@ -48,14 +48,14 @@ while the port is in progress.
 | `npm run content:new -- --lesson 17 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
 | `npm run content:preview -- --lesson 13` | Prints a lesson the way its page reads: prompt, grid, docs, hints, fixtures | one screen, one row per fixture |
 | `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
-| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 594 checks pass |
+| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 817 checks pass |
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
-| `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 18 prerendered pages, exit 0 |
-| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 18 pages match |
+| `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 27 prerendered pages, exit 0 |
+| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 27 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
-| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 20 tests pass |
+| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 44 tests pass |
 
 **Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
 `SITE_URL`, which is what canonical links, the sitemap and the JSON-LD `@id`s are built from. Serve on
@@ -117,7 +117,7 @@ packages/
     index.js              loadContent() → { track, exercises } in track order; validateLesson(); screenAt()
     README.md             what it rejects and why, and why page shape is deliberately not in here
   session/                the player engine: score loop, clock and typed event sink
-    events.js             the event vocabulary (14 names) plus createSink: filter, envelope, buffer cap
+    events.js             the event vocabulary (17 names) plus createSink: filter, envelope, buffer cap
     score.js              createSession / recordVerdict — weights, cap, recycling, termination guard
     clock.js              the session budget, with an idempotent pause for a hidden tab
     README.md             docs/player-contract.md is the longer version: screen shape and invariants
@@ -229,9 +229,9 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **470 passing**, 0 failing — 97 grader, 77 fixtures, 48 content-lint, 44 build/server, 48 client, 27 schema, 26 session, 22 progress, 20 content, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
-| `npm run build` | 18 pages, 571.5 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 4 session modules, 1 progress module, 3 client modules |
-| `node legacy/src/verify.mjs` | **690 checks passed** across 16 lesson pages, the index and the dashboard |
+| `npm test` | **639 passing**, 0 failing — 99 grader, 77 fixtures, 57 client, 56 content-lint, 53 schema, 45 build/server, 32 progress, 32 keys, 26 session, 24 sheet, 23 verify, 21 content, 17 styles, 15 track schema, 14 dashboard, 10 xlsx, 8 feedback, 8 vendor, 6 screen docs, 5 keys page, 5 workbook page, 4 metadata routes, 3 five types, 3 workbook build, 2 fragments, 2 golden, 2 site paths |
+| `npm run build` | 27 pages, 732.3 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 5 session modules, 1 progress module, 1 keyboard module, 1 sheet module, 4 client modules |
+| `node legacy/src/verify.mjs` | **817 checks passed** across 16 lesson pages, the index, the dashboard and 9 group pages |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |
 | axe-core 4 on a lesson | 0 violations, 50 passes |
 | Console | no errors or warnings, only the `[es]` debug funnel lines |

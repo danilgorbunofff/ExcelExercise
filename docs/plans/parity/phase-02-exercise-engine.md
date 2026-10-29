@@ -15,11 +15,11 @@ keyboard route through all of it.** Items 1–12 ship: the loop and the event si
 (`packages/session`, `docs/player-contract.md`), screen dispatch, a `formula` player, a `picture` player,
 the chord/sequence keyboard player, a `workbook` player, the hint vocabulary, reveal threshold and
 per-screen notes, and the accessibility pass, proven end to end by `16-xlookup-search-from-the-bottom` —
-the first lesson with three screens, the last of them a picture. No catalog lesson ships a workbook yet,
-so its page, file and build path are proven from a temp content copy rather than from the shipped corpus.
-The clock is read but not enforced.
+the first lesson with three screens, the last of them a picture. No catalog lesson ships a workbook or a
+shortcut yet, so both are proven from a temp content copy rather than from the shipped corpus — including
+one seven-screen lesson that uses all five types and walks to 100. The clock is read but not enforced.
 
-- [x] **11. Events.** `packages/session/events.js` owns the vocabulary (14 names, the phase-10 list) and a
+- [x] **11. Events.** `packages/session/events.js` owns the vocabulary (17 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
       500-event cap. The drill now emits through it instead of its own `track()`, and its `drill_*` names
       were renamed to the canonical ones — `drill_check` split into `check_correct`/`check_wrong`, since a
@@ -34,9 +34,10 @@ The clock is read but not enforced.
       `pause`/`resume` for `visibilitychange`, backwards clock steps clamped to zero. The player mounts
       one clock, pauses it while `document.hidden` and resumes on `visibilitychange`, and stamps
       `elapsed` (whole seconds on task) on the working events, so the funnel sees time spent practicing
-      rather than time the tab sat open. The budget is deliberately not enforced — a wall-clock stop
-      would throw away a local learner's unfinished lesson. Per-screen elapsed time is not implemented:
-      it belongs to the screen component, which does not exist.
+      rather than time the tab sat open — and each screen keeps its own tally, stamped on the events that
+      screen produces and restarted every time it is entered, so the funnel can say which screen cost the
+      time rather than only how long the lesson took. The budget is deliberately not enforced — a
+      wall-clock stop would throw away a local learner's unfinished lesson.
 - [x] **2. Formula screen (multi-screen).** The lesson page server-renders every screen into
       `#drill-screens` and the client advances by toggling `hidden`. The section, one drill per screen,
       is the same graded object: `createSession` → `recordVerdict` → `emitAll`. Screens carry their own
@@ -130,11 +131,11 @@ The clock is read but not enforced.
       payload) and `tests/client.test.js` (the player reads the threshold from the track and falls back to
       `hints.value`).
 
-Two acceptance criteria are now true of the site — "a lesson with several screens terminates at 100"
-passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson 16's three screens in
-a browser, grades a near miss on the picture screen and completes on typed text, and "the session timer
-pauses when the tab is hidden" is proven there too: the spec hides the tab, waits, and asserts the next
-event's `elapsed` did not grow by the hidden second.
+Every acceptance criterion below is closed but the manual browser matrix. "A lesson with several screens
+terminates at 100" passes in `tests/client.test.js` and again in `e2e/drill.spec.js`, which walks lesson
+16's three screens in a browser, grades a near miss on the picture screen and completes on typed text.
+The five-type lesson is `tests/five-types.test.js`, and the reserved-shortcut fallback is the last block
+of `tests/keys.test.js`. The matrix is waiting on content rather than on code.
 
 ---
 
@@ -214,11 +215,32 @@ design system, with accessibility and browser-resilience the reference does not 
 
 ## Acceptance criteria
 
-- [ ] A 7-screen lesson exercising all five types reaches 100 and completes. All five types render; no
-      catalog lesson is authored with a workbook yet, so this stays open until one is.
+- [x] A 7-screen lesson exercising all five types reaches 100 and completes. `tests/five-types.test.js`
+      is that lesson: it swaps lesson 16 for a seven-screen copy (two formulas, the shipped picture, a
+      chord, a sequence, a workbook and a second chord), builds the site from a temp root, and then walks
+      the published payload the way the player does — each screen graded with the answer the lesson
+      itself carries, by the same modules `gradeScreen` dispatches to, through
+      `createSession`/`recordVerdict` with the player's own weighting. The build writes the one workbook
+      file, `verify()` is clean, the page carries three keyboard panels, one picture panel, one workbook
+      panel and two sheets, and the walk finishes on screen 7 with one `lesson_complete` and seven
+      `screen_complete`. The catalog still ships no workbook and no shortcut: that is a content decision
+      for phase 9, and this criterion was about the engine being able to carry one.
 - [x] Recycling works: a lesson with 5 screens still terminates at 100.
-- [ ] Chord drills pass manual matrix on Chrome/Safari/Firefox × macOS/Windows.
-- [ ] At least one real browser-reserved combination degrades to the fallback instead of dead-ending.
+- [ ] Chord drills pass manual matrix on Chrome/Safari/Firefox × macOS/Windows. **The one criterion a
+      machine cannot close here, for two reasons.** No catalog lesson ships a shortcut (that is phase
+      9B's content), and the matrix is a claim about real browsers on two platforms — Playwright's
+      Chromium is neither Safari nor Windows. What is left for a human, once shortcut lessons exist: open
+      a chord drill and a sequence drill in each of the six cells, press the chord, and confirm the
+      screen advances rather than the browser acting on it; then type the same chord in the bar. The
+      capability detection both paths depend on is covered (`tests/keys.test.js`,
+      `tests/keys-page.test.js`), so what remains is a deployment check rather than an open question.
+- [x] At least one real browser-reserved combination degrades to the fallback instead of dead-ending.
+      `tests/keys.test.js` proves the player's own rule (`keysLive` in `drill.js`): every chord in the
+      list reserved means no listener and the bar instead, and one reserved step drops a whole sequence
+      to the bar, because a sequence missing a press can never complete. The fallback is not a dead end —
+      the reveal is printed in words, so `matchesTyped` grades `Ctrl+T`, `ctrl + t` and `CTRL+T` alike.
+      Proven at the module level rather than in a browser on purpose: no shipped lesson carries a
+      reserved shortcut, and in a browser the press would first have to be swallowed to be worth testing.
 - [x] Wrong answer shows the authored hint for the actual failure mode, not a generic message. Proven in
       `tests/grader.test.js`, which walks the precedence chain (own rule → alias → `hints.value`), and in
       `tests/client.test.js`, which pins that the player shows `result.hint` and falls back to the screen's
@@ -232,7 +254,8 @@ design system, with accessibility and browser-resilience the reference does not 
 - [x] axe: zero critical/serious on the player. `e2e/a11y.spec.js`, five scans, all clean.
 - [x] Keyboard-only learner completes a full lesson. `e2e/keyboard.spec.js` does it in one drill, from
       the tab walk to the next drill's link.
-- [x] Session timer pauses when the tab is hidden.
+- [x] Session timer pauses when the tab is hidden. `e2e/drill.spec.js` hides the tab, waits, and
+      asserts the next event's `elapsed` did not grow by the hidden second.
 
 ## Test plan
 

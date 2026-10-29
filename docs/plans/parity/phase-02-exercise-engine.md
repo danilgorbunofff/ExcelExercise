@@ -10,14 +10,14 @@
 
 ## Status
 
-**Landed — the engine, the first multi-screen player, every screen type, and the help a miss earns.** Items
-1–11 ship: the loop and the event sink as a tested package (`packages/session`, `docs/player-contract.md`),
-screen dispatch, a `formula` player, a `picture` player, the chord/sequence keyboard player, a `workbook`
-player, and the hint vocabulary, reveal threshold and per-screen notes, proven end to end by
-`16-xlookup-search-from-the-bottom` — the first lesson with three screens, the last of them a picture. No
-catalog lesson ships a workbook yet, so its page, file and build path are proven from a temp content copy
-rather than from the shipped corpus. Item 12 (accessibility) is untouched, and the clock is read but not
-enforced.
+**Landed — the engine, the first multi-screen player, every screen type, the help a miss earns, and a
+keyboard route through all of it.** Items 1–12 ship: the loop and the event sink as a tested package
+(`packages/session`, `docs/player-contract.md`), screen dispatch, a `formula` player, a `picture` player,
+the chord/sequence keyboard player, a `workbook` player, the hint vocabulary, reveal threshold and
+per-screen notes, and the accessibility pass, proven end to end by `16-xlookup-search-from-the-bottom` —
+the first lesson with three screens, the last of them a picture. No catalog lesson ships a workbook yet,
+so its page, file and build path are proven from a temp content copy rather than from the shipped corpus.
+The clock is read but not enforced.
 
 - [x] **11. Events.** `packages/session/events.js` owns the vocabulary (14 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
@@ -197,8 +197,20 @@ design system, with accessibility and browser-resilience the reference does not 
 11. **Events.** Emit a typed event stream (`screen_view`, `check_correct`, `check_wrong`,
     `hint_open`, `solution_reveal`, `screen_complete`, `lesson_complete`) through a single sink
     interface; phase 10 supplies the transport, phase 4 the persistence.
-12. **Accessibility.** Focus management on screen change, `aria-live` for feedback, full keyboard
-    operation of the grid, 44 px targets, visible focus ring, reduced-motion respected.
+- [x] **12. Accessibility.** Focus management on screen change, `aria-live` for feedback, full keyboard
+      operation of the grid, 44 px targets, visible focus ring, reduced-motion respected. Entering a
+      screen hands the focus to that screen's control — the answer cell, the keys panel, or the bar — and
+      finishing a drill hands it to the one way forward, since otherwise a keyboard user tabs back past
+      the bar and the hint row to find it. Scrollable code blocks (the solution, the syntax and the
+      reference notes) take `tabindex="0"`, because a box that scrolls has to be reachable without a
+      mouse. `e2e/a11y.spec.js` scans the index, the dashboard empty and populated, a formula drill
+      before and after a miss, and a multi-screen lesson's picture screen; `e2e/keyboard.spec.js`
+      completes a drill with Tab, typing and Enter only, checks the focus ring is drawn by the keyboard,
+      and takes the hint and the reveal without a mouse. Two deliberate deviations: the scan runs under
+      emulated reduced motion, because axe measures the verdict mid-fade otherwise and calls a passing
+      pair a contrast failure; and the in-bar Check button stays at 32 px instead of 44, which still
+      clears WCAG AA's 24 px target minimum. Chord and workbook screens are covered by their own page
+      tests but not by axe, because no catalog lesson ships one.
 
 ## Acceptance criteria
 
@@ -217,8 +229,9 @@ design system, with accessibility and browser-resilience the reference does not 
       `e2e/drill.spec.js` reads "Attempt N of 3" from that same value).
 - [x] Workbook preview renders offline, with no third-party request. Proven in
       `tests/workbook-page.test.js`, whose fixture asserts the preview table is server-rendered markup.
-- [ ] axe: zero critical/serious on the player.
-- [ ] Keyboard-only learner completes a full lesson.
+- [x] axe: zero critical/serious on the player. `e2e/a11y.spec.js`, five scans, all clean.
+- [x] Keyboard-only learner completes a full lesson. `e2e/keyboard.spec.js` does it in one drill, from
+      the tab walk to the next drill's link.
 - [x] Session timer pauses when the tab is hidden.
 
 ## Test plan

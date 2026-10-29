@@ -83,6 +83,11 @@ test("a two-screen lesson advances to screen 2 and completes on the last answer"
   await check(page, "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
   await expect(page.locator("#feedback .feedback-meta")).toHaveText("Right first time. Screen 2 of 2.");
+  // The trial opened the drill, so the first screen view has to come from the paywall's exit.
+  const firstView = await page.evaluate(() =>
+    (globalThis.__esEvents ?? []).find((event) => event.type === "screen_view"),
+  );
+  expect(firstView.gated).toBe(true);
   await expect(page.locator("[data-screen='1']")).toBeHidden();
   await expect(page.locator("[data-screen='2']")).toBeVisible();
   await expect(page.locator("#screen-answer-cell")).toHaveText("B8");

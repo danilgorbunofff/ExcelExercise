@@ -631,6 +631,16 @@ function mountDrill(payloadNode) {
       track("trial_start", { id: lessonId, days: trialDaysLeft(trial) });
       paywall.remove();
       for (const node of [ui.screens, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = false;
+      // The mount's `screen_view` sits after the paywall's early return, so a gated learner would
+      // otherwise never enter the funnel: their first screen is the one the trial just opened.
+      track("screen_view", {
+        id: lessonId,
+        screen: currentScreen(loop),
+        of: screenCount,
+        gated: true,
+        solved,
+        elapsed: seconds(),
+      });
       clearFeedback();
       showFeedback({
         state: "is-hint",

@@ -329,8 +329,8 @@ describe("drill.js source", () => {
 
   it("stamps the working events with whole seconds on task", () => {
     assert.match(code, /function seconds\(\) \{\s*return Math\.round\(clock\.elapsedMs\(\) \/ 1000\);/);
-    // Both screen_views, the loop's base props, the first keystroke, hint, reveal and exhaustion.
-    assert.equal(code.match(/elapsed: seconds\(\)/g)?.length, 7);
+    // Three screen_views, the loop's base props, the first keystroke, hint, reveal and exhaustion.
+    assert.equal(code.match(/elapsed: seconds\(\)/g)?.length, 8);
     assert.match(code, /const base = \{ id: lessonId, elapsed: seconds\(\), \.\.\.extra \};/);
   });
 

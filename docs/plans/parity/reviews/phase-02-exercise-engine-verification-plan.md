@@ -16,25 +16,30 @@ the "each type works alone but nobody walks the seam" gap.
 All acceptance boxes are ticked except the manual browser/shortcut matrix, which carries a written
 rationale and its exact steps.
 
-Coverage was the redness, and most of it is now closed. Counting the live content gives 20 screens:
-**17 `formula`, 1 `picture`, 1 `chord`, 1 `sequence`**. The chord and the sequence ship on lesson 03
-(`countif-open-tickets`), so a visitor can reach both shortcuts, the keyboard layer, the reveal and
-the typed fallback on a real lesson instead of on a page built for a test. What remains is the
-workbook: the build summary still says `0 workbooks`, and that one type is exercised only by fixtures
-built into a temp content root (`tests/five-types.test.js`, `tests/keys-page.test.js`,
-`tests/workbook-page.test.js`).
+Coverage was the redness, and it is now closed. Counting the live content gives 21 screens:
+**17 `formula`, 1 `picture`, 1 `chord`, 1 `sequence`, 1 `workbook`**. The chord and the sequence ship
+on lesson 03 (`countif-open-tickets`) and the workbook on the capstone (`10-capstone-margin`), so a
+visitor can reach all five types — the shortcuts, the keyboard layer, the reveal, the typed fallback
+and a real `.xlsx` download — on live lessons instead of on pages built for a test. The build
+summary's workbook count is no longer `0`, and the fixture builds that used to be the only workbook
+proof (`tests/five-types.test.js`, `tests/keys-page.test.js`, `tests/workbook-page.test.js`) now
+prove the five types coexist rather than that they exist.
 
 ## Critical Failure Modes
 
-**1. The workbook screen type is not in production content.** The engine's least-exercised path is
-the one no live lesson renders, so every browser-level proof of workbooks runs against a page built
-for the test: the workbook manual check has no production page to run on, and a regression in that
-renderer would ship silently. Proven by the build summary line `0 workbooks` and by counting screen
-types in `legacy/content/exercises/*.json` (gate row 7). The chord and sequence halves of this
-failure mode were closed on 2026-10-29 by shipping two shortcut screens on lesson 03: the census now
-prints `{ formula: 17, chord: 1, sequence: 1, picture: 1 }`, `verify` holds their markup (827 checks),
-`e2e/drill.spec.js` grades a pressed chord and an out-of-order sequence on the real page, and
-`e2e/a11y.spec.js` scans both panels rather than a fixture's.
+**1. A screen type that no live lesson renders is a type that ships silently broken — closed.**
+This failure mode was the workbook's: the engine's least-exercised path was the one no live lesson
+rendered, so every browser-level proof of workbooks ran against a page built for the test, and a
+regression in that renderer would have shipped unseen. It was proven by the build summary line
+`0 workbooks` and by counting screen types in `legacy/content/exercises/*.json` (gate row 7). All
+three halves closed by shipping the screens rather than by relaxing the check: the chord and the
+sequence on 2026-10-29 on lesson 03, and the workbook on the same date on the capstone. The census
+now prints `{ formula: 17, chord: 1, sequence: 1, workbook: 1, picture: 1 }`, `verify` holds the
+markup of all five (839 checks), `e2e/drill.spec.js` grades a pressed chord, an out-of-order sequence
+and a downloaded workbook's answer on the real pages, and `e2e/a11y.spec.js` scans every panel a
+visitor reaches rather than a fixture's. Shipping the workbook screen also found a live defect no
+fixture build had been scanned for: the preview's scroll area had no keyboard access, fixed by
+`tabindex="0"` and a name on `.workbook-scroll` (`legacy/src/site/sheet.mjs`).
 
 **2. Two of the newest proofs mirror the code they check.** `tests/five-types.test.js`
 re-implements the grader dispatch (`accepts()` per screen type) and the final `keys` block
@@ -78,16 +83,17 @@ labels, not the collision itself.
 | # | Command | Expected | If it fails |
 |---|---|---|---|
 | 1 | `node --test tests/keys.test.js tests/five-types.test.js tests/workbook-build.test.js tests/workbook-page.test.js tests/keys-page.test.js tests/session.test.js tests/sheet.test.js tests/client.test.js tests/grader.test.js` | `tests 255`, `pass 255`, `fail 0`, `suites 42` | The engine, its keyboard layer or the session loop broke. Start with `client.test.js` — it is the page wiring. |
-| 2 | `npx playwright test e2e/drill.spec.js e2e/keyboard.spec.js e2e/a11y.spec.js` | `21 passed` (10 + 2 + 9) | A screen type fails to grade, the keyboard layer is unreachable, or an axe scan found a new violation. The a11y spec reports the selector, not just the count. |
-| 3 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 827 checks passed` | A markup pin moved. The chord/sequence distinction (`keys-panel` vs `keys-panel keys-panel-sequence`) is the most common cause. Silent per-check; a failure prints its own message. |
-| 4 | `npm run content:check` | `content: 16 of 88 … 20 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | The grader and content disagree — an engine change altered a verdict. |
+| 2 | `npx playwright test e2e/drill.spec.js e2e/keyboard.spec.js e2e/a11y.spec.js` | `23 passed` (11 + 2 + 10) | A screen type fails to grade, the keyboard layer is unreachable, or an axe scan found a new violation. The a11y spec reports the selector, not just the count. |
+| 3 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 839 checks passed` | A markup pin moved. The chord/sequence distinction (`keys-panel` vs `keys-panel keys-panel-sequence`) is the most common cause. Silent per-check; a failure prints its own message. |
+| 4 | `npm run content:check` | `content: 16 of 88 … 21 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | The grader and content disagree — an engine change altered a verdict. |
 | 5 | Manual matrix, per OS | Each shortcut resolves or degrades to `uncapturable()` with the typed fallback offered | Cannot be closed automatically — hardware, not content: lesson 03 now ships both a chord and a sequence to run the matrix on. Steps and rationale are in `phase-02-exercise-engine.md`. |
-| 6 | Manual, workbook lesson | Download the `.xlsx`, open in Excel, confirm the shown answer matches a recalculation | Cannot be closed automatically. The evaluator is ours, not Excel's — and there is no shipped workbook lesson, so this needs a fixture build. |
-| 7 | `node --input-type=module -e "import{readFileSync,readdirSync}from'node:fs';const d='legacy/content/exercises',c={};for(const f of readdirSync(d))for(const s of JSON.parse(readFileSync(d+'/'+f,'utf8')).screens??[])c[s.type??'formula']=(c[s.type??'formula']??0)+1;console.log(c)"` | `{ formula: 17, chord: 1, sequence: 1, picture: 1 }` — every type but `workbook` | This row is a census, not a pass/fail: it says which types a visitor can reach. A `workbook` key appearing means the last content-blocked type shipped, and row 6 then has a production page. |
+| 6 | Manual, workbook lesson | Download the `.xlsx`, open in Excel, confirm the shown answer matches a recalculation | Cannot be closed automatically. The evaluator is ours, not Excel's. It now has a production page: the capstone ships `capstone-margin-book-1.xlsx`, and `e2e/drill.spec.js` fetches that exact file from the running app. |
+| 7 | `node --input-type=module -e "import{readFileSync,readdirSync}from'node:fs';const d='legacy/content/exercises',c={};for(const f of readdirSync(d))for(const s of JSON.parse(readFileSync(d+'/'+f,'utf8')).screens??[])c[s.type??'formula']=(c[s.type??'formula']??0)+1;console.log(c)"` | `{ formula: 17, chord: 1, sequence: 1, workbook: 1, picture: 1 }` — all five types | This row is a census, not a pass/fail: it says which types a visitor can reach. Every key present is the row's own good-news condition; a key disappearing means a type went back to being fixture-only. |
 
 Recorded open, and not to be reported as green: the manual shortcut matrix (hardware-blocked — three
-operating systems with real keyboards; it now has a production page, so it is no longer
-content-blocked), and workbook behaviour inside Excel (evaluator-blocked, and content-blocked).
+operating systems with real keyboards; it has a production page, so it is not content-blocked), and
+workbook behaviour inside Excel (evaluator-blocked: our recalculation is not Excel's). Nothing in this
+phase is content-blocked any more.
 
 ## Closure evidence (this verification run)
 
@@ -96,23 +102,23 @@ Run from `/Users/danil/Desktop/excelsupreme` on `30629e8`, Node `v25.9.0` (macOS
 | Row | Status | Evidence |
 |---|---|---|
 | 1 | **closed** | `node --test tests/keys.test.js tests/five-types.test.js tests/workbook-build.test.js tests/workbook-page.test.js tests/keys-page.test.js tests/session.test.js tests/sheet.test.js tests/client.test.js tests/grader.test.js` → `ℹ tests 255`, `ℹ suites 42`, `ℹ pass 255`, `ℹ fail 0` |
-| 2 | **closed** | `npx playwright test e2e/drill.spec.js e2e/keyboard.spec.js e2e/a11y.spec.js` → `21 passed (7.3s)` (re-pinned 2026-10-29: `drill` gained *a shortcut lesson grades the keys it asks for, and keeps its steps in order*, `a11y` gained *the shortcut panels of a shipped lesson pass*; the original run was `19 passed (6.8s)`, with one earlier run reporting `18 passed` plus one retried flake on `keyboard.spec.js:59`) |
-| 3 | **closed** | `node legacy/src/verify.mjs` → `verified 16 lesson pages, the index, the dashboard and 9 group pages — 827 checks passed` (re-pinned 2026-10-29 from `817`: the two new screens added ten markup pins) |
-| 4 | **closed** | `npm run content:check` → `content: 16 of 88 catalogued lessons, 16 groups, 20 screens, 268 fixtures replayed`, `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` (re-pinned 2026-10-29 from `18 screens`; the verdict counts did not move, which is the point) |
+| 2 | **closed** | `npx playwright test e2e/drill.spec.js e2e/keyboard.spec.js e2e/a11y.spec.js` → `23 passed (7.5s)` (re-pinned 2026-10-29: `drill` gained *a workbook lesson hands over the file and grades the answer it asks for*, `a11y` gained *the workbook panel of a shipped lesson passes*; the run before that was `21 passed (7.3s)`, then `19 passed (6.8s)`, with one earlier run reporting `18 passed` plus one retried flake on `keyboard.spec.js:59`) |
+| 3 | **closed** | `node legacy/src/verify.mjs` → `verified 16 lesson pages, the index, the dashboard and 9 group pages — 839 checks passed` (re-pinned 2026-10-29 twice, `817` → `827` for the two shortcut screens, then `827` → `839` for the workbook screen's download link, grid and labels) |
+| 4 | **closed** | `npm run content:check` → `content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed`, `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` (re-pinned 2026-10-29 from `18 screens` → `20` → `21`; the verdict counts did not move, which is the point — a workbook screen ships answers, not formulas) |
 | 5 | **still open** | Hardware-blocked: needs three operating systems and real keyboards; no automated substitute. No longer content-blocked — lesson 03 ships a chord and a sequence, so the matrix has a production page. |
-| 6 | **still open** | Needs Excel. Evaluator-blocked; our recalculation is not Excel's. Content-blocked too: no shipped workbook lesson, so it would need a fixture build to even open one. |
-| 7 | **closed** | The screen-type census command prints `{ formula: 17, chord: 1, sequence: 1, picture: 1 }`. Re-pinned 2026-10-29 from `{ formula: 17, picture: 1 }` — the row's own "good news" condition, met by shipping lesson 03's two shortcut screens. |
+| 6 | **still open** | Needs Excel. Evaluator-blocked; our recalculation is not Excel's. No longer content-blocked: the capstone ships `capstone-margin-book-1.xlsx`, the app serves it as `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, and the e2e proof fetches that file. |
+| 7 | **closed** | The screen-type census command prints `{ formula: 17, chord: 1, sequence: 1, workbook: 1, picture: 1 }`. Re-pinned 2026-10-29 from `{ formula: 17, picture: 1 }` — the row's own "good news" condition, met by shipping lesson 03's two shortcut screens and the capstone's workbook. |
 
 ## Baseline
 
 | Metric | Value |
 |---|---|
 | Screen types implemented | five: `formula`, `chord`, `sequence`, `picture`, `workbook` |
-| Screen types in shipped content | four: **17 `formula`, 1 `picture`, 1 `chord`, 1 `sequence`** (0 workbook) — 20 screens |
+| Screen types in shipped content | five: **17 `formula`, 1 `picture`, 1 `chord`, 1 `sequence`, 1 `workbook`** — 21 screens |
 | Screen types in one lesson (test fixture) | all five over seven screens |
 | Targeted unit tests | 255 across 42 suites |
-| Browser tests for the engine | 21 (`drill` 10, `a11y` 9, `keyboard` 2) |
-| Verify checks | 827 |
+| Browser tests for the engine | 23 (`drill` 11, `a11y` 10, `keyboard` 2) |
+| Verify checks | 839 |
 | Fixtures replayed | 268 (111 accepted, 157 rejected) |
 | `DEFAULT_SCORING` | `{ correct: 20, incorrect: 0, cap: 100 }` → completes in 5 screens |
 | Player weighting | `ceil(100 / screens.length)` |

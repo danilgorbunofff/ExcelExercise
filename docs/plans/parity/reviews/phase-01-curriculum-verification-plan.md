@@ -7,7 +7,7 @@ Scope: the content pipeline — schema v2, the linter, the fixture-replay grader
 
 **Solid tooling, High Risk on scope.**
 
-The factory works and is proven: 16 lessons across 20 screens and 268 fixtures validate, and every
+The factory works and is proven: 16 lessons across 21 screens and 268 fixtures validate, and every
 fixture's expected verdict is replayed against the real grader on every run (111 accepted, 157
 rejected, zero disagreements). Schema v2, the v1 bridge and the sidecar path are all pinned by
 tests, including the two ways a lesson can carry fixtures twice.
@@ -25,12 +25,14 @@ exits `✓`.
 lesson count stops growing. Any process that reads only the exit code will report the curriculum as
 done. The count must be read from the output line, not from the tick.
 
-**2. The curriculum uses four of five screen types.** Of 20 shipped screens, 17 are `formula`, 1
-`picture`, 1 `chord` and 1 `sequence` — the latter two added to lesson 03 on 2026-10-29, which is why
-the keyboard renderers now have a page a visitor can reach. `workbook` is the type no lesson asks for,
-so that one renderer still ships unexercised by content. The factory can express it and the schema
-accepts it; the catalog simply has no lesson that needs one. This is a *content* gap with an *engine*
-consequence — see failure mode 1 in the phase-2 doc.
+**2. The curriculum uses all five screen types — closed 2026-10-29.** Of 21 shipped screens, 17 are
+`formula`, 1 `picture`, 1 `chord`, 1 `sequence` and 1 `workbook`. The shortcuts were added to lesson 03
+and the workbook to the capstone (`10-capstone-margin`, which asks for a margin read from a
+downloaded `.xlsx`), so every renderer has a page a visitor can reach. It took three screens and a
+pipeline change to get there: `formula`-only assumptions in `tests/content.test.js`, the golden
+capture, the build payload contract and `tests/audit.js` all had to learn the new type, which is the
+same lesson in miniature — a type that ships without content stays untested where it matters. See
+failure mode 1 in the phase-2 doc.
 
 **3. The fixture-replay contract is a floor, not a review.** 268 fixtures replay against the grader,
 which proves the *code* agrees with the *authored expectations*. It does not prove either agrees
@@ -60,7 +62,7 @@ regression.
 
 | # | Command | Expected | If it fails |
 |---|---|---|---|
-| 1 | `npm run content:check` | `content: 16 of 88 catalogued lessons, 16 groups, 20 screens, 268 fixtures replayed` and `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | A lesson violates v2, or a fixture's expected verdict disagrees with the grader. The disagreement is the real signal: either the lesson or the grader is wrong. |
+| 1 | `npm run content:check` | `content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed` and `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | A lesson violates v2, or a fixture's expected verdict disagrees with the grader. The disagreement is the real signal: either the lesson or the grader is wrong. |
 | 2 | `node --test tests/golden.test.js` | `tests 2`, `pass 2` | A grader verdict moved. Confirm it is intended, then `npm run golden:update` and commit the snapshot. |
 | 3 | `node --test tests/schema-v2.test.js tests/content.test.js` | `tests 74`, `fail 0` | Schema/lint drift — the shape one layer accepts, the other rejects. |
 | 4 | `node --test tests/fixtures.test.js` | `tests 77`, `pass 77` | A lesson's fixture file went missing or a v2 lesson kept its fixtures in the sidecar. |
@@ -77,7 +79,7 @@ Run from `/Users/danil/Desktop/excelsupreme` on `30629e8`, Node `v25.9.0` (macOS
 
 | Row | Status | Evidence |
 |---|---|---|
-| 1 | **closed** | `npm run content:check` → `content: 16 of 88 catalogued lessons, 16 groups, 20 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` |
+| 1 | **closed** | `npm run content:check` → `content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` |
 | 2 | **closed** | `node --test tests/golden.test.js` → `ℹ tests 2`, `ℹ pass 2`, `ℹ fail 0` |
 | 3 | **closed** | `node --test tests/schema-v2.test.js tests/content.test.js` → `ℹ tests 75`, `ℹ pass 75`, `ℹ fail 0` (re-pinned 2026-10-29: `content.test.js` gained a shortcut-acceptance test when lesson 03 shipped a chord and a sequence) |
 | 4 | **closed** | `node --test tests/fixtures.test.js` → `ℹ tests 78`, `ℹ pass 78`, `ℹ fail 0` (re-pinned 2026-10-29: gained *keeps formula fixtures off a shortcut screen*) |
@@ -97,7 +99,7 @@ authoring, not verification. See the "Stop before content authoring" note in the
 | Groups catalogued | 16 |
 | Groups with drills / pages | 9 |
 | Groups with intro copy and no page | 7 |
-| Screens | 20 — 17 `formula`, 1 `picture`, 1 `chord`, 1 `sequence`, 0 `workbook` |
+| Screens | 21 — 17 `formula`, 1 `picture`, 1 `chord`, 1 `sequence`, 1 `workbook` |
 | Fixtures replayed | 268 (111 accepted, 157 rejected) |
 | Fixture test count | 78 |
 | Schema + content test count | 75 |

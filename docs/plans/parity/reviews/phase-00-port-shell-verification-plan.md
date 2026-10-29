@@ -121,10 +121,10 @@ Run in order from the repo root. Each row: command → expected → what a failu
 |---|---|---|---|
 | 1 | `vendor:check` | `25 files match manifest.json` | A vendored grader/sheet input was edited by hand. Nothing else catches this. |
 | 2 | `npm test` | `tests 645`, `suites 104`, `pass 645`, `fail 0` | The golden snapshot, schema or build contract drifted. Check `tests/golden/` first — it is the byte-stable one. |
-| 3 | `next:build` | `built 27 pages (735.2 kB of HTML+CSS)` then a 27-route table, exit `0` | A route disappeared or a template threw. `27` is the floor: 16 lessons + index + dashboard + 9 group pages. |
+| 3 | `next:build` | `built 27 pages (739.4 kB of HTML+CSS)` then a 27-route table, exit `0` | A route disappeared or a template threw. `27` is the floor: 16 lessons + index + dashboard + 9 group pages. |
 | 4 | `next:check` | `next routes: 27 prerendered pages match the shared templates` | Next and static fragments diverged. This is the port's core invariant. |
-| 5 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 827 checks passed` | A markup pin, link, budget or style rule broke on the static build. Verify is silent per-check on success; the failing check prints its own message and the exit code is non-zero. |
-| 6 | `npx playwright test` | `50 passed` (47 Next + 3 static) | Either deployable broke in a real browser: `chromium` drives `next start` on 4174, `static` drives `legacy/dist` over HTTP on 4175. Chromium only — a WebKit/Firefox-specific break is not covered. |
+| 5 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 839 checks passed` | A markup pin, link, budget or style rule broke on the static build. Verify is silent per-check on success; the failing check prints its own message and the exit code is non-zero. |
+| 6 | `npx playwright test` | `52 passed` (49 Next + 3 static) | Either deployable broke in a real browser: `chromium` drives `next start` on 4174, `static` drives `legacy/dist` over HTTP on 4175. Chromium only — a WebKit/Firefox-specific break is not covered. |
 | 7 | `npm run check` | steps 2–6 green, wall ≈ 6 s | Steps interfere; usually a stale `.next/` or a temp-root test leaking. |
 | 8 | `GIT_SHA=abc123 npm run next:build && cat .next/server/app/api/health.body` | `{"status":"ok","sha":"abc123"}` | The health endpoint is prerendered without the SHA — the deploy cannot be identified. |
 | 9 | `git remote -v` then push a branch | non-empty remote, workflow runs green | Closed on `origin`: a CI failure is a gate failure, not a flaky local run. The workflow runs every command in this table itself, so it never proves something the developer could not run. |
@@ -164,27 +164,30 @@ denominator and the Next route is never quoted as "the page".
 ### Re-pin, 2026-10-29 — two short-window screens shipped
 
 Row 9 above records what CI actually ran on the pushed commits; it is history and has not been
-rewritten. After it, lesson 03 (`countif-open-tickets`) gained a `chord` and a `sequence` screen, so
-five pinned numbers moved — all of them up, and the verdict counts did not move at all:
+rewritten. After it, lesson 03 (`countif-open-tickets`) gained a `chord` and a `sequence` screen and the
+capstone (`10-capstone-margin`) gained a `workbook` screen, so five pinned numbers moved — all of them
+up, and the verdict counts did not move at all:
 
 | Row | Was | Now | Measured by |
 |---|---|---|---|
 | 2 | `tests 643` / `pass 643` | `tests 645` / `pass 645` | `npm test` |
-| 3 | `735.2 kB` (was `732.3`) | `built 27 pages (735.2 kB of HTML+CSS)` | `npm run next:build` |
-| 5 | `817 checks` | `827 checks` | `node legacy/src/verify.mjs` |
-| 6 | `48 passed` (45 + 3) | `50 passed` (47 + 3) | `npx playwright test` |
-| 9 (CI) | reproduced the old set | `645` / `pass 645`, `20 screens`, `827 checks`, `50 passed (21.1s)`, `735.2 kB` — every pinned number, on Linux | GitHub Actions |
+| 3 | `732.3` | `built 27 pages (739.4 kB of HTML+CSS)` | `npm run next:build` |
+| 5 | `817` | `839 checks` | `node legacy/src/verify.mjs` |
+| 6 | `48` (45 + 3) | `52 passed` (49 + 3) | `npx playwright test` |
+| 9 (CI) | reproduced the old set | CI has not yet run a commit containing the workbook screen; the local measure is `645` / `pass 645`, `21 screens`, `839 checks`, `52 passed`, `739.4 kB` | GitHub Actions |
 
-`content: 16 of 88 … 20 screens, 268 fixtures replayed` and `111 accepted and 157 rejected` are
-unchanged: the two new screens ship keys, not fixtures, so the fixture floor per lesson is untouched.
+`content: 16 of 88 … 21 screens, 268 fixtures replayed` and `111 accepted and 157 rejected` are
+unchanged: the three new screens ship keys and answers, not fixtures, so the fixture floor per lesson
+is untouched. The build total moved `732.3 → 739.4 kB` across the three screens (~17 kB each of HTML
+plus style), and `verify` gained 22 markup pins.
 
 CI has since run the same content, on Node 24 / `ubuntu-latest`, in [run 40942364882](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40942364882)
 (`phase-0-port-shell`) and [run 40942379949](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40942379949)
 (`main` after a fast-forward), both green on the first attempt. It reproduced every re-pinned number
 exactly — `tests 645` / `suites 104` / `pass 645` / `fail 0`; `content: 16 of 88 catalogued lessons,
-16 groups, 20 screens, 268 fixtures replayed`; `111 accepted and 157 rejected`; `built 27 pages
-(735.2 kB of HTML+CSS)`; `next routes: 27 prerendered pages match the shared templates`;
-`verified … 827 checks passed`; `50 passed (21.1s)`; `vendor: 25 files match manifest.json` — so
+16 groups, 21 screens, 268 fixtures replayed`; `111 accepted and 157 rejected`; `built 27 pages
+(739.4 kB of HTML+CSS)`; `next routes: 27 prerendered pages match the shared templates`;
+`verified … 839 checks passed`; `52 passed`; `vendor: 25 files match manifest.json` — so
 row 9's gap is closed for this content too, and the byte total is platform-independent.
 The per-route JS/CSS byte rows in the baseline below were measured on `30629e8` and are due a
 re-measure; only the build total (which the build prints) has been updated.
@@ -196,9 +199,9 @@ re-measure; only the build total (which the build prints) has been updated.
 | Prerendered pages | 27 |
 | Fragment parity | 27/27 |
 | Unit tests | 645 |
-| Verify checks | 827 |
-| Browser tests | 50 (Chromium: 47 Next + 3 static) |
-| Static build HTML+CSS | 735.2 kB |
+| Verify checks | 839 |
+| Browser tests | 52 (Chromium: 49 Next + 3 static) |
+| Static build HTML+CSS | 739.4 kB |
 | Static lesson route JS | 155,784 B raw / 51,842 B gzip (20 modules) |
 | Next lesson route JS | 573,138 B raw / 176,017 B gzip |
 | Next lesson route CSS | 47,488 B raw / 10,057 B gzip |

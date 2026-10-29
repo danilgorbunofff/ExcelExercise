@@ -15,11 +15,11 @@ keyboard route through all of it.** Items 1–12 ship: the loop and the event si
 (`packages/session`, `docs/player-contract.md`), screen dispatch, a `formula` player, a `picture` player,
 the chord/sequence keyboard player, a `workbook` player, the hint vocabulary, reveal threshold and
 per-screen notes, and the accessibility pass, proven end to end by `16-xlookup-search-from-the-bottom` —
-the first lesson with three screens, the last of them a picture. No catalog lesson ships a workbook, so a
-workbook is still proven from a temp content copy — including one seven-screen lesson that uses all five
-types and walks to 100. Chord and sequence screens shipped for real on 2026-10-29: lesson 03 now carries
-one of each, graded by `tests/content.test.js`, `e2e/drill.spec.js` and the accessibility scan. The clock
-is read but not enforced.
+the first lesson with three screens, the last of them a picture. Every screen type now ships: chord and
+sequence on lesson 03 (2026-10-29), a workbook on the capstone `10-capstone-margin` (same day), each one
+graded by `tests/content.test.js`, `e2e/drill.spec.js` and the accessibility scan. The seven-screen
+all-five-types lesson built from a temp content root stays as the coexistence proof. The clock is read but
+not enforced.
 
 - [x] **11. Events.** `packages/session/events.js` owns the vocabulary (17 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
@@ -225,9 +225,9 @@ design system, with accessibility and browser-resilience the reference does not 
       `createSession`/`recordVerdict` with the player's own weighting. The build writes the one workbook
       file, `verify()` is clean, the page carries three keyboard panels, one picture panel, one workbook
       panel and two sheets, and the walk finishes on screen 7 with one `lesson_complete` and seven
-      `screen_complete`. The catalog still ships no workbook: that is a content decision for phase 9,
-      and this criterion was about the engine being able to carry one. Two shortcut screens now ship on
-      lesson 03, built by the same path.
+      `screen_complete`. This criterion is about the engine carrying the five types together; all three
+      non-`formula` types now also ship on real lessons — chord and sequence on lesson 03, the workbook
+      on the capstone — built by the same path.
 - [x] Recycling works: a lesson with 5 screens still terminates at 100.
 - [ ] Chord drills pass manual matrix on Chrome/Safari/Firefox × macOS/Windows. **The one criterion a
       machine cannot close here, now for one reason only.** The content half closed on 2026-10-29 —

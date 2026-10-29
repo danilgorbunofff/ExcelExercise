@@ -16,15 +16,15 @@ so either order works; the chosen order is the more useful one because Phase 2's
 recording is what Phase 3's dashboard reads.
 
 No phase needs to be reordered or consolidated, and no step leaves the system broken while the next
-one starts. What is red is **scope**, not sequencing: Phase 0 has three criteria that no machine in
-this checkout can close (no git remote, no preview deploy), Phase 1 is 16 of 88 lessons, and Phase 2
-builds five screen types that only two of its lessons ever render.
+one starts. What is red is **scope**, not sequencing: Phase 0 has one criterion no machine in this
+checkout can close (a preview deploy — CI now runs on a real remote), Phase 1 is 16 of 88 lessons,
+and Phase 2 builds five screen types that only two of its lessons ever render.
 
 ## Per-phase summary
 
 | Phase | Doc | Assessment | Blocking gap that a machine cannot close |
 |---|---|---|---|
-| 0 — Port shell | [show](./phase-00-port-shell-verification-plan.md) | **Solid**, one accounting hole | CI has never run (no remote); no preview deploy; "bundle size documented" was measured as static bytes only |
+| 0 — Port shell | [show](./phase-00-port-shell-verification-plan.md) | **Solid**, one accounting hole | No preview deploy; "bundle size documented" was measured as static bytes only |
 | 1 — Content factory | [show](./phase-01-content-factory-verification-plan.md) | **Solid tooling / High Risk on scope** | 16 of 88 lessons; 9 of 16 groups have drills |
 | 2 — Exercise engine | [show](./phase-02-exercise-engine-verification-plan.md) | **Solid engine / High Risk on coverage** | 3 of 5 screen types appear in no shipped lesson; manual shortcut matrix has no production page |
 | 3 — Dashboard | [show](./phase-03-dashboard-verification-plan.md) | **Solid**, two recorded deviations | No server-side progress and no `/api/feedback` — a product decision, recorded |
@@ -80,16 +80,15 @@ deployable is driven in the same browser instead of being crawled as HTML only.
    `gradeScreen`'s dispatch and `tests/keys.test.js` re-implements `keysLive`. Both can pass while
    the player diverges. The concrete remedy (not applied here; see the phase-2 doc) is to export
    the dispatcher so the test imports one definition instead of copying it.
-6. **The CI workflow has never run.** `git remote -v` is empty, so all three jobs in
-   `.github/workflows/ci.yml` are unexecuted. It pins **Node 24**; this machine is **25.9.0**. Node
-   24 was exercised by hand instead — `npx -y node@24 --test "tests/**/*.test.js"` → `tests 643`,
-   `pass 643`, `fail 0`, and `build.mjs` + `next-assets.mjs` + `next build` under 24 → exit `0`,
-   `built 27 pages (732.3 kB of HTML+CSS)`, 0 Turbopack warnings. What is still unexecuted is the
-   workflow file itself: runner images, caches, artifact upload, job ordering.
+6. **The CI workflow had never run.** `git remote -v` was empty, so all three jobs in
+   `.github/workflows/ci.yml` were unexecuted while it pinned **Node 24** against a local **25.9.0**.
+   *Closed in this verification run:* `origin` exists and both pushes went green on the first attempt
+   on Node 24 / `ubuntu-latest` — runner image, `npm ci`, caches, artifact upload and job order are
+   now executed, and every pinned number reproduced. See the baseline table's CI row.
 7. **`/api/health` is prerendered, so its SHA is a build input, not a runtime read.** Built without
    `GIT_SHA` it emitted `{"status":"ok","sha":"unknown"}`. The CI job sets `GIT_SHA` and asserts the
    echo — that assertion is the only proof a deployed artifact corresponds to a commit, and it has
-   never passed or failed here.
+   now passed for real (both green runs).
    *Closed in this verification run:* the route now falls back to
    `git rev-parse --short HEAD` at build time and keeps `unknown` only for a non-git checkout, so the
    CI contract is untouched while a local build names its commit. Evidence in the phase-0 doc, row 8.
@@ -113,7 +112,8 @@ deployable is driven in the same browser instead of being crawled as HTML only.
 | Static lesson JS graph | 52,125 B gzip over 20 modules (53,917 B with `feedback.js`) | manual rollup |
 | Next lesson JS | 192,293 B gzip as a page total (176,017 B framework+app chunks) | manual rollup |
 | Gate wall time | ≈ 6 s | `time npm run check` |
-| Node (local / CI) | 25.9.0 / 24 — both measured green (see risk 6) | `node -v`, `ci.yml` |
+| Node (local / CI) | 25.9.0 local / 24 in CI — both measured green, CI by execution | `node -v`; workflow runs 40929762382, 40929766766 |
+| CI runs (GitHub Actions) | 2 of 2 green on first attempt; every number above reproduced on Node 24 / `ubuntu-latest` | `gh run list` |
 
 ## Defects recorded in these reviews, and their status
 
@@ -126,19 +126,21 @@ deployable is driven in the same browser instead of being crawled as HTML only.
 
 ## Still open, and why
 
+Closed since this review was first written, with evidence in the phase docs: **CI green on GitHub**
+(row 9, two pushes, both green first attempt), **gate output on Node 24** (now executed by CI rather
+than measured by hand — the e2e job ran Playwright under 24 too), and **`docs/plans/parity/reviews/`
+is tracked** (commit `4beeaa8`, pushed to `origin`).
+
 | Item | Phase | Why it cannot close here |
 |---|---|---|
-| CI green on GitHub (row 9) | 0 | `git remote -v` is empty; the workflow has never executed. Remote-blocked. |
-| Preview deploy + health SHA from it (row 10) | 0 | No preview deploy exists. Remote-blocked. |
+| Preview deploy + health SHA from it (row 10) | 0 | No deploy provider is connected, so there is no `$PREVIEW_URL`. Deploy-blocked, not remote-blocked any more. |
 | Manual shortcut matrix | 2 | Needs three operating systems with real keyboards, and no shipped lesson uses a chord. Hardware-blocked **and** content-blocked. |
 | Workbook behaviour inside Excel | 2 | Needs Excel; our evaluator is not Excel's. Evaluator-blocked, and content-blocked (no shipped workbook lesson). |
 | Manual dashboard checks (private window, reload, gate/reset) | 3 | Need a human; the automated equivalents cover the write path and the unlock but not incognito mode or the reset-preserves-unlock reading. |
 | 72 lessons, 7 groups without drills | 1 | Weeks of authoring, not verification. |
 | Human accuracy review, cohort two | 1 | 5 of 10; needs a person reading lessons against Excel. |
-| Intermittent Playwright failure, the hint/reveal test in `e2e/keyboard.spec.js` | 0 | Seen twice in ~7 full runs, once before any change here; never in 12 isolated repeats or a `--repeat-each=3` suite. **Cause still unknown — do not read this as fixed.** Hardened instead: `waitForClient()` waits for the client-only `#progress-fill[data-full]` before the first Tab, and `tabTo()` records the focus trail, fails fast if focus falls back to `body`, and names the trail otherwise. If it recurs, the message says whether focus was lost or the order changed. `retries: 1` is CI-only, so a first CI attempt can still mask it. |
+| Intermittent Playwright failure, the hint/reveal test in `e2e/keyboard.spec.js` | 0 | Seen twice in ~7 local full runs, once before any change here; never in 12 isolated repeats, a `--repeat-each=3` suite, or the first CI run (no `flaky` line, so no retry was consumed). **Cause still unknown — do not read this as fixed.** Hardened instead: `waitForClient()` waits for the client-only `#progress-fill[data-full]` before the first Tab, and `tabTo()` records the focus trail, fails fast if focus falls back to `body`, and names the trail otherwise. `retries: 1` is CI-only, so a future first CI attempt can still be masked. |
 | Browser coverage of the **static** route, beyond `sum-basics` | 0 | **Mostly closed:** `e2e-static/` runs the static deployable in Chromium against `legacy/dist` (module graph + grading, blocked-storage warning, persistence across reload). Still open: those three tests exercise one lesson, and no static test covers the index, dashboard or group pages — the Next project does. |
-| Gate output on Node 24 | all | **Closed by measurement, not by CI:** `npx -y node@24 --test "tests/**/*.test.js"` → `tests 643` / `pass 643` / `fail 0`; `build.mjs` + `next-assets.mjs` + `next build` on 24 → exit `0`, `built 27 pages (732.3 kB of HTML+CSS)`, 0 Turbopack warnings. Playwright was not re-run under 24 (the browser is a separate process from the Node that starts it). |
-| `docs/plans/parity/reviews/` is untracked | 0 | The authoritative plan set is not in git. Committing it needs an explicit ask; it is not a verification gap, but a checkout that ignores untracked files loses the source of truth. |
 
 ## Stop before content authoring
 

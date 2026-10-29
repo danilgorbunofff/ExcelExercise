@@ -8,12 +8,13 @@ layer, both deploy independently, and the grader verdicts are frozen in a golden
 **Solid, with one High-Risk accounting hole.**
 
 The port itself is proven: 27 pages prerender, `next:check` diffs every fragment against the
-static build, `legacy/` still builds standalone, and the golden snapshot is byte-stable. Six of
-the eight Phase-0 acceptance boxes are ticked, each with a test behind it; the other two (CI on
-GitHub, a preview deploy) cannot be ticked by any machine in this checkout.
+static build, `legacy/` still builds standalone, and the golden snapshot is byte-stable. Seven of
+the eight Phase-0 acceptance boxes are ticked, each with a test or a real CI run behind it; the
+eighth (a preview deploy) needs a deploy provider this checkout does not have.
 
 The High-Risk hole was *accounting*, not code: "bundle size for a lesson page documented" had only
-ever been satisfied by measuring the **static** route. The Next route is 3.4× larger. The criterion
+ever been satisfied by measuring the **static** route. The Next route is 3.9× larger raw (3.6×
+gzip). The criterion
 was met, but the number every future budget will be compared against was never written down with its
 route attached. *Closed in this verification run:* the phase doc now carries a `## Bundle baseline`
 table with both routes labelled.
@@ -46,13 +47,15 @@ Proof it works: build with `GIT_SHA=abc123` and assert the body echoes it.
 `git rev-parse --short HEAD` at build time, with `unknown` reserved for a non-git checkout. Evidence
 in gate row 8.
 
-**3. The workflow has never executed.** `git remote -v` is empty, so all three CI jobs (`check`,
-`e2e`, `static`) are unrun prose. It pins **Node 24**; this machine is **25.9.0**. The first push is
-the first execution. Node 24 itself was exercised by hand and is green: `npx -y node@24 --test
-"tests/**/*.test.js"` → `tests 643` / `pass 643` / `fail 0`, and `build.mjs` + `next-assets.mjs` +
-`next build` under 24 → exit `0`, `built 27 pages (732.3 kB of HTML+CSS)`, 0 Turbopack warnings. What
-remains unproven is the workflow file — runner image, caches, artifact upload, job order — not the
-runtime.
+**3. The workflow had never executed.** `git remote -v` was empty, so all three CI jobs (`check`,
+`e2e`, `static`) were unrun prose while it pinned **Node 24** against a local **25.9.0**.
+*Closed in this verification run:* the remote is `github.com/danilgorbunofff/ExcelExercise`, and both
+pushes went green on the first attempt under Node 24 / `ubuntu-latest` — every pinned number
+reproduced (`tests 643`, `suites 104`, `pass 643`, `fail 0`; `content: 16 of 88 …268 fixtures
+replayed`; `111 accepted and 157 rejected`; `built 27 pages (732.3 kB of HTML+CSS)`; `next routes:
+27`; `verified … 817 checks passed`; `48 passed (16.8s)`; `vendor: 25 files match manifest.json`).
+The workflow file itself — runner image, caches, artifact upload, job order — is now executed
+evidence, not prose. Evidence in gate row 9.
 
 **4. Browser coverage was one deployable wide.** 45 Playwright tests hit `next start` on 4174;
 `legacy/dist` was crawled, never opened in a browser, and `next:check` compares markup fragments, not
@@ -124,12 +127,11 @@ Run in order from the repo root. Each row: command → expected → what a failu
 | 6 | `npx playwright test` | `48 passed` (45 Next + 3 static) | Either deployable broke in a real browser: `chromium` drives `next start` on 4174, `static` drives `legacy/dist` over HTTP on 4175. Chromium only — a WebKit/Firefox-specific break is not covered. |
 | 7 | `npm run check` | steps 2–6 green, wall ≈ 6 s | Steps interfere; usually a stale `.next/` or a temp-root test leaking. |
 | 8 | `GIT_SHA=abc123 npm run next:build && cat .next/server/app/api/health.body` | `{"status":"ok","sha":"abc123"}` | The health endpoint is prerendered without the SHA — the deploy cannot be identified. |
-| 9 | `git remote -v` then push a branch | non-empty remote, workflow runs green | Cannot be done here. Record as open; do not tick. |
-| 10 | `curl -s $PREVIEW_URL/api/health` | `sha` equals the deployed commit | Cannot be done here — no preview deploy. |
+| 9 | `git remote -v` then push a branch | non-empty remote, workflow runs green | Closed on `origin`: a CI failure is a gate failure, not a flaky local run. The workflow runs every command in this table itself, so it never proves something the developer could not run. |
+| 10 | `curl -s $PREVIEW_URL/api/health` | `sha` equals the deployed commit | Still unticked — no deploy provider is connected, so `$PREVIEW_URL` is undefined. |
 
-**Cannot be closed by a machine in this checkout, and must stay unticked:** CI green on GitHub,
-preview deploy serving 16 lessons, and a health SHA read from a real deployment. Items 9 and 10
-document the command that would close them.
+**Still not closable, and must stay unticked:** a preview deploy serving 16 lessons and a health SHA
+read from a real deployment (item 10). Item 9 is closed — see the closure table below.
 
 **Closeable now, and worth closing:** item 8 (the deterministic half of the SHA criterion) and the
 bundle baseline — record the **page totals** for both routes, labelled by route, in the phase doc:
@@ -152,8 +154,8 @@ Run from `/Users/danil/Desktop/excelsupreme` on `30629e8`, Node `v25.9.0` (macOS
 | 6 | **closed** | `npx playwright test` → `48 passed (7.7s)`, two projects: `chromium` 45 on 4174, `static` 3 on 4175 (`e2e-static/static-drill.spec.js`) |
 | 7 | **closed** | `npm run check` → exit `0`; all of rows 2–5 green in one pass |
 | 8 | **closed** | `GIT_SHA=abc123 npm run next:build` → body `{"status":"ok","sha":"abc123"}`. Unset env → body `{"status":"ok","sha":"30629e8"}` (matches `git rev-parse --short HEAD`). Non-git checkout → `"unknown"` (covered by `tests/metadata-routes.test.js`). |
-| 9 | **still open** | No git remote in this checkout (`git remote -v` is empty); the CI workflow has never executed. Hardware/remote-blocked. |
-| 10 | **still open** | No preview deploy exists; `$PREVIEW_URL` is undefined. Remote-blocked. |
+| 9 | **closed** | `origin` is `github.com/danilgorbunofff/ExcelExercise`; pushes to `main` ([run 40929762382](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40929762382)) and to `phase-0-port-shell` ([run 40929766766](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40929766766)) both went green on the first attempt, on Node 24 / `ubuntu-latest`. CI reproduced every pinned number exactly: `tests 643` / `suites 104` / `pass 643` / `fail 0`; `content: 16 of 88 catalogued lessons, 16 groups, 18 screens, 268 fixtures replayed`; `111 accepted and 157 rejected`; `built 27 pages (732.3 kB of HTML+CSS)`; `next routes: 27 prerendered pages match the shared templates`; `verified … 817 checks passed`; `48 passed (16.8s)`; `vendor: 25 files match manifest.json`; and the prerendered `/api/health` equalled the pushed `GIT_SHA`. |
+| 10 | **still open** | No deploy provider is connected, so there is no preview URL to curl. What a deploy would add — the same build on a different host — is partly covered by CI row 9, which builds and serves the artifact and asserts `sha === GIT_SHA`. |
 
 The bundle baseline rows above are labelled by route in the phase doc (`## Bundle baseline`), so
 failure mode 1 is closed as an accounting problem: the static route is documented as the deployed

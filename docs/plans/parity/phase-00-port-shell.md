@@ -165,9 +165,13 @@ identical, but the foundation for accounts, payments and 600 screens is in place
    `/learn/excel/:slug`).
 7. **Tests.** Point `npm test` at `packages/**` and `tests/**`. Add `tests/golden/` capturing today's
    grader verdicts for all 16 lessons (accepted + rejected fixtures) as a byte-stable snapshot.
-8. **Playwright.** Three specs: index renders 16 lessons; a drill grades a correct answer and a wrong
-   one; the paywall fake door fires its event.
-9. **CI.** GitHub Actions: `lint → test → content:check (stub) → build → playwright → deploy preview`.
+8. **Playwright.** Nine spec files, 48 tests today: the index renders 16 lessons, a drill grades a
+   correct and a wrong answer, the paywall fake door fires its event, plus a11y, keyboard order,
+   routes, the gate, the dashboard, feedback and the static deployable (`e2e-static/`).
+9. **CI.** GitHub Actions, three jobs: `check` (`npm test` → `content:check` → golden unchanged →
+   `next:build` → `verify.mjs` → `next:check` → health echoes `GIT_SHA`), `e2e` (build, then
+   `npx playwright test`), `static` (`npm run verify` + `vendor:check`). No deploy job is wired —
+   there is no deploy provider.
 10. **Observability.** Error boundary at `app/error.jsx`; basic `/api/health` returning build SHA.
 
 ## Acceptance criteria
@@ -175,13 +179,13 @@ identical, but the foundation for accounts, payments and 600 screens is in place
 - [x] `npm test` reports **≥280 passing, 0 failing**, including the golden snapshot.
 - [x] `npm run build` produces all 27 pages (16 lessons, the index, the dashboard and 9 group pages); `next start` serves every legacy URL.
 - [x] Golden snapshot diff vs. `packages/grader` is **empty** for every lesson fixture.
-- [ ] Playwright suite green locally and in CI. Local: 48/48 (`npm run e2e` — 45 `chromium` on the Next app, 3 `static` on `legacy/dist`); CI is written but has never run — the repo has no remote yet.
-- [ ] Preview deploy serves the 16 lessons; `/api/health` returns the SHA.
+- [x] Playwright suite green locally and in CI. Local: 48/48 (`npm run e2e` — 45 `chromium` on the Next app, 3 `static` on `legacy/dist`); CI: green on `origin/main` and on `phase-0-port-shell`, `48 passed (16.8s)`.
+- [ ] Preview deploy serves the 16 lessons; `/api/health` returns the SHA. (No deploy provider is connected; CI builds the artifact and asserts `/api/health` echoes `GIT_SHA`, which is the same claim minus the host.)
 - [x] `legacy/` still builds and deploys independently (it needs `packages/grader` beside it; its `dist/` output is standalone).
 - [x] `/sitemap.xml` and `/robots.txt` list every route the app serves and no address that only
   redirects; `tests/metadata-routes.test.js` and the URL-contract spec hold them to it.
 - [x] Bundle size for a lesson page documented, labelled by route (baseline for phase 10 budgets) —
-  recorded in the section below; the repo has no remote, so no PR carries it.
+  recorded in the section below, which now travels with the repo on `origin`.
 
 ## Bundle baseline
 

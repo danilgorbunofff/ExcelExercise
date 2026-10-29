@@ -11,9 +11,9 @@ template.
 ## The loop
 
 ```bash
-npm run content:new -- --lesson 11 --group lookup   # scaffold the next free slot
-npm run content:preview -- --lesson 11              # the page as a reader gets it
-npm run content:fixtures -- --lesson 11             # every fixture against the grader
+npm run content:new -- --lesson 12 --group lookup   # scaffold the next free slot
+npm run content:preview -- --lesson 12              # the page as a reader gets it
+npm run content:fixtures -- --lesson 12             # every fixture against the grader
 npm run content:check                               # the gate CI runs
 npm test                                            # schema, corpus, build, client
 ```
@@ -24,9 +24,10 @@ writes is `schemaVersion: 2` and already passes the gate: the grid, the fixtures
 working SUM drill, and the prompt and `docs.explain` say "replace this scaffold" in place. A green gate
 on a placeholder is not a done lesson; it is proof that the plumbing is out of your way.
 
-`--lesson 11` is the **file number**. The number a learner sees is the lesson's position among authored
-lessons, which is why the scaffold can announce "takes catalog slot 37, published as lesson 8 of 11".
-Inserting a slot never renumbers a page; publishing one does.
+`--lesson 12` is the **file number**. The number a learner sees is the lesson's position among authored
+lessons, which is why the scaffold answers "takes catalog slot 38, published as lesson 9 of 12" — a
+slot in the middle of the book, from a file written last. Inserting a slot never renumbers a page;
+publishing one does.
 
 ## What a lesson is
 
@@ -227,8 +228,8 @@ explanation are ours.
 
 ```json
 {
-  "id": "11-vlookup-approximate-match",
-  "slug": "vlookup-approximate-match",
+  "id": "11-vlookup-approximate-match-needs-a-sorted-column",
+  "slug": "vlookup-approximate-match-needs-a-sorted-column",
   "level": 2,
   "title": "VLOOKUP: approximate match needs a sorted column",
   "schemaVersion": 2,
@@ -302,7 +303,7 @@ explanation are ours.
 What `content:fixtures --lesson 11` prints:
 
 ```
-11-vlookup-approximate-match — VLOOKUP: approximate match needs a sorted column
+11-vlookup-approximate-match-needs-a-sorted-column — VLOOKUP: approximate match needs a sorted column
   ✓ =VLOOKUP(A6,A2:B5,2,TRUE)        accepted
   ✓ =vlookup(a6,a2:b5,2,true)        accepted
   ✓ =VLOOKUP($A$6,$A$2:$B$5,2,TRUE)  accepted
@@ -310,12 +311,12 @@ What `content:fixtures --lesson 11` prints:
   ✓ =VLOOKUP(A6,A2:B5,2,TRUE)+0      accepted
   ✓ =VLOOKUP(A6,$A2:$B5,2,TRUE)      accepted
   · =VLOOKUP(A6,A2:B5,2,TRUE         rejected (syntax)
-  · =INDEX(B2:B5,MATCH(A6,A2:A5,1))  rejected (func-vlookup)
   · =VLOOKUP(A6,A2:B5,2)             rejected (match-type)
+  · =VLOOKUP(A6,A2:B5,2,FALSE)       rejected (match-type)
+  · =INDEX(B2:B5,MATCH(A6,A2:A5,1))  rejected (func-vlookup)
   · =VLOOKUP(4200,A2:B5,2,TRUE)      rejected (require-ref)
   · =VLOOKUP(A6,A2:B5,1,TRUE)        rejected (value)
   · =VLOOKUP(A6,A2:B5,"two",TRUE)    rejected (error)
-  · =VLOOKUP(A6,A2:B5,2,FALSE)       rejected (match-type)
   13 fixtures — the floor is 6 accepted + 6 rejected
 ```
 
@@ -327,7 +328,7 @@ assuming it.
 And `content:preview --lesson 11`:
 
 ```
-8. VLOOKUP: approximate match needs a sorted column — /learn/excel/vlookup-approximate-match
+8. VLOOKUP: approximate match needs a sorted column — /learn/excel/vlookup-approximate-match-needs-a-sorted-column
    Intermediate · Looking values up · trial
 
    In B6, look up the commission rate for the revenue in A6 across the bands in A2:B5, using

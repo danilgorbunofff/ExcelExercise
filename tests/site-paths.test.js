@@ -2,12 +2,14 @@
  * `lib/site.js` is the seam where the legacy content model becomes the Next app's: the same lessons,
  * but served — and declared canonical — at `/learn/excel/<slug>` instead of the legacy `/excel/<slug>`.
  * One leaked legacy path turns a `<link rel=canonical>` or a rail link into a redirect, and the browser
- * suite would only catch it on the ten pages it happens to visit, so the model is pinned here.
+ * suite would only catch it on the pages it happens to visit, so the model is pinned here.
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { loadSite } from "../lib/site.js";
+
+import { LESSONS } from "./lessons.js";
 
 const { index } = loadSite();
 
@@ -17,7 +19,7 @@ const LESSON_BASE = "/learn/excel";
 
 describe("the paths the Next app renders", () => {
   it("points every lesson at its own /learn/excel route", () => {
-    assert.equal(index.length, 10);
+    assert.equal(index.length, LESSONS.length, "every lesson file gets exactly one route, and no route is unused");
     for (const entry of index) assert.equal(entry.path, `/learn/excel/${entry.slug}`);
   });
 

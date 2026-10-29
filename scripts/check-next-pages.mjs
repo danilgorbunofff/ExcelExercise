@@ -7,7 +7,7 @@
  *
  *   node scripts/check-next-pages.mjs      (npm run next:check)
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { prepareExercisePage } from "../legacy/src/site/exercise-page.mjs";
@@ -69,7 +69,12 @@ for (const entry of index) {
   }
 }
 
-if (index.length !== 10) problems.push(`content has ${index.length} lessons, expected 10`);
+// The route list must cover the lesson files on disk: a lesson the loader never saw is a page the
+// deploy silently does not have, and nothing above would notice because nothing above knows the count.
+const files = readdirSync(join(ROOT, "legacy/content/exercises")).filter((name) => name.endsWith(".json"));
+if (index.length !== files.length) {
+  problems.push(`content has ${index.length} lessons, expected ${files.length} files in legacy/content/exercises`);
+}
 
 // Every URL the static build publishes must still resolve. The lesson route is a real route; the old
 // `/excel/<slug>` and `/index.html` shapes are permanent redirects that phase 6 extends.

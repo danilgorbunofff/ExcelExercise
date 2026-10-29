@@ -260,8 +260,7 @@
       "group": "lookup"
     },
     {
-      "title": "VLOOKUP: approximate match needs a sorted column",
-      "level": 2,
+      "id": "11-vlookup-approximate-match-needs-a-sorted-column",
       "group": "lookup"
     },
     {

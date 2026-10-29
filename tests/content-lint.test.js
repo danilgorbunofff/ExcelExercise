@@ -36,6 +36,9 @@ function sandbox(mutate, { persist = false } = {}) {
 }
 
 const lessonPath = (content, id) => join(content, "exercises", `${id}.json`);
+
+/** File numbers are dense, so the next lesson a scaffold can write is one past the count it finds. */
+const nextNumber = (content) => readJson(join(content, "track.json")).lessons.filter((entry) => entry.id).length + 1;
 const sidecarPath = (fixtures, id) => join(fixtures, `${id}.json`);
 
 /** Rewrites one lesson, handing the test its first screen — where v2 keeps the prompt and fixtures. */
@@ -93,7 +96,7 @@ describe("content-lint: the real corpus", () => {
 
   it("reports the catalog the lessons sit in", () => {
     assert.equal(report.stats.groups, 16);
-    assert.equal(report.stats.planned, 78);
+    assert.equal(report.stats.planned, 88 - report.stats.lessons, "every slot is either authored or planned");
   });
 });
 
@@ -327,7 +330,13 @@ describe("content-lint: CLI", () => {
   it("exits 0 on the real corpus and prints the fixture tally", () => {
     const run = spawnSync(process.execPath, [CLI, "check"], { encoding: "utf8" });
     assert.equal(run.status, 0, run.stdout + run.stderr);
-    assert.match(run.stdout, /content: 10 of 88 catalogued lessons, 16 groups, 10 screens, 154 fixtures replayed/);
+    const { stats } = lintContent(CONTENT);
+    assert.match(
+      run.stdout,
+      new RegExp(
+        `content: ${stats.lessons} of 88 catalogued lessons, 16 groups, ${stats.screens} screens, ${stats.accepted + stats.rejected} fixtures replayed`,
+      ),
+    );
     assert.match(run.stdout, /✓ content passes/);
   });
 
@@ -374,36 +383,44 @@ describe("content-lint: the authoring CLI", () => {
 
   it("scaffolds a lesson that passes the gate with no edits", () => {
     withSandbox(({ content, fixtures }) => {
-      const created = run(["new", "--lesson", "11", "--group", "lookup"], { content, fixtures });
+      const before = readJson(join(content, "track.json"));
+      const slot = before.lessons.findIndex((entry) => !entry.id && entry.group === "lookup");
+      const number = nextNumber(content);
+      const created = run(["new", "--lesson", String(number), "--group", "lookup"], { content, fixtures });
       assert.equal(created.status, 0, created.stdout + created.stderr);
-      assert.match(created.stdout, /✓ created content\/exercises\/11-vlookup-approximate-match-needs-a-sorted-column\.json/);
-      assert.match(created.stdout, /takes catalog slot 37, published as lesson 8 of 11/);
-
-      const id = "11-vlookup-approximate-match-needs-a-sorted-column";
-      const lesson = readJson(lessonPath(content, id));
-      assert.equal(lesson.schemaVersion, 2, "new lessons ship in the v2 shape");
-      assert.equal(lesson.title, "VLOOKUP: approximate match needs a sorted column", "the slot's title, not a copy");
-      assert.equal(lesson.level, 2, "the slot's level");
-      assert.equal(lesson.screens[0].fixtures.accept.length + lesson.screens[0].fixtures.reject.length, 13);
+      assert.match(created.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-[a-z0-9-]+\\.json`));
+      assert.match(
+        created.stdout,
+        new RegExp(`takes catalog slot ${slot + 1}, published as lesson ${before.lessons.slice(0, slot).filter((entry) => entry.id).length + 1} of ${number}`),
+      );
 
       const track = readJson(join(content, "track.json"));
-      assert.deepEqual(track.lessons[36], { id, group: "lookup" }, "the slot became the authored lesson");
+      const id = track.lessons[slot].id;
+      assert.match(id, new RegExp(`^${number}-`), "the file is named after the number it was given");
+      assert.deepEqual(track.lessons[slot], { id, group: "lookup" }, "the slot became the authored lesson");
+
+      const lesson = readJson(lessonPath(content, id));
+      assert.equal(lesson.schemaVersion, 2, "new lessons ship in the v2 shape");
+      assert.equal(lesson.title, before.lessons[slot].title, "the slot's title, not a copy");
+      assert.equal(lesson.level, before.lessons[slot].level, "the slot's level");
+      assert.equal(lesson.screens[0].fixtures.accept.length + lesson.screens[0].fixtures.reject.length, 13);
 
       const check = run(["check"], { content, fixtures });
       assert.equal(check.status, 0, check.stdout);
-      assert.match(check.stdout, /content: 11 of 88 catalogued lessons, 16 groups, 11 screens, 167 fixtures replayed/);
+      assert.match(check.stdout, new RegExp(`content: ${number} of 88 catalogued lessons, 16 groups, ${number} screens, `));
     });
   });
 
   it("takes the next free number when --lesson is omitted, and refuses one that skips it", () => {
     withSandbox(({ content, fixtures }) => {
-      const skipped = run(["new", "--lesson", "14"], { content, fixtures });
+      const number = nextNumber(content);
+      const skipped = run(["new", "--lesson", String(number + 3)], { content, fixtures });
       assert.equal(skipped.status, 2);
-      assert.match(skipped.stderr, /lesson 14 cannot be created — 11 is the next free number/);
+      assert.match(skipped.stderr, new RegExp(`lesson ${number + 3} cannot be created — ${number} is the next free number`));
 
       const bare = run(["new"], { content, fixtures });
       assert.equal(bare.status, 0, bare.stdout + bare.stderr);
-      assert.match(bare.stdout, /✓ created content\/exercises\/11-what-a-formula-actually-does\.json/);
+      assert.match(bare.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-what-a-formula-actually-does\\.json`));
     });
   });
 
@@ -433,10 +450,13 @@ describe("content-lint: the authoring CLI", () => {
 
   it("previews a lesson as its page will read it", () => {
     withSandbox(({ content, fixtures }) => {
-      run(["new", "--lesson", "11", "--group", "lookup"], { content, fixtures });
-      const preview = run(["preview", "--lesson", "11"], { content, fixtures });
+      const number = nextNumber(content);
+      const created = run(["new", "--lesson", String(number), "--group", "lookup"], { content, fixtures });
+      assert.equal(created.status, 0, created.stdout + created.stderr);
+      const published = Number(/published as lesson (\d+) of/.exec(created.stdout)[1]);
+      const preview = run(["preview", "--lesson", String(number)], { content, fixtures });
       assert.equal(preview.status, 0, preview.stdout + preview.stderr);
-      assert.match(preview.stdout, /^8\. VLOOKUP: approximate match needs a sorted column — \/learn\/excel\//m);
+      assert.match(preview.stdout, new RegExp(`^${published}\\. .* — \\/learn\\/excel\\/`, "m"));
       assert.match(preview.stdout, /\[answer\]/, "the target cell is marked in the grid");
       assert.match(preview.stdout, /answer B4 · grid A1:B4/);
       assert.match(preview.stdout, /✓ =SUM\(B2:B3\)\s+accepted/);

@@ -110,11 +110,15 @@ describe("verify", () => {
   it("catches a sitemap that lost a lesson", () => {
     const copy = copyOf(dist);
     try {
+      const published = (readFileSync(join(copy, "sitemap.xml"), "utf8").match(/<loc>/g) ?? []).length;
       mutate(copy, "sitemap.xml", (xml) =>
         xml.replace(/\s*<url>\s*<loc>[^<]*sum-basics<\/loc>[\s\S]*?<\/url>/, ""),
       );
       const failures = verify({ dist: copy, env: ENV }).failures;
-      assert.ok(failures.some((failure) => /sitemap\.xml lists 10 URLs, expected 11/.test(failure)), failures.join("\n"));
+      assert.ok(
+        failures.some((failure) => new RegExp(`sitemap\\.xml lists ${published - 1} URLs, expected ${published}`).test(failure)),
+        failures.join("\n"),
+      );
       assert.ok(failures.some((failure) => /does not list \/excel\/sum-basics/.test(failure)), failures.join("\n"));
     } finally {
       rmSync(copy, { recursive: true, force: true });

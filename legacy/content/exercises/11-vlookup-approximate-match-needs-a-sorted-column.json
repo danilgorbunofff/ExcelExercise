@@ -1,0 +1,146 @@
+{
+  "id": "11-vlookup-approximate-match-needs-a-sorted-column",
+  "slug": "vlookup-approximate-match-needs-a-sorted-column",
+  "level": 2,
+  "title": "VLOOKUP: approximate match needs a sorted column",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B6, look up the commission rate for the revenue in A6 across the bands in A2:B5, using approximate match.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Revenue",
+            "Rate"
+          ],
+          [
+            0,
+            0.02
+          ],
+          [
+            1000,
+            0.05
+          ],
+          [
+            5000,
+            0.08
+          ],
+          [
+            10000,
+            0.1
+          ],
+          [
+            4200,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": {
+        "value": 0.05,
+        "tolerance": 0.0001
+      },
+      "require": [
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A6",
+      "rules": [
+        {
+          "id": "match-type",
+          "type": "matchType",
+          "func": "VLOOKUP",
+          "arg": 4,
+          "values": [
+            true
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "Start with = and close every bracket: =VLOOKUP(A6,A2:B5,2,TRUE).",
+        "func-vlookup": "Use VLOOKUP itself — this drill is about how its match mode behaves, not about finding another way in.",
+        "match-type": "Write TRUE as the fourth argument. That is the approximate match this band table needs, and 1 means the same thing to Excel.",
+        "require-ref": "Point the first argument at A6 so the rate follows the revenue. Typing 4200 in returns a number that never updates.",
+        "value": "The rate for 4200 is the band that starts at 1000, so the third argument has to be 2: column 1 would hand back 1000.",
+        "error": "Check the range and the column index: A2:B5 holds two columns, so the third argument can only be 1 or 2."
+      },
+      "fixtures": {
+        "accept": [
+          "=VLOOKUP(A6,A2:B5,2,TRUE)",
+          "=vlookup(a6,a2:b5,2,true)",
+          "=VLOOKUP($A$6,$A$2:$B$5,2,TRUE)",
+          "=VLOOKUP(A6,A2:B5,2,1)",
+          "=VLOOKUP(A6,A2:B5,2,TRUE)+0",
+          "=VLOOKUP(A6,$A2:$B5,2,TRUE)"
+        ],
+        "reject": [
+          {
+            "formula": "=VLOOKUP(A6,A2:B5,2,TRUE",
+            "rule": "syntax",
+            "why": "unclosed parenthesis, so nothing runs"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A2:B5,2)",
+            "rule": "match-type",
+            "why": "no fourth argument means approximate match, but the drill wants it written"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A2:B5,2,FALSE)",
+            "rule": "match-type",
+            "why": "exact match returns #N/A because no band starts at 4200"
+          },
+          {
+            "formula": "=INDEX(B2:B5,MATCH(A6,A2:A5,1))",
+            "rule": "func-vlookup",
+            "why": "right answer written with a different function"
+          },
+          {
+            "formula": "=VLOOKUP(4200,A2:B5,2,TRUE)",
+            "rule": "require-ref",
+            "why": "the revenue is typed in, so the answer never follows A6"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A2:B5,1,TRUE)",
+            "rule": "value",
+            "why": "column 1 returns the band itself, 1000"
+          },
+          {
+            "formula": "=VLOOKUP(A6,A2:B5,\"two\",TRUE)",
+            "rule": "error",
+            "why": "a text column index stops the formula with #VALUE!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
+    "explain": "VLOOKUP walks down the first column of A2:B5 and stops at the last revenue that does not overshoot the lookup value, which is why the bands are sorted ascending: 4200 sits above the 1000 band and below the 5000 one, so the answer is the rate on the 1000 row, 0.05. The fourth argument chooses that behaviour. TRUE asks for the approximate match a band table needs; FALSE demands an exact match and returns #N/A, because no band starts at 4200; and leaving the argument out is TRUE again, which is why the drill also accepts 1, Excel's other spelling of TRUE. The third argument is 2 because the rate is the second column of the table — a 1 would hand back the band, 1000, and look right at a glance.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The lookup value is below the first band, so VLOOKUP walks off the top of the table without a row to return."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The column index is text or the table is not a block of cells, so VLOOKUP has no column to read."
+      },
+      {
+        "code": "#REF!",
+        "text": "The column index points past the right edge of the table, so the answer sits outside the range you selected."
+      }
+    ],
+    "atWork": "Commission tiers, postage bands and tax brackets are all sorted tables that are meant to be read approximately.",
+    "outcome": "Read a band table with VLOOKUP and say when approximate match is the right mode.",
+    "teaches": "VLOOKUP approximate match",
+    "dataset": "Commission bands by revenue",
+    "reference": "=VLOOKUP(A6,A2:B5,2,TRUE)"
+  }
+}

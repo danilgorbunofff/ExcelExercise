@@ -4,6 +4,10 @@
  */
 import { expect, test } from "@playwright/test";
 
+import { loadSite } from "../lib/site.js";
+
+const LESSON_COUNT = loadSite().index.length;
+
 test("the legacy lesson URLs redirect to the ported route", async ({ request }) => {
   const response = await request.get("/excel/sum-basics", { maxRedirects: 0 });
   expect(response.status()).toBe(308);
@@ -55,7 +59,7 @@ test("the sitemap and robots the app serves describe the routes it actually has"
   expect(sitemap.status()).toBe(200);
   expect(sitemap.headers()["content-type"]).toContain("xml");
   const locs = [...(await sitemap.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-  expect(locs).toHaveLength(11);
+  expect(locs).toHaveLength(LESSON_COUNT + 1);
   for (const loc of locs) {
     const { pathname } = new URL(loc);
     // A sitemap full of redirects is worse than none: `/excel/*` only ever 308s.

@@ -21,7 +21,10 @@ const ENV = { SITE_URL: "https://drills.example", SITE_BUILT_AT: "2026-10-28" };
 const BASE = ENV.SITE_URL;
 
 const track = readJson(join(ROOT, "legacy/content/track.json"));
-const lessons = LESSONS.map(({ exercise }) => exercise);
+// Catalog order is the published order: a lesson written into an earlier slot is numbered before the
+// ones written after it, so the file name is not where a page sits in the book.
+const byId = new Map(LESSONS.map(({ exercise }) => [exercise.id, exercise]));
+const lessons = track.lessons.filter((entry) => entry.id).map(({ id }) => byId.get(id));
 
 const htmlFiles = (dir) => {
   const out = [];
@@ -48,10 +51,10 @@ describe("build", () => {
 
   it("writes one page per lesson plus the index", () => {
     const pages = htmlFiles(out).map((file) => file.slice(out.length + 1));
-    assert.equal(pages.length, 11, `expected 11 pages, got ${pages.length}`);
+    assert.equal(pages.length, lessons.length + 1, `expected ${lessons.length + 1} pages, got ${pages.length}`);
     assert.ok(pages.includes("index.html"));
     for (const exercise of lessons) assert.ok(pages.includes(`excel/${exercise.slug}.html`), `${exercise.slug} page is missing`);
-    assert.equal(summary.pages, 11);
+    assert.equal(summary.pages, lessons.length + 1);
   });
 
   it("copies the assets the pages ask for", () => {
@@ -270,11 +273,11 @@ describe("build", () => {
   it("writes a sitemap of exactly the published URLs", () => {
     const xml = readFileSync(join(out, "sitemap.xml"), "utf8");
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-    assert.equal(locs.length, 11);
+    assert.equal(locs.length, lessons.length + 1);
     for (const loc of locs) assert.ok(loc.startsWith(`${BASE}/`), `${loc} is not absolute against the configured base`);
     assert.ok(locs.includes(`${BASE}/`));
     for (const exercise of lessons) assert.ok(locs.includes(`${BASE}/excel/${exercise.slug}`));
-    assert.equal((xml.match(/<lastmod>2026-10-28<\/lastmod>/g) ?? []).length, 11);
+    assert.equal((xml.match(/<lastmod>2026-10-28<\/lastmod>/g) ?? []).length, lessons.length + 1);
     assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   });
 

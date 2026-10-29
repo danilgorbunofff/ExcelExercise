@@ -129,7 +129,7 @@ These are automated in [`tests/content.test.js`](../../tests/content.test.js) so
 ### Arithmetic audit trail
 
 Every expected value below was computed by hand before the JSON was written, then the evaluator was
-only used to confirm. The literals live in `AUDIT` in `tests/content.test.js`.
+only used to confirm. The literals live in `AUDIT` in `tests/audit.js`.
 
 | # | Formula | Work | Value |
 |---|---|---|---|
@@ -143,6 +143,7 @@ only used to confirm. The literals live in `AUDIT` in `tests/content.test.js`.
 | 8 | `=INDEX(C2:C6,MATCH(D3,A2:A6,0))` | E-103 is position 3, C2:C6[3] | `88000` |
 | 9 | `=LEFT(B2,FIND("-",B2)-1)` | `-` at 4, so 3 characters | `"ORD"` |
 | 10 | `=IFERROR(ROUND((rev−cost)/rev*100,1),"")` | (2500 − 1380) / 2500 × 100 | `44.8` |
+| 11 | `=VLOOKUP(A6,A2:B5,2,TRUE)` | 4200 ≥ 1000 and < 5000, so the second column of the 1000 row | `0.05` |
 
 ## Acceptance criteria
 

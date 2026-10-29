@@ -1,5 +1,5 @@
 /**
- * The hand-computed expectations for the ten lessons, kept in one place so both
+ * The hand-computed expectations for the shipped lessons, kept in one place so both
  * the content suite and the fixture suite can hold the JSON to the same literal.
  * The arithmetic for every row is recorded in docs/phases/02-exercise-content.md;
  * these literals are typed from that audit trail, never copied from the evaluator.
@@ -69,5 +69,10 @@ export const AUDIT = {
       '=IFERROR(ROUND((SUMIF(A2:A5,"North",B2:B5)-SUMIF(A2:A5,"North",C2:C5))/SUMIF(A2:A5,"North",B2:B5)*100,2),"")',
       '=IFERROR(SUMIF(A2:A5,"North",B2:B5)*100,"")',
     ],
+  },
+  "11-vlookup-approximate-match-needs-a-sorted-column": {
+    expected: 0.05, // 4200 sits in the band that starts at 1000, so the rate is the second column
+    reference: "=VLOOKUP(A6,A2:B5,2,TRUE)",
+    wrong: ["=VLOOKUP(A6,A2:B5,2,FALSE)", "=VLOOKUP(A6,A2:B5,1,TRUE)", "=VLOOKUP(4200,A2:B5,2,TRUE)"],
   },
 };

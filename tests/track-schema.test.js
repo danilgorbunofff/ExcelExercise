@@ -6,6 +6,8 @@ import { describe, it } from "node:test";
 
 import { normalizeTrack } from "../packages/content/index.js";
 
+import { lessonFiles } from "./lessons.js";
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TRACK = JSON.parse(readFileSync(join(ROOT, "legacy/content/track.json"), "utf8"));
 
@@ -21,7 +23,11 @@ describe("track schema", () => {
     const parsed = normalizeTrack(TRACK, "track.json");
     assert.equal(parsed.groups.length, 16);
     assert.equal(parsed.lessons.length, 88);
-    assert.equal(parsed.lessons.filter((lesson) => !lesson.planned).length, 10);
+    assert.equal(
+      parsed.lessons.filter((lesson) => !lesson.planned).length,
+      lessonFiles.length,
+      "the catalog marks a different number of lessons authored than there are files on disk",
+    );
     assert.equal(parsed.freeLessonCount, 5);
   });
 

@@ -276,6 +276,31 @@
         {"input":"=IFERROR(ROUND((SUMIF(A2:A5,\"South\",B2:B5)-SUMIF(A2:A5,\"South\",C2:C5))/SUMIF(A2:A5,\"South\",B2:B5)*100,1),\"\")","ok":false,"rule":"value","code":null,"position":null,"value":25,"expected":44.8,"message":"Your formula returns 25, but this lesson expects 44.8.","hint":"Work in stages: North revenue, minus North cost, over North revenue, times 100. That is (2500 − 1380) / 2500 × 100 = 44.8."},
         {"input":"=IFERROR(SUMIF(A2:A5,\"North\",B2:B5)*100,\"\")","ok":false,"rule":"func-round","code":null,"position":null,"value":null,"expected":44.8,"message":"The capstone reports margin to one decimal: use ROUND.","hint":"The margin needs ROUND to 1 decimal; without it the cell shows a long string of digits."}
       ]
+    },
+    "11-vlookup-approximate-match-needs-a-sorted-column": {
+      "accepted": [
+        {"input":"=VLOOKUP($A$6,$A$2:$B$5,2,TRUE)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""},
+        {"input":"=VLOOKUP(A6,$A2:$B5,2,TRUE)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""},
+        {"input":"=VLOOKUP(A6,A2:B5,2,1)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""},
+        {"input":"=VLOOKUP(A6,A2:B5,2,TRUE)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""},
+        {"input":"=VLOOKUP(A6,A2:B5,2,TRUE)+0","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""},
+        {"input":"=vlookup(a6,a2:b5,2,true)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=INDEX(B2:B5,MATCH(A6,A2:A5,1))","ok":false,"rule":"func-vlookup","code":null,"position":null,"value":null,"expected":0.05,"message":"This lesson is about VLOOKUP. Your formula does not use VLOOKUP.","hint":"Use VLOOKUP itself — this drill is about how its match mode behaves, not about finding another way in."},
+        {"input":"=VLOOKUP(4200,A2:B5,2,TRUE)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":0.05,"message":"Your formula does not refer to A6. The lesson checks that you point at the data rather than typing the number.","hint":"Point the first argument at A6 so the rate follows the revenue. Typing 4200 in returns a number that never updates."},
+        {"input":"=VLOOKUP(A6,A2:B5,\"two\",TRUE)","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":0.05,"message":"#VALUE! That value is text (\"two\"), not a number.","hint":"Check the range and the column index: A2:B5 holds two columns, so the third argument can only be 1 or 2."},
+        {"input":"=VLOOKUP(A6,A2:B5,1,TRUE)","ok":false,"rule":"value","code":null,"position":null,"value":1000,"expected":0.05,"message":"Your formula returns 1000, but this lesson expects 0.05.","hint":"The rate for 4200 is the band that starts at 1000, so the third argument has to be 2: column 1 would hand back 1000."},
+        {"input":"=VLOOKUP(A6,A2:B5,2)","ok":false,"rule":"match-type","code":null,"position":null,"value":null,"expected":0.05,"message":"VLOOKUP has no 4th argument, so Excel uses its default instead.","hint":"Write TRUE as the fourth argument. That is the approximate match this band table needs, and 1 means the same thing to Excel."},
+        {"input":"=VLOOKUP(A6,A2:B5,2,FALSE)","ok":false,"rule":"match-type","code":null,"position":null,"value":null,"expected":0.05,"message":"VLOOKUP's 4th argument is FALSE; this lesson needs TRUE.","hint":"Write TRUE as the fourth argument. That is the approximate match this band table needs, and 1 means the same thing to Excel."},
+        {"input":"=VLOOKUP(A6,A2:B5,2,TRUE","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":0.05,"message":"VLOOKUP is missing its closing \")\".","hint":"Start with = and close every bracket: =VLOOKUP(A6,A2:B5,2,TRUE)."}
+      ],
+      "audit": [
+        {"input":"=VLOOKUP(4200,A2:B5,2,TRUE)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":0.05,"message":"Your formula does not refer to A6. The lesson checks that you point at the data rather than typing the number.","hint":"Point the first argument at A6 so the rate follows the revenue. Typing 4200 in returns a number that never updates."},
+        {"input":"=VLOOKUP(A6,A2:B5,1,TRUE)","ok":false,"rule":"value","code":null,"position":null,"value":1000,"expected":0.05,"message":"Your formula returns 1000, but this lesson expects 0.05.","hint":"The rate for 4200 is the band that starts at 1000, so the third argument has to be 2: column 1 would hand back 1000."},
+        {"input":"=VLOOKUP(A6,A2:B5,2,FALSE)","ok":false,"rule":"match-type","code":null,"position":null,"value":null,"expected":0.05,"message":"VLOOKUP's 4th argument is FALSE; this lesson needs TRUE.","hint":"Write TRUE as the fourth argument. That is the approximate match this band table needs, and 1 means the same thing to Excel."},
+        {"input":"=VLOOKUP(A6,A2:B5,2,TRUE)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""}
+      ]
     }
   }
 }

@@ -5,6 +5,10 @@
  */
 import { expect, test } from "@playwright/test";
 
+import { loadSite } from "../lib/site.js";
+
+const LESSONS = loadSite().index.length;
+
 const ANSWER_CELL = ".cell[data-cell='B5']";
 
 async function openDrill(page, slug) {
@@ -64,5 +68,5 @@ test("progress survives a reload on the same device", async ({ page }) => {
 
   await page.reload();
   await expect(page.locator(".rail-item[data-lesson='01-sum-basics']")).toHaveClass(/is-done/);
-  await expect(page.locator("#progress-count")).toHaveText("1 of 10");
+  await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
 });

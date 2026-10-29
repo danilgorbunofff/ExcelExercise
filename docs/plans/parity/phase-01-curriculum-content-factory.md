@@ -203,6 +203,27 @@ window in which two shapes are both live.
       refuses both at once; `check` needs no fixture directory at all now, which a test pins, because
       silently creating it would hide the day a lesson loses its fixtures.
 
+- [ ] **8. Cohorts.** Ten lessons per batch, each green in `content:check` and through a human
+      accuracy review before it merges. **Cohort two is 1 of 10 in:** lesson 11, VLOOKUP approximate
+      match (`11-vlookup-approximate-match-needs-a-sorted-column`), catalog slot 37, published as
+      lesson 8 of 11 — the first file whose number disagrees with where the page sits, because the
+      slot decides the reading order and the file name only records the order lessons were written.
+      The drill is a commission band table read with `TRUE`; `match-type` (the fourth argument) is the
+      rule the lesson exists for, so `=VLOOKUP(A6,A2:B5,2)` and `=VLOOKUP(A6,A2:B5,2,FALSE)` are both
+      rejected on it, while `=VLOOKUP(A6,A2:B5,2,1)` is accepted because Excel's `1` is `TRUE`.
+      Expected value `0.05` was computed by hand before the JSON (`docs/phases/02-exercise-content.md`
+      records the arithmetic) and pinned in `tests/audit.js`, and the `[answer]` cell, the six hints
+      and the four `docs` errors were read through `content:preview` rather than the JSON.
+
+      Publishing it exposed a maintenance trap worth recording: eleven assertions across eight files
+      hardcoded *the corpus* — 10 lessons, 154 fixtures, 11 pages, "10 of 88", "the next free number is
+      11". Every one now derives its number from what it is actually checking (files on disk, the
+      catalog, the sitemap being read, `lessons.length + 1`), so a cohort no longer costs a hunt
+      through the suite — the three Playwright specs, which `check` does not run, carried four of
+      them and were already red. The two literals that stayed are the ones that are the specification: 88
+      catalog slots and 16 groups. `tests/golden/snapshot.json` grew by 25 lines and lost none, which
+      is what a new lesson should look like in a record of every grader verdict.
+
 ## Acceptance criteria
 
 - [x] `content:new --lesson 11` produces a file that renders, grades and passes `content:check` with

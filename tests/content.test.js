@@ -50,9 +50,14 @@ function declaredFunctions(exercise) {
 describe("content: track", () => {
   const authored = track.lessons.filter((lesson) => lesson.id);
 
-  it("lists every exercise file exactly once, in file order", () => {
-    assert.deepEqual(authored.map((lesson) => lesson.id), lessons.map(({ exercise }) => exercise.id));
-    assert.equal(new Set(authored.map((lesson) => lesson.id)).size, authored.length);
+  it("lists every exercise file exactly once, in catalog order", () => {
+    const ids = lessons.map(({ exercise }) => exercise.id);
+    assert.deepEqual(
+      authored.map((lesson) => lesson.id).sort(),
+      [...ids].sort(),
+      "the catalog and the exercise files name different lessons",
+    );
+    assert.equal(new Set(authored.map((lesson) => lesson.id)).size, authored.length, "a lesson is listed twice");
   });
 
   it("catalogues planned lessons alongside the live ones", () => {
@@ -79,8 +84,12 @@ describe("content: track", () => {
 });
 
 describe("content: exercise schema", () => {
-  it("has ten lessons, named after their ids", () => {
-    assert.equal(lessons.length, 10);
+  it("has one lesson per authored catalog slot, named after its id", () => {
+    assert.equal(
+      lessons.length,
+      track.lessons.filter((lesson) => lesson.id).length,
+      "a lesson file is missing, or the catalog lists one that has no file",
+    );
     for (const { name, exercise } of lessons) {
       assert.equal(name, `${exercise.id}.json`, `${name} disagrees with id ${exercise.id}`);
       assert.equal(exercise.slug, exercise.id.slice(3), "slug should be the id without its number");

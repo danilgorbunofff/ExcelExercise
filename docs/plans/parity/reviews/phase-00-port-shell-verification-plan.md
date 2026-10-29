@@ -89,10 +89,14 @@ purpose — one lesson, not sixteen — and the index, dashboard and group pages
 browser.
 *A flaw inside the covered half, still open:* the hint/reveal test in `e2e/keyboard.spec.js` fails
 intermittently — twice in ~7 full runs, once before any change in this run — and never in 12 isolated
-repeats or a `--repeat-each=3` suite. **Cause unknown; it is not fixed.** Hardened: `waitForClient()` waits for the
-client-only `#progress-fill[data-full]` before the first Tab, and `tabTo()` keeps a focus trail, fails
-fast when focus falls back to `body`, and names the trail when the walk misses. `retries: 1` is set
-for CI only, so the first CI run can still hide a recurrence.
+repeats or a `--repeat-each=3` suite. **Cause unknown; it is not fixed.** It did not reproduce on
+2026-10-29 either, over 110 isolated repeats and 572 full-suite repeats, before and after the
+hardening. Hardened twice: `waitForClient()` waits for the client-only `#progress-fill[data-full]`
+before the first Tab; `tabTo()` keeps a focus trail, fails fast when focus falls back to `body`, and
+names the trail when the walk misses; and the three reads that follow a walk now assert
+`toBeFocused()` with a retry instead of sampling focus once, which is where the leading — still
+unproven — hypothesis says the loss happens. `retries: 1` is set for CI only, so the first CI run can
+still hide a recurrence.
 
 **5. The golden guard depends on a clean tree.** CI asserts `git status --porcelain -- tests/golden`
 is empty. That is correct, but it means a legitimate fixture change must be committed *before* the
@@ -301,6 +305,14 @@ The honest headline: the Next route is **3.86×** the static page for a browser 
 **4.56×** if every script the HTML names is counted, and neither is "3.9× by luck". The direction of
 the correction is against the port, not for it — the shell costs more first-load JavaScript than this
 doc previously said, and phase 10 now has a command instead of a paragraph.
+
+The document-only commit `180de73` was pushed and CI reproduced the tree unchanged — `tests 653` /
+`suites 105` / `fail 0`, `21 screens, 268 fixtures`, `111 accepted and 157 rejected`,
+`built 27 pages (740.0 kB of HTML+CSS)`, `next routes: 27`, `verified … 839 checks passed`,
+`52 passed (22.5s)`, `vendor: 25 files match manifest.json` — on
+[run 40958925120](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40958925120)
+(`phase-0-port-shell`) and [run 40958925334](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40958925334)
+(`main`). Docs do not move gate numbers, and this run is the evidence.
 
 ## Baseline
 

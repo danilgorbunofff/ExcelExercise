@@ -53,7 +53,10 @@ test("a whole drill is passable without a mouse", async ({ page }) => {
   await tabTo(page, "#formula");
   await expect(page.locator("#formula")).toBeFocused();
   // A focus ring is the only thing telling a keyboard user where they are, so it has to be drawn by
-  // the keyboard rather than by the mouse.
+  // the keyboard rather than by the mouse. The client repaints the rail and the bar as progress
+  // lands, and a repaint can take the focus with it; waiting for the input to still hold it keeps
+  // the ring assertion meaningful instead of sampling a moment when nothing is focused.
+  await expect(page.locator("#formula")).toBeFocused();
   const ring = await page.locator("#formula").evaluate((el) => {
     const { outlineStyle, outlineWidth } = getComputedStyle(el);
     return { outlineStyle, outlineWidth: parseFloat(outlineWidth) };
@@ -89,11 +92,15 @@ test("the hint and the reveal are reachable, and the reveal says what it will do
   await expect(page.locator("#show-answer")).toBeVisible();
 
   await tabTo(page, "#hint");
+  // Same reason as the ring above: Enter goes wherever the focus really is, so make the focus an
+  // assertion that can retry rather than a single read.
+  await expect(page.locator("#hint")).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#hint")).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator("#hint-text")).toBeVisible();
 
   await tabTo(page, "#show-answer");
+  await expect(page.locator("#show-answer")).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#solution")).toBeVisible();
   await expect(page.locator("#solution-code")).toHaveText("=SUM(B2:B4)");

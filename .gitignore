@@ -1,3 +1,24 @@
 dist/
 .DS_Store
 node_modules/
+reference/
+
+# Next.js build output and local env (the app shell; legacy/ is unaffected)
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.env*
+!.env.example
+
+# Next.js shell assets are copied from legacy/dist by scripts/next-assets.mjs
+public/assets/
+
+# Next 16 writes this on every dev/build run; regenerate locally rather than tracking it
+AGENTS.md
+
+# Playwright output from `npm run e2e`
+test-results/
+playwright-report/
+blob-report/
+.playwright/

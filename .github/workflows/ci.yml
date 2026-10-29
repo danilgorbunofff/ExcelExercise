@@ -1,0 +1,127 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Every step below is also a local `npm run …`, so a green CI run never proves something the
+# developer could not have run themselves.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # `/api/health` echoes this, so a running deploy can be identified from the outside.
+  GIT_SHA: ${{ github.sha }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # The unit suite, including the golden snapshot that pins every grader verdict.
+      - name: unit
+        run: npm test
+
+      # Fixtures are replayed through the real grader here, not just shape-checked: a lesson whose
+      # declared rejects are actually accepted is a broken drill that only this step catches.
+      - name: content factory gate
+        run: npm run content:check
+
+      # The snapshot is recorded, never regenerated in CI: `npm run golden:update` is a deliberate
+      # local action, so an updated snapshot has to arrive as a reviewable diff. `status --porcelain`
+      # rather than `diff` so a newly added snapshot file counts as a change too.
+      - name: golden snapshot is unchanged
+        run: test -z "$(git status --porcelain -- tests/golden)"
+
+      # `next:build` runs the legacy build first, so the crawl below reads output written a second
+      # ago rather than a stale `legacy/dist` (or nothing at all on a fresh checkout).
+      - name: next build
+        run: npm run next:build
+
+      - name: crawl the emitted static site
+        run: node legacy/src/verify.mjs
+
+      - name: routes match the templates
+        run: npm run next:check
+
+      # `/api/health` is prerendered, so it reports the commit the artifact was *built* from — which is
+      # exactly the identity a deploy should carry, and it fails loudly ("unknown") if the env is missed.
+      - name: the built app reports its commit
+        run: |
+          set -euo pipefail
+          health="${RUNNER_TEMP:-/tmp}/health.json"
+          npx next start -p 4174 &
+          server=$!
+          for _ in $(seq 1 40); do
+            curl -fsS http://127.0.0.1:4174/api/health > "$health" && break
+            sleep 0.5
+          done
+          HEALTH_FILE="$health" node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const health = JSON.parse(readFileSync(process.env.HEALTH_FILE, "utf8"));
+            const expected = process.env.GIT_SHA;
+            if (health.status !== "ok") throw new Error(`health: ${JSON.stringify(health)}`);
+            if (health.sha !== expected) throw new Error(`expected sha ${expected}, got ${health.sha}`);
+          '
+          kill "$server"
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: install chromium
+        run: npx playwright install --with-deps chromium
+
+      # `playwright.config.js` starts `next start` itself; only the build has to happen here.
+      - name: build
+        run: npm run next:build
+
+      - name: e2e
+        run: npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  static:
+    # The static site keeps deploying on its own until phase 9 replaces it.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: build and crawl the static site
+        run: npm run verify
+
+      - name: vendored assets are unmodified
+        run: npm run vendor:check

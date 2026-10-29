@@ -3,13 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Excel Supreme — zero-signup, in-browser Excel practice drills with deterministic grading",
+  "description": "Excel Supreme \u2014 zero-signup, in-browser Excel practice drills with deterministic grading",
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
-    "build": "node src/build.mjs",
-    "verify": "node src/build.mjs && node src/verify.mjs",
-    "dev": "node src/build.mjs && node src/serve.mjs",
-    "check": "npm test && npm run build && node src/verify.mjs",
-    "vendor:check": "node src/vendor-check.mjs"
+    "golden:update": "node tests/golden/update.mjs",
+    "build": "node legacy/src/build.mjs",
+    "verify": "node legacy/src/build.mjs && node legacy/src/verify.mjs",
+    "dev": "node legacy/src/build.mjs && node legacy/src/serve.mjs",
+    "check": "npm test && npm run content:check && npm run next:build && npm run next:check && node legacy/src/verify.mjs",
+    "content:check": "node packages/content-lint/cli.js check",
+    "content:fixtures": "node packages/content-lint/cli.js fixtures",
+    "catalog:reference": "node scripts/reference-catalog.mjs",
+    "vendor:check": "node legacy/src/vendor-check.mjs",
+    "next:dev": "npm run build && node scripts/next-assets.mjs && next dev",
+    "next:build": "npm run build && node scripts/next-assets.mjs && next build",
+    "next:start": "next start",
+    "next:assets": "node scripts/next-assets.mjs",
+    "next:check": "node scripts/check-next-pages.mjs",
+    "e2e": "npm run next:build && playwright test"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
   }
 }

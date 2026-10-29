@@ -4,7 +4,9 @@ Review and verification plan for parity **Phases 0, 1, 2 and 3** only. Phases 4+
 scope by instruction.
 
 Measured on `30629e8`, Node `v25.9.0` (macOS, arm64). Every number below is reproducible with
-the command shown next to it; nothing here is estimated.
+the command shown next to it; nothing here is estimated. Re-pinned on 2026-10-29 when lesson 03
+gained a chord and a sequence screen: `tests 645`, `20 screens`, `827 checks`, `50 passed`,
+`735.2 kB`. Every one of those moved up; the content verdict counts did not move at all.
 
 ## Verdict
 
@@ -18,7 +20,8 @@ recording is what Phase 3's dashboard reads.
 No phase needs to be reordered or consolidated, and no step leaves the system broken while the next
 one starts. What is red is **scope**, not sequencing: Phase 0 has one criterion no machine in this
 checkout can close (a preview deploy — CI now runs on a real remote), Phase 1 is 16 of 88 lessons,
-and Phase 2 builds five screen types that only two of its lessons ever render.
+and Phase 2 builds five screen types, four of which a shipped lesson now renders — the fifth
+(`workbook`) still has no production page.
 
 ## Per-phase summary
 
@@ -26,7 +29,7 @@ and Phase 2 builds five screen types that only two of its lessons ever render.
 |---|---|---|---|
 | 0 — Port shell | [show](./phase-00-port-shell-verification-plan.md) | **Solid**, one accounting hole | No preview deploy; "bundle size documented" was measured as static bytes only |
 | 1 — Content factory | [show](./phase-01-content-factory-verification-plan.md) | **Solid tooling / High Risk on scope** | 16 of 88 lessons; 9 of 16 groups have drills |
-| 2 — Exercise engine | [show](./phase-02-exercise-engine-verification-plan.md) | **Solid engine / High Risk on coverage** | 3 of 5 screen types appear in no shipped lesson; manual shortcut matrix has no production page |
+| 2 — Exercise engine | [show](./phase-02-exercise-engine-verification-plan.md) | **Solid engine / coverage mostly closed** | 1 of 5 screen types (workbook) appears in no shipped lesson; the manual shortcut matrix has a production page but no machine can stand in for three real keyboards |
 | 3 — Dashboard | [show](./phase-03-dashboard-verification-plan.md) | **Solid**, two recorded deviations | No server-side progress and no `/api/feedback` — a product decision, recorded |
 
 Verification gate chain (both deployables), in order. Run from the repo root.
@@ -34,12 +37,12 @@ Verification gate chain (both deployables), in order. Run from the repo root.
 | # | Command | Expected | Proves |
 |---|---|---|---|
 | 1 | `vendor:check` | `25 files match manifest.json` | Vendored sheets/grader inputs are unmodified |
-| 2 | `npm test` | `tests 643`, `suites 104`, `pass 643`, `fail 0` | Engine, content factory, session, progress, build contracts |
-| 3 | `content:check` | `content: 16 of 88 catalogued lessons, 16 groups, 18 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | Content and grader agree |
-| 4 | `next:build` | `built 27 pages (732.3 kB of HTML+CSS)` then a 27-route table, exit `0` | Both deployables render |
+| 2 | `npm test` | `tests 645`, `suites 104`, `pass 645`, `fail 0` | Engine, content factory, session, progress, build contracts |
+| 3 | `content:check` | `content: 16 of 88 catalogued lessons, 16 groups, 20 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | Content and grader agree |
+| 4 | `next:build` | `built 27 pages (735.2 kB of HTML+CSS)` then a 27-route table, exit `0` | Both deployables render |
 | 5 | `next:check` | `next routes: 27 prerendered pages match the shared templates` | Next and static fragments are byte-identical |
-| 6 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 817 checks passed` | Static dist, markup pins, links, budgets. Silent per-check; a failure prints its own line and exits non-zero |
-| 7 | `npx playwright test` | `48 passed` | Both deployables work in a real browser: `chromium` drives the Next app on 4174, `static` drives `legacy/dist` on 4175 |
+| 6 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 827 checks passed` | Static dist, markup pins, links, budgets. Silent per-check; a failure prints its own line and exits non-zero |
+| 7 | `npx playwright test` | `50 passed` | Both deployables work in a real browser: `chromium` drives the Next app on 4174, `static` drives `legacy/dist` on 4175 |
 
 `npm run check` is steps 2–6 (it runs `test`, `content:check`, `next:build`, `next:check` and
 `verify` in that order) and takes about 6 s. Step 1 is **not** part of `check` and must be run by
@@ -60,10 +63,11 @@ deployable is driven in the same browser instead of being crawled as HTML only.
    The narrowing that remains: those three tests cover `sum-basics`, not all 16 lessons, while the
    Next project still covers the whole shell — so "static is proven" means "the static deployable's
    client path is proven", not "every static page was walked".
-2. **Phase 2's engine is broader than the content that uses it.** All 18 shipped screens are
-   `formula` (17) or `picture` (1); no lesson uses a chord, a sequence or a workbook, so those three
-   renderers — and the keyboard layer that exists for them — are proven only against fixture builds.
-   Anything learned about them in a browser is learned on a page the user cannot visit.
+2. **Phase 2's engine is broader than the content that uses it — narrower each pass.** Of 20 shipped
+   screens, 17 are `formula`, 1 `picture`, 1 `chord` and 1 `sequence`: since 2026-10-29 the keyboard
+   layer has a page a user can actually visit (lesson 03), graded in a real browser and scanned by axe.
+   Only `workbook` is still proven against fixture builds alone, so anything learned about that renderer
+   in a browser is learned on a page the user cannot visit.
 3. **Phase 1's content debt is the single largest parity gap** and it is invisible to a green gate.
    `content:check` prints `16 of 88` on every run and passes anyway. Anyone reading only "✓" will
    believe the curriculum is complete. The number is recorded as unmet in the phase-1 doc rather
@@ -97,17 +101,17 @@ deployable is driven in the same browser instead of being crawled as HTML only.
 
 | Metric | Value | Source |
 |---|---|---|
-| Unit tests | 643 | `npm test` |
-| Verify checks | 817 | `node legacy/src/verify.mjs` |
+| Unit tests | 645 | `npm test` |
+| Verify checks | 827 | `node legacy/src/verify.mjs` |
 | Prerendered pages | 27 | `npm run next:build` |
 | Fragment parity | 27/27 | `npm run next:check` |
-| Browser tests | 48 (Chromium: 45 Next + 3 static) | `npx playwright test` |
+| Browser tests | 50 (Chromium: 47 Next + 3 static) | `npx playwright test` |
 | Lesson pages | 16 | `content:check` |
 | Groups (catalogued / with drills) | 16 / 9 | `content:check`, build |
-| Screens / fixtures | 18 / 268 (111 accepted, 157 rejected) | `content:check` |
+| Screens / fixtures | 20 / 268 (111 accepted, 157 rejected) | `content:check` |
 | Free lessons | 5 | `track.freeLessonCount` |
 | Vendored files | 25 | `vendor:check` |
-| Static build bytes (HTML+CSS) | 732.3 kB | build summary |
+| Static build bytes (HTML+CSS) | 735.2 kB | build summary |
 | Dashboard first paint | 21.4 kB gzip of a 40 kB budget | `verify` |
 | Static lesson JS graph | 52,125 B gzip over 20 modules (53,917 B with `feedback.js`) | manual rollup |
 | Next lesson JS | 192,293 B gzip as a page total (176,017 B framework+app chunks) | manual rollup |
@@ -122,7 +126,7 @@ deployable is driven in the same browser instead of being crawled as HTML only.
 | a | The drill silently dropped a failed save (`legacy/src/client/drill.js`) | **fixed** — `safeStorage()` is probed once, the dashboard's sentence is rendered at `#rail-blocked` near the rail, write semantics untouched. The note carries its own `.rail-note` class sharing the rail meta type — borrowing `.rail-count` would have been a false name in the stylesheet. Proven in the Next app by `e2e/drill.spec.js`, in the static build by `e2e-static/static-drill.spec.js`, and locked by a `tests/client.test.js` source contract (sentence, wiring, class, CSS selector). |
 | b | Two Turbopack `Dynamic filesystem access causes tracing of the whole project` warnings (`legacy/src/site/assets.mjs:48`) | **fixed** — inline `/* turbopackIgnore: true */` on both dynamic calls; `npm run next:build` emits 0 warnings, still `built 27 pages (732.3 kB of HTML+CSS)`. Traced entries in `.nft.json` drop 6690 → 4954 (per lesson page 784 → 536) and `legacy/dist` is byte-identical across 58 files. |
 | c | `/api/health` served `"sha":"unknown"` whenever `GIT_SHA` was unset | **fixed** — env vars still win; otherwise `git rev-parse --short HEAD` at build time; `unknown` only for a non-git checkout. CI contract unchanged: `GIT_SHA=abc123 npx next build` bakes `{"status":"ok","sha":"abc123"}`, an env-less build bakes the real short sha. |
-| d | Phase 0's contract doc still claimed "11 pages" and "13/13" | **fixed** — prose now quotes 27 pages, 817 checks, 643 unit tests, 48/48 browser tests, plus a route-labelled bundle baseline. Expected counts in the review docs were raised, never lowered: 639→643 (unit), 44→45 (browser, defect a), →48 (browser, the `static` project), 254→255 and 18→19 (phase 2). |
+| d | Phase 0's contract doc still claimed "11 pages" and "13/13" | **fixed** — prose now quotes 27 pages, 817 checks, 643 unit tests, 48/48 browser tests, plus a route-labelled bundle baseline. Expected counts in the review docs were raised, never lowered: 639→643 (unit), 44→45 (browser, defect a), →48 (browser, the `static` project), 254→255 and 18→19 (phase 2). Raised again on 2026-10-29 when two shortcut screens shipped: 643→645 (unit), 48→50 (browser), 817→827 (verify checks), 18→20 (screens), 732.3→735.2 kB. |
 
 ## Still open, and why
 
@@ -134,7 +138,7 @@ is tracked** (commit `4beeaa8`, pushed to `origin`).
 | Item | Phase | Why it cannot close here |
 |---|---|---|
 | Preview deploy + health SHA from it (row 10) | 0 | No deploy provider is connected, so there is no `$PREVIEW_URL`. Deploy-blocked, not remote-blocked any more. |
-| Manual shortcut matrix | 2 | Needs three operating systems with real keyboards, and no shipped lesson uses a chord. Hardware-blocked **and** content-blocked. |
+| Manual shortcut matrix | 2 | Needs three operating systems with real keyboards. Hardware-blocked only: lesson 03 ships a chord and a sequence, so the content half of this row closed on 2026-10-29. |
 | Workbook behaviour inside Excel | 2 | Needs Excel; our evaluator is not Excel's. Evaluator-blocked, and content-blocked (no shipped workbook lesson). |
 | Manual dashboard checks (private window, reload, gate/reset) | 3 | Need a human; the automated equivalents cover the write path and the unlock but not incognito mode or the reset-preserves-unlock reading. |
 | 72 lessons, 7 groups without drills | 1 | Weeks of authoring, not verification. |
@@ -145,8 +149,9 @@ is tracked** (commit `4beeaa8`, pushed to `origin`).
 ## Stop before content authoring
 
 Everything a machine in this checkout can prove is green. The remaining phase-1 and phase-2 redness is
-**content**: 72 authored lessons and shipped chord/sequence/workbook lessons (today's 18 screens are 17
-`formula` and 1 `picture`). That is an authoring programme, so it is not started here.
+**content**: 72 authored lessons and a shipped workbook lesson (today's 20 screens are 17 `formula`,
+1 `picture`, 1 `chord` and 1 `sequence` — the two shortcut types now ship on lesson 03, so only the
+workbook is still fixture-only). That is an authoring programme, so it is not started here.
 
 ## How to use these documents
 

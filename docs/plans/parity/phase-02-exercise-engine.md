@@ -15,9 +15,11 @@ keyboard route through all of it.** Items 1–12 ship: the loop and the event si
 (`packages/session`, `docs/player-contract.md`), screen dispatch, a `formula` player, a `picture` player,
 the chord/sequence keyboard player, a `workbook` player, the hint vocabulary, reveal threshold and
 per-screen notes, and the accessibility pass, proven end to end by `16-xlookup-search-from-the-bottom` —
-the first lesson with three screens, the last of them a picture. No catalog lesson ships a workbook or a
-shortcut yet, so both are proven from a temp content copy rather than from the shipped corpus — including
-one seven-screen lesson that uses all five types and walks to 100. The clock is read but not enforced.
+the first lesson with three screens, the last of them a picture. No catalog lesson ships a workbook, so a
+workbook is still proven from a temp content copy — including one seven-screen lesson that uses all five
+types and walks to 100. Chord and sequence screens shipped for real on 2026-10-29: lesson 03 now carries
+one of each, graded by `tests/content.test.js`, `e2e/drill.spec.js` and the accessibility scan. The clock
+is read but not enforced.
 
 - [x] **11. Events.** `packages/session/events.js` owns the vocabulary (17 names, the phase-10 list) and a
       `createSink({ write, context, now })` with a flat-primitive schema, `type`/`ts` written last and a
@@ -83,9 +85,9 @@ one seven-screen lesson that uses all five types and walks to 100. The clock is 
       rather than a multiple-choice panel — the bar already exists, it grades the same list, and a
       generated distractor set is content nobody authored — and no `chord_fallback` event is emitted,
       since the bar is not a mode the learner switches into. Nothing is *blocked* on either.
-      **Chord content is not authored yet**: `track.json` has no shortcuts group, because the reference's
-      13 shortcut lessons are phase-9B scope. `tests/keys-page.test.js` renders a shortcut lesson from a
-      temp content copy, which is what proves the server half until that group exists.
+      **No shortcuts group exists yet**: `track.json` has none, because the reference's 13 shortcut
+      lessons are phase-9B scope. Two shortcut screens do ship, on lesson 03 (2026-10-29), so the server
+      half is proven against real content as well as by `tests/keys-page.test.js` from a temp copy.
 - [x] **7. Workbook screen.** The screen ships rows, not a file: `sheet: { name, startCell, rows }` is the
       single source, and the build writes the `.xlsx` from it with `legacy/src/xlsx.mjs` — a dependency-free
       ZIP of the six parts Excel reads, deterministic byte for byte, `fullCalcOnLoad` set because nothing
@@ -223,15 +225,16 @@ design system, with accessibility and browser-resilience the reference does not 
       `createSession`/`recordVerdict` with the player's own weighting. The build writes the one workbook
       file, `verify()` is clean, the page carries three keyboard panels, one picture panel, one workbook
       panel and two sheets, and the walk finishes on screen 7 with one `lesson_complete` and seven
-      `screen_complete`. The catalog still ships no workbook and no shortcut: that is a content decision
-      for phase 9, and this criterion was about the engine being able to carry one.
+      `screen_complete`. The catalog still ships no workbook: that is a content decision for phase 9,
+      and this criterion was about the engine being able to carry one. Two shortcut screens now ship on
+      lesson 03, built by the same path.
 - [x] Recycling works: a lesson with 5 screens still terminates at 100.
 - [ ] Chord drills pass manual matrix on Chrome/Safari/Firefox × macOS/Windows. **The one criterion a
-      machine cannot close here, for two reasons.** No catalog lesson ships a shortcut (that is phase
-      9B's content), and the matrix is a claim about real browsers on two platforms — Playwright's
-      Chromium is neither Safari nor Windows. What is left for a human, once shortcut lessons exist: open
-      a chord drill and a sequence drill in each of the six cells, press the chord, and confirm the
-      screen advances rather than the browser acting on it; then type the same chord in the bar. The
+      machine cannot close here, now for one reason only.** The content half closed on 2026-10-29 —
+      lesson 03 ships a chord and a sequence — but the matrix is a claim about real browsers on two
+      platforms, and Playwright's Chromium is neither Safari nor Windows. What is left for a human: open
+      that lesson in each of the six cells, press the chord, confirm the screen advances rather than the
+      browser acting on it, and repeat with the sequence; then type both in the bar. The
       capability detection both paths depend on is covered (`tests/keys.test.js`,
       `tests/keys-page.test.js`), so what remains is a deployment check rather than an open question.
 - [x] At least one real browser-reserved combination degrades to the fallback instead of dead-ending.

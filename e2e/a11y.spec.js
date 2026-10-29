@@ -120,6 +120,22 @@ test("the picture screen of a multi-screen drill passes", async ({ page }) => {
   await scan(page, "a lesson's picture screen");
 });
 
+test("the shortcut panels of a shipped lesson pass", async ({ page }) => {
+  await seedBefore(page, "countif-open-tickets");
+  await page.goto("/learn/excel/countif-open-tickets");
+  await page.fill("#formula", '=COUNTIF(B2:B9,"Open")');
+  await page.click("#check");
+
+  // Both panels are focusable groups with a name; only a browser that has laid them out can say
+  // whether the keycaps inside them are readable, so both are scanned where a visitor reaches them.
+  await expect(page.locator("[data-screen='2'] .keys-panel")).toBeVisible();
+  await scan(page, "a lesson's chord screen");
+
+  await page.keyboard.press("Control+Shift+L");
+  await expect(page.locator("[data-screen='3'] .keys-panel")).toBeVisible();
+  await scan(page, "a lesson's sequence screen");
+});
+
 test("the feedback dialog passes while it is open", async ({ page }) => {
   await page.goto("/");
   await page.click("#feedback-open");

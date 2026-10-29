@@ -239,3 +239,58 @@ test("arrow keys move the selection and stop at the edge of the block", async ({
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
 });
+
+test("a shortcut lesson grades the keys it asks for, and keeps its steps in order", async ({ page }) => {
+  await seedBefore(page, "countif-open-tickets");
+  await page.goto("/learn/excel/countif-open-tickets");
+  await expect(page.locator("#formula")).toBeVisible();
+
+  await check(page, '=COUNTIF(B2:B9,"Open")');
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+
+  // A chord screen has no cell to answer in: the panel of keycaps takes the sheet's place, the chip
+  // goes dark to "the keys", the bar says what to type, and the panel holds the focus because the
+  // keys only reach the page while it does.
+  await expect(page.locator("[data-screen='2']")).toBeVisible();
+  const chordPanel = page.locator("[data-screen='2'] .keys-panel");
+  await expect(chordPanel).toBeVisible();
+  await expect(page.locator("#ref-chip")).toBeHidden();
+  await expect(page.locator("#screen-answer-cell")).toHaveText("the keys");
+  await expect(page.locator("#formula")).toHaveAttribute("aria-label", "Type the shortcut");
+  expect(await chordPanel.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+
+  // A press that is close but wrong costs an attempt. A press is graded as a press, so the line is
+  // the press's own rather than the typed fallback's spelling lesson — and nothing here names the key
+  // it wanted, which only the reveal may do.
+  await page.keyboard.press("Control+Alt+L");
+  await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
+  await expect(page.locator("#feedback-body")).toHaveText("That is not the shortcut this task wants.");
+
+  // The real shortcut, pressed on the keyboard, completes the screen — and the line that reports it
+  // names the keys rather than the formula the lesson opened with.
+  await page.keyboard.press("Control+Shift+L");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+  await expect(page.locator("#feedback-body")).toHaveText(/^The shortcut is .*L\.$/);
+
+  // A sequence is a procedure, so its steps stack down the panel instead of wrapping into one row.
+  await expect(page.locator("[data-screen='3']")).toBeVisible();
+  await expect(page.locator("[data-screen='3'] .keys-panel")).toHaveClass(/keys-panel-sequence/);
+  expect(
+    await page
+      .locator("[data-screen='3'] .keys-steps")
+      .evaluate((el) => getComputedStyle(el).flexDirection),
+  ).toBe("column");
+  await expect(page.locator("#formula")).toHaveAttribute("aria-label", "Type the keys in order");
+
+  // Spelling the run in the bar is the path a browser that eats the keys has to take, and it is
+  // graded on the order: the same four presses out of sequence are refused.
+  await check(page, "Alt, H, I, O");
+  await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
+  await expect(page.locator("#feedback-body")).toHaveText(
+    "That is not the sequence. Type every press in order, separated by commas, like Alt, H, O.",
+  );
+
+  await check(page, "Alt, H, O, I");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+  await expect(page.locator("#feedback-body")).toHaveText(/^The keys are .*I\.$/);
+});

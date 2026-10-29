@@ -373,7 +373,7 @@ describe("drill.js source", () => {
     assert.match(code, /import \{ grade, gradeAnswer \} from "\.\.\/grader\/index\.js";/);
     assert.match(
       code,
-      /if \(screen\.type === "picture"\) return gradeAnswer\(screen, raw\);\s*if \(screen\.type === "chord" \|\| screen\.type === "sequence"\) return gradeKeys\(screen, raw\);\s*return grade\(screen, raw\);/,
+      /if \(screen\.type === "picture" \|\| screen\.type === "workbook"\) return gradeAnswer\(screen, raw\);\s*if \(screen\.type === "chord" \|\| screen\.type === "sequence"\) return gradeKeys\(screen, raw\);\s*return grade\(screen, raw\);/,
     );
   });
 
@@ -403,9 +403,12 @@ describe("drill.js source", () => {
   });
 
   it("prints a solved line the screen can actually show", () => {
-    // A picture screen has no cell to name, so the line reads the answer instead of "B7 holds 21.5.";
-    // a shortcut screen names the shortcut in this keyboard's words.
-    assert.match(code, /if \(screen\.type === "picture"\) return `The answer is \$\{display\(screen\.expect\.value\)\}\.`;/);
+    // A picture or workbook screen has no cell to name, so the line reads the answer instead of
+    // "B7 holds 21.5."; a shortcut screen names the shortcut in this keyboard's words.
+    assert.match(
+      code,
+      /if \(screen\.type === "picture" \|\| screen\.type === "workbook"\) return `The answer is \$\{display\(screen\.expect\.value\)\}\.`;/,
+    );
     assert.match(code, /if \(screen\.type === "chord"\) return `The shortcut is \$\{revealText\(screen\)\}\.`;/);
     assert.match(code, /if \(screen\.type === "sequence"\) return `The keys are \$\{revealText\(screen\)\}\.`;/);
     assert.match(code, /return `\$\{screen\.answerCell\} holds \$\{display\(screen\.expect\.value\)\}\.`;/);
@@ -431,7 +434,7 @@ describe("drill.js source", () => {
     // `stripComments` removes the comment, so the branch is read as code alone.
     assert.match(
       code,
-      /if \(isPicture \|\| isKeys\) \{\s*selected = null;\s*if \(ui\.check\) ui\.check\.disabled = false;/,
+      /if \(isPicture \|\| isKeys \|\| isWorkbook\) \{\s*selected = null;\s*if \(ui\.check\) ui\.check\.disabled = false;/,
     );
     assert.match(code, /ui\.input\.setAttribute\("aria-label", barLabel\(screen\)\);/);
     for (const label of ["Your answer", "Type the keys in order", "Type the shortcut"]) {

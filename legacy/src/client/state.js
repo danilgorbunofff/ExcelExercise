@@ -216,9 +216,9 @@ export function parsePayload(text) {
       }
     }
     // Each type is graded from its own field, so the grid and the target cell a type has no use for
-    // are required only of the types that grade from them: a picture from `answers`, a shortcut from
-    // its presses.
-    if (screen.type === "picture") {
+    // are required only of the types that grade from them: a picture or a workbook from `answers`, a
+    // shortcut from its presses.
+    if (screen.type === "picture" || screen.type === "workbook") {
       if (!Array.isArray(screen.answers) || screen.answers.length === 0) {
         throw new Error(`${where} is missing answers`);
       }

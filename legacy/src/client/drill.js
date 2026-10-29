@@ -523,11 +523,16 @@ function mountDrill(payloadNode) {
     const isFormula = screen.type === "formula";
     const isPicture = screen.type === "picture";
     const isKeys = screen.type === "chord" || screen.type === "sequence";
+    // A workbook screen ships a file and asks what a cell holds, so it answers in the bar like a
+    // picture screen and has no keys to press and no cell to select.
+    const isWorkbook = screen.type === "workbook";
     // The target chip names a cell; a picture screen answers in words and a shortcut screen in keys,
     // so it goes dark and the note under the body says where the answer goes instead. The docs
     // worked example is a formula, so it steps aside on both — the client puts it back for the next
     // formula screen.
-    if (ui.answerNote) ui.answerNote.textContent = isFormula ? screen.answerCell : isPicture ? "the bar" : "the keys";
+    if (ui.answerNote) {
+      ui.answerNote.textContent = isFormula ? screen.answerCell : isPicture || isWorkbook ? "the bar" : "the keys";
+    }
     if (ui.chip) {
       ui.chip.hidden = !isFormula;
       ui.chip.textContent = isFormula ? screen.answerCell : "";
@@ -540,7 +545,7 @@ function mountDrill(payloadNode) {
     }
 
     setHint();
-    if (isPicture || isKeys) {
+    if (isPicture || isKeys || isWorkbook) {
       selected = null;
       // Nothing to select, so nothing can disable the bar: every keystroke is an attempt at the answer.
       if (ui.check) ui.check.disabled = false;
@@ -566,9 +571,9 @@ function mountDrill(payloadNode) {
     }
   }
 
-  /** What the bar is for on this screen: a cell, words about a picture, or a shortcut spelled out. */
+  /** What the bar is for on this screen: a cell, words about a picture or a workbook, or a shortcut. */
   function barLabel(screen) {
-    if (screen.type === "picture") return "Your answer";
+    if (screen.type === "picture" || screen.type === "workbook") return "Your answer";
     if (screen.type === "sequence") return "Type the keys in order";
     if (screen.type === "chord") return "Type the shortcut";
     return `Your formula for ${screen.answerCell}`;
@@ -636,7 +641,7 @@ function mountDrill(payloadNode) {
 
   /** What the learner reads once a screen is right, whichever kind of screen it was. */
   function solvedLine(screen) {
-    if (screen.type === "picture") return `The answer is ${display(screen.expect.value)}.`;
+    if (screen.type === "picture" || screen.type === "workbook") return `The answer is ${display(screen.expect.value)}.`;
     if (screen.type === "chord") return `The shortcut is ${revealText(screen)}.`;
     if (screen.type === "sequence") return `The keys are ${revealText(screen)}.`;
     return `${screen.answerCell} holds ${display(screen.expect.value)}.`;
@@ -672,10 +677,11 @@ function mountDrill(payloadNode) {
 
   /**
    * The screen router: one grading call per screen type, in one place. A registry would need
-   * something to register; with three types this switch is the whole of it.
+   * something to register; with four types this switch is the whole of it. A picture screen and a
+   * workbook screen are both graded by their list of accepted answers.
    */
   function gradeScreen(screen, raw) {
-    if (screen.type === "picture") return gradeAnswer(screen, raw);
+    if (screen.type === "picture" || screen.type === "workbook") return gradeAnswer(screen, raw);
     if (screen.type === "chord" || screen.type === "sequence") return gradeKeys(screen, raw);
     return grade(screen, raw);
   }
@@ -836,7 +842,7 @@ function mountDrill(payloadNode) {
       ui.feedback.classList.add("is-hint", "is-live");
       ui.feedbackHead.textContent = "Nothing to check yet";
       ui.feedbackBody.textContent =
-        screen.type === "picture"
+        screen.type === "picture" || screen.type === "workbook"
           ? "Type the answer in the bar, then press Enter."
           : screen.type === "sequence"
             ? "Type the keys in order, separated by commas, then press Enter."

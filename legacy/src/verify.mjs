@@ -76,10 +76,10 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     for (const id of DOCS_SECTIONS) has(html, `id="${id}"`, `${label} ${id} section`);
     has(
       html,
-      `<pre class="reference"><code id="docs-reference">${esc(referenceOf(exercise, screen))}</code></pre>`,
+      `<pre class="reference" tabindex="0"><code id="docs-reference">${esc(referenceOf(exercise, screen))}</code></pre>`,
       `${label} reference answer`,
     );
-    has(html, `<pre class="syntax"><code>${esc(exercise.docs.syntax)}</code></pre>`, `${label} syntax block`);
+    has(html, `<pre class="syntax" tabindex="0"><code>${esc(exercise.docs.syntax)}</code></pre>`, `${label} syntax block`);
 
     // The client is the only consumer of this block, so a silent shape change would
     // surface as a broken drill rather than a failed build.

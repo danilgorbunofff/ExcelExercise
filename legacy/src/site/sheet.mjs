@@ -242,7 +242,7 @@ export function renderHint({ icons = {} } = {}) {
         </div>
         <div class="solution" id="solution" hidden>
           <p class="solution-label">Reference answer</p>
-          <pre><code id="solution-code"></code></pre>
+          <pre tabindex="0"><code id="solution-code"></code></pre>
         </div>`;
 }
 
@@ -256,9 +256,9 @@ export function renderScreenDocs(screen) {
   const docs = screen.docs;
   if (!docs) return "";
   const parts = [];
-  if (docs.syntax) parts.push(`<pre class="syntax"><code>${esc(docs.syntax)}</code></pre>`);
+  if (docs.syntax) parts.push(`<pre class="syntax" tabindex="0"><code>${esc(docs.syntax)}</code></pre>`);
   if (docs.explain) parts.push(`<p>${esc(docs.explain)}</p>`);
-  if (docs.reference) parts.push(`<pre class="reference"><code>${esc(docs.reference)}</code></pre>`);
+  if (docs.reference) parts.push(`<pre class="reference" tabindex="0"><code>${esc(docs.reference)}</code></pre>`);
   return `
                 <aside class="screen-docs" aria-label="About this screen">
                   ${parts.join("\n                  ")}
@@ -285,14 +285,14 @@ export function renderDocs(exercise, screen) {
         <p>${esc(docs.explain)}</p>
 
         <h2 id="docs-syntax">Syntax</h2>
-        <pre class="syntax"><code>${esc(docs.syntax)}</code></pre>
+        <pre class="syntax" tabindex="0"><code>${esc(docs.syntax)}</code></pre>
 
         <h2 id="docs-example">Worked example</h2>
         <div class="worked" id="docs-worked"${workedHidden ? " hidden" : ""}>
           <p>On <em>${esc(docs.dataset)}</em>, <code id="docs-example-code">${esc(reference)}</code> returns <strong id="docs-example-value">${esc(
             worked === null ? "" : formatCell(worked.expect.value),
           )}</strong>.</p>
-          <pre class="reference"><code id="docs-reference">${esc(reference)}</code></pre>
+          <pre class="reference" tabindex="0"><code id="docs-reference">${esc(reference)}</code></pre>
         </div>
 
         <h2 id="docs-errors">Common errors</h2>

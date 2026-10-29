@@ -47,7 +47,7 @@ describe("a screen with notes of its own", () => {
     assert.ok(second.includes("walks up."), "the explanation is missing");
     // The formula it works is the one this screen asks for, not the first screen's.
     assert.ok(
-      second.includes('<pre class="reference"><code>=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)</code></pre>'),
+      second.includes('<pre class="reference" tabindex="0"><code>=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)</code></pre>'),
       "the awaited formula is not the one the screen asks for",
     );
     assert.ok(

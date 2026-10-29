@@ -73,7 +73,7 @@ describe("verify", () => {
   it("catches an empty reference answer", () => {
     const copy = copyOf(dist);
     try {
-      mutate(copy, LESSON, (html) => html.replace(/<pre class="reference"><code id="docs-reference">[^<]*<\/code><\/pre>/, ""));
+      mutate(copy, LESSON, (html) => html.replace(/<pre class="reference" tabindex="0"><code id="docs-reference">[^<]*<\/code><\/pre>/, ""));
       const failures = verify({ dist: copy, env: ENV }).failures;
       assert.equal(failures.length, 1);
       assert.match(failures[0], /sum-basics\.html reference answer/);

@@ -165,6 +165,11 @@ lands and never stops.
 
 **Total:** 6–9 months for one engineer plus a content author in parallel.
 
+**Phases 0–3 verification:** every phase above has a matching review and verification plan under
+[`reviews/`](reviews/00-foundation-verification-plan.md) — measured baselines, the exact gate commands
+with their expected output, the failure modes a green gate hides, and the criteria that cannot be
+closed by a machine in this checkout.
+
 ## 9. Working agreements
 
 - Every phase is independently shippable; the site is never broken between phases.

@@ -24,7 +24,7 @@ identical, but the foundation for accounts, payments and 600 screens is in place
 - `packages/grader`: current `legacy/src/grader` extracted, exports unchanged.
 - `packages/content`: current content reading and schema checks from `legacy/src/site/content.mjs`,
   messages unchanged.
-- Lesson and index routes rendering the existing 10 lessons from `content/`.
+- Lesson and index routes rendering the existing 16 lessons from `content/`.
 - Test runner consolidation: the 271 inherited tests run against the new package paths.
 - Playwright smoke suite + CI pipeline + preview deployment.
 - A redirect/route map stub so later phases can add 301s without rework.
@@ -36,7 +36,8 @@ identical, but the foundation for accounts, payments and 600 screens is in place
       `npm run next:build` compiles; `/` and `/api/health` both answer on `next start`.
 - [x] **2. Move legacy.** `git mv src legacy/src`, `content legacy/content`, `vendor legacy/vendor`, so
       `legacy/src/build.mjs` resolves its own root. `npm run build` / `verify` / `check` / `dev` now point
-      there and the site still builds 11 pages and passes 333 checks; `npm test` passes 271.
+      there, and the tree still builds and passes its checks (today: 27 pages and 817 checks;
+      `npm test` passes 643).
 - [x] **7. Golden.** `tests/golden/` recorded every fixture verdict before any code moved — 196 verdicts,
       byte-stable, proven to bite.
 - [x] **3. Grader extracted.** `git mv legacy/src/grader packages/grader` (9 modules, zero logic edits) plus a
@@ -63,7 +64,7 @@ identical, but the foundation for accounts, payments and 600 screens is in place
       `app/learn/excel/[lesson]/page.js` stitch four `dangerouslySetInnerHTML` fragments plus the JSON-LD
       `<script>`; `lib/site.js` memoizes config, validated content and icons for them. `tests/fragments.test.js`
       proves the fragments reassemble the shipped document byte for byte, and the new `npm run next:check`
-      gate compares all 11 prerendered pages against the templates. Known consequence: an unknown
+      gate compares all 27 prerendered pages against the templates. Known consequence: an unknown
       `/learn/excel/<slug>` is a soft 404 on its *first* request (PPR serves the 200 shell, the resolved
       result is then cached as a hard 404 with `noindex`) — `dynamicParams = false` would fix it and is
       unavailable under `cacheComponents`.
@@ -92,16 +93,20 @@ identical, but the foundation for accounts, payments and 600 screens is in place
       commit the artifact was built from), `e2e` (Playwright against `next start`), and `static` (the
       frozen legacy build and `vendor:check`). `golden:update` is never run here — the snapshot has to
       arrive as a reviewable diff. `/api/health` is prerendered, so its SHA is the *build* identity; that
-      is the right thing for a deploy to report, and the probe fails loudly ("unknown") if the env is
-      missed.
-- [x] **10. Playwright.** `e2e/` (not `tests/e2e/` — `tests/` is the `node --test` tree) with 13 tests:
-      the index lists ten reachable drills and paints progress only after hydration; the drill accepts a
+      is the right thing for a deploy to report. CI exports `GIT_SHA`, so the probe compares the artifact
+      against the commit; a local build falls back to `git rev-parse --short HEAD`, and only a non-git
+      checkout reports `"unknown"`.
+- [x] **10. Playwright.** `e2e/` (not `tests/e2e/` — `tests/` is the `node --test` tree) with 45 tests against the Next app, plus `e2e-static/` with 3 against `legacy/dist`:
+      the index lists 16 reachable drills and paints progress only after hydration; the drill accepts a
       correct formula, names the `value` rule, rejects the wrong function, points at a syntax error's
       caret, and keeps progress across a reload; the URL contract covers both 308s, a real 404, the health
       endpoint, the served sitemap/robots pair and the zero-third-party promise. `npm run e2e` builds
       first, because the suite runs against `next start`. The plan's third spec ("the paywall fake door
       fires its event") cannot exist until phase 5 ships the door; the drill and progress tests stand in
-      for it.
+      for it. A second project, `static`, serves `legacy/dist` over HTTP (`scripts/serve-static.mjs`,
+      no dependencies) and drives the shipped static pages in the same browser: the module graph loads
+      with no console error, 404 or MIME failure, a formula grades, the blocked-storage note appears at
+      `#rail-blocked` while grading still works, and progress survives a reload.
 - [x] **11. Sitemap and robots.** `app/sitemap.js` and `app/robots.js` are metadata routes built from
       the same `loadSite()` the pages use, so the URL set cannot drift from the routes. This closed a
       real gap: `scripts/next-assets.mjs` copies only `legacy/dist/assets`, so the app served neither
@@ -155,12 +160,12 @@ identical, but the foundation for accounts, payments and 600 screens is in place
    route work that needs them — today one `loadContent(dir)` returns the track and its ordered lessons.
 5. **Wire routes.** `app/page.js` (index), `app/learn/excel/[lesson]/page.js` (shell + client
    island), `app/layout.js` (stylesheet order `tokens → base → components`).
-6. **Static export check.** `next build` must emit the same 10 lesson pages and preserve every
+6. **Static export check.** `next build` must emit the same 16 lesson pages and preserve every
    existing URL as either a real route or a `redirects()` entry (`/excel/:slug` →
    `/learn/excel/:slug`).
 7. **Tests.** Point `npm test` at `packages/**` and `tests/**`. Add `tests/golden/` capturing today's
-   grader verdicts for all 10 lessons (accepted + rejected fixtures) as a byte-stable snapshot.
-8. **Playwright.** Three specs: index renders 10 lessons; a drill grades a correct answer and a wrong
+   grader verdicts for all 16 lessons (accepted + rejected fixtures) as a byte-stable snapshot.
+8. **Playwright.** Three specs: index renders 16 lessons; a drill grades a correct answer and a wrong
    one; the paywall fake door fires its event.
 9. **CI.** GitHub Actions: `lint → test → content:check (stub) → build → playwright → deploy preview`.
 10. **Observability.** Error boundary at `app/error.jsx`; basic `/api/health` returning build SHA.
@@ -168,14 +173,38 @@ identical, but the foundation for accounts, payments and 600 screens is in place
 ## Acceptance criteria
 
 - [x] `npm test` reports **≥280 passing, 0 failing**, including the golden snapshot.
-- [x] `npm run build` produces all 11 pages; `next start` serves every legacy URL.
+- [x] `npm run build` produces all 27 pages (16 lessons, the index, the dashboard and 9 group pages); `next start` serves every legacy URL.
 - [x] Golden snapshot diff vs. `packages/grader` is **empty** for every lesson fixture.
-- [ ] Playwright suite green locally and in CI. Local: 13/13 (`npm run e2e`); CI is written but has never run — the repo has no remote yet.
-- [ ] Preview deploy serves the 10 lessons; `/api/health` returns the SHA.
+- [ ] Playwright suite green locally and in CI. Local: 48/48 (`npm run e2e` — 45 `chromium` on the Next app, 3 `static` on `legacy/dist`); CI is written but has never run — the repo has no remote yet.
+- [ ] Preview deploy serves the 16 lessons; `/api/health` returns the SHA.
 - [x] `legacy/` still builds and deploys independently (it needs `packages/grader` beside it; its `dist/` output is standalone).
 - [x] `/sitemap.xml` and `/robots.txt` list every route the app serves and no address that only
   redirects; `tests/metadata-routes.test.js` and the URL-contract spec hold them to it.
-- [ ] Bundle size for a lesson page documented in the PR (baseline for phase 10 budgets).
+- [x] Bundle size for a lesson page documented, labelled by route (baseline for phase 10 budgets) —
+  recorded in the section below; the repo has no remote, so no PR carries it.
+
+## Bundle baseline
+
+Re-measured on this tree with a production build (`legacy/dist` from `npm run build`, `.next` from
+`npm run next:build`), summing every byte the page actually fetches. The **static** route is the one
+that deploys and is the denominator phase-10 budgets must be written against; the Next route is
+quoted only next to it. gzip means `zlib.gzipSync` at its default level; fonts are excluded on both
+sides (each route loads two woff2 files).
+
+| Route | JS | CSS | HTML |
+|---|---|---|---|
+| `legacy/dist` lesson page (`/excel/sum-basics`, served at `/learn/excel/…`) | `drill.js` entry graph: 20 modules, 156,694 B raw / 52,125 B gzip. The page also loads `feedback.js`, so the page total is 21 modules, 161,188 B raw / 53,917 B gzip | `/assets/styles.css`: 64,640 B raw / 13,390 B gzip | 31,612 B raw / 6,090 B gzip |
+| Next lesson page (`/learn/excel/sum-basics`) | framework + app chunks: 573,138 B raw / 176,017 B gzip; plus the same two client scripts (51,951 B raw / 16,276 B gzip) the page also loads → 625,089 B raw / 192,293 B gzip | 47,488 B raw / 10,057 B gzip | 82,846 B raw / 14,358 B gzip |
+
+Compare like with like: the page totals are 3.9× raw (625,089 / 161,188) and 3.6× gzipped
+(192,293 / 53,917). Quoting the Next framework chunks against the static page's full graph — which is
+what "3.4×" used to do — mixes the two rules; the honest ratio is slightly worse, not better. That gap
+is the known cost of the shell, not a regression, and it is why "the page is 52 kB" is never a correct
+sentence without the route.
+
+The measurements in `reviews/phase-00-port-shell-verification-plan.md` (155,784 B / 51,842 B gzip,
+20 modules) were taken on `30629e8` under the `drill.js`-only rule and still reproduce from this
+history: the extra 910 B raw / 283 B gzip here is the storage probe defect (a) added to `drill.js`.
 
 ## Test plan
 
@@ -183,7 +212,7 @@ identical, but the foundation for accounts, payments and 600 screens is in place
 |---|---|---|
 | Grader verdict parity | golden snapshot | `tests/golden/` |
 | Schema validation rejects malformed lessons | unit | `tests/content.test.js` |
-| Index lists 10 lessons | Playwright | `e2e/index.spec.js` |
+| Index lists 16 lessons | Playwright | `e2e/index.spec.js` |
 | Correct/wrong drill verdict renders | Playwright | `e2e/drill.spec.js` |
 | Every legacy URL resolves | crawl (`npm run verify`) + Playwright | `legacy/src/verify.mjs`, `e2e/routes.spec.js` |
 | Error boundary and 404 render as the site | Playwright (404) / gap (error boundary) | `e2e/routes.spec.js` |

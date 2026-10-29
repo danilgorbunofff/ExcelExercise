@@ -1,0 +1,11 @@
+{
+  "name": "@excelsupreme/grader",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "description": "Deterministic formula grader: same input, same verdict, no network, no DOM."
+}

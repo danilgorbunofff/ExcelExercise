@@ -14,8 +14,8 @@ import {
   parse,
   parseRef,
   tokenize,
-} from "../src/grader/index.js";
-import { evaluateFormula as run } from "../src/grader/evaluate.js";
+} from "../packages/grader/index.js";
+import { evaluateFormula as run } from "../packages/grader/evaluate.js";
 import { HOSTILE, OUTCOME_KEYS } from "./corpus.js";
 
 /** Assert that `thunk` throws a FormulaError with `code`. */
@@ -424,7 +424,7 @@ describe("buildCells and grade", () => {
   });
 
   it("accepts the reference answer and reasonable variants", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     for (const formula of [
       '=VLOOKUP("E-104",A2:C6,3,FALSE)',
       '=vlookup("e-104",$A$2:$C$6,3,0)',
@@ -438,7 +438,7 @@ describe("buildCells and grade", () => {
   });
 
   it("reports the missing 4th argument as exact-match, not as a value error", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const result = grade(lesson, '=VLOOKUP("E-104",A2:C6,3)');
     assert.equal(result.ok, false);
     assert.equal(result.rule, "exact-match");
@@ -447,25 +447,25 @@ describe("buildCells and grade", () => {
   });
 
   it("rejects TRUE as the 4th argument", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     assert.equal(grade(lesson, '=VLOOKUP("E-104",A2:C6,3,TRUE)').rule, "exact-match");
   });
 
   it("rejects a hardcoded number at the require rule, before requireRef is consulted", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const hardcoded = grade(lesson, "=54000");
     assert.equal(hardcoded.ok, false);
     assert.equal(hardcoded.rule, "func-vlookup");
   });
 
   it("rejects a formula that never touches the data", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const exercise = { ...lesson, require: [], rules: [] };
     assert.equal(grade(exercise, "=54000").rule, "require-ref");
   });
 
   it("rejects a forbidden function", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const exercise = {
       ...lesson,
       require: [],
@@ -477,7 +477,7 @@ describe("buildCells and grade", () => {
   });
 
   it("reports a wrong value with both numbers in the message", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const result = grade(lesson, '=VLOOKUP("E-104",A2:C6,2,FALSE)');
     assert.equal(result.rule, "value");
     assert.equal(result.value, "Dee");
@@ -486,7 +486,7 @@ describe("buildCells and grade", () => {
   });
 
   it("reports a syntax error with a position instead of throwing", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const result = grade(lesson, "=VLOOKUP(");
     assert.equal(result.ok, false);
     assert.equal(result.rule, "syntax");
@@ -495,7 +495,7 @@ describe("buildCells and grade", () => {
   });
 
   it("reports an execution error as #DIV/0!", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const bare = { grid: lesson.grid, expect: { value: 1 } };
     const result = grade(bare, "=1/0");
     assert.equal(result.rule, "error");
@@ -503,7 +503,7 @@ describe("buildCells and grade", () => {
   });
 
   it("keeps a stable outcome shape", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     assert.deepEqual(Object.keys(grade(lesson, "=1")).sort(), [
       "code",
       "expected",
@@ -517,7 +517,7 @@ describe("buildCells and grade", () => {
   });
 
   it("accepts 4450.4 without demanding bit-exact float equality", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const exercise = {
       grid: { startCell: "A1", rows: [[4120.74]] },
       expect: { value: 4450.4 },
@@ -532,13 +532,13 @@ describe("buildCells and grade", () => {
 describe("module hygiene", () => {
   it("imports without adding anything to globalThis", async () => {
     const before = new Set(Object.keys(globalThis));
-    await import("../src/grader/index.js?hygiene-check");
+    await import("../packages/grader/index.js?hygiene-check");
     const added = Object.keys(globalThis).filter((key) => !before.has(key));
     assert.deepEqual(added, []);
   });
 
   it("builds a summary from calls, keeping refs out of the call list", async () => {
-    const { describeFormula } = await import("../src/grader/grade.js");
+    const { describeFormula } = await import("../packages/grader/grade.js");
     const summary = describeFormula('=IF(SUM(B2:B4)>100,"ok","no")');
     assert.deepEqual(summary.calls, [
       { name: "IF", args: 3 },
@@ -559,7 +559,7 @@ describe("review regressions", () => {
   };
 
   it("reports a range-valued answer as a value outcome instead of throwing", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const result = grade(SINGLE, "=B2:B4");
     assert.equal(result.ok, false);
     assert.equal(result.rule, "value");
@@ -593,7 +593,7 @@ describe("review regressions", () => {
   });
 
   it("treats an empty cell in the argument slot as missing, not as FALSE", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const lesson = {
       cells: { A2: "E-104", B2: "Dee", C2: 54000 },
       expect: { value: 54000 },
@@ -609,7 +609,7 @@ describe("review regressions", () => {
   });
 
   it("checks every call a lesson's arity rule covers, not just the first", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const lesson = {
       cells: { A2: "E-104", B2: "Dee", C2: 54000 },
       expect: { value: 54000 },
@@ -625,7 +625,7 @@ describe("review regressions", () => {
   });
 
   it("never answers a too-few-arguments fault with the absent-function message", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     // Lesson 6's shape: a per-rule `message` that talks about a *missing* function, so it
     // would be a lie here — SUM is right there, with no range inside it.
     const lesson = {
@@ -644,7 +644,7 @@ describe("review regressions", () => {
   });
 
   it("speaks in the singular for a one-argument minimum", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const lesson = {
       cells: { B2: 1 },
       expect: { value: 1 },
@@ -658,7 +658,7 @@ describe("review regressions", () => {
   });
 
   it("uses a per-rule minArgs message when a lesson supplies one", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const lesson = {
       cells: { B2: 1 },
       expect: { value: 1 },
@@ -682,7 +682,7 @@ describe("review regressions", () => {
   });
 
   it("refuses an unbounded range with #NUM! instead of hanging", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const started = Date.now();
     const result = grade(SINGLE, "=SUM(A1:ZZ10000)");
     assert.equal(result.ok, false);
@@ -692,13 +692,13 @@ describe("review regressions", () => {
   });
 
   it("caps expandRange at 100,000 cells", async () => {
-    const { expandRange } = await import("../src/grader/address.js");
+    const { expandRange } = await import("../packages/grader/address.js");
     assert.equal(expandRange("A1", "A100000", () => null).height, 100000);
     throwsCode(() => expandRange("A1", "A100001", () => null), CODES.NUM);
   });
 
   it("turns runaway nesting into a syntax outcome instead of a stack overflow", async () => {
-    const { grade } = await import("../src/grader/index.js");
+    const { grade } = await import("../packages/grader/index.js");
     const deep = `=${"(".repeat(400)}1${")".repeat(400)}`;
     const result = grade(SINGLE, deep);
     assert.equal(result.ok, false);

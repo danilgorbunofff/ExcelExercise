@@ -39,7 +39,8 @@ import {
   validEmail,
 } from "./state.js";
 
-const MAX_ATTEMPTS = 3;
+/** What the player uses when a track file from before `showAnswerAfter` loads in it. */
+const DEFAULT_REVEAL_AFTER = 3;
 
 const RULE_LABEL = {
   syntax: "The formula cannot be read",
@@ -254,6 +255,12 @@ function mountDrill(payloadNode) {
 
   const lessonId = payload.id;
   const total = payload.track.total || 1;
+  // How many misses on one screen open the reference answer. The track file owns the number, so a
+  // lesson that wants more rope changes content rather than the player; the schema fills in the
+  // default, and this fallback only covers a payload built before the field existed.
+  const revealAfter = Number.isInteger(payload.track.showAnswerAfter)
+    ? payload.track.showAnswerAfter
+    : DEFAULT_REVEAL_AFTER;
   const screenCount = payload.screens.length;
 
   // A lesson is complete once every screen has been answered correctly: one screen is
@@ -609,13 +616,13 @@ function mountDrill(payloadNode) {
     return `Solved after ${missed} ${missed === 1 ? "wrong attempt" : "wrong attempts"}.`;
   }
 
-  // Attempts are counted per screen: three misses on this screen open the reference answer,
-  // and the next screen starts with a clean three even if the lesson kept a longer tally.
+  // Attempts are counted per screen: `revealAfter` misses on this screen open the reference answer,
+  // and the next screen starts with a clean count even if the lesson kept a longer tally.
   function attemptLabel() {
-    if (screenMisses >= MAX_ATTEMPTS) {
+    if (screenMisses >= revealAfter) {
       return `${screenMisses} attempts on this screen. The reference answer is available below.`;
     }
-    return `Attempt ${screenMisses} of ${MAX_ATTEMPTS}.`;
+    return `Attempt ${screenMisses} of ${revealAfter}.`;
   }
 
   /** What the learner reads once a screen is right, whichever kind of screen it was. */
@@ -790,11 +797,14 @@ function mountDrill(payloadNode) {
       caret,
       meta: attemptLabel(),
     });
-    if (result.hint) ui.hintText.textContent = result.hint;
+    // The grader picks the hint by the rule that failed; the screen's general one is the fallback for
+    // a rule it has no line for, so a wrong answer never leaves the learner with a stale hint.
+    const hint = result.hint || activeScreen().hints.value || "";
+    if (hint) ui.hintText.textContent = hint;
     emitLoop(verdict(false), { rule: result.rule });
-    // Three misses on *this* screen open the reveal; `exhausted` only dedupes the event, because a
-    // learner who spent their three on screen 1 must still be able to ask on screen 2.
-    if (screenMisses === MAX_ATTEMPTS) {
+    // `revealAfter` misses on *this* screen open the reveal; `exhausted` only dedupes the event, because
+    // a learner who spent them on screen 1 must still be able to ask on screen 2.
+    if (screenMisses === revealAfter) {
       if (ui.showAnswer) ui.showAnswer.hidden = false;
       if (!exhausted) {
         exhausted = true;
@@ -1010,9 +1020,9 @@ function mountDrill(payloadNode) {
 
   paintProgress();
   enterScreen(0);
-  // A lesson exhausted on an earlier visit keeps its reveal: the record already holds
-  // the three misses, and hiding the only way out would trap the learner.
-  if (attemptsFor(progress, lessonId) >= MAX_ATTEMPTS && ui.showAnswer) {
+  // A lesson exhausted on an earlier visit keeps its reveal: the record already holds the misses, and
+  // hiding the only way out would trap the learner.
+  if (attemptsFor(progress, lessonId) >= revealAfter && ui.showAnswer) {
     exhausted = true;
     ui.showAnswer.hidden = false;
   }

@@ -446,17 +446,35 @@ describe("drill.js source", () => {
     assert.match(code, /if \(screen\.type !== "formula" \|\| selected === screen\.answerCell\) draft = ui\.input\.value;/);
   });
 
-  it("announces exhaustion once, on the third miss", () => {
+  it("announces exhaustion once, on the miss that exhausts the screen", () => {
     assert.equal(code.match(/lesson_exhausted/g).length, 1, "one emission site, so a retry does not re-count");
-    assert.doesNotMatch(code, />= MAX_ATTEMPTS\) \{\s*if \(ui\.showAnswer\) ui\.showAnswer\.hidden = false;/);
+    assert.doesNotMatch(code, />= revealAfter\) \{\s*if \(ui\.showAnswer\) ui\.showAnswer\.hidden = false;/);
+  });
+
+  it("reads how many misses open the answer from the track file", () => {
+    // The number is content, not a constant: a lesson that wants more rope changes `track.json`.
+    assert.match(code, /const revealAfter = Number\.isInteger\(payload\.track\.showAnswerAfter\)/);
+    assert.match(code, /: DEFAULT_REVEAL_AFTER;/);
+    assert.match(code, /const DEFAULT_REVEAL_AFTER = 3;/);
+    assert.doesNotMatch(code, /MAX_ATTEMPTS/);
+    // The prose the learner reads counts against the same number the gate uses.
+    assert.match(code, /return `Attempt \$\{screenMisses\} of \$\{revealAfter\}\.`;/);
+    assert.match(code, /return `\$\{screenMisses\} attempts on this screen\. The reference answer is available below\.`;/);
+  });
+
+  it("falls back to the screen's general hint when the failing rule has no line of its own", () => {
+    // The grader files a hint per rule; a screen with only `hints.value` must still say something
+    // rather than leave the previous screen's hint standing.
+    assert.match(code, /const hint = result\.hint \|\| activeScreen\(\)\.hints\.value \|\| "";/);
+    assert.match(code, /if \(hint\) ui\.hintText\.textContent = hint;/);
   });
 
   it("re-offers the reveal on a later screen of an exhausted lesson", () => {
     // `exhausted` dedupes the event; it must not gate the button, because entering a screen hides it
-    // and a learner who spent three misses on screen 1 would otherwise reach screen 2 with no way out.
+    // and a learner who spent their misses on screen 1 would otherwise reach screen 2 with no way out.
     assert.match(
       code,
-      /if \(screenMisses === MAX_ATTEMPTS\) \{\s*if \(ui\.showAnswer\) ui\.showAnswer\.hidden = false;\s*if \(!exhausted\) \{/,
+      /if \(screenMisses === revealAfter\) \{\s*if \(ui\.showAnswer\) ui\.showAnswer\.hidden = false;\s*if \(!exhausted\) \{/,
     );
   });
 
@@ -467,7 +485,7 @@ describe("drill.js source", () => {
   });
 
   it("restores the reveal for a lesson that was already exhausted", () => {
-    assert.match(code, /if \(attemptsFor\(progress, lessonId\) >= MAX_ATTEMPTS && ui\.showAnswer\) \{/);
+    assert.match(code, /if \(attemptsFor\(progress, lessonId\) >= revealAfter && ui\.showAnswer\) \{/);
     assert.match(code, /ui\.showAnswer\.hidden = false;/);
   });
 

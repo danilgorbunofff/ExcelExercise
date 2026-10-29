@@ -31,7 +31,7 @@ function workbookLesson() {
       ...raw.docs,
       syntax: "=SUM(B2:B4)",
       // A workbook lesson works no formula on the page, so its reference is prose the page prints.
-      reference: "Orders, C4",
+      reference: "Orders, D4",
       teaches: "Read a total out of a workbook you opened",
       outcome: "Check a total against the file you were sent",
     },
@@ -39,16 +39,17 @@ function workbookLesson() {
       {
         id: "book-total",
         type: "workbook",
-        prompt: "Open the workbook. What does C4 total?",
-        answers: ["7.5", "7.50"],
-        hints: { value: "C4 multiplies the units in column B by the price in C2." },
+        prompt: "Open the workbook. What does D4 total?",
+        answers: ["17.5", "17.50"],
+        hints: { value: "D4 adds the two totals above it; each one multiplies its units by its price." },
         sheet: {
           name: "Orders",
           startCell: "A1",
           rows: [
-            ["Item", "Units", "Total"],
-            ["Widget", 3, "=B2*2.5"],
-            ["Total", null, "=SUM(C2:C3)"],
+            ["Item", "Units", "Price", "Total"],
+            ["Widget", 3, 2.5, "=B2*C2"],
+            ["Gadget", 4, 2.5, "=B3*C3"],
+            ["Total", null, null, "=SUM(D2:D3)"],
           ],
         },
       },
@@ -62,8 +63,8 @@ function workbookLesson() {
           name: "Orders",
           startCell: "A1",
           rows: [
-            ["Item", "Units", "Total"],
-            ["Widget", 3, "=B2*2.5"],
+            ["Item", "Units", "Price", "Total"],
+            ["Widget", 3, 2.5, "=B2*C2"],
           ],
         },
       },
@@ -114,16 +115,28 @@ describe("a workbook lesson page", () => {
     // click on a preview cell as selecting an answer cell the screen does not have.
     assert.ok(html.includes('id="workbook-grid-0"'), "the preview table is missing");
     assert.doesNotMatch(html, /id="workbook-grid-0"[^>]*role="grid"/, "the preview announces itself as an interactive grid");
-    assert.doesNotMatch(html, /role="gridcell"[^>]*data-cell="C4"/, "a preview cell is exposed as a grid cell");
+    assert.doesNotMatch(html, /role="gridcell"[^>]*data-cell="D4"/, "a preview cell is exposed as a grid cell");
     assert.ok(html.includes('aria-label="Orders, preview of the workbook"'), "the preview has no accessible name");
-    assert.ok(html.includes("=B2*2.5"), "the preview drops the formula the workbook holds");
+  });
+
+  it("shows the value the file shows, not the formula the row holds", () => {
+    // The file recalculates `=SUM(D2:D3)` and opens on 17.5, so a preview that printed the formula text
+    // would ask the learner to evaluate it in their head and would not be a preview of a workbook.
+    assert.match(html, /data-cell="D4"[^>]*>17\.5</, "the preview prints the formula instead of the value it holds");
+    assert.match(html, /data-cell="D2"[^>]*>7\.5</, "a formula that another formula sums was left unevaluated");
+    // Scoped to the preview table: the docs legitimately print `=SUM(B2:B4)` as the syntax to learn.
+    const grid = html.slice(html.indexOf('id="workbook-grid-0"'), html.indexOf("</table>", html.indexOf('id="workbook-grid-0"')));
+    assert.doesNotMatch(grid, />=[A-Z]/, "a cell still reads as a formula");
+    // The lesson is still about the formula, so the panel names the ones it computed.
+    assert.ok(html.includes("D4 =SUM(D2:D3)"), "the preview hides the formula it computed");
+    assert.ok(html.includes("D2 =B2*C2"), "the preview names only the top of a formula chain");
   });
 
   it("publishes the answers and the first expect, and no cell to fill", () => {
     const [first, second] = payloadOf(html).screens;
     assert.equal(first.type, "workbook");
-    assert.deepEqual(first.answers, ["7.5", "7.50"]);
-    assert.equal(first.expect.value, "7.5", "the reveal is not the first accepted answer");
+    assert.deepEqual(first.answers, ["17.5", "17.50"]);
+    assert.equal(first.expect.value, "17.5", "the reveal is not the first accepted answer");
     assert.equal(first.answerCell, undefined, "a workbook screen has no answer cell");
     assert.equal(first.grid, undefined, "a workbook screen does not ship a grid");
     assert.equal(first.sheet, undefined, "the client has no use for the rows: they are in the markup");
@@ -141,6 +154,6 @@ describe("a workbook lesson page", () => {
 
   it("hides the worked example, because a workbook lesson works no formula", () => {
     assert.ok(html.includes('id="docs-worked" hidden'), "the worked example is showing on a lesson with no formula");
-    assert.ok(html.includes("<code id=\"docs-reference\">Orders, C4</code>"), "the reference is not printed as authored");
+    assert.ok(html.includes("<code id=\"docs-reference\">Orders, D4</code>"), "the reference is not printed as authored");
   });
 });

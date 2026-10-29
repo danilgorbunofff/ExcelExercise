@@ -25,7 +25,7 @@ try {
 
 const [grader, content, progress, keys, sheet] = packages;
 
-export const { KNOWN_FUNCTIONS, addressOf, indexToCol, parseRef } = grader;
+export const { KNOWN_FUNCTIONS, addressOf, buildCells, compute, indexToCol, isFormulaError, parseRef } = grader;
 export const { LEVELS, loadContent, referenceOf, revealOf, screenAt, validateLesson } = content;
 export const { BADGES, BADGE_LABELS, badgeFor, nextCopy, summarise, summaryLine } = progress;
 export const { chordText, isReserved, labelsOf, parseChord, parsePress } = keys;

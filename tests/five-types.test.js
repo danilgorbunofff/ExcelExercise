@@ -57,16 +57,17 @@ const SEQUENCE = {
 const WORKBOOK = {
   id: "book-total",
   type: "workbook",
-  prompt: "Open the workbook. What does C4 total?",
-  answers: ["7.5"],
-  hints: { value: "C4 multiplies the units in column B by the price in C2." },
+  prompt: "Open the workbook. What does D4 total?",
+  answers: ["17.5"],
+  hints: { value: "D4 adds the two totals above it; each one multiplies its units by its price." },
   sheet: {
     name: "Orders",
     startCell: "A1",
     rows: [
-      ["Item", "Units", "Total"],
-      ["Widget", 3, "=B2*2.5"],
-      ["Total", null, "=SUM(C2:C3)"],
+      ["Item", "Units", "Price", "Total"],
+      ["Widget", 3, 2.5, "=B2*C2"],
+      ["Gadget", 4, 2.5, "=B3*C3"],
+      ["Total", null, null, "=SUM(D2:D3)"],
     ],
   },
 };

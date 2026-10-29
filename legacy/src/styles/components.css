@@ -597,6 +597,24 @@
   font-size: var(--fs-meta);
 }
 
+/*
+ * The formulas the preview computed, named under the grid. The cells hold the values the file holds,
+ * so without this the lesson would show a number and hide how it got there — and a long formula wraps
+ * instead of pushing the panel sideways.
+ */
+.workbook-formulas {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.workbook-formulas code {
+  color: var(--text);
+  font-family: var(--font-mono);
+}
+
 .workbook-preview > summary {
   padding: var(--s-2) 0;
   color: var(--text-muted);

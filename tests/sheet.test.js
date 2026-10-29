@@ -161,3 +161,81 @@ describe("sheet: the client imports the shipped module", () => {
     assert.match(drill, /gridModel\(\{ grid: screen\.grid/);
   });
 });
+
+/**
+ * The workbook preview. The defect this pins: the panel printed the formula's own text where the file
+ * shows a number, so a screen asking for B7 asked the learner to evaluate a nested SUMIF by hand. The
+ * cases are the ones a sheet actually holds — a value, a formula over values, a formula over formulas,
+ * a cell an empty row leaves blank, and a formula that can only come out as an Excel error code.
+ */
+describe("preview: the cells a workbook shows", () => {
+  const sheet = (rows, startCell = "A1") => ({ name: "Orders", startCell, rows });
+
+  it("computes the formulas and keeps the values already written down", async () => {
+    const { previewSheet } = await import("../legacy/src/site/preview.mjs");
+    const { rows } = previewSheet(sheet([
+      ["Item", "Units", "Price", "Total"],
+      ["Widget", 3, 2.5, "=B2*C2"],
+      ["Gadget", 4, 2.5, "=B3*C3"],
+      ["Total", null, null, "=SUM(D2:D3)"],
+    ]));
+    assert.deepEqual(rows, [
+      ["Item", "Units", "Price", "Total"],
+      ["Widget", 3, 2.5, 7.5],
+      ["Gadget", 4, 2.5, 10],
+      ["Total", null, null, 17.5],
+    ]);
+  });
+
+  it("settles a formula built on a formula, whichever order the cells are evaluated in", async () => {
+    const { previewSheet } = await import("../legacy/src/site/preview.mjs");
+    // `=D5*2` reads a total that two other formulas have to fill first, and it sits above them, so one
+    // pass in sheet order leaves it one step behind.
+    const { rows } = previewSheet(sheet([
+      ["Double the total", "=D5*2", null, null],
+      ["Item", "Units", "Price", "Total"],
+      ["Widget", 3, 2.5, "=B3*C3"],
+      ["Gadget", 4, 2.5, "=B4*C4"],
+      ["Total", null, null, "=SUM(D3:D4)"],
+    ]));
+    assert.equal(rows[4][3], 17.5);
+    assert.equal(rows[0][1], 35, "the chain did not settle before the preview was printed");
+  });
+
+  it("shows an error as the code Excel shows, and a blank as nothing", async () => {
+    const { previewSheet } = await import("../legacy/src/site/preview.mjs");
+    const { rows } = previewSheet(sheet([
+      ["=1/0", null, "=NOTAFUNCTION()"],
+    ]));
+    assert.equal(rows[0][0], "#DIV/0!", "a division by zero is not shown as its Excel code");
+    assert.equal(rows[0][1], null, "an empty cell was turned into text");
+    assert.equal(rows[0][2], "#NAME?", "an unknown function is not shown as its Excel code");
+  });
+
+  it("names every formula it computed, so the value never hides how it was made", async () => {
+    const { previewSheet } = await import("../legacy/src/site/preview.mjs");
+    const { formulas } = previewSheet(sheet([
+      ["=1+1", "plain", "=A1*3"],
+    ]));
+    assert.deepEqual(formulas, [
+      { address: "A1", formula: "=1+1" },
+      { address: "C1", formula: "=A1*3" },
+    ]);
+  });
+
+  it("leaves a sheet with no formulas exactly as authored", async () => {
+    const { previewSheet } = await import("../legacy/src/site/preview.mjs");
+    const rows = [["Item", "Units"], ["Widget", 3]];
+    const preview = previewSheet(sheet(rows));
+    assert.deepEqual(preview.rows, rows);
+    assert.deepEqual(preview.formulas, []);
+  });
+
+  it("cuts off a circular reference instead of hanging the build", async () => {
+    const { previewSheet } = await import("../legacy/src/site/preview.mjs");
+    // A sheet cannot hold this, but a lesson's JSON could, and a build that never returns is a worse
+    // failure than a preview that prints the last pass it reached.
+    const { rows } = previewSheet(sheet([["=B1", "=A1"]]));
+    assert.equal(rows.length, 1);
+  });
+});

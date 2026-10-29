@@ -7,6 +7,7 @@
 
 import { chordText, gridModel, labelsOf, parseChord, parsePress, referenceOf } from "./packages.mjs";
 import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
+import { previewSheet } from "./preview.mjs";
 import { workbookUrl } from "../xlsx.mjs";
 
 /**
@@ -106,16 +107,30 @@ export function renderPicture(screen, { position = 0 } = {}) {
  * A workbook screen: a real spreadsheet the lesson ships, plus a preview built from the same rows so
  * the question can be answered without Excel. The preview is open by default — the drill has to be
  * fair without a download — and collapses, so a big sheet does not push the docs off the page.
+ *
+ * The preview shows the values the file shows, not the formulas it was built from, and names those
+ * formulas under the grid: a learner reading B7 has to see 44.8, and the lesson is still about the
+ * formula that produced it.
  */
 export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
   const url = workbookUrl(exercise.slug, screen.id);
+  const { rows, formulas } = previewSheet(screen.sheet);
   const preview = renderDataGrid({
     id: `workbook-grid-${position}`,
     label: `${screen.sheet.name}, preview of the workbook`,
     startCell: screen.sheet.startCell,
-    rows: screen.sheet.rows,
+    rows,
     interactive: false,
   });
+  const computed =
+    formulas.length === 0
+      ? ""
+      : `
+                      <p class="workbook-formulas">
+                        The sheet computes ${formulas
+                          .map(({ address, formula }) => `<code>${esc(address)} ${esc(formula)}</code>`)
+                          .join(", ")}
+                      </p>`;
 
   return `<div class="workbook" id="workbook-${position}">
                   <p class="workbook-file">
@@ -129,7 +144,7 @@ export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
                       tabindex="0"
                       role="group"
                       aria-label="${esc(`Scrollable preview of the ${screen.sheet.name} sheet`)}"
-                    >${preview}</div>
+                    >${preview}</div>${computed}
                   </details>
                 </div>`;
 }

@@ -384,6 +384,86 @@ describe("lesson schema v2", () => {
     });
   });
 
+  describe("the hints a formula screen files", () => {
+    const hintScreen = (hints) => v2({ screens: [screenFrom(V1, { hints })] });
+    const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+
+    it("accepts a hint for every failure the screen can report", () => {
+      // `func-sum` is the id this screen's `require` declares and `require-ref` the rule its
+      // `requireRef` turns on: the grader files those failures under those names, so the hints do too.
+      const hints = {
+        syntax: "Start with = and close every bracket.",
+        error: "#VALUE! means an argument is the wrong kind of thing.",
+        value: "Add the three cells, do not type the total.",
+        "require-ref": "Point at B2:B4 instead of typing the numbers.",
+        "func-sum": "This lesson wants SUM, not a chain of plus signs.",
+      };
+      assert.deepEqual(normalizeLesson(hintScreen(hints), FILE).screens[0].hints, hints);
+    });
+
+    it("rejects a hint filed under a rule the screen does not declare", () => {
+      // A typo used to load and never render: the author believed they had written a hint and the
+      // learner only ever saw the generic line.
+      throws(
+        hintScreen({ ...V1.hints, "require-ref": "Point at the cells.", "requre-ref": "typo" }),
+        /screens\[0\]\.hints\.requre-ref is not a failure this screen reports/,
+      );
+      throws(hintScreen({ value: "Add them up.", "func-vlookup": "wrong lesson" }), /hints\.func-vlookup is not a failure/);
+    });
+
+    it("rejects a hint filed under require-ref by a screen that demands no reference", () => {
+      const { requireRef, ...screen } = screenFrom(V1);
+      throws(
+        v2({ screens: [{ ...screen, hints: { value: "Add them up.", "require-ref": "no rule to reach this" } }] }),
+        /hints\.require-ref is not a failure this screen reports/,
+      );
+    });
+
+    it("still demands the general hint and text under every key", () => {
+      throws(hintScreen({ syntax: "Start with =." }), /screens\[0\]\.hints\.value must be a non-empty string/);
+      throws(hintScreen({ value: "" }), /hints\.value must be a non-empty string/);
+      throws(hintScreen("Add them up."), /hints must be an object/);
+    });
+  });
+
+  describe("notes on one screen", () => {
+    const noteScreen = (docs) => v2({ screens: [screenFrom(V1, docs === undefined ? {} : { docs })] });
+    const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+
+    it("carries a screen's own syntax, explanation and formula", () => {
+      // A multi-screen lesson teaches a different function on each screen, so the screen says what
+      // that one is about and the lesson block stays the lesson's.
+      const docs = {
+        syntax: "=SUM(number1, [number2], …)",
+        explain: "Three cells in column B, summed. The ranges are absolute.",
+        reference: "=SUM(B2:B4)",
+      };
+      const lesson = normalizeLesson(noteScreen(docs), FILE);
+      assert.deepEqual(lesson.screens[0].docs, docs);
+      assert.equal(lesson.docs.reference, V1.docs.reference, "the lesson block was overwritten");
+    });
+
+    it("accepts a screen with one note and one with none at all", () => {
+      assert.deepEqual(normalizeLesson(noteScreen({ explain: "What this screen asks for." }), FILE).screens[0].docs, {
+        explain: "What this screen asks for.",
+      });
+      assert.equal(normalizeLesson(noteScreen(undefined), FILE).screens[0].docs, undefined);
+    });
+
+    it("rejects a note it cannot print", () => {
+      throws(noteScreen({}), /screens\[0\]\.docs needs at least one of syntax, explain, reference/);
+      throws(noteScreen({ note: "Anything else." }), /screens\[0\]\.docs\.note is not a screen note/);
+      throws(noteScreen({ reference: "SUM(B2:B4)" }), /screens\[0\]\.docs\.reference must be a formula starting with =/);
+      throws(noteScreen({ syntax: "=SUM(".repeat(40) }), /screens\[0\]\.docs\.syntax is \d+ characters, limit is 120/);
+      throws(noteScreen("=SUM(B2:B4)"), /screens\[0\]\.docs must be an object/);
+    });
+
+    it("is not read on a v1 lesson, whose docs block is the lesson's", () => {
+      // The flat drill *is* the screen, so its `docs` is the block `validateDocs` already read.
+      assert.equal(normalizeLesson(V1, FILE).screens[0].docs, undefined);
+    });
+  });
+
   describe("rejections", () => {
     const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
 

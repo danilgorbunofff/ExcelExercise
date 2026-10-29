@@ -180,11 +180,16 @@
       "requireRef": "A8",
       "rules": [],
       "hints": {
-        "syntax": "Start with = and close every bracket: =XLOOKUP(A7,A2:A6,B2:B6,,0,-1).",
+        "syntax": "Start with = and close every bracket: =XLOOKUP(A8,A2:A6,B2:B6,,0,-1).",
         "func-xlookup": "XLOOKUP takes six arguments here: the key, the keys, the prices, the text to show when nothing matches, the match mode, and the search direction.",
         "require-ref": "Point the first argument at the cell holding the SKU. Typing the SKU into the formula answers for one row and freezes the moment the cell changes.",
         "value": "That is the first entry for the SKU, not the latest one. Search mode 1 walks the keys from the top down, and the log appends, so the newest entry is the last match.",
         "error": "Read the code: #N/A means the key was not found in the range you searched, and #VALUE! means the key range and the price range are different sizes, so there is no row to pair with."
+      },
+      "docs": {
+        "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
+        "explain": "The same shape works a row lower: the target cell and the SKU cell move, the ranges do not. The sixth argument stays -1, so the search starts at the last row and walks up.",
+        "reference": "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1)"
       },
       "fixtures": {
         "accept": [

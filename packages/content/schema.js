@@ -37,6 +37,20 @@ const FORMULA_FIELDS = ["grid", "answerCell", "expect", "require", "forbid", "re
 const KEY_FIELDS = ["keys", "steps"];
 
 /**
+ * A formula screen may carry notes of its own — the syntax it is taught with, what it is for, and the
+ * one formula it works — because a multi-screen lesson teaches a different function on each screen.
+ * The lesson-level block cannot say that, and a screen that reuses the lesson's reference reads as the
+ * wrong drill. Lengths are the lesson block's own, so the two read at one rhythm.
+ */
+const SCREEN_DOCS = { syntax: 120, explain: 400, reference: 200 };
+
+/**
+ * How many misses on one screen open the reference answer. Three is what the copy was written around
+ * and what every track shipped so far behaves as, so the schema fills it in rather than the player.
+ */
+export const DEFAULT_SHOW_ANSWER_AFTER = 3;
+
+/**
  * Where a picture screen's image may live. The build copies `content/images/` flat onto
  * `/assets/img/`, so a path with a directory in it, or a URL, would render a broken image.
  */
@@ -134,7 +148,7 @@ function validateScreen(screen, label, where, version) {
   else if (screen.type === "workbook") validateWorkbookScreen(screen, label, where);
   else if (screen.type === "chord") validateChordScreen(screen, label, where);
   else if (screen.type === "sequence") validateSequenceScreen(screen, label, where);
-  else validateFormulaScreen(screen, label, where);
+  else validateFormulaScreen(screen, label, where, version);
 }
 
 /**
@@ -268,6 +282,56 @@ function validateWorkbookScreen(screen, label, where) {
 }
 
 /**
+ * A formula screen reports *which* rule failed, so its hints are filed under rule ids rather than
+ * under one `value` string: the three failures every screen can report, `require-ref` when it demands
+ * a reference, and each id its own `require`/`forbid`/`rules` declare (`func-sum`, `match-type`, …).
+ * A hint under any other key is a string the player would never print — the author thinks the learner
+ * is being taught and the screen stays silent — so it is a build failure.
+ */
+function checkFormulaHints(screen, label, where) {
+  if (screen.hints === undefined) return;
+  if (!isPlainObject(screen.hints)) failAt(where, `${label}hints must be an object`);
+  const known = new Set(["error", "value", "syntax"]);
+  if (screen.requireRef !== undefined) known.add("require-ref");
+  for (const field of ["require", "forbid", "rules"]) {
+    for (const rule of screen[field] ?? []) if (rule?.id !== undefined) known.add(rule.id);
+  }
+  const wrong = Object.keys(screen.hints).filter((key) => !known.has(key));
+  if (wrong.length > 0) {
+    failAt(
+      where,
+      `${label}hints.${wrong[0]} is not a failure this screen reports — it can report ${[...known].sort().join(", ")}`,
+    );
+  }
+  for (const [key, text] of Object.entries(screen.hints)) {
+    requireText(text, `${label}hints.${key}`, where, { max: 300 });
+  }
+  requireText(screen.hints.value, `${label}hints.value`, where, { max: 300 });
+}
+
+/**
+ * The notes a formula screen may carry beyond the lesson's own docs. A v1 lesson is one flat object,
+ * so the `docs` it carries is the lesson's and is validated as such — only a v2 screen has notes of
+ * its own.
+ */
+function checkScreenDocs(screen, label, where, version) {
+  const docs = version === SCHEMA_VERSION ? screen.docs : undefined;
+  if (docs === undefined) return;
+  if (!isPlainObject(docs)) failAt(where, `${label}docs must be an object`);
+  const keys = Object.keys(docs);
+  if (keys.length === 0) failAt(where, `${label}docs needs at least one of ${Object.keys(SCREEN_DOCS).join(", ")}`);
+  for (const key of keys) {
+    if (SCREEN_DOCS[key] === undefined) {
+      failAt(where, `${label}docs.${key} is not a screen note — use ${Object.keys(SCREEN_DOCS).join(", ")}`);
+    }
+    const text = requireText(docs[key], `${label}docs.${key}`, where, { max: SCREEN_DOCS[key] });
+    if (key === "reference" && !text.startsWith("=")) {
+      failAt(where, `${label}docs.reference must be a formula starting with =`);
+    }
+  }
+}
+
+/**
  * A screen graded by a list rather than by rules — a picture's accepted answers, a chord's accepted
  * key combinations — is right or wrong. "value" is the only failure it can report, so a hint filed
  * under any other rule id would never be shown.
@@ -358,7 +422,7 @@ function validateSequenceScreen(screen, label, where) {
 }
 
 /** The drill the site has always had: a grid, a target cell, rules, and formulas to grade. */
-function validateFormulaScreen(screen, label, where) {
+function validateFormulaScreen(screen, label, where, version) {
   for (const field of PICTURE_FIELDS) {
     if (screen[field] !== undefined) {
       failAt(where, `${label}${field} belongs to a picture screen — a formula screen is graded by its grid`);
@@ -441,6 +505,11 @@ function validateFormulaScreen(screen, label, where) {
     }
   });
 
+  // The hint keys are checked against the rules this screen actually declares, and the screen's own
+  // notes against the three a panel can print, so a typo in either is a build failure here.
+  checkFormulaHints(screen, label, where);
+  checkScreenDocs(screen, label, where, version);
+
   // The authoring gate wants 6 + 6; the loader only needs to know that a fixture is a formula. A
   // rejection may also be written `{ formula, rule, why }` — the gate reads `rule` to catch a fixture
   // filed under a rule the grader disagrees with, and the two shapes are otherwise one list.
@@ -507,12 +576,16 @@ function validateDocs(docs, where, { reference }) {
 }
 
 /** The fields a screen owns, in the order a payload or a diff reads best. */
-function pickScreen(screen, id, type) {
+function pickScreen(screen, id, type, version) {
   const common = {
     id,
     type,
     prompt: screen.prompt.trim(),
     hints: screen.hints ?? {},
+    // Carried as written when the screen has one: the page prints it, the player never grades from
+    // it, and a screen with nothing of its own to say renders no box. A v1 lesson's `docs` is the
+    // lesson's own block, so it is not copied down here.
+    ...(version !== SCHEMA_VERSION || screen.docs === undefined ? {} : { docs: screen.docs }),
   };
 
   if (type === "picture" || type === "workbook") {
@@ -588,7 +661,7 @@ export function normalizeLesson(raw, file) {
   if (version === 1) {
     // v1: the lesson is the screen. The label prefix stays empty so every existing message is unchanged.
     validateScreen(raw, "", where, 1);
-    screens = [pickScreen(raw, "formula-1", "formula")];
+    screens = [pickScreen(raw, "formula-1", "formula", 1)];
   } else {
     for (const field of SCREEN_FIELDS) {
       if (raw[field] === undefined) continue;
@@ -608,7 +681,7 @@ export function normalizeLesson(raw, file) {
         failAt(where, `${label}type ${JSON.stringify(screen.type)} is not one of ${SCREEN_TYPES.join(", ")}`);
       }
       validateScreen(screen, label, where, 2);
-      return pickScreen(screen, screenId, screen.type);
+      return pickScreen(screen, screenId, screen.type, SCHEMA_VERSION);
     });
     // The reveal has to show *this* screen's answer; with one screen the lesson reference is that
     // answer, so only a multi-screen lesson has to repeat itself per screen.
@@ -727,5 +800,13 @@ export function normalizeTrack(raw, file) {
     }
   }
 
-  return { id, title, promise, freeLessonCount: raw.freeLessonCount, groups, lessons };
+  // How many misses on one screen open the reference answer. Optional, so a track file written before
+  // the player could read it still loads, and bounded, so no track can set a number the page's copy
+  // ("Attempt 1 of 3") could not describe.
+  const showAnswerAfter = raw.showAnswerAfter ?? DEFAULT_SHOW_ANSWER_AFTER;
+  if (!Number.isInteger(showAnswerAfter) || showAnswerAfter < 1 || showAnswerAfter > 10) {
+    failAt(where, `showAnswerAfter must be an integer from 1 to 10 (got ${JSON.stringify(raw.showAnswerAfter)})`);
+  }
+
+  return { id, title, promise, freeLessonCount: raw.freeLessonCount, showAnswerAfter, groups, lessons };
 }

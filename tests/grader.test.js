@@ -484,6 +484,24 @@ describe("buildCells and grade", () => {
     assert.equal(result.hint, "Add FALSE (or 0) as the 4th argument.");
   });
 
+  it("files a hint under the rule that failed, then its alias, then the general line", async () => {
+    const { grade } = await import("../packages/grader/index.js");
+    const neverTouches = { ...lesson, require: [], rules: [] };
+    assert.equal(grade(neverTouches, "=54000").rule, "require-ref");
+    assert.equal(grade(neverTouches, "=54000").hint, "Check which column you returned.");
+    const withRef = { ...neverTouches, hints: { ...lesson.hints, "require-ref": "Point at A2." } };
+    assert.equal(grade(withRef, "=54000").hint, "Point at A2.");
+    const withAlias = { ...neverTouches, hints: { ...lesson.hints, requireRef: "Point at A2." } };
+    assert.equal(grade(withAlias, "=54000").hint, "Point at A2.");
+  });
+
+  it("answers a parse failure with the syntax line and an Excel error with the error line", async () => {
+    const { grade } = await import("../packages/grader/index.js");
+    const hints = { syntax: "Close every bracket.", error: "Read the code in the cell.", value: "Read the sheet again." };
+    assert.equal(grade({ ...lesson, hints }, "=VLOOKUP(A2,A2:C6,3").hint, "Close every bracket.");
+    assert.equal(grade({ ...lesson, hints }, "=VLOOKUP(K9,A2:C6,3,FALSE)").hint, "Read the code in the cell.");
+  });
+
   it("rejects TRUE as the 4th argument", async () => {
     const { grade } = await import("../packages/grader/index.js");
     assert.equal(grade(lesson, '=VLOOKUP("E-104",A2:C6,3,TRUE)').rule, "exact-match");

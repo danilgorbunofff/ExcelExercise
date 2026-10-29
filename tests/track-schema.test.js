@@ -97,6 +97,23 @@ describe("track schema", () => {
     fails(track({ freeLessonCount: 0 }), /freeLessonCount must be at least 1/);
   });
 
+  it("reads how many misses open the answer, and defaults it to three", () => {
+    assert.equal(normalizeTrack(TRACK, "track.json").showAnswerAfter, 3);
+    assert.equal(normalizeTrack(track({ showAnswerAfter: 5 }), "track.json").showAnswerAfter, 5);
+    // A track file written before the player could read the field still loads, at the number the
+    // page's copy was written around.
+    const { showAnswerAfter, ...legacy } = TRACK;
+    assert.equal(normalizeTrack(legacy, "track.json").showAnswerAfter, 3);
+  });
+
+  it("refuses a reveal threshold the player could not honour", () => {
+    // Zero would open the answer before the first attempt, and the page counts down in prose.
+    fails(track({ showAnswerAfter: 0 }), /showAnswerAfter must be an integer from 1 to 10/);
+    fails(track({ showAnswerAfter: 2.5 }), /showAnswerAfter must be an integer from 1 to 10/);
+    fails(track({ showAnswerAfter: "3" }), /showAnswerAfter must be an integer from 1 to 10/);
+    fails(track({ showAnswerAfter: 11 }), /showAnswerAfter must be an integer from 1 to 10/);
+  });
+
   it("takes an intro as paragraphs and rejects a wall of text", () => {
     const intro = "Adding things up. ".repeat(120);
     fails(

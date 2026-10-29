@@ -174,7 +174,7 @@ up, and the verdict counts did not move at all:
 | 3 | `732.3` | `built 27 pages (739.4 kB of HTML+CSS)` | `npm run next:build` |
 | 5 | `817` | `839 checks` | `node legacy/src/verify.mjs` |
 | 6 | `48` (45 + 3) | `52 passed` (49 + 3) | `npx playwright test` |
-| 9 (CI) | reproduced the old set | CI has not yet run a commit containing the workbook screen; the local measure is `645` / `pass 645`, `21 screens`, `839 checks`, `52 passed`, `739.4 kB` | GitHub Actions |
+| 9 (CI) | reproduced the old set | `645` / `pass 645`, `21 screens`, `839 checks`, `52 passed (16.3s)`, `739.4 kB` — every pinned number, on Linux | GitHub Actions, [run 40946517759](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40946517759) |
 
 `content: 16 of 88 … 21 screens, 268 fixtures replayed` and `111 accepted and 157 rejected` are
 unchanged: the three new screens ship keys and answers, not fixtures, so the fixture floor per lesson
@@ -189,6 +189,15 @@ exactly — `tests 645` / `suites 104` / `pass 645` / `fail 0`; `content: 16 of 
 (739.4 kB of HTML+CSS)`; `next routes: 27 prerendered pages match the shared templates`;
 `verified … 839 checks passed`; `52 passed`; `vendor: 25 files match manifest.json` — so
 row 9's gap is closed for this content too, and the byte total is platform-independent.
+
+The workbook screen has since run on CI as well, again green on the first attempt:
+[run 40946517759](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40946517759) (`main`) and
+[run 40946517458](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40946517458)
+(`phase-0-port-shell`). It reproduced `tests 645` / `suites 104` / `pass 645` / `fail 0`;
+`content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed`;
+`111 accepted and 157 rejected`; `built 27 pages (739.4 kB of HTML+CSS)`;
+`next routes: 27 prerendered pages match the shared templates`; `verified … 839 checks passed`;
+`52 passed (16.3s)`; `vendor: 25 files match manifest.json`.
 The per-route JS/CSS byte rows in the baseline below were measured on `30629e8` and are due a
 re-measure; only the build total (which the build prints) has been updated.
 

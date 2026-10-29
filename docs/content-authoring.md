@@ -226,10 +226,12 @@ everything a formula bar can settle; a picture covers what an eyeball has to.
   answer from this text alone, so it names the columns, the rows, the values that matter, and what is
   wrong in the picture. 240 characters is the limit, not the target.
 - **`answers`** are the accepted spellings of one fact, best first — the first one is what the reveal
-  prints. Grading folds case, whitespace and `$`, so `B2:B6` and `$b$2:$b$6` are the same answer and
-  the gate rejects a second spelling that folds to the first. Each is at most 80 characters.
+  prints. Grading folds case, whitespace, `$` and a leading `=`, so `B2:B6`, `$b$2:$b$6` and
+  `=B2:B6` are the same answer and the gate rejects a second spelling that folds to the first. Each is
+  at most 80 characters.
 - **`hints`** takes `value` only. There is no formula to debrief, so `syntax`, `error` and the rule keys
-  do not apply.
+  do not apply. Write it even though the schema allows omitting it: a screen without one answers a miss
+  with nothing, and the gate warns to that effect.
 - **No formula fields, and not by omission.** `grid`, `answerCell`, `expect`, `require`, `forbid`,
   `requireRef`, `rules`, `fixtures` and `reference` are all rejected on a picture screen: a leftover
   `grid` would render a sheet over the image, and a leftover `reference` would print a formula where the

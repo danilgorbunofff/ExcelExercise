@@ -49,9 +49,11 @@ Items 3–5, 7, 10, 12 are untouched, and the clock is read but not enforced.
       when its shape is known from two implementations rather than guessed from none.
 - [x] **6. Picture screen.** Image, prompt, one bar, accepted answers from content. First-party SVG at
       `legacy/content/images/xlookup-third-argument.svg`, copied by the build to `assets/img/`. Graded by
-      `gradeAnswer` (`packages/grader/answers.js`): case, spacing and `$` folded, the first answer is the
-      reference, and a miss never echoes it. The bar renders with no target chip and `aria-label="Your
-      answer"`, and the note under the sheet says "the bar" instead of naming a cell. **Zoom is
+      `gradeAnswer` (`packages/grader/answers.js`): case, spacing, `$` and a leading `=` folded, the first
+      answer is the reference, and a miss never echoes it. The bar renders with no target chip and
+      `aria-label="Your answer"`, and the note under the sheet says "the bar" instead of naming a cell.
+      A picture screen without `hints.value` warns in the gate, matching the formula path's per-rule
+      hint warning. **Zoom is
       deferred** — the plan asked for it, but the pilot image is a 640 px vector that is legible at 100 %
       on a 375 px viewport, so a zoom control would be a button with nothing to reveal until a raster
       screenshot forces one. The `alt` text is required and carries the whole image, so the screen is

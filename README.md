@@ -24,7 +24,7 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 441 tests, no build step
+npm test                # 443 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
 npm run build           # writes legacy/dist — 17 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
@@ -40,7 +40,7 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 441 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, styles, vendor pins, template fragments, build verification | 443 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
 | `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 17 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
@@ -201,7 +201,7 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **441 passing**, 0 failing — 96 grader, 77 fixtures, 47 content-lint, 44 build/server, 43 client, 27 schema, 26 session, 20 content, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
+| `npm test` | **443 passing**, 0 failing — 97 grader, 77 fixtures, 48 content-lint, 44 build/server, 43 client, 27 schema, 26 session, 20 content, 17 styles, 13 track schema, 13 verify, 8 vendor, 4 metadata routes, 2 fragments, 2 golden, 2 site paths |
 | `npm run build` | 17 pages, 534.2 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 4 session modules, 2 client modules |
 | `node legacy/src/verify.mjs` | **594 checks passed** across 16 lesson pages + the index |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |

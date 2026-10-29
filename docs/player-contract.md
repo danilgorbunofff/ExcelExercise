@@ -60,10 +60,11 @@ than ignoring them — and instead carries:
 | `answers` | the accepted spellings, first one being the reference answer (≤80 chars each, unique after normalisation) |
 | `hints` | `{ value }` only: there is no formula to debrief |
 
-Grading a picture screen is a lookup, not an evaluation: `gradeAnswer` folds case and spacing and drops
-`$`, so `$B$2:$B$6` and `b2:b6` are the same answer. A miss never echoes the expected spelling. The page
-still renders a formula bar for it — no target chip, `aria-label="Your answer"`, and the note under the
-sheet says "the bar" where a formula screen names a cell.
+Grading a picture screen is a lookup, not an evaluation: `gradeAnswer` folds case and spacing, drops
+`$` and a leading `=`, so `=$B$2:$B$6` and `b2:b6` are the same answer. A miss never echoes the expected
+spelling, and a screen with no `hints.value` draws a lint warning, since that miss would teach nothing.
+The page still renders a formula bar for it — no target chip, `aria-label="Your answer"`, and the note
+under the sheet says "the bar" where a formula screen names a cell.
 
 A lesson carries one or more screens: `legacy/content/exercises/16-xlookup-search-from-the-bottom.json`
 is the first with three, the third being a `picture`. The other three types are phase-2 work; see

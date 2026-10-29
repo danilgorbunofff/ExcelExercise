@@ -16,6 +16,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
+import { gzipSync } from "node:zlib";
 
 import { siteConfig } from "./site/config.mjs";
 import { loadContent } from "./site/content.mjs";
@@ -244,6 +245,21 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     for (const [, url] of html.matchAll(/(?:href|src)="(\/assets\/[^"]+)"/g)) {
       ok(existsSync(join(distDir, url.slice(1))), `learn/index.html asset ${url}`, "is referenced but not on disk");
     }
+
+    // First paint has to fit in a second on a throttled connection, and nothing stands between the HTML
+    // and the page: the counts are filled in after it renders, so the only thing that can grow the wait
+    // is the bytes themselves. Slow 3G is about 50 kB/s, so the page plus the one stylesheet it loads
+    // get half of that second — 25 kB gzipped — and the budget is 40 kB, enough slack for round trips
+    // without letting a regression hide behind it.
+    const firstPaint = ["learn/index.html", "assets/styles.css"].reduce(
+      (total, file) => total + gzipSync(readFileSync(join(distDir, file))).length,
+      0,
+    );
+    ok(
+      firstPaint < 40_000,
+      "learn/index.html first paint",
+      `costs ${firstPaint} B gzipped, over the 40 kB a throttled second affords`,
+    );
   }
 
   // --- group pages ------------------------------------------------------------------

@@ -119,6 +119,27 @@ test("resetting asks twice and then forgets everything", async ({ page }) => {
   expect(stored.done).toEqual({});
 });
 
+test("a browser that refuses storage is told so, not shown zero", async ({ page }) => {
+  // The failure mode this closes: a learner in a locked-down browser sees "0 of 16" and is told they
+  // have done nothing, when the truth is that the page cannot read what they did.
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      get() {
+        throw new DOMException("storage is blocked", "SecurityError");
+      },
+    });
+  });
+  await page.goto("/learn");
+
+  await expect(page.locator("#dash-note")).toHaveText(
+    "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.",
+  );
+  await expect(page.locator(".lesson-row")).toHaveCount(LESSONS);
+  // Nothing to erase, and offering to erase it would be a lie too.
+  await expect(page.locator("#dash-reset-section")).toBeHidden();
+});
+
 test("the dashboard stays out of the sitemap and out of the index", async ({ request }) => {
   const sitemap = await (await request.get("/sitemap.xml")).text();
   expect(sitemap).not.toContain("/learn</loc>");

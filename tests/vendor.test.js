@@ -11,10 +11,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, it } from "node:test";
 
-import { checkVendor, listVendorFiles, sha256 } from "../src/vendor-check.mjs";
+import { checkVendor, listVendorFiles, sha256 } from "../legacy/src/vendor-check.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const VENDOR = join(ROOT, "vendor");
+const VENDOR = join(ROOT, "legacy", "vendor");
 
 const copies = [];
 function copyVendor() {

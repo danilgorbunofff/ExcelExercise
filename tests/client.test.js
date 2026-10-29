@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
-import { grade } from "../src/grader/index.js";
+import { grade } from "../packages/grader/index.js";
 
 import {
   PROGRESS_KEY,
@@ -34,7 +34,7 @@ import {
   trialActive,
   trialDaysLeft,
   validEmail,
-} from "../src/client/state.js";
+} from "../legacy/src/client/state.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DAY = 24 * 60 * 60 * 1000;
@@ -168,7 +168,7 @@ describe("formula input", () => {
   });
 
   it("lines the caret up with the character the real grader blames", () => {
-    const exercise = JSON.parse(readFileSync(join(ROOT, "content/exercises/01-sum-basics.json"), "utf8"));
+    const exercise = JSON.parse(readFileSync(join(ROOT, "legacy/content/exercises/01-sum-basics.json"), "utf8"));
     const cases = [
       ["=SUM(B2:B4))", 11], // the surplus ")"
       ["=SUM(", 1], // the function name that never closes
@@ -250,8 +250,8 @@ function stripComments(text) {
 }
 
 describe("drill.js source", () => {
-  const source = readFileSync(join(ROOT, "src/client/drill.js"), "utf8");
-  const stateSource = readFileSync(join(ROOT, "src/client/state.js"), "utf8");
+  const source = readFileSync(join(ROOT, "legacy/src/client/drill.js"), "utf8");
+  const stateSource = readFileSync(join(ROOT, "legacy/src/client/state.js"), "utf8");
   const code = stripComments(source);
   const stateCode = stripComments(stateSource);
 

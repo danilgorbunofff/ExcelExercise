@@ -1,0 +1,16 @@
+/* Order is the contract, and it is the same order legacy/src/build.mjs concatenates: raw Radix
+ * scales, then Open Props, then our semantic tokens, then base, then components. */
+@import "../legacy/vendor/radix/amber-dark.css";
+@import "../legacy/vendor/radix/amber.css";
+@import "../legacy/vendor/radix/jade-dark.css";
+@import "../legacy/vendor/radix/jade.css";
+@import "../legacy/vendor/radix/red-dark.css";
+@import "../legacy/vendor/radix/red.css";
+@import "../legacy/vendor/radix/sand-dark.css";
+@import "../legacy/vendor/radix/sand.css";
+@import "../legacy/vendor/open-props/easings.min.css";
+@import "../legacy/vendor/open-props/shadows.min.css";
+@import "../legacy/vendor/open-props/sizes.min.css";
+@import "../legacy/src/styles/tokens.css";
+@import "../legacy/src/styles/base.css";
+@import "../legacy/src/styles/components.css";

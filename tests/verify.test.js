@@ -5,8 +5,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, before, describe, it } from "node:test";
 
-import { build } from "../src/build.mjs";
-import { verify } from "../src/verify.mjs";
+import { build } from "../legacy/src/build.mjs";
+import { verify } from "../legacy/src/verify.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ENV = { SITE_URL: "https://drills.example", SITE_BUILT_AT: "2026-10-28" };
@@ -46,9 +46,9 @@ describe("verify", () => {
     assert.ok(result.checks > 100, `expected a thorough check, got ${result.checks}`);
   });
 
-  it("counts every lesson page in the track", () => {
-    const track = JSON.parse(readFileSync(join(ROOT, "content/track.json"), "utf8"));
-    assert.equal(result.pages, track.lessons.length);
+  it("counts every authored lesson page in the catalog", () => {
+    const track = JSON.parse(readFileSync(join(ROOT, "legacy/content/track.json"), "utf8"));
+    assert.equal(result.pages, track.lessons.filter((lesson) => lesson.id).length);
   });
 
   it("fails loudly when there is no build to read", () => {

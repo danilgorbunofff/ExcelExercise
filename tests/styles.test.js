@@ -11,13 +11,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
-import { buildStyles, readIcons } from "../src/site/assets.mjs";
-import { siteConfig } from "../src/site/config.mjs";
-import { loadContent } from "../src/site/content.mjs";
-import { renderExercisePage } from "../src/site/exercise-page.mjs";
-import { renderIndexPage } from "../src/site/index-page.mjs";
+import { buildStyles, readIcons } from "../legacy/src/site/assets.mjs";
+import { siteConfig } from "../legacy/src/site/config.mjs";
+import { loadContent } from "../legacy/src/site/content.mjs";
+import { renderExercisePage } from "../legacy/src/site/exercise-page.mjs";
+import { renderIndexPage } from "../legacy/src/site/index-page.mjs";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "legacy");
 const STYLES = join(ROOT, "src/styles");
 const file = (name) => readFileSync(join(STYLES, name), "utf8");
 
@@ -211,6 +211,18 @@ describe("class coverage", () => {
     ];
     const missing = clientOnly.filter((name) => !cssClasses.has(name));
     assert.deepEqual(missing, [], `client classes with no rule: ${missing.join(", ")}`);
+  });
+
+  it("styles every class the Next.js error boundary renders", () => {
+    // `app/error.js` cannot reuse the server fragments, so it writes its own chrome: prove it only
+    // reaches for classes that exist, or the boundary would look broken exactly when it is needed.
+    const source = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "app/error.js"), "utf8");
+    const rendered = [...source.matchAll(/className="([^"]*)"/g)].flatMap((match) =>
+      match[1].split(/\s+/).filter(Boolean),
+    );
+    assert.ok(rendered.length >= 6, "the error boundary no longer renders its own chrome");
+    const missing = [...new Set(rendered)].filter((name) => !cssClasses.has(name)).sort();
+    assert.deepEqual(missing, [], `error boundary classes with no rule: ${missing.join(", ")}`);
   });
 
   it("loads vendor palette, then tokens, then base, then components", () => {

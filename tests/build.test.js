@@ -6,22 +6,22 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, before, describe, it } from "node:test";
 
-import { assertSelfContained, build, removeDotFiles } from "../src/build.mjs";
-import { createStaticServer, resolvePath, startServer } from "../src/serve.mjs";
-import { buildStyles, readIcons } from "../src/site/assets.mjs";
-import { siteConfig } from "../src/site/config.mjs";
-import { loadContent } from "../src/site/content.mjs";
-import { renderIndexPage } from "../src/site/index-page.mjs";
-import { esc } from "../src/site/html.mjs";
+import { assertSelfContained, build, removeDotFiles } from "../legacy/src/build.mjs";
+import { createStaticServer, resolvePath, startServer } from "../legacy/src/serve.mjs";
+import { buildStyles, readIcons } from "../legacy/src/site/assets.mjs";
+import { siteConfig } from "../legacy/src/site/config.mjs";
+import { loadContent } from "../legacy/src/site/content.mjs";
+import { renderIndexPage } from "../legacy/src/site/index-page.mjs";
+import { esc } from "../legacy/src/site/html.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const ENV = { SITE_URL: "https://drills.example", SITE_BUILT_AT: "2026-10-28" };
 const BASE = ENV.SITE_URL;
 
-const track = readJson(join(ROOT, "content/track.json"));
-const lessonFiles = readdirSync(join(ROOT, "content/exercises")).filter((name) => name.endsWith(".json")).sort();
-const lessons = lessonFiles.map((name) => readJson(join(ROOT, "content/exercises", name)));
+const track = readJson(join(ROOT, "legacy/content/track.json"));
+const lessonFiles = readdirSync(join(ROOT, "legacy/content/exercises")).filter((name) => name.endsWith(".json")).sort();
+const lessons = lessonFiles.map((name) => readJson(join(ROOT, "legacy/content/exercises", name)));
 
 const htmlFiles = (dir) => {
   const out = [];
@@ -337,14 +337,26 @@ describe("the self-contained page gate", () => {
 });
 
 describe("build validation", () => {
-  const exercise = readJson(join(ROOT, "content/exercises/01-sum-basics.json"));
+  const exercise = readJson(join(ROOT, "legacy/content/exercises/01-sum-basics.json"));
+
+  /** A one-lesson catalog: real groups, only the lesson under test, opened up. */
+  function only(copy, { extraLessons = [], ...overrides } = {}) {
+    const group = track.lessons.find((lesson) => lesson.id === copy.id).group;
+    return {
+      ...track,
+      groups: track.groups.filter((entry) => entry.id === group),
+      lessons: [{ id: copy.id, group }, ...extraLessons],
+      freeLessonCount: 1,
+      ...overrides,
+    };
+  }
 
   function withContent(mutate) {
     const dir = mkdtempSync(join(tmpdir(), "es-content-"));
     mkdirSync(join(dir, "exercises"), { recursive: true });
     const copy = structuredClone(exercise);
     const { track: customTrack, exercises } = mutate(copy) ?? {};
-    writeFileSync(join(dir, "track.json"), JSON.stringify(customTrack ?? { ...track, lessons: [copy.id], freeLessonCount: 1 }));
+    writeFileSync(join(dir, "track.json"), JSON.stringify(customTrack ?? only(copy)));
     const list = exercises ?? [copy];
     for (const item of list) writeFileSync(join(dir, "exercises", `${item.id}.json`), JSON.stringify(item));
     return dir;
@@ -385,12 +397,50 @@ describe("build validation", () => {
   });
 
   it("fails loudly when the track points at a lesson that does not exist", () => {
-    fails(() => ({ track: { ...track, lessons: [exercise.id, "11-missing"], freeLessonCount: 1 } }), /"11-missing".*does not exist/);
+    fails(
+      (copy) => ({ track: only(copy, { extraLessons: [{ id: "11-missing", group: "sum" }] }) }),
+      /"11-missing".*does not exist/,
+    );
   });
 
   it("fails loudly when a lesson is not in the track", () => {
-    const other = readJson(join(ROOT, "content/exercises/02-average-scores.json"));
+    const other = readJson(join(ROOT, "legacy/content/exercises/02-average-scores.json"));
     fails((copy) => ({ exercises: [copy, structuredClone(other)] }), /content\/exercises\/02-average-scores\.json: is not listed in track.json/);
+  });
+
+  // Published numbering, prev/next and the paywall are all positions in this array, so the catalog —
+  // not the filename — has to decide the order. The shipped corpus cannot prove it: there, catalog
+  // order and filename order are the same list.
+  it("numbers lessons in catalog order, not filename order", () => {
+    const first = structuredClone(exercise);
+    const second = readJson(join(ROOT, "legacy/content/exercises/02-average-scores.json"));
+    const dir = mkdtempSync(join(tmpdir(), "es-order-"));
+    try {
+      mkdirSync(join(dir, "exercises"), { recursive: true });
+      for (const lesson of [second, first]) {
+        writeFileSync(join(dir, "exercises", `${lesson.id}.json`), JSON.stringify(lesson));
+      }
+      writeFileSync(
+        join(dir, "track.json"),
+        JSON.stringify({
+          ...track,
+          groups: track.groups.filter((group) => ["sum", "statistical"].includes(group.id)),
+          lessons: [
+            { id: second.id, group: "statistical" },
+            { id: first.id, group: "sum" },
+          ],
+          freeLessonCount: 1,
+        }),
+      );
+
+      const { index } = loadContent(dir);
+      assert.deepEqual(index.map((entry) => entry.exercise.id), [second.id, first.id]);
+      assert.equal(index[0].slug, second.slug);
+      assert.ok(index[0].free && !index[1].free, "the free drill is the first one in the catalog");
+      assert.equal(index[0].nextPath, `/excel/${first.slug}`);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("fails loudly when the answer cell is outside the grid", () => {
@@ -418,7 +468,7 @@ describe("build validation", () => {
   });
 
   it("fails loudly when nothing is free", () => {
-    fails((copy) => ({ track: { ...track, lessons: [copy.id], freeLessonCount: 0 } }), /freeLessonCount must be at least 1/);
+    fails((copy) => ({ track: only(copy, { freeLessonCount: 0 }) }), /freeLessonCount must be at least 1/);
   });
 
   it("fails loudly on an impossible build date", () => {
@@ -453,12 +503,12 @@ describe("build validation", () => {
   });
 
   it("does not promise a trial when the whole track is open", () => {
-    const { track: realTrack, index } = loadContent(join(ROOT, "content"));
+    const { track: realTrack, index } = loadContent(join(ROOT, "legacy/content"));
     const html = renderIndexPage({
       config: siteConfig(ENV),
       track: { ...realTrack, freeLessonCount: index.length },
       index,
-      icons: readIcons(join(ROOT, "vendor/icons")),
+      icons: readIcons(join(ROOT, "legacy/vendor/icons")),
     });
     assert.match(html, new RegExp(`All ${index.length} drills are open`));
     assert.ok(!html.includes("free trial"), "no lesson is gated, so the page must not mention a trial");
@@ -476,10 +526,15 @@ describe("build validation", () => {
   it("runs the CLI through a symlinked path instead of silently doing nothing", () => {
     // node resolves symlinks in import.meta.url but not in argv[1]; macOS /tmp and
     // /var are symlinks, so the old guard made `node /tmp/x/src/build.mjs` a no-op.
-    const real = mkdtempSync(join(tmpdir(), "es-cli-"));
-    const link = `${real}-link`;
+    const container = mkdtempSync(join(tmpdir(), "es-cli-"));
+    const real = join(container, "legacy");
+    const link = `${container}-link`;
     try {
-      for (const dir of ["content", "vendor", "src"]) cpSync(join(ROOT, dir), join(real, dir), { recursive: true });
+      for (const dir of ["content", "vendor", "src"]) cpSync(join(ROOT, "legacy", dir), join(real, dir), { recursive: true });
+      // The build reads the packages from ../packages/, so the copy needs both as siblings.
+      for (const name of ["grader", "content"]) {
+        cpSync(join(ROOT, "packages", name), join(container, "packages", name), { recursive: true });
+      }
       try {
         symlinkSync(real, link, "dir");
       } catch {
@@ -494,12 +549,30 @@ describe("build validation", () => {
       assert.match(result.stderr, /build failed: SITE_URL/);
     } finally {
       rmSync(link, { recursive: true, force: true });
-      rmSync(real, { recursive: true, force: true });
+      rmSync(container, { recursive: true, force: true });
+    }
+  });
+
+  it("names the missing packages when legacy/ is copied without packages/", () => {
+    // The build reads the grader and the content loader from ../packages/. Without the guard this died
+    // inside the module graph with a bare ERR_MODULE_NOT_FOUND for a path the author never typed.
+    const container = mkdtempSync(join(tmpdir(), "es-cli-alone-"));
+    try {
+      for (const dir of ["content", "vendor", "src"]) cpSync(join(ROOT, "legacy", dir), join(container, dir), { recursive: true });
+      const result = spawnSync(process.execPath, ["src/build.mjs"], {
+        cwd: container,
+        env: { ...process.env, SITE_URL: BASE },
+        encoding: "utf8",
+      });
+      assert.equal(result.status, 1, "a legacy-only copy must fail, not build a broken site");
+      assert.match(result.stderr, /packages\/ is missing/);
+    } finally {
+      rmSync(container, { recursive: true, force: true });
     }
   });
 
   it("exits non-zero with a message when the CLI cannot build", () => {
-    const result = spawnSync(process.execPath, ["src/build.mjs"], {
+    const result = spawnSync(process.execPath, ["legacy/src/build.mjs"], {
       cwd: ROOT,
       env: { ...process.env, SITE_URL: "not a url" },
       encoding: "utf8",

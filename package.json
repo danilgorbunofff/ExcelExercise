@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Excel Supreme \u2014 zero-signup, in-browser Excel practice drills with deterministic grading",
+  "description": "Excel Supreme — zero-signup, in-browser Excel practice drills with deterministic grading",
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
     "golden:update": "node tests/golden/update.mjs",
@@ -33,6 +33,7 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@playwright/test": "1.64.1"
   }
 }

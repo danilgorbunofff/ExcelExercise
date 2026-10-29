@@ -166,3 +166,41 @@ test("progress survives a reload on the same device", async ({ page }) => {
   await expect(page.locator(".rail-item[data-lesson='01-sum-basics']")).toHaveClass(/is-done/);
   await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
 });
+
+test("arrow keys move the selection and stop at the edge of the block", async ({ page }) => {
+  await openDrill(page, "sum-basics");
+  const cell = (key) => page.locator(`.cell[data-cell='${key}']`);
+  const selected = (key) => expect(cell(key)).toHaveAttribute("aria-selected", "true");
+  /** Press a key on the cell that holds the selection, the way a learner's focus does. */
+  const press = async (key, on) => {
+    await cell(on).press(key);
+    return page.locator(".cell[aria-selected='true']").getAttribute("data-cell");
+  };
+
+  await cell("B2").click();
+  await selected("B2");
+
+  // Movement comes from the sheet model, so it walks the cells the page drew, not the DOM order.
+  expect(await press("ArrowRight", "B2")).toBe("C2");
+  expect(await press("ArrowDown", "C2")).toBe("C3");
+  expect(await press("ArrowLeft", "C3")).toBe("B3");
+  expect(await press("ArrowUp", "B3")).toBe("B2");
+
+  // The block is A1:C5, so the selection stops at each edge instead of wrapping to the far side.
+  expect(await press("ArrowUp", "B2")).toBe("B1");
+  expect(await press("ArrowUp", "B1")).toBe("B1");
+  expect(await press("ArrowLeft", "B1")).toBe("A1");
+  expect(await press("ArrowLeft", "A1")).toBe("A1");
+  expect(await press("End", "A1")).toBe("C1");
+  expect(await press("Home", "C1")).toBe("A1");
+  for (let step = 0; step < 4; step += 1) await press("ArrowDown", "A1");
+  expect(await press("ArrowDown", "A5")).toBe("A5");
+
+  // A key that is not navigation is not swallowed, and selecting the answer cell hands the bar back.
+  expect(await press("Enter", "A5")).toBe("A5");
+  await expect(page.locator("#formula")).toBeDisabled();
+  expect(await press("ArrowRight", "A5")).toBe("B5");
+  await expect(page.locator("#formula")).toBeEnabled();
+  await check(page, "=SUM(B2:B4)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+});

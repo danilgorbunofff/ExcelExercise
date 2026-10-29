@@ -8,6 +8,7 @@
 
 import { grade, gradeAnswer } from "../grader/index.js";
 import { chordText, labelsOf, matchesEvent, matchesTyped, matchesTypedSteps, parseChord, parsePress, uncapturable } from "../keys/index.js";
+import { MOVE_KEYS, gridModel, moveSelection } from "../sheet/index.js";
 import {
   createClock,
   createSession,
@@ -273,6 +274,9 @@ function mountDrill(payloadNode) {
   let cells = [];
   let byKey = new Map();
   let targetCell = null;
+  // The sheet the active screen renders, as data: what `onGridKey` moves across. Null on a screen
+  // with no grid, which has nothing to select.
+  let model = null;
 
   // Answered once, at mount: a page that cannot see a key press cannot offer the keyboard at all,
   // and the shortcut screens say so instead of waiting for presses that never arrive.
@@ -387,40 +391,14 @@ function mountDrill(payloadNode) {
     }
   }
 
-  function neighbouringKey(key, deltaCol, deltaRow) {
-    const cell = byKey.get(key);
-    if (!cell) return null;
-    const row = cells.filter((node) => node.closest("tr") === cell.closest("tr"));
-    const column = cells.filter((node) => node.cellIndex === cell.cellIndex);
-    const rowIndex = row.indexOf(cell);
-    const columnIndex = column.indexOf(cell);
-    if (deltaCol) {
-      const next = rowIndex + deltaCol;
-      if (next < 0 || next >= row.length) return null;
-      return row[next].dataset.cell;
-    }
-    const next = columnIndex + deltaRow;
-    if (next < 0 || next >= column.length) return null;
-    return column[next].dataset.cell;
-  }
-
+  /**
+   * Movement is decided by the sheet model, not by the DOM: the addresses an arrow can reach are the
+   * ones the page rendered, so a preview table or a stray `[data-cell]` cannot become selectable.
+   */
   function onGridKey(event) {
-    const key = event.key;
-    let nextKey = null;
-    if (key === "ArrowLeft") nextKey = neighbouringKey(selected, -1, 0);
-    else if (key === "ArrowRight") nextKey = neighbouringKey(selected, 1, 0);
-    else if (key === "ArrowUp") nextKey = neighbouringKey(selected, 0, -1);
-    else if (key === "ArrowDown") nextKey = neighbouringKey(selected, 0, 1);
-    else if (key === "Home") {
-      const cell = byKey.get(selected);
-      const row = cells.filter((node) => node.closest("tr") === cell.closest("tr"));
-      nextKey = row[0].dataset.cell;
-    } else if (key === "End") {
-      const cell = byKey.get(selected);
-      const row = cells.filter((node) => node.closest("tr") === cell.closest("tr"));
-      nextKey = row.at(-1).dataset.cell;
-    } else return;
+    if (!MOVE_KEYS.has(event.key)) return;
     event.preventDefault();
+    const nextKey = model ? moveSelection(selected, event.key, { model }) : null;
     if (nextKey) selectCell(nextKey, { focus: true });
   }
 
@@ -504,6 +482,7 @@ function mountDrill(payloadNode) {
     cells = [...(activeGrid()?.querySelectorAll("[role=gridcell]") ?? [])];
     byKey = new Map(cells.map((cell) => [cell.dataset.cell, cell]));
     targetCell = byKey.get(screen.answerCell) ?? null;
+    model = screen.grid ? gridModel({ grid: screen.grid, answerCell: screen.answerCell }) : null;
 
     draft = "";
     screenMisses = 0;

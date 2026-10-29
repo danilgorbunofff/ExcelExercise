@@ -408,6 +408,75 @@
   background: var(--surface);
 }
 
+/* ── Workbook ──────────────────────────────────────────────────────────── */
+
+/*
+ * A workbook screen ships a real file. The link is the part a learner takes away with them, so it is a
+ * button-shaped anchor, and the preview under it holds the same rows the file does — the screen has to
+ * be answerable without a download, or the drill would grade a file the page never showed.
+ */
+.workbook-body {
+  padding: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.workbook-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin: 0 0 var(--s-3);
+}
+
+.workbook-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.workbook-link:hover {
+  border-color: var(--line-strong);
+  background: var(--surface-sunk);
+}
+
+.workbook-ext {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.workbook-meta {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.workbook-preview > summary {
+  padding: var(--s-2) 0;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  cursor: pointer;
+}
+
+.workbook-preview[open] > summary {
+  margin-bottom: var(--s-2);
+}
+
+/* The preview is data, not a drill: it scrolls like the sheet, and no cell is ever a target. */
+.workbook-scroll {
+  max-height: 40vh;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface);
+  scrollbar-width: thin;
+}
+
 /* ── Keys ──────────────────────────────────────────────────────────────── */
 
 /*

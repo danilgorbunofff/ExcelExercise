@@ -7,7 +7,16 @@
 import { esc, inlineIcon, jsonScript } from "./html.mjs";
 import { revealOf, screenAt } from "./packages.mjs";
 import { renderByline, renderDocument, renderRail } from "./shell.mjs";
-import { renderDocs, renderFeedback, renderFormulaBar, renderHint, renderKeys, renderPicture, renderSheet } from "./sheet.mjs";
+import {
+  renderDocs,
+  renderFeedback,
+  renderFormulaBar,
+  renderHint,
+  renderKeys,
+  renderPicture,
+  renderSheet,
+  renderWorkbook,
+} from "./sheet.mjs";
 
 /** One screen's share of the payload: exactly what the client grades and teaches with. */
 function screenPayload(exercise, screen, position) {
@@ -22,6 +31,12 @@ function screenPayload(exercise, screen, position) {
 
   if (screen.type === "picture") {
     return { ...common, image: screen.image, alt: screen.alt, answers: screen.answers, expect: screen.expect };
+  }
+
+  if (screen.type === "workbook") {
+    // The rows stay on the page: the learner reads the sheet in the preview or in the file, and the
+    // client only ever grades the answers.
+    return { ...common, answers: screen.answers, expect: screen.expect };
   }
 
   if (screen.type === "chord" || screen.type === "sequence") {
@@ -106,10 +121,19 @@ function renderScreens(exercise, { icons }) {
       const body =
         screen.type === "picture"
           ? renderPicture(screen, { position })
-          : screen.type === "chord" || screen.type === "sequence"
-            ? renderKeys(screen, { position })
-            : renderSheet(exercise, screen, { icons, id: `sheet-grid-${position}` });
-      const shell = screen.type === "picture" ? "picture-body" : screen.type === "formula" ? "sheet" : "keys-body";
+          : screen.type === "workbook"
+            ? renderWorkbook(exercise, screen, { position })
+            : screen.type === "chord" || screen.type === "sequence"
+              ? renderKeys(screen, { position })
+              : renderSheet(exercise, screen, { icons, id: `sheet-grid-${position}` });
+      const shell =
+        screen.type === "picture"
+          ? "picture-body"
+          : screen.type === "workbook"
+            ? "workbook-body"
+            : screen.type === "formula"
+              ? "sheet"
+              : "keys-body";
       return `
               <div data-screen="${position + 1}"${position === 0 ? "" : " hidden"}>
                 <p class="task">${esc(screen.prompt)}</p>
@@ -124,14 +148,14 @@ function renderScreens(exercise, { icons }) {
 
 /**
  * The line under the sheet's name: what the screen is, and where its answer goes. A formula screen
- * owns a cell, a picture screen answers in words, and a shortcut screen in keys — with the bar kept
- * for the learner who would rather type the shortcut than press it.
+ * owns a cell, a picture or workbook screen answers in words, and a shortcut screen in keys — with the
+ * bar kept for the learner who would rather type the shortcut than press it.
  */
 function answerNote(screen, count) {
   const position = count > 1 ? `<span id="screen-position">screen 1 of ${count} · </span>` : "";
   const target = `<code id="screen-answer-cell">${esc(screen.answerCell ?? "the bar")}</code>`;
   if (screen.type === "formula") return `Read-only data · ${position}answer in ${target}`;
-  if (screen.type === "picture") return `${position}answer in ${target}`;
+  if (screen.type === "picture" || screen.type === "workbook") return `${position}answer in ${target}`;
   return `${position}answer with <code id="screen-answer-cell">the keys</code>, or type it in the bar`;
 }
 

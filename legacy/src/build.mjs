@@ -20,6 +20,7 @@ import { loadContent } from "./site/content.mjs";
 import { renderExercisePage } from "./site/exercise-page.mjs";
 import { renderIndexPage } from "./site/index-page.mjs";
 import { renderDashboardPage } from "./site/dashboard-page.mjs";
+import { spreadsheet, workbookName } from "./xlsx.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -170,6 +171,25 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     throw new Error(`${imagesSource} exists but holds no .svg or .png — a picture screen would render broken`);
   }
 
+  // Workbook screens ship a real .xlsx at /assets/files/<name>. The writer is deterministic, so the
+  // same content always produces the same bytes and a download cannot drift between builds.
+  const workbooks = new Map();
+  for (const exercise of exercises) {
+    for (const screen of exercise.screens) {
+      if (screen.type !== "workbook") continue;
+      const name = workbookName(exercise.slug, screen.id);
+      if (workbooks.has(name)) {
+        throw new Error(`${name} is written twice — a lesson reuses a workbook screen id, so one file would win`);
+      }
+      workbooks.set(name, screen);
+    }
+  }
+  let files = 0;
+  for (const [name, screen] of workbooks) {
+    writeFile(join(dist, "assets/files", name), spreadsheet(screen.sheet));
+    files += 1;
+  }
+
   // macOS drops .DS_Store into a freshly created directory; never ship it.
   removeDotFiles(dist);
 
@@ -189,6 +209,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     keys,
     client,
     images,
+    files,
     bytes,
     warnings,
   };
@@ -199,7 +220,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     console.log(`  styles: ${summary.cssSources.length} sources concatenated`);
     console.log(
       `  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${progress} progress modules, ` +
-        `${keys} keyboard modules, ${client} client modules, ${images} images`,
+        `${keys} keyboard modules, ${client} client modules, ${images} images, ${files} workbooks`,
     );
     for (const warning of warnings) console.warn(`  warning: ${warning}`);
   }

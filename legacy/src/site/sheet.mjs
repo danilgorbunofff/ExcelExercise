@@ -7,6 +7,7 @@
 
 import { addressOf, chordText, indexToCol, labelsOf, parseChord, parsePress, parseRef, referenceOf } from "./packages.mjs";
 import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
+import { workbookUrl } from "../xlsx.mjs";
 
 function splitCell(address) {
   const parsed = parseRef(address);
@@ -15,12 +16,13 @@ function splitCell(address) {
 }
 
 /**
- * The sheet: column letters, row numbers, read-only data, one target cell. `id` is per screen,
- * because a lesson may show several sheets and two elements cannot share an id.
+ * The grid itself, shared by the drill and the workbook preview. `targetCell` is the cell the learner
+ * fills in: a drill has one, a preview has none, and a preview's cells are all read-only data.
+ * `interactive` decides the ARIA shape: a drill is a `grid` the client selects cells in, a preview is
+ * a plain table, so the drill's delegated handlers cannot mistake one of its cells for an answer cell.
  */
-export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } = {}) {
-  const start = splitCell(screen.grid.startCell);
-  const rows = screen.grid.rows;
+function renderDataGrid({ id, label, startCell, rows, targetCell = null, interactive = true }) {
+  const start = splitCell(startCell);
   const width = rows[0].length;
 
   const columnHeaders = Array.from({ length: width }, (_, offset) => {
@@ -32,7 +34,7 @@ export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } 
     const rowNumber = start.row + rowOffset;
     const cells = row.map((value, colOffset) => {
       const address = addressOf(start.colIndex + colOffset, rowNumber);
-      if (address === screen.answerCell) {
+      if (targetCell !== null && address === targetCell) {
         return `<td${attrs({
           class: "cell cell-target",
           role: "gridcell",
@@ -44,9 +46,12 @@ export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } 
         })}></td>`;
       }
       const numeric = typeof value === "number" ? " num" : "";
-      return `<td${attrs({ class: `cell${numeric}`, role: "gridcell", "data-cell": address, "data-kind": "data" })}>${esc(
-        formatCell(value),
-      )}</td>`;
+      return `<td${attrs({
+        class: `cell${numeric}`,
+        role: interactive ? "gridcell" : undefined,
+        "data-cell": address,
+        "data-kind": "data",
+      })}>${esc(formatCell(value))}</td>`;
     });
     return `<tr role="row"><th scope="row" role="rowheader" class="row-head">${rowNumber}</th>${cells.join("")}</tr>`;
   });
@@ -54,8 +59,8 @@ export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } 
   return `<table${attrs({
     id,
     class: "sheet-grid",
-    role: "grid",
-    "aria-label": `${exercise.docs.dataset}, read-only data`,
+    role: interactive ? "grid" : undefined,
+    "aria-label": label,
     "aria-rowcount": rows.length + 1,
     // The row-header column is a real column on screen, so it counts here too.
     "aria-colcount": width + 1,
@@ -67,6 +72,20 @@ export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } 
             ${body.join("\n            ")}
           </tbody>
         </table>`;
+}
+
+/**
+ * The sheet: column letters, row numbers, read-only data, one target cell. `id` is per screen,
+ * because a lesson may show several sheets and two elements cannot share an id.
+ */
+export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } = {}) {
+  return renderDataGrid({
+    id,
+    label: `${exercise.docs.dataset}, read-only data`,
+    startCell: screen.grid.startCell,
+    rows: screen.grid.rows,
+    targetCell: screen.answerCell,
+  });
 }
 
 /**
@@ -88,6 +107,33 @@ export function renderPicture(screen, { position = 0 } = {}) {
                     decoding: "async",
                   })}>
                 </figure>`;
+}
+
+/**
+ * A workbook screen: a real spreadsheet the lesson ships, plus a preview built from the same rows so
+ * the question can be answered without Excel. The preview is open by default — the drill has to be
+ * fair without a download — and collapses, so a big sheet does not push the docs off the page.
+ */
+export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
+  const url = workbookUrl(exercise.slug, screen.id);
+  const preview = renderDataGrid({
+    id: `workbook-grid-${position}`,
+    label: `${screen.sheet.name}, preview of the workbook`,
+    startCell: screen.sheet.startCell,
+    rows: screen.sheet.rows,
+    interactive: false,
+  });
+
+  return `<div class="workbook" id="workbook-${position}">
+                  <p class="workbook-file">
+                    <a class="workbook-link" href="${esc(url)}" download>Download the workbook<span class="workbook-ext"> (.xlsx)</span></a>
+                    <span class="workbook-meta">It opens in Excel, Sheets or LibreOffice.</span>
+                  </p>
+                  <details class="workbook-preview" open>
+                    <summary>Preview the sheet</summary>
+                    <div class="workbook-scroll">${preview}</div>
+                  </details>
+                </div>`;
 }
 
 /**
@@ -145,13 +191,14 @@ export function renderKeys(screen, { position = 0 } = {}) {
  * the client toggles it per screen, and removing it would shift the bar on every switch.
  */
 export function renderFormulaBar(screen, { icons = {} } = {}) {
-  // Only a formula screen answers in a cell; a picture screen answers in words and a shortcut screen
-  // in keys. The chip keeps its place in the DOM on all three and goes dark, because the client
-  // toggles it per screen and removing it would shift the bar on every switch.
+  // Only a formula screen answers in a cell; a picture or workbook screen answers in words and a
+  // shortcut screen in keys. The chip keeps its place in the DOM on all four and goes dark, because
+  // the client toggles it per screen and removing it would shift the bar on every switch.
   const hasCell = screen.type === "formula";
-  const typed = screen.type === "picture" ? "Type your answer" : "Type the shortcut";
+  const words = screen.type === "picture" || screen.type === "workbook";
+  const typed = words ? "Type your answer" : "Type the shortcut";
   const label =
-    screen.type === "picture"
+    words
       ? "Your answer"
       : hasCell
         ? `Your formula for ${screen.answerCell}`

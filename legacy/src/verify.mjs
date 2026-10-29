@@ -22,6 +22,7 @@ import { loadContent } from "./site/content.mjs";
 import { esc } from "./site/html.mjs";
 import { referenceOf, revealOf, screenAt } from "./site/packages.mjs";
 import { imageUrl } from "./site/sheet.mjs";
+import { workbookName } from "./xlsx.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -109,6 +110,10 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
             ok(sent?.answerCell === undefined, `${where}.answerCell`, "is set on a picture screen");
             ok(sent?.image === s.image, `${where}.image`, "does not match the exercise");
             ok(typeof sent?.alt === "string" && sent.alt.length > 0, `${where}.alt`, "is empty");
+          } else if (type === "workbook") {
+            ok(isDeepStrictEqual(sent?.answers, s.answers), `${where}.answers`, "does not match the exercise");
+            ok(sent?.answerCell === undefined, `${where}.answerCell`, "is set on a workbook screen");
+            ok(sent?.sheet === undefined, `${where}.sheet`, "ships the sheet to the client");
           } else {
             ok(sent?.answerCell === s.answerCell, `${where}.answerCell`, `is "${sent?.answerCell}"`);
           }
@@ -159,6 +164,24 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
       has(html, `class="picture-img" src="${imageUrl(s.image)}"`, `${where} image`);
       has(html, `alt="${esc(s.alt)}"`, `${where} image alt`);
       has(html, `id="picture-${position}"`, `${where} figure`);
+    }
+
+    // A workbook screen is a real download: the link, then the file, then the ZIP magic that proves
+    // it is a spreadsheet and not an empty placeholder the learner cannot open.
+    for (const [position, s] of exercise.screens.entries()) {
+      if (s.type !== "workbook") continue;
+      const where = `${label} screen ${position + 1}`;
+      const name = workbookName(entry.slug, s.id);
+      has(html, `href="/assets/files/${name}"`, `${where} workbook link`);
+      has(html, `id="workbook-${position}"`, `${where} workbook block`);
+      const file = join(distDir, "assets/files", name);
+      if (ok(existsSync(file), `${where} workbook ${name}`, "is linked but not on disk")) {
+        ok(
+          readFileSync(file).subarray(0, 4).equals(Buffer.from("PK\x03\x04")),
+          `${where} workbook ${name}`,
+          "is not a ZIP",
+        );
+      }
     }
 
     // Every asset the page asks for must exist; a rename would otherwise 404 in silence.

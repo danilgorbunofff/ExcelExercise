@@ -37,6 +37,14 @@ const CHORD = {
   hints: { value: "Filters sit in the Data tab's ribbon group." },
 };
 
+const PASTE = {
+  ...CHORD,
+  id: "chord-paste",
+  prompt: "Paste over the selection without retyping it.",
+  keys: ["ctrl+shift+v"],
+  hints: { value: "Shift is what makes a paste keep the values and not the formatting." },
+};
+
 const SEQUENCE = {
   id: "sequence-format",
   type: "sequence",
@@ -71,7 +79,7 @@ function fiveTypeLesson() {
   return {
     ...raw,
     title: "Every kind of screen in one lesson",
-    screens: [first, CHORD, second, SEQUENCE, picture, WORKBOOK, { ...CHORD, id: "chord-paste", keys: ["ctrl+shift+v"], prompt: "Paste as values." }],
+    screens: [first, CHORD, second, SEQUENCE, picture, WORKBOOK, PASTE],
   };
 }
 

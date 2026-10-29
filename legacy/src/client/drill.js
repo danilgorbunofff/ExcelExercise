@@ -427,6 +427,10 @@ function mountDrill(payloadNode) {
       const link = el("a", { class: "next-cta", href: next.path }, [document.createTextNode(next.label)]);
       link.append(el("svg", { class: "icon", width: "14", height: "14", "aria-hidden": "true" }));
       ui.feedback.append(link);
+      // The drill is over, so this is the only way forward. Handing it the focus saves a keyboard
+      // user tabbing past the bar and the hint row to find it, and the verdict is still announced
+      // by the live region above.
+      link.focus({ preventScroll: true });
     }
     keepVerdictInView();
   }

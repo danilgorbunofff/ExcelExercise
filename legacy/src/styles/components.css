@@ -814,6 +814,8 @@
   flex: none;
 }
 
+/* Deliberately under 44 px: it sits inside the bar's own height, and WCAG's AA target size asks for
+   24 px, which 32 clears with room to spare. */
 .btn-check {
   align-self: center;
   margin: 0 var(--s-1) 0 var(--s-2);
@@ -940,9 +942,12 @@
   padding: 0 var(--s-4) var(--s-3);
 }
 
+/* An underlined word is still a pointer target, so it gets the 44 px a thumb needs even though
+   nothing is drawn around it. */
 .link-btn {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: var(--s-1);
   padding: 0;
   border: 0;

@@ -61,6 +61,18 @@ const SEQUENCE = {
   hints: { value: "Alt puts the focus on the ribbon, then the tab, then the command." },
 };
 
+/** A screen answered from a spreadsheet the lesson ships, with no formula, keys or image of its own. */
+const WORKBOOK = {
+  id: "book-a",
+  type: "workbook",
+  prompt: "Open the workbook. What does C4 total?",
+  answers: ["7.5"],
+  hints: { value: "C4 multiplies the units in column B by the price in C2." },
+  sheet: { name: "Orders", startCell: "A1", rows: [["Item", "Units"], ["Widget", 3]] },
+};
+
+const workbook = (overrides = {}) => ({ ...WORKBOOK, ...overrides });
+
 /** A lesson with no formula screen names a shortcut where a formula lesson names its formula. */
 const SHORTCUT_DOCS = { ...V1.docs, reference: "Mod+Shift+Plus" };
 
@@ -344,6 +356,20 @@ describe("lesson schema v2", () => {
       assert.equal(lesson.docs.reference, "Mod+Shift+Plus");
     });
 
+    it("leaves the reference unconstrained on a lesson of workbooks alone", () => {
+      // A workbook lesson works no formula and presses no keys, so its docs reference is prose the
+      // page prints as-is: demanding a formula there would be a rule the page never renders.
+      const docs = { ...V1.docs, reference: "Sheet1, A2:A4" };
+      const screen = {
+        id: "book-a",
+        type: "workbook",
+        prompt: "Open the workbook and total A2:A4.",
+        answers: ["41"],
+        sheet: { name: "Sheet1", startCell: "A1", rows: [["Item"], ["Total"]] },
+      };
+      assert.equal(normalizeLesson(v2({ docs, screens: [screen] }), FILE).docs.reference, "Sheet1, A2:A4");
+    });
+
     it("rejects a reference that is neither, and still demands = when a formula screen exists", () => {
       const shortcutDocs = { ...V1.docs, reference: "NotAKey" };
       assert.throws(
@@ -396,10 +422,30 @@ describe("lesson schema v2", () => {
       throws(v2({ screens: [screenFrom(V1, { type: "video" })] }), /screens\[0\]\.type "video" is not one of/);
     });
 
-    it("rejects a known type that cannot be graded yet", () => {
+    it("rejects a workbook screen that ships no sheet", () => {
+      // Nothing else about the screen is wrong, so the message has to name the missing sheet.
+      const screen = { id: "book-a", type: "workbook", prompt: "Open the workbook and total A2:A4.", answers: ["41"] };
+      throws(v2({ screens: [screen] }), /screens\[0\]\.sheet must be an object with a name, a startCell and rows/);
+    });
+
+    it("rejects a sheet on a screen that cannot render it", () => {
+      // The sheet would ship as a file while the formula screen dropped it, so this fails at the type
+      // boundary instead of leaving an author wondering where their workbook went.
+      const sheet = { name: "Sheet1", startCell: "A1", rows: [["Item"]] };
+      throws(v2({ screens: [screenFrom(V1, { sheet })] }), /screens\[0\]\.sheet belongs to a workbook screen/);
+    });
+
+    it("rejects a workbook screen that reveals a formula", () => {
       throws(
-        v2({ screens: [screenFrom(V1, { type: "workbook" })] }),
-        /type "workbook" does not render yet — only formula, chord, sequence, picture screens can be graded today/,
+        v2({ screens: [workbook({ reference: "=SUM(B2:B4)" })] }),
+        /screens\[0\]\.reference is a formula screen's reveal/,
+      );
+    });
+
+    it("rejects a sheet whose rows are not the same width", () => {
+      throws(
+        v2({ screens: [workbook({ sheet: { name: "Sheet1", startCell: "A1", rows: [["Item", "Units"], ["Total"]] } })] }),
+        /screens\[0\]\.sheet\.rows\[1\] has 1 cells, expected 2/,
       );
     });
 

@@ -379,6 +379,72 @@ describe("content-lint: picture screens", () => {
   });
 });
 
+describe("content-lint: workbook screens", () => {
+  const LESSON = "01-sum-basics";
+  const sheet = {
+    name: "Orders",
+    startCell: "A1",
+    rows: [
+      ["Item", "Units"],
+      ["Widget", 3],
+    ],
+  };
+
+  /** Rewrites the whole lesson as workbooks, which is the shape a lesson with no formula screen takes. */
+  const allWorkbooks = (content, edit = (screen) => screen) => {
+    const path = lessonPath(content, LESSON);
+    const lesson = readJson(path);
+    writeJson(path, {
+      ...lesson,
+      screens: lesson.screens.map((screen, index) =>
+        edit(
+          {
+            id: `book-${index + 1}`,
+            type: "workbook",
+            prompt: screen.prompt,
+            answers: ["7.5"],
+            hints: { value: "C4 multiplies the units in column B by the price in C2." },
+            sheet,
+          },
+          index,
+        ),
+      ),
+    });
+  };
+
+  it("passes a lesson of workbooks and leaves the reference unconstrained", () => {
+    const { report } = sandbox(({ content }) => allWorkbooks(content));
+    assert.deepEqual(messages(report), []);
+  });
+
+  it("fails an answer too short to be the whole fact", () => {
+    const { report } = sandbox(({ content }) => {
+      allWorkbooks(content, (screen) => ({ ...screen, answers: ["7.5", "C"] }));
+    });
+    assert.match(messages(report).join("\n"), /answers\[1\] "C" is too short/);
+  });
+
+  it("fails an answer list that grades guesses rather than one fact", () => {
+    const { report } = sandbox(({ content }) => {
+      const answers = ["7.5", "7.50", "15", "15.0", "7", "8", "9"];
+      allWorkbooks(content, (screen) => ({ ...screen, answers }));
+    });
+    assert.match(messages(report).join("\n"), /answers lists 7 spellings/);
+  });
+
+  it("warns when a miss would leave the learner with no guidance", () => {
+    const { report } = sandbox(({ content }) => {
+      allWorkbooks(content, ({ hints, ...screen }) => screen);
+    });
+    assert.deepEqual(report.errors, []);
+    assert.equal(report.warnings.length, 1);
+    assert.match(
+      report.warnings[0].message,
+      /hints\.value is missing, so a miss tells the learner nothing about where to look$/,
+    );
+  });
+});
+
 describe("content-lint: shortcut screens", () => {
   const SHORTCUT_LESSON = "16-xlookup-search-from-the-bottom";
 

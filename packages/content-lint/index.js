@@ -233,11 +233,10 @@ function checkReferences(lesson, { file, report }) {
     }
   });
   // The docs example is a formula, so it is compared against the first formula screen — the one the
-  // docs block is built from — no matter where a shortcut or picture screen sits in the lesson.
+  // docs block is built from — no matter where a shortcut, picture or workbook screen sits in the
+  // lesson. A lesson with no formula screen has no worked example to contradict, so nothing to check.
   const first = lesson.screens.findIndex((screen) => screen.type === "formula");
-  if (lesson.screens.length > 1 && first === -1) {
-    report.error(file, "has no formula screen — the lesson's docs.reference would never be shown");
-  } else if (lesson.screens.length > 1) {
+  if (lesson.screens.length > 1 && first !== -1) {
     const reference = lesson.screens[first].reference;
     if (reference !== lesson.docs.reference) {
       report.error(
@@ -271,6 +270,26 @@ function checkPicture(screen, { label, where, report, contentDir }) {
   }
   // Formula screens warn per rejected fixture when a rule ships no hint; a picture screen has no
   // fixtures to replay, so the same dead end is only visible here.
+  if (typeof screen.hints?.value !== "string" || screen.hints.value.trim() === "") {
+    report.warning(where, `${label}hints.value is missing, so a miss tells the learner nothing about where to look`);
+  }
+}
+
+/**
+ * A workbook screen ships a real .xlsx plus the rows to preview it, so the file and the preview cannot
+ * drift — the build writes both from the same `sheet`. What content can still get wrong is an answer
+ * list that grades a guess instead of one fact, and a hint that leaves a miss with nothing to learn.
+ */
+function checkWorkbook(screen, { label, where, report }) {
+  if (screen.answers.length > MAX_ANSWERS) {
+    report.error(where, `${label}answers lists ${screen.answers.length} spellings — beyond ${MAX_ANSWERS} grading stops being one fact`);
+  }
+  for (const [index, answer] of screen.answers.entries()) {
+    if (normaliseAnswer(answer).length < 2) {
+      report.error(where, `${label}answers[${index}] "${answer}" is too short to be a specific answer`);
+    }
+  }
+  // A workbook screen has no fixtures to replay, so a missing hint is only visible here.
   if (typeof screen.hints?.value !== "string" || screen.hints.value.trim() === "") {
     report.warning(where, `${label}hints.value is missing, so a miss tells the learner nothing about where to look`);
   }
@@ -378,10 +397,11 @@ export function lintContent(contentDir, { fixturesDir } = {}) {
       const label = lesson.screens.length > 1 ? `screens[${index}].` : "";
 
       if (screen.type !== "formula") {
-        // No fixtures, no rules, no reference: a picture screen is graded by its answer list and a
-        // shortcut screen by the keys it lists, so the fixture checks below would each be a false
-        // alarm. The prompt and link checks still apply to every screen.
+        // No fixtures, no rules, no reference: a picture or workbook screen is graded by its answer
+        // list and a shortcut screen by the keys it lists, so the fixture checks below would each be a
+        // false alarm. The prompt and link checks still apply to every screen.
         if (screen.type === "picture") checkPicture(screen, { label, where: file, report, contentDir });
+        else if (screen.type === "workbook") checkWorkbook(screen, { label, where: file, report });
         else checkKeys(screen, { label, where: file, report });
         checkPrompt(screen, { label, where: file, report, seenPrompts });
         checkLinks({ prompt: screen.prompt, hints: screen.hints }, "screen", { label, where: file, report, routes });

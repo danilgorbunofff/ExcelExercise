@@ -1,7 +1,8 @@
 /**
  * Grading a screen whose answer is typed text rather than a formula. A picture screen shows the
- * learner a sheet and asks what it says, so the accepted answers are a list of spellings of one
- * fact and grading is a lookup, not an evaluation.
+ * learner a sheet and asks what it says; a workbook screen hands them a file and asks what one of its
+ * cells holds. Either way the accepted answers are a list of spellings of one fact, so grading is a
+ * lookup, not an evaluation.
  *
  * The normaliser is exported because the content gate has to agree with the grader: without it two
  * accepted answers could normalise to the same string and a lesson would grade differently than it
@@ -41,7 +42,8 @@ export function gradeAnswer(screen, raw) {
   return {
     ok: false,
     rule: "value",
-    message: "That is not what the image shows.",
+    message:
+      screen?.type === "workbook" ? "That is not what the cell holds." : "That is not what the image shows.",
     hint: screen?.hints?.value ?? "",
     // Nothing echoes the expected answer: a wrong attempt must not print the answer it wants.
     value: said,

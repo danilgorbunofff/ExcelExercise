@@ -18,15 +18,17 @@ export const LEVELS = { 1: "Beginner", 2: "Intermediate", 3: "Advanced" };
 
 export const SCHEMA_VERSION = 2;
 
-/** Every screen type the plan defines. Only these can be graded today; phase 2 adds the rest. */
+/** Every screen type the plan defines, and every one of them renders and grades. */
 export const SCREEN_TYPES = ["formula", "chord", "sequence", "picture", "workbook"];
-const IMPLEMENTED = new Set(["formula", "chord", "sequence", "picture"]);
 
 /** The grader applies these and silently skips anything else, so the loader must reject the rest. */
 const RULE_TYPES = new Set(["matchType"]);
 
 /** A picture screen is read, not typed into: the image is the data and `answers` is the grading. */
 const PICTURE_FIELDS = ["image", "alt", "answers"];
+
+/** The one field only a workbook screen renders: the spreadsheet it hands the learner to open. */
+const WORKBOOK_ONLY_FIELDS = ["sheet"];
 
 /** The inverse: fields a picture screen has no use for, and a formula screen's grader cannot read. */
 const FORMULA_FIELDS = ["grid", "answerCell", "expect", "require", "forbid", "requireRef", "rules", "fixtures"];
@@ -41,7 +43,25 @@ const KEY_FIELDS = ["keys", "steps"];
 const IMAGE_PATH = /^images\/[a-z0-9]+(-[a-z0-9]+)*\.(svg|png)$/;
 
 /** The fields a screen owns. v2 files may not also carry them at the top level — see `normalizeLesson`. */
-const SCREEN_FIELDS = ["prompt", "grid", "answerCell", "expect", "require", "forbid", "requireRef", "rules", "hints", "fixtures"];
+const SCREEN_FIELDS = [
+  "prompt",
+  "grid",
+  "answerCell",
+  "expect",
+  "require",
+  "forbid",
+  "requireRef",
+  "rules",
+  "hints",
+  "fixtures",
+  "image",
+  "alt",
+  "answers",
+  "keys",
+  "steps",
+  "reference",
+  "sheet",
+];
 
 /** v1 prompts are laid out for a 160-character line; v2 screens may run to the plan's 220. */
 const PROMPT_LIMIT = { 1: 160, 2: 220 };
@@ -101,7 +121,17 @@ function validateRules(rules, field, where, check) {
 /** Everything a screen needs before it can be rendered, graded and taught. */
 function validateScreen(screen, label, where, version) {
   requireText(screen.prompt, `${label}prompt`, where, { max: PROMPT_LIMIT[version] });
+  // Checked here rather than in each validator: every other type would render, drop the sheet and
+  // leave the author wondering why the file they wrote never shipped.
+  if (screen.type !== "workbook") {
+    for (const field of WORKBOOK_ONLY_FIELDS) {
+      if (screen[field] !== undefined) {
+        failAt(where, `${label}${field} belongs to a workbook screen — a ${screen.type ?? "formula"} screen is rendered from its own fields`);
+      }
+    }
+  }
   if (screen.type === "picture") validatePictureScreen(screen, label, where);
+  else if (screen.type === "workbook") validateWorkbookScreen(screen, label, where);
   else if (screen.type === "chord") validateChordScreen(screen, label, where);
   else if (screen.type === "sequence") validateSequenceScreen(screen, label, where);
   else validateFormulaScreen(screen, label, where);
@@ -139,8 +169,19 @@ function validatePictureScreen(screen, label, where) {
   if (!Array.isArray(screen.answers) || screen.answers.length === 0) {
     failAt(where, `${label}answers must be a non-empty array`);
   }
+  checkAnswers(screen.answers, label, where);
+
+  checkAnswerHints(screen, label, where, "picture screen");
+}
+
+/**
+ * The spellings of one answer, which a list-graded screen looks up rather than evaluates. Two
+ * spellings that normalise to the same string are one answer and one dead entry, so that is a
+ * failure here instead of a grade the learner can never earn twice.
+ */
+function checkAnswers(answers, label, where) {
   const seen = new Map();
-  screen.answers.forEach((answer, index) => {
+  answers.forEach((answer, index) => {
     const text = requireText(answer, `${label}answers[${index}]`, where, { max: 80 });
     const key = normaliseAnswer(text);
     const previous = seen.get(key);
@@ -149,8 +190,81 @@ function validatePictureScreen(screen, label, where) {
     }
     seen.set(key, index);
   });
+}
 
-  checkAnswerHints(screen, label, where, "picture screen");
+/**
+ * A workbook screen: a spreadsheet the lesson ships and a question about one of its cells. The
+ * learner opens the file — or reads the preview the page renders from the same rows — and answers in
+ * words, so `answers` is the whole grade exactly as it is for a picture screen.
+ */
+function validateWorkbookScreen(screen, label, where) {
+  for (const field of FORMULA_FIELDS) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a formula screen — a workbook screen is graded by its answers alone`);
+    }
+  }
+  for (const field of ["image", "alt"]) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a picture screen — a workbook screen ships a file`);
+    }
+  }
+  for (const field of KEY_FIELDS) {
+    if (screen[field] !== undefined) {
+      failAt(where, `${label}${field} belongs to a chord or sequence screen — a workbook screen is graded by its answers alone`);
+    }
+  }
+  if (screen.reference !== undefined) {
+    failAt(
+      where,
+      `${label}reference is a formula screen's reveal — a workbook screen reveals the first answer it accepts`,
+    );
+  }
+
+  const { sheet } = screen;
+  if (!sheet || typeof sheet !== "object" || Array.isArray(sheet)) {
+    failAt(where, `${label}sheet must be an object with a name, a startCell and rows`);
+  }
+  // Excel's own limit: a longer name is a file Excel offers to repair.
+  requireText(sheet.name, `${label}sheet.name`, where, { max: 31 });
+  const start = requireCell(sheet.startCell, `${label}sheet.startCell`, where);
+
+  if (!Array.isArray(sheet.rows) || sheet.rows.length === 0) {
+    failAt(where, `${label}sheet.rows must be a non-empty array`);
+  }
+  const width = Array.isArray(sheet.rows[0]) ? sheet.rows[0].length : 0;
+  if (width === 0) failAt(where, `${label}sheet.rows[0] must be a non-empty array`);
+  sheet.rows.forEach((row, rowIndex) => {
+    if (!Array.isArray(row)) failAt(where, `${label}sheet.rows[${rowIndex}] must be an array`);
+    if (row.length !== width) {
+      failAt(where, `${label}sheet.rows[${rowIndex}] has ${row.length} cells, expected ${width}`);
+    }
+    row.forEach((cell, colIndex) => {
+      if (cell === null) return;
+      if (typeof cell === "number") {
+        if (!Number.isFinite(cell)) failAt(where, `${label}sheet.rows[${rowIndex}][${colIndex}] is not a finite number`);
+        return;
+      }
+      if (typeof cell !== "string") {
+        failAt(
+          where,
+          `${label}sheet.rows[${rowIndex}][${colIndex}] must be text, a number or null for a blank cell`,
+        );
+      }
+    });
+  });
+  // Nothing else checks that the sheet stays inside the columns a spreadsheet has; a cell written
+  // past the last column would be addressed XFD+1 and the file would not open.
+  const lastCol = start.colIndex + width - 1;
+  if (lastCol > 16383) {
+    failAt(where, `${label}sheet.rows holds ${width} columns from ${sheet.startCell} — a sheet stops at XFD`);
+  }
+
+  if (!Array.isArray(screen.answers) || screen.answers.length === 0) {
+    failAt(where, `${label}answers must be a non-empty array`);
+  }
+  checkAnswers(screen.answers, label, where);
+
+  checkAnswerHints(screen, label, where, "workbook screen");
 }
 
 /**
@@ -352,17 +466,19 @@ function validateFormulaScreen(screen, label, where) {
  */
 function referenceKind(raw, version) {
   if (version === 1 || !Array.isArray(raw.screens)) return "formula";
-  // A type the player cannot grade is read as a formula screen: its own error is the one to report.
-  const types = raw.screens.map((screen) => (IMPLEMENTED.has(screen?.type) ? screen.type : "formula"));
+  // An unknown type is read as a formula screen: its own error is the one to report.
+  const types = raw.screens.map((screen) => (SCREEN_TYPES.includes(screen?.type) ? screen.type : "formula"));
   if (types.includes("formula")) return "formula";
-  return types.some((type) => type !== "picture") ? "shortcut" : "unconstrained";
+  // A shortcut lesson works no formula either, but its reference is the shortcut the player prints.
+  if (types.some((type) => type === "chord" || type === "sequence")) return "shortcut";
+  return "unconstrained";
 }
 
 /**
  * The docs block. Its "worked example" is the formula a lesson works, so `docs.reference` is one on
  * any lesson with a formula screen. A shortcuts lesson has no formula to work — its reference is the
- * shortcut itself — and a lesson of pictures alone works nothing, so its reference is unconstrained:
- * demanding a formula on either would be a fiction the page never renders.
+ * shortcut itself — and a lesson of pictures or workbooks alone works nothing, so its reference is
+ * unconstrained: demanding a formula on any of them would be a fiction the page never renders.
  */
 function validateDocs(docs, where, { reference }) {
   if (!docs || typeof docs !== "object") failAt(where, "docs is required");
@@ -399,17 +515,19 @@ function pickScreen(screen, id, type) {
     hints: screen.hints ?? {},
   };
 
-  if (type === "picture") {
+  if (type === "picture" || type === "workbook") {
     const answers = screen.answers.map((answer) => answer.trim());
-    return {
-      ...common,
-      image: screen.image.trim(),
-      alt: screen.alt.trim(),
+    const shared = {
       answers,
       // Every solved message and the reveal read `expect.value`, so the first accepted answer is
       // published there: one field means one shape for the player, whatever the screen type.
       expect: { value: answers[0] },
     };
+    // A workbook screen also carries the sheet it ships, because the file the build writes and the
+    // preview the page renders are both made from these rows.
+    return type === "picture"
+      ? { ...common, image: screen.image.trim(), alt: screen.alt.trim(), ...shared }
+      : { ...common, sheet: screen.sheet, ...shared };
   }
 
   if (type === "chord" || type === "sequence") {
@@ -488,9 +606,6 @@ export function normalizeLesson(raw, file) {
       seen.add(screenId);
       if (!SCREEN_TYPES.includes(screen.type)) {
         failAt(where, `${label}type ${JSON.stringify(screen.type)} is not one of ${SCREEN_TYPES.join(", ")}`);
-      }
-      if (!IMPLEMENTED.has(screen.type)) {
-        failAt(where, `${label}type "${screen.type}" does not render yet — only ${[...IMPLEMENTED].join(", ")} screens can be graded today`);
       }
       validateScreen(screen, label, where, 2);
       return pickScreen(screen, screenId, screen.type);

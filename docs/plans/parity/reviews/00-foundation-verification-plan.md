@@ -220,3 +220,19 @@ finds `#formula` visible with no `#paywall` in the DOM. It was mutation-checked 
 with `armReset` forced to `unlocked: false` it fails on `expect(stored.unlocked).toBe(true)`, so it
 proves the semantics rather than restating them. Only the browser count moved, `111` → `112`, here and
 in phase 3's row 2 (`18` → `19`); the rest of the chain was untouched in a full re-run.
+
+Two more rows came off the list without a new browser test, by proving the *manual* half was never a
+test. Phase 3 row 5 asked for a human in a private window; a probe in a fresh Playwright context (a
+private window by construction — no persisted profile, wiped on close) found `localStorage` working and
+`/learn` showing the ordinary note, so Chromium's private mode proves nothing about a *refusing* browser.
+The blocked-storage sentence is only reachable by making the probe throw, which both browser tests
+already do. Phase 5 row 16 was the opposite: it wanted a second click and nobody had given it one. On a
+build with the local Supabase project configured, a script drove a full ten-screen daily run through the
+UI and clicked *Lock in* twice on the last screen inside one `Promise.all`; the network log shows
+`answer posts: 10 unique screens: 10`, `duplicate screen posts: 0`, and a repeated `answer` POST with a
+different value returned the identical `{"answered":10,"correct":4,"accuracy":0.4,"ms":7680}`. Neither
+row needed code. What is left open is blocked on things this machine does not have: a deploy provider
+(phase 0 row 10), a person reading lessons against Excel (phase 1 row 7), three operating systems and
+real keyboards (phase 2 row 5), Excel itself (phase 2 row 6), Stripe keys (phase 4 rows 12–15), and a
+k6 script over a 10k board (phase 5 row 14).
+

@@ -328,6 +328,14 @@ an attempt.
 `{ title, level, group }`; authoring it replaces that with `{ id, group }`, because the title, slug and
 level now live in the lesson file and must not be written twice. `content:new` does this for you.
 
+The catalog is full — all 88 slots are authored — so `content:new` now refuses rather than inventing a
+slot: `group "lookup" has no planned slots left — add one to track.json before scaffolding a lesson in
+it`, or `every slot in the catalog is authored — add a planned slot to track.json before scaffolding
+one` when no group is named. A new lesson therefore starts by appending a slot to the group it belongs
+to; slots are permanent and are never renumbered or reused. `--lesson <n>` is the file number and must
+be the next free one (`lesson 17 cannot be created — 89 is the next free number, because ids are dense
+and follow the order lessons were written in`); it does not pick the catalog slot.
+
 A group a learner can reach owes an `intro` (150–250 words, authored). If you publish the first lesson
 in a group, write its intro in the same change; the gate fails the run otherwise. `freeLessonCount`
 decides how many published lessons the trial covers.

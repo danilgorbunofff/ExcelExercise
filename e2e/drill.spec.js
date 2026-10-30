@@ -44,6 +44,8 @@ test("a correct formula is accepted and reported", async ({ page }) => {
   await expect(page.locator("#feedback-head")).toHaveText("Correct");
   await expect(page.locator("#feedback-body")).toHaveText("B5 holds 35.");
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-correct/);
+  // Only a rejection marks the bar; a verdict that is not one leaves it out of the invalid state.
+  await expect(page.locator("#formula")).not.toHaveAttribute("aria-invalid", "true");
 });
 
 test("a wrong total keeps the SUM and names the value rule", async ({ page }) => {
@@ -56,6 +58,14 @@ test("a wrong total keeps the SUM and names the value rule", async ({ page }) =>
     "Your formula returns 21, but this lesson expects 35.",
   );
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-wrong/);
+  // The verdict is a live region, so it is announced once; the flag is what is still there when a
+  // screen reader user comes back to the bar and asks what it holds.
+  await expect(page.locator("#formula")).toHaveAttribute("aria-invalid", "true");
+
+  // And the retry clears it — the old verdict no longer describes what is in the bar.
+  await check(page, "=SUM(B2:B4)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+  await expect(page.locator("#formula")).not.toHaveAttribute("aria-invalid", "true");
 
   // Time on task is reported twice: for the drill and for the screen that spent it. The second cannot
   // exceed the first, and neither can be negative.

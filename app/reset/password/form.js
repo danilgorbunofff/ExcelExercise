@@ -3,13 +3,14 @@
 import { useActionState } from "react";
 
 import { setNewPassword } from "../../auth/actions.js";
-import { ErrorText, Field, Submit } from "../../auth/ui.js";
+import { FocusedError } from "../../auth/error-text.js";
+import { Field, Submit } from "../../auth/ui.js";
 
 export function NewPasswordForm() {
   const [state, action, pending] = useActionState(setNewPassword, {});
   return (
     <form action={action} noValidate>
-      <ErrorText>{state?.error}</ErrorText>
+      <FocusedError>{state?.error}</FocusedError>
       <Field
         label="New password"
         name="password"

@@ -465,6 +465,7 @@ function mountDrill(payloadNode) {
 
   function clearFeedback() {
     ui.feedback.className = "feedback";
+    ui.input?.removeAttribute("aria-invalid");
     ui.feedbackHead.textContent = "";
     ui.feedbackBody.textContent = "";
     for (const extra of ui.feedback.querySelectorAll(".feedback-caret, .feedback-meta, .next-cta")) extra.remove();
@@ -473,6 +474,9 @@ function mountDrill(payloadNode) {
   function showFeedback({ state, head, body, caret = "", meta = "", next = null }) {
     clearFeedback();
     ui.feedback.classList.add(state, "is-live");
+    // The verdict is a live region, but a live region only says something new: a screen reader user
+    // who tabs back to the bar has to be told the value in it is the one that was just rejected.
+    if (state === "is-wrong") ui.input?.setAttribute("aria-invalid", "true");
     ui.feedbackHead.textContent = head;
     ui.feedbackBody.textContent = body;
     if (caret) ui.feedback.append(el("pre", { class: "feedback-caret", text: caret }));

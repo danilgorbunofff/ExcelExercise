@@ -3,14 +3,15 @@
 import { useActionState } from "react";
 
 import { sendMagicLink, signIn } from "../auth/actions.js";
-import { ErrorText, Field, OkText, Submit } from "../auth/ui.js";
+import { FocusedError } from "../auth/error-text.js";
+import { Field, OkText, Submit } from "../auth/ui.js";
 
 export function LoginForm({ next, disabled }) {
   const [state, action, pending] = useActionState(signIn, {});
   return (
     <form action={action} noValidate>
       <input type="hidden" name="next" value={next} />
-      <ErrorText>{state?.error}</ErrorText>
+      <FocusedError>{state?.error}</FocusedError>
       <Field
         label="Email"
         name="email"
@@ -42,7 +43,7 @@ export function MagicLinkForm({ next, disabled }) {
   return (
     <form action={action} noValidate className="auth-magic">
       <input type="hidden" name="next" value={next} />
-      <ErrorText>{state?.error}</ErrorText>
+      <FocusedError>{state?.error}</FocusedError>
       <OkText>{state?.ok}</OkText>
       <Field
         label="Email me a sign-in link instead"

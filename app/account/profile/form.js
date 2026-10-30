@@ -3,14 +3,15 @@
 import { useActionState } from "react";
 
 import { updateProfile } from "../../auth/actions.js";
-import { ErrorText, Field, Notice, OkText, Submit } from "../../auth/ui.js";
+import { FocusedError } from "../../auth/error-text.js";
+import { Field, Notice, OkText, Submit } from "../../auth/ui.js";
 
 export function ProfileForm({ values, notice }) {
   const [state, action, pending] = useActionState(updateProfile, {});
   return (
     <form action={action} noValidate>
       {notice ? <Notice>{notice}</Notice> : null}
-      <ErrorText>{state?.error}</ErrorText>
+      <FocusedError>{state?.error}</FocusedError>
       <OkText>{state?.ok}</OkText>
       <Field
         label="Display name"

@@ -3,14 +3,15 @@
 import { useActionState } from "react";
 
 import { signUp } from "../auth/actions.js";
-import { ErrorText, Field, OkText, Submit } from "../auth/ui.js";
+import { FocusedError } from "../auth/error-text.js";
+import { Field, OkText, Submit } from "../auth/ui.js";
 
 export function SignupForm({ next, disabled }) {
   const [state, action, pending] = useActionState(signUp, {});
   return (
     <form action={action} noValidate>
       <input type="hidden" name="next" value={next} />
-      <ErrorText>{state?.error}</ErrorText>
+      <FocusedError>{state?.error}</FocusedError>
       <OkText>{state?.ok}</OkText>
       <Field label="Email" name="email" type="email" autoComplete="email" required disabled={disabled} />
       <Field

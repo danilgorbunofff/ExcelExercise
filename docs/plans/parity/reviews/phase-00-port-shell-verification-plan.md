@@ -362,6 +362,19 @@ viewport the figure renders 293 px wide and its body text lands at 7.6 CSS px (s
 No clipping, no horizontal overflow, and lesson 16's pilot figure (524 units) is worse, so this is
 pre-existing. See phase 2's gate row 9.
 
+CI ran the re-pinned content on Node 24 / `ubuntu-latest` and reproduced every number, green on the
+first attempt: [run 41027825444](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/41027825444)
+(`phase-0-port-shell`) and [run 41027825273](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/41027825273)
+(`main`) at `d6d1a0a` — `tests 653` / `suites 105` / `pass 653` / `fail 0`;
+`content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed`;
+`111 accepted and 157 rejected`; `built 27 pages (741.4 kB of HTML+CSS)`;
+`next routes: 27 prerendered pages match the shared templates`; `verified … 851 checks passed`;
+`52 passed`; `vendor: 25 files match manifest.json`.
+
+Served from `next start` on a freshly rebuilt `.next`, `/api/health` answers
+`{"status":"ok","sha":"d6d1a0a"}` — the build-time git fallback, not `"unknown"` — and the lesson page
+carries the new figure.
+
 ## Baseline
 
 | Metric | Value |

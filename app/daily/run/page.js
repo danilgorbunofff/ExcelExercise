@@ -61,7 +61,7 @@ async function RunScreen() {
 
 export default function DailyRunPage() {
   return (
-    <AuthShell counter="Today's run">
+    <AuthShell counter="Today's run" skipLabel="run">
       <Suspense fallback={<p className="auth-notice">Loading today&apos;s run…</p>}>
         <RunScreen />
       </Suspense>

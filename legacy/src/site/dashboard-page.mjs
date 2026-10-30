@@ -141,7 +141,7 @@ ${renderGroup({ group: single, icons, heading: false })}
         description: shortDescription(single.intro) || `The ${single.entries.length} drills in ${single.title}, in order.`,
         counter: `${single.entries.length} drill${single.entries.length === 1 ? "" : "s"}`,
         bodyClass: "dashboard-page",
-        skipLabel: "Skip to this group",
+        skipLabel: "group",
         noindex: true,
       },
     };
@@ -204,7 +204,7 @@ ${renderGroups({ groups, icons })}
       description: "What you have finished, what wants another look, and which drill to open next.",
       counter: `${total} drills`,
       bodyClass: "dashboard-page",
-      skipLabel: "Skip to the dashboard",
+      skipLabel: "dashboard",
       noindex: true,
     },
   };

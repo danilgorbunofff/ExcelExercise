@@ -14,7 +14,7 @@ export const metadata = {
  */
 export default function DeletedPage() {
   return (
-    <AuthShell counter="Your account">
+    <AuthShell counter="Your account" skipLabel="your account">
       <AuthCard title="Your account is gone" lede="Signed out, erased, and not coming back.">
         <p>
           Your profile, your progress, every saved answer and your points are gone from the database.

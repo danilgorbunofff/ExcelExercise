@@ -16,7 +16,7 @@ export const instant = false;
 
 export default function ProfilePage({ searchParams }) {
   return (
-    <AuthShell counter="Your profile">
+    <AuthShell counter="Your profile" skipLabel="your profile">
       <Suspense fallback={<Loading />}>
         <ProfileScreen searchParams={searchParams} />
       </Suspense>

@@ -196,7 +196,7 @@ async function ChallengeScreen() {
 
 export default function DailyPage() {
   return (
-    <AuthShell counter="Daily challenge">
+    <AuthShell counter="Daily challenge" skipLabel="daily challenge">
       <Suspense fallback={<p className="auth-notice">Loading today&apos;s challenge…</p>}>
         <ChallengeScreen />
       </Suspense>

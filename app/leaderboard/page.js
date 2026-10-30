@@ -140,7 +140,7 @@ async function LeaderboardScreen() {
 
 export default function LeaderboardPage() {
   return (
-    <AuthShell counter="Today's board">
+    <AuthShell counter="Today's board" skipLabel="leaderboard">
       <Suspense fallback={<p className="auth-notice">Loading the board…</p>}>
         <LeaderboardScreen />
       </Suspense>

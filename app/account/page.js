@@ -161,7 +161,7 @@ async function AccountScreen() {
 
 export default function AccountPage() {
   return (
-    <AuthShell counter="Your account">
+    <AuthShell counter="Your account" skipLabel="your account">
       <Suspense fallback={<p className="auth-notice">Loading your account…</p>}>
         <AccountScreen />
       </Suspense>

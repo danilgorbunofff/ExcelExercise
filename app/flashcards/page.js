@@ -72,7 +72,7 @@ async function FlashcardsScreen() {
 
 export default function FlashcardsPage() {
   return (
-    <AuthShell counter="Flashcards">
+    <AuthShell counter="Flashcards" skipLabel="flashcards">
       <Suspense fallback={<p className="auth-notice">Shuffling your cards…</p>}>
         <FlashcardsScreen />
       </Suspense>

@@ -134,6 +134,8 @@ ${renderFeedbackDialog()}
  */
 export function renderChrome({ config, page }) {
   return {
+    // `skipLabel` is the noun only — "Skip to the " is written once, here, so a page cannot end up
+    // saying it twice.
     skip: `<a class="skip" href="#main">Skip to the ${page.skipLabel ?? (page.isHome ? "drills" : "drill")}</a>`,
     header: renderSiteHeader({ config, page }),
     footer: renderFooter({ config }),

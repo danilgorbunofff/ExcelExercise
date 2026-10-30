@@ -296,3 +296,34 @@ test("the retention pages pass with nothing to fix", async ({ page }) => {
     await scan(page, path);
   }
 });
+
+test("every page's skip link names the landmark it jumps to", async ({ page }) => {
+  // A skip link is read before anything else on the page, so a wrong noun is the first thing a screen
+  // reader user hears. `/learn` shipped "Skip to the Skip to the dashboard" and the boards shared the
+  // sign-in form's label — neither is visible to anyone not using the link, which is why it survived.
+  const pages = [
+    ["/", "drills"],
+    ["/learn", "dashboard"],
+    ["/learn/groups/sum", "group"],
+    [freeDrill().path, "drill"],
+    ["/pricing", "pricing"],
+    ["/privacy", "privacy policy"],
+    ["/terms", "terms"],
+    ["/leaderboard", "leaderboard"],
+    ["/daily", "daily challenge"],
+    ["/flashcards", "flashcards"],
+    ["/account", "your account"],
+  ];
+
+  for (const [path, noun] of pages) {
+    await page.goto(path);
+    const skip = page.locator("a.skip");
+    await expect(skip, `${path} has no skip link`).toHaveCount(1);
+    const text = (await skip.textContent()).trim();
+    expect(text, `${path} names its landmark`).toBe(`Skip to the ${noun}`);
+    // The noun is written once by the shell, so it can never be doubled by a page's own label.
+    expect(text.match(/Skip to/g), `${path} says it twice`).toHaveLength(1);
+    await expect(skip).toHaveAttribute("href", "#main");
+    await expect(page.locator("#main"), `${path} has no #main to land on`).toHaveCount(1);
+  }
+});

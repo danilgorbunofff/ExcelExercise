@@ -170,6 +170,12 @@ lands and never stops.
 with their expected output, the failure modes a green gate hides, and the criteria that cannot be
 closed by a machine in this checkout.
 
+**Phases 4+ verification:** no `reviews/phase-04-*` verification plan exists yet, so phase 4's evidence
+lives in a `## Unit log` section at the end of
+[its phase plan](phase-04-accounts-entitlements.md) — gate output per unit, deviations from the plan, and
+the rows still open with the reason. A review plan should be written once phase 4 has more than one unit
+landed.
+
 ## 9. Working agreements
 
 - Every phase is independently shippable; the site is never broken between phases.

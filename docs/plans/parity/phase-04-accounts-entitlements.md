@@ -221,7 +221,8 @@ accuracy and rank — never email or username.
 
 ## Work breakdown
 
-1. **Supabase project.** Two environments (staging, production), migrations in `db/migrations`,
+1. **Supabase project.** Two environments (staging, production), migrations in `supabase/migrations`
+   (the CLI hardcodes this path; the plan originally said `db/migrations` — see the unit log),
    `supabase db reset` + seed with 3 users and 1 group.
 2. **Auth flows.** `/signup`, `/login`, `/reset`, magic-link callback, email verification, session
    refresh in middleware. Blocks: gated routes redirect with `?next=`.
@@ -303,3 +304,76 @@ accuracy and rank — never email or username.
 | Anonymous merge duplicates progress | idempotent writer keyed by natural key |
 | Legal exposure (refunds, tax) | Stripe Tax on, refund path tested, clear terms page |
 | Auth email deliverability | use Supabase SMTP with a verified domain before launch |
+
+## Unit log
+
+Evidence for this phase lives here rather than in `reviews/`: no `reviews/phase-04-*-verification-plan.md`
+has been written yet, so this section is the record until one is.
+
+### 2026-10-30 — unit 1: schema, RLS and a live local stack (items 1 and 11)
+
+**Closed:** work item 1 (schema + migrations + seed) and work item 11 (RLS test suite), and the
+`RLS suite proves user A cannot read or write user B's rows…` acceptance criterion.
+
+```
+$ npm run db:check
+ℹ tests 34
+ℹ suites 7
+ℹ pass 34
+ℹ fail 0
+```
+
+The three standing gates are unchanged by this unit:
+
+```
+ℹ tests 653 / suites 105 / pass 653 / fail 0
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 27 pages (741.4 kB of HTML+CSS)
+next routes: 27 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed
+52 passed (11.4s)          # npx playwright test
+vendor: 25 files match manifest.json
+```
+
+`npm run db:check` runs `supabase db reset` first, so it is deterministic: it rebuilds the schema from
+`supabase/migrations`, reseeds, then runs `tests/db/rls.spec.js`. It is a hand-run gate like
+`vendor:check`, not part of `npm run check` — CI has no database.
+
+#### Deviations from this document
+
+- **`db/migrations` → `supabase/migrations`** (item 1). The Supabase CLI hardcodes the directory and
+  `config.toml` cannot redirect it. The SQL is the DDL in [Data model](#data-model) as written.
+- **Local ports 54350–54359** instead of 54321+. Two other Supabase projects on this machine already
+  own 54321–54329; the remap keeps all three stacks up at once and changes nothing about the schema.
+- **`[analytics] enabled = false`, `[edge_runtime] enabled = false`.** Under colima the analytics
+  container bind-mounts `~/.colima/default/docker.sock`, which colima does not support, so
+  `supabase start` aborts with `mkdir … docker.sock: operation not supported`. Neither service is used
+  by this phase. Re-enable analytics if the stack moves to Docker Desktop.
+
+#### Three defects the suite found in the documented policy set
+
+Each was fixed in `0002_accounts_rls.sql` by adding a grant or revoke. No assertion was relaxed.
+
+1. **Profile privilege escalation.** `profiles_self_update` proves row ownership only, so
+   `PATCH /rest/v1/profiles {role:"admin"}` and `{group_id:null}` both returned `200` and wrote. Fixed
+   by replacing the table-level update grant with column-level grants on
+   `username, display_name, linkedin_url, timezone`; both patches now fail `403 42501 permission denied
+   for table profiles`.
+2. **TRUNCATE bypasses RLS.** The platform grants `anon`/`authenticated` `ALL` on new `public` tables,
+   and the revoke list in this document omits `truncate`, `references`, `trigger` and `maintain`. Any
+   signed-in learner could have truncated `attempts`. Added the missing revokes.
+3. **`feedback` has no read path.** The policy set gives an insert policy and nothing else, so an insert
+   with `Prefer: return=representation` fails `42501` even when the with-check passes. `return=minimal`
+   returns `201`. Left as documented and asserted both ways — see open rows.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| `feedback` insert with `return=representation` fails; needs either a `feedback_self_read` policy or a client that always sends `Prefer: return=minimal` | decision, not infrastructure |
+| Items 2–3 (auth flows, profile onboarding), 4–5 (progress writer, anonymous import), 8 (paywall), 10 (legal/data rights) | not started; each is its own unit |
+| Item 6 (Stripe) and the subscription/refund/second-device acceptance criteria | needs Stripe test keys and a deployed Supabase project |
+| Item 9 institutional domain allowlist | not started |
+| RLS suite in CI | no database in CI today; needs a Postgres service container |
+| Seed users authenticate against `auth.users`/`auth.identities` by direct insert — version-sensitive; recreate through the GoTrue admin API if a CLI upgrade breaks it | maintenance note |

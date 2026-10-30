@@ -236,3 +236,17 @@ row needed code. What is left open is blocked on things this machine does not ha
 real keyboards (phase 2 row 5), Excel itself (phase 2 row 6), Stripe keys (phase 4 rows 12–15), and a
 k6 script over a 10k board (phase 5 row 14).
 
+
+**The audit's fixes survive the content that came after them.** The ten design-remediation units were
+applied when 16 lessons existed; the corpus is now 88 lessons and 152 screens, so the guarantees were
+re-measured rather than assumed. On the built site served at 375 px — `/`, `/learn`, `/pricing`,
+`/group/lookup`, and drills 08, 86 and 88, chosen because 86–88 are the newest and were authored long
+after the styles were frozen — every text node with an explicit colour clears its size's contrast
+requirement (no node below 4.5:1, or 3:1 for large text), and `document.scrollingElement.scrollWidth`
+equals `clientWidth` on all seven, so nothing scrolls sideways. The sub-44 px targets that remain are
+the same set the audit accepted: the skip link (41 px tall, keyboard-only), the wordmark link (28 px
+tall inside its 44 px header row), the footer pair (`42 × 44` and `36 × 44`), the pricing roster links
+(25 px tall in a stacked list) and `/learn`'s group links (`153 × 24`). Each is at least 24 px in both
+axes, which is WCAG 2.2 AA 2.5.8's floor; the stricter 44 px house floor applies to the controls a
+learner drives a drill with, which is where unit 3 put it. No change was made on this pass — it is a
+measurement, and it is recorded so a future content push can repeat the same two numbers.

@@ -210,7 +210,7 @@ lesson and the dashboard behave exactly as before. Configure a project and those
 cp .env.example .env.local     # both variables are optional; unset is the supported default
 npm run db:start               # local Supabase on ports 54350–54359 (needs Docker or colima)
 npm run db:reset               # migrations + seed; run this after any migration change
-npm run db:check               # 52 assertions: RLS over psql/PostgREST, sign-in and emailed links
+npm run db:check               # 66 assertions: RLS, sign-in and emailed links, the progress writer
 ```
 
 `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read at build time for the browser
@@ -221,6 +221,13 @@ why `tests/db/rls.spec.js` proves the policies against a real Postgres rather th
 Sign-up writes a `profiles` row from an `auth.users` trigger (`0003_profile_provisioning.sql`) — the
 display name from the sign-up metadata, a username derived from the address with a `learner_<hex>`
 fallback, so there is never an account without a profile.
+
+`POST /api/progress` is the write half of the drill: it takes `{ batch_id, events }`, derives every row
+from the event sequence (`lib/progress/derive.js`, so a browser cannot post itself a score) and calls
+`record_progress` (`0004_progress_write.sql`) with the service role. `SUPABASE_SERVICE_ROLE_KEY` is
+server-only and must never be prefixed `NEXT_PUBLIC_`; without it the route answers 503 rather than
+falling back to the anon key. The batch id is the idempotency key — a retry is a no-op — and
+`attempt_seq` is assigned inside the database.
 
 ---
 

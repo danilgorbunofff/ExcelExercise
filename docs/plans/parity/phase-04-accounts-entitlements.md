@@ -464,3 +464,91 @@ What the suites actually assert, so this log is checkable rather than reassuring
 | Item 9 institutional domain allowlist | not started |
 | `tests/db` in CI | no database in CI today; needs a Postgres service container |
 | `feedback` insert with `return=representation` | unchanged decision from unit 1 |
+
+### 2026-10-31 — unit 3a: the progress writer (work item 4, server half)
+
+**Closed:** the write half of work item 4 — `POST /api/progress` accepts the drill's event buffer,
+derives every row from it, and writes it through `record_progress` as the service role. Still open:
+the browser half (nothing drains `globalThis.__esEvents` yet) and the anonymous `es.progress` import,
+which is unit 3b.
+
+The derivation is pure and imported by its test, so the numbers a report reads are computed in one
+place rather than restated in the assertion:
+
+```
+$ npm run db:check
+ℹ tests 66      # 34 RLS + 18 auth + 14 progress
+ℹ suites 15
+ℹ pass 66
+ℹ fail 0
+
+$ npm run check
+ℹ tests 685 / suites 112 / pass 685 / fail 0     # was 675 / 110: +10 derivation tests
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 27 pages (741.4 kB of HTML+CSS)
+next routes: 27 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed
+
+$ npx playwright test
+62 passed (10.2s)     # was 60: +2 for the unconfigured progress route
+
+$ npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+What the suites assert, so this log is checkable rather than reassuring:
+
+- `tests/progress-sync.test.js` (10) imports `deriveUpdates`/`parseBatch`: a first-try solve yields one
+  attempt with `correct_first_try`; misses stay on the screen that produced them; a hint-assisted solve
+  is not a first try; a screen the learner only looked at writes no row; an abandoned screen closes at
+  the view that replaced it; a repeat keeps the best score and the first completion; a batch mixing two
+  lessons, an unknown event type, a bad timestamp, more than 500 events or no lesson id is refused; junk
+  props (`score: "high"`, `elapsed: NaN`) do not throw; and a body without a uuid is refused rather than
+  given a server-generated key.
+- `tests/db/progress.spec.js` (14) runs the function against the real stack: sequences are `1, 2` per
+  `(user, lesson, screen)` and an `attempt_seq` in the payload is ignored; the same batch id replays as a
+  no-op and does not double-count the roll-up; a worse repeat keeps the best score, keeps `complete`,
+  adds attempts and wrong counts, keeps `helped` sticky, keeps the first `completed_at` and the fastest
+  `best_ms`; `first_try_accuracy` is recomputed from the rows (`50.00` for one good screen of two, even
+  when the payload claims `p_score: 100`) and stays `null` when no screen produced an answer; a learner
+  calling the function, or inserting into any of the three tables, gets `403`; and one account cannot
+  read another's rows.
+
+#### Deviations from this document
+
+- **`progress_batches` (new table) rather than a `client_batch` column.** The document's "a resent batch
+  is a no-op" only holds if the server can recognise the retry, which needs a key it did not invent.
+  The batch id is the primary key of its own table, claimed before anything else in the same
+  transaction, so the idempotency claim and the write cannot diverge.
+- **`attempt_seq` is assigned inside the function**, with a five-attempt retry on `unique_violation`,
+  instead of by the caller or under an advisory lock: two tabs on one screen then resolve to `1, 2`
+  rather than to a failed constraint.
+- **`npm run db:check` now passes `--test-concurrency=1`.** `tests/db/rls.spec.js` calls
+  `resetFixtures()`, which deletes every row of `attempts` and `lesson_progress`; three files running
+  in parallel would race with it. Serial is also faster than the flakes were.
+- **The route is derived, not validated-to-trust.** `p_score` is clamped to `0..100` in `derive.js`
+  because `lesson_progress.score` has a check constraint; a payload cannot violate it.
+
+#### Two defects the suites found
+
+1. **`progress_batches` was world-writable by any signed-in learner.** Supabase's default privileges
+   grant `anon`/`authenticated` everything on a new `public` table, and the migration had neither
+   enabled row level security nor revoked the grants — the same class of mistake the RLS entry above
+   records for TRUNCATE. A learner could have claimed an arbitrary batch id before the server used it,
+   which would turn a future write into a silent no-op. Fixed in `0004_progress_write.sql`:
+   `enable row level security` plus `revoke all from anon, authenticated`, both asserted (`403`).
+2. **A batch id owned by another account was swallowed as a replay.** `on conflict do nothing` cannot
+   tell "my retry" from "someone else's key", so it returned `replayed: true` and wrote nothing. Now the
+   function re-reads the owner and raises `23505` on a collision, which the route reports as `409 batch_id_conflict`
+   rather than adding a row or reporting success for a dropped batch. Asserted both ways.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| The browser sender (drain `__esEvents`, POST on lesson end and on `pagehide`) | unit 3b; the drill's sink is module-private, so it needs a subscription hook rather than a second copy of the buffer |
+| Anonymous `es.progress` import with `min(completed_at)` merge and an `es.progress.migrated` marker | unit 3b; needs the sender to exist first |
+| The `201` path of `POST /api/progress` over HTTP | needs a Next server with a configured Supabase project in the test job; today the route's success path is proved at the function and module level, and its refusal path in a browser |
+| Profile onboarding step (name + username, optional LinkedIn) — work item 3 | not started |
+| Items 5 (legal/data rights), 6 (Stripe), 8 (paywall), 9 (allowlist) | not started; item 6 also needs Stripe test keys |

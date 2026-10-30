@@ -90,6 +90,7 @@ const FIXTURE_TABLES = [
   ['feedback', 'id'],
   ['payments', 'id'],
   ['entitlements', 'user_id'],
+  ['progress_batches', 'id'],
   ['attempts', 'id'],
   ['lesson_progress', 'user_id'],
   ['daily_points', 'user_id'],

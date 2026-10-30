@@ -10,7 +10,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import { seedBefore } from "../lib/seed.js";
+import { passGate, seedBefore } from "../lib/seed.js";
 import { loadSite } from "../lib/site.js";
 
 const SEVERITIES = ["critical", "serious"];
@@ -122,8 +122,11 @@ test("the picture screen of a multi-screen drill passes", async ({ page }) => {
 });
 
 test("the shortcut panels of a shipped lesson pass", async ({ page }) => {
+  // The drill that carries the chord and sequence screens sits past the free three, so the trial
+  // form is how a visitor reaches it.
   await seedBefore(page, "countif-open-tickets");
   await page.goto("/learn/excel/countif-open-tickets");
+  await passGate(page);
   await page.fill("#formula", '=COUNTIF(B2:B9,"Open")');
   await page.click("#check");
 

@@ -10,7 +10,11 @@
  */
 import { expect, test } from "@playwright/test";
 
+import { loadSite } from "../lib/site.js";
+
 const ANSWER_CELL = ".cell[data-cell='B5']";
+// The count the rail prints is how many lessons the build shipped, so it moves with the catalog.
+const LESSONS = loadSite().index.length;
 const SENTENCE =
   "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.";
 
@@ -62,9 +66,9 @@ test("the static build warns on blocked storage and still grades", async ({ page
 test("the static build remembers a finished lesson across a reload", async ({ page }) => {
   await openStatic(page, "sum-basics");
   await check(page, "=SUM(B2:B4)");
-  await expect(page.locator("#progress-count")).toHaveText("1 of 16");
+  await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
 
   await page.reload();
-  await expect(page.locator("#progress-count")).toHaveText("1 of 16");
+  await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
   await expect(page.locator(".rail-item[data-lesson='01-sum-basics']")).toHaveClass(/is-done/);
 });

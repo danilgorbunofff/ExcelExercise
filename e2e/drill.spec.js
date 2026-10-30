@@ -5,7 +5,7 @@
  */
 import { expect, test } from "@playwright/test";
 
-import { seedBefore } from "../lib/seed.js";
+import { passGate, seedBefore } from "../lib/seed.js";
 import { loadSite } from "../lib/site.js";
 
 const LESSONS = loadSite().index.length;
@@ -24,8 +24,7 @@ async function openDrill(page, slug) {
 async function openGatedDrill(page, slug) {
   await seedBefore(page, slug);
   await page.goto(`/learn/excel/${slug}`);
-  await page.fill("#paywall-email", "learner@example.com");
-  await page.click("#paywall-form button[type='submit']");
+  await passGate(page);
   await expect(page.locator("#formula")).toBeVisible();
 }
 
@@ -241,9 +240,9 @@ test("arrow keys move the selection and stop at the edge of the block", async ({
 });
 
 test("a shortcut lesson grades the keys it asks for, and keeps its steps in order", async ({ page }) => {
-  await seedBefore(page, "countif-open-tickets");
-  await page.goto("/learn/excel/countif-open-tickets");
-  await expect(page.locator("#formula")).toBeVisible();
+  // This drill carries the chord and sequence screens, and the catalog now puts it past the free
+  // three, so the trial form is part of reaching it.
+  await openGatedDrill(page, "countif-open-tickets");
 
   await check(page, '=COUNTIF(B2:B9,"Open")');
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);

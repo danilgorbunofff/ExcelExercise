@@ -475,6 +475,48 @@
         {"input":"B2:B6","ok":true,"rule":"correct","code":null,"position":null,"value":"b2:b6","expected":"B2:B6","message":"Correct.","hint":""},
         {"input":"C2:C6","ok":false,"rule":"value","code":null,"position":null,"value":"c2:c6","expected":null,"message":"That is not what the image shows.","hint":"The third argument is the range XLOOKUP reads the answer from, so it covers the price column's data rows. Rows 2 to 6 hold the log; row 7 is where the answer goes."}
       ]
+    },
+    "17-min-and-max-fastest-and-slowest": {
+      "accepted": [
+        {"input":"=MAX($B$2:$B$5)","ok":true,"rule":"correct","code":null,"position":null,"value":63.9,"expected":63.9,"message":"Correct.","hint":""},
+        {"input":"=MAX(B2,B3,B4,B5)","ok":true,"rule":"correct","code":null,"position":null,"value":63.9,"expected":63.9,"message":"Correct.","hint":""},
+        {"input":"=MAX(B2:B5)","ok":true,"rule":"correct","code":null,"position":null,"value":63.9,"expected":63.9,"message":"Correct.","hint":""},
+        {"input":"=MAX(B2:B5)+0","ok":true,"rule":"correct","code":null,"position":null,"value":63.9,"expected":63.9,"message":"Correct.","hint":""},
+        {"input":"=MAX(B2:B5,0)","ok":true,"rule":"correct","code":null,"position":null,"value":63.9,"expected":63.9,"message":"Correct.","hint":""},
+        {"input":"=MIN($B$2:$B$5)","ok":true,"rule":"correct","code":null,"position":null,"value":58.4,"expected":58.4,"message":"Correct.","hint":""},
+        {"input":"=MIN(B2,B3,B4,B5)","ok":true,"rule":"correct","code":null,"position":null,"value":58.4,"expected":58.4,"message":"Correct.","hint":""},
+        {"input":"=MIN(B2:B5)","ok":true,"rule":"correct","code":null,"position":null,"value":58.4,"expected":58.4,"message":"Correct.","hint":""},
+        {"input":"=MIN(B2:B5)+0","ok":true,"rule":"correct","code":null,"position":null,"value":58.4,"expected":58.4,"message":"Correct.","hint":""},
+        {"input":"=MIN(B2:B5,100)","ok":true,"rule":"correct","code":null,"position":null,"value":58.4,"expected":58.4,"message":"Correct.","hint":""},
+        {"input":"=max(b2:b5)","ok":true,"rule":"correct","code":null,"position":null,"value":63.9,"expected":63.9,"message":"Correct.","hint":""},
+        {"input":"=min(b2:b5)","ok":true,"rule":"correct","code":null,"position":null,"value":58.4,"expected":58.4,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=AVERAGE(B2:B5)","ok":false,"rule":"func-min","code":null,"position":null,"value":null,"expected":58.4,"message":"This lesson is about MIN. Your formula does not use MIN.","hint":"The fastest lap is the smallest number in the column. MIN finds it; AVERAGE answers 60.65, which is not a lap anybody ran."},
+        {"input":"=AVERAGE(B2:B5)","ok":false,"rule":"func-max","code":null,"position":null,"value":null,"expected":63.9,"message":"This lesson is about MAX. Your formula does not use MAX.","hint":"The slowest lap is the largest number in the column. MAX finds it; MIN answers the other end of the same four laps."},
+        {"input":"=MAX()","ok":false,"rule":"func-max","code":null,"position":null,"value":null,"expected":63.9,"message":"MAX needs at least 1 argument here; yours has 0.","hint":"The slowest lap is the largest number in the column. MAX finds it; MIN answers the other end of the same four laps."},
+        {"input":"=MAX(61.2,58.4,63.9,59.1)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":63.9,"message":"Your formula does not refer to B2. The lesson checks that you point at the data rather than typing the number.","hint":"Point MAX at B2:B5, because a slowest time typed in stops updating the moment the race is re-run."},
+        {"input":"=MAX(B2:B3)","ok":false,"rule":"value","code":null,"position":null,"value":61.2,"expected":63.9,"message":"Your formula returns 61.2, but this lesson expects 63.9.","hint":"That is not the slowest lap. A range that stops early leaves out the runner who took longest."},
+        {"input":"=MAX(B2:B5","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":63.9,"message":"MAX is missing its closing \")\".","hint":"Start with = and close the bracket: =MAX(B2:B5)."},
+        {"input":"=MAX(B2:B5)","ok":false,"rule":"func-min","code":null,"position":null,"value":null,"expected":58.4,"message":"This lesson is about MIN. Your formula does not use MIN.","hint":"The fastest lap is the smallest number in the column. MIN finds it; AVERAGE answers 60.65, which is not a lap anybody ran."},
+        {"input":"=MAX(B2:B5)/0","ok":false,"rule":"error","code":"#DIV/0!","position":12,"value":null,"expected":63.9,"message":"#DIV/0! Dividing by zero. A cell in the divisor is empty or holds 0.","hint":"MAX skips the labels in column A, but text handed to MAX on its own returns #VALUE!, and any division by zero returns #DIV/0!."},
+        {"input":"=MIN()","ok":false,"rule":"func-min","code":null,"position":null,"value":null,"expected":58.4,"message":"MIN needs at least 1 argument here; yours has 0.","hint":"The fastest lap is the smallest number in the column. MIN finds it; AVERAGE answers 60.65, which is not a lap anybody ran."},
+        {"input":"=MIN(61.2,58.4,63.9,59.1)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":58.4,"message":"Your formula does not refer to B2. The lesson checks that you point at the data rather than typing the number.","hint":"Point MIN at B2:B5. Lap times typed into the formula freeze at today's numbers and stop moving when a lap is re-run."},
+        {"input":"=MIN(B2:B2)","ok":false,"rule":"value","code":null,"position":null,"value":61.2,"expected":58.4,"message":"Your formula returns 61.2, but this lesson expects 58.4.","hint":"That is not the fastest lap. A range that stops early or starts late hides the runner who was quicker."},
+        {"input":"=MIN(B2:B5","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":58.4,"message":"MIN is missing its closing \")\".","hint":"Start with = and close the bracket: =MIN(B2:B5)."},
+        {"input":"=MIN(B2:B5)","ok":false,"rule":"func-max","code":null,"position":null,"value":null,"expected":63.9,"message":"This lesson is about MAX. Your formula does not use MAX.","hint":"The slowest lap is the largest number in the column. MAX finds it; MIN answers the other end of the same four laps."},
+        {"input":"=MIN(B2:B5)/0","ok":false,"rule":"error","code":"#DIV/0!","position":12,"value":null,"expected":58.4,"message":"#DIV/0! Dividing by zero. A cell in the divisor is empty or holds 0.","hint":"MIN reads numbers inside a range and skips the labels beside them, but text handed to MIN on its own returns #VALUE!, and any division by zero returns #DIV/0!."}
+      ],
+      "audit": [
+        {"input":"=AVERAGE(B2:B5)","ok":false,"rule":"func-min","code":null,"position":null,"value":null,"expected":58.4,"message":"This lesson is about MIN. Your formula does not use MIN.","hint":"The fastest lap is the smallest number in the column. MIN finds it; AVERAGE answers 60.65, which is not a lap anybody ran."},
+        {"input":"=AVERAGE(B2:B5)","ok":false,"rule":"func-max","code":null,"position":null,"value":null,"expected":63.9,"message":"This lesson is about MAX. Your formula does not use MAX.","hint":"The slowest lap is the largest number in the column. MAX finds it; MIN answers the other end of the same four laps."},
+        {"input":"=MAX(B2:B3)","ok":false,"rule":"value","code":null,"position":null,"value":61.2,"expected":63.9,"message":"Your formula returns 61.2, but this lesson expects 63.9.","hint":"That is not the slowest lap. A range that stops early leaves out the runner who took longest."},
+        {"input":"=MAX(B2:B5)","ok":false,"rule":"func-min","code":null,"position":null,"value":null,"expected":58.4,"message":"This lesson is about MIN. Your formula does not use MIN.","hint":"The fastest lap is the smallest number in the column. MIN finds it; AVERAGE answers 60.65, which is not a lap anybody ran."},
+        {"input":"=MAX(B2:B5)","ok":true,"rule":"correct","code":null,"position":null,"value":63.9,"expected":63.9,"message":"Correct.","hint":""},
+        {"input":"=MIN(B2:B2)","ok":false,"rule":"value","code":null,"position":null,"value":61.2,"expected":58.4,"message":"Your formula returns 61.2, but this lesson expects 58.4.","hint":"That is not the fastest lap. A range that stops early or starts late hides the runner who was quicker."},
+        {"input":"=MIN(B2:B5)","ok":true,"rule":"correct","code":null,"position":null,"value":58.4,"expected":58.4,"message":"Correct.","hint":""},
+        {"input":"=MIN(B2:B5)","ok":false,"rule":"func-max","code":null,"position":null,"value":null,"expected":63.9,"message":"This lesson is about MAX. Your formula does not use MAX.","hint":"The slowest lap is the largest number in the column. MAX finds it; MIN answers the other end of the same four laps."}
+      ]
     }
   }
 }

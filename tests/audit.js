@@ -180,4 +180,28 @@ export const AUDIT = {
       },
     ],
   },
+  "17-min-and-max-fastest-and-slowest": {
+    screens: [
+      {
+        // Four laps: 61.2, 58.4, 63.9, 59.1 in B2:B5. MIN keeps 58.4, which is Ben in row 3.
+        expected: 58.4,
+        reference: "=MIN(B2:B5)",
+        wrong: [
+          "=MAX(B2:B5)", // the slowest lap, the other end of the same range
+          "=AVERAGE(B2:B5)", // 60.65 is a time no runner ran
+          "=MIN(B2:B2)", // the range stops at Ada, so 61.2
+        ],
+      },
+      {
+        // Same four laps, now read with MAX: 63.9 is Cai in row 4.
+        expected: 63.9,
+        reference: "=MAX(B2:B5)",
+        wrong: [
+          "=MIN(B2:B5)",
+          "=AVERAGE(B2:B5)",
+          "=MAX(B2:B3)", // the range stops at Ben, so 61.2
+        ],
+      },
+    ],
+  },
 };

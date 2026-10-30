@@ -713,9 +713,17 @@ describe("content-lint: the authoring CLI", () => {
   });
 
   it("previews a shipped lesson from its inline fixtures", () => {
-    const preview = spawnSync(process.execPath, [CLI, "preview", "--lesson", "6"], { encoding: "utf8" });
+    // The number is published order, not the file's, so it moves whenever a lesson lands earlier in
+    // the catalog. Read it from the corpus rather than pinning it to whichever cohort shipped first.
+    // `preview` takes the file's own number; the header it prints is the published one.
+    const { exercises } = loadContent(CONTENT);
+    const index = exercises.findIndex((entry) => entry.slug === "round-markup");
+    assert.ok(index >= 0, "round-markup is not in the catalog");
+    const file = Number(exercises[index].id.split("-")[0]);
+    const published = index + 1;
+    const preview = spawnSync(process.execPath, [CLI, "preview", "--lesson", String(file)], { encoding: "utf8" });
     assert.equal(preview.status, 0, preview.stderr);
-    assert.match(preview.stdout, /^6\. ROUND: money to two decimals — \/learn\/excel\/round-markup$/m);
+    assert.match(preview.stdout, new RegExp(`^${published}\\. ROUND: money to two decimals — \\/learn\\/excel\\/round-markup$`, "m"));
     assert.match(preview.stdout, /· =ROUND\(B2\*1\.08,2\)\s+rejected \(func-sum\)/);
   });
 });

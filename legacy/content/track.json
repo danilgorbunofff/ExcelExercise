@@ -1,7 +1,7 @@
 {
   "id": "formula-drills",
   "title": "Excel formula drills",
-  "promise": "16 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
+  "promise": "17 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
   "freeLessonCount": 3,
   "showAnswerAfter": 3,
   "groups": [
@@ -146,8 +146,7 @@
       "group": "statistical"
     },
     {
-      "title": "MIN and MAX: fastest and slowest",
-      "level": 1,
+      "id": "17-min-and-max-fastest-and-slowest",
       "group": "statistical"
     },
     {

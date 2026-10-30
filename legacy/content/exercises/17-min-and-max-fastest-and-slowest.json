@@ -1,0 +1,182 @@
+{
+  "id": "17-min-and-max-fastest-and-slowest",
+  "slug": "min-and-max-fastest-and-slowest",
+  "level": 1,
+  "title": "MIN and MAX: fastest and slowest",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B6, return the fastest of the four lap times in B2:B5 with MIN.",
+      "reference": "=MIN(B2:B5)",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Runner", "Lap (s)"],
+          ["Ada", 61.2],
+          ["Ben", 58.4],
+          ["Cai", 63.9],
+          ["Dee", 59.1],
+          ["Fastest", null]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": { "value": 58.4 },
+      "require": [{ "id": "func-min", "func": "MIN", "minArgs": 1 }],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close the bracket: =MIN(B2:B5).",
+        "func-min": "The fastest lap is the smallest number in the column. MIN finds it; AVERAGE answers 60.65, which is not a lap anybody ran.",
+        "require-ref": "Point MIN at B2:B5. Lap times typed into the formula freeze at today's numbers and stop moving when a lap is re-run.",
+        "value": "That is not the fastest lap. A range that stops early or starts late hides the runner who was quicker.",
+        "error": "MIN reads numbers inside a range and skips the labels beside them, but text handed to MIN on its own returns #VALUE!, and any division by zero returns #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=MIN(B2:B5)",
+          "=min(b2:b5)",
+          "=MIN($B$2:$B$5)",
+          "=MIN(B2,B3,B4,B5)",
+          "=MIN(B2:B5)+0",
+          "=MIN(B2:B5,100)"
+        ],
+        "reject": [
+          {
+            "formula": "=MIN(B2:B5",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=AVERAGE(B2:B5)",
+            "rule": "func-min",
+            "why": "the average of the four laps is 60.65, not the fastest one"
+          },
+          {
+            "formula": "=MAX(B2:B5)",
+            "rule": "func-min",
+            "why": "MAX returns the slowest lap, and this screen asks for the fastest"
+          },
+          {
+            "formula": "=MIN()",
+            "rule": "func-min",
+            "why": "MIN with no argument has nothing to compare"
+          },
+          {
+            "formula": "=MIN(61.2,58.4,63.9,59.1)",
+            "rule": "require-ref",
+            "why": "the lap times typed in, so the answer stops updating when a lap is re-run"
+          },
+          {
+            "formula": "=MIN(B2:B2)",
+            "rule": "value",
+            "why": "the range stops at Ada, so 61.2 instead of the fastest lap"
+          },
+          {
+            "formula": "=MIN(B2:B5)/0",
+            "rule": "error",
+            "why": "a fastest lap divided by zero returns #DIV/0!"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B6, return the slowest of the four lap times in B2:B5 with MAX.",
+      "reference": "=MAX(B2:B5)",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Runner", "Lap (s)"],
+          ["Ada", 61.2],
+          ["Ben", 58.4],
+          ["Cai", 63.9],
+          ["Dee", 59.1],
+          ["Slowest", null]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": { "value": 63.9 },
+      "require": [{ "id": "func-max", "func": "MAX", "minArgs": 1 }],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close the bracket: =MAX(B2:B5).",
+        "func-max": "The slowest lap is the largest number in the column. MAX finds it; MIN answers the other end of the same four laps.",
+        "require-ref": "Point MAX at B2:B5, because a slowest time typed in stops updating the moment the race is re-run.",
+        "value": "That is not the slowest lap. A range that stops early leaves out the runner who took longest.",
+        "error": "MAX skips the labels in column A, but text handed to MAX on its own returns #VALUE!, and any division by zero returns #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=MAX(B2:B5)",
+          "=max(b2:b5)",
+          "=MAX($B$2:$B$5)",
+          "=MAX(B2,B3,B4,B5)",
+          "=MAX(B2:B5)+0",
+          "=MAX(B2:B5,0)"
+        ],
+        "reject": [
+          {
+            "formula": "=MAX(B2:B5",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=AVERAGE(B2:B5)",
+            "rule": "func-max",
+            "why": "the average of the four laps is 60.65, not the slowest one"
+          },
+          {
+            "formula": "=MIN(B2:B5)",
+            "rule": "func-max",
+            "why": "MIN returns the fastest lap, and this screen asks for the slowest"
+          },
+          {
+            "formula": "=MAX()",
+            "rule": "func-max",
+            "why": "MAX with no argument has nothing to compare"
+          },
+          {
+            "formula": "=MAX(61.2,58.4,63.9,59.1)",
+            "rule": "require-ref",
+            "why": "the lap times typed in, so the answer stops updating when a lap is re-run"
+          },
+          {
+            "formula": "=MAX(B2:B3)",
+            "rule": "value",
+            "why": "the range stops at Ben, so 61.2 instead of the slowest lap"
+          },
+          {
+            "formula": "=MAX(B2:B5)/0",
+            "rule": "error",
+            "why": "a slowest lap divided by zero returns #DIV/0!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=MIN(number1, ...) for the smallest, =MAX(number1, ...) for the largest",
+    "explain": "The sheet lists four runners with the lap each one ran: 61.2 seconds in B2, 58.4 in B3, 63.9 in B4 and 59.1 in B5. Read them in order and the smallest is Ben's 58.4, so MIN over B2:B5 answers 58.4, and the largest is Cai's 63.9, so MAX over the same range answers 63.9. Neither function sorts anything or cares which row a time sits in, which is why the sheet can record laps in the order people finish. The four times total 242.6 and average 60.65, so an average would have told you about a time nobody ran, while MIN and MAX name the two runners who actually stood out.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "Text was handed to MIN or MAX as the argument itself, as in =MIN(Fastest). A range that holds labels is fine, because the labels sit in column A while the numbers sit in column B."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The fastest or slowest time was divided by zero, usually because a formula was filled down into a row whose divisor is still empty."
+      }
+    ],
+    "atWork": "Race results, delivery times and monthly closes, where the question is almost always who was quickest or slowest rather than what the average was.",
+    "outcome": "Return the smallest or largest number in a range without sorting the sheet first.",
+    "teaches": "MIN and MAX",
+    "dataset": "Four runners' lap times",
+    "reference": "=MIN(B2:B5)"
+  }
+}

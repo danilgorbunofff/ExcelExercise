@@ -32,6 +32,10 @@ test("the account page renders without a session instead of throwing", async ({ 
   expect(response.status()).toBe(200);
   await expect(page.locator(".auth-card h1")).toHaveText("Your account");
   await expect(page.locator(".auth-notice")).toContainText("Accounts are not configured");
+  // Nothing was read, so nothing pretends to have been: no week panel, and no sparkline of zeros for
+  // a learner who has not signed in.
+  await expect(page.locator(".auth-week")).toHaveCount(0);
+  await expect(page.locator(".auth-spark")).toHaveCount(0);
 });
 
 test("the profile page explains itself with no account to edit", async ({ page }) => {

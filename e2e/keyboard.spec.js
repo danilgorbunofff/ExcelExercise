@@ -6,6 +6,10 @@
  */
 import { expect, test } from "@playwright/test";
 
+import { freeDrill } from "../lib/site.js";
+
+const FREE = freeDrill();
+
 test.use({ reducedMotion: "reduce" });
 
 /** Where the document's focus is, as a selector-ish label a failure can print. */
@@ -46,7 +50,7 @@ async function tabTo(page, wanted, limit = 30) {
 }
 
 test("a whole drill is passable without a mouse", async ({ page }) => {
-  await page.goto("/learn/excel/sum-basics");
+  await page.goto(FREE.path);
   await expect(page.locator("#formula")).toBeVisible();
   await waitForClient(page);
 
@@ -73,11 +77,11 @@ test("a whole drill is passable without a mouse", async ({ page }) => {
 
   // And it works: Enter on it leaves the drill.
   await page.keyboard.press("Enter");
-  await expect(page).not.toHaveURL(/sum-basics/);
+  await expect(page).not.toHaveURL(new RegExp(FREE.slug));
 });
 
 test("the hint and the reveal are reachable, and the reveal says what it will do", async ({ page }) => {
-  await page.goto("/learn/excel/sum-basics");
+  await page.goto(FREE.path);
   await waitForClient(page);
   await tabTo(page, "#formula");
 

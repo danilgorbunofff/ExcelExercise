@@ -1,0 +1,230 @@
+{
+  "id": "74-textbefore-and-textafter",
+  "slug": "textbefore-and-textafter",
+  "level": 3,
+  "title": "TEXTBEFORE and TEXTAFTER: split on a delimiter",
+  "docs": {
+    "syntax": "=TEXTBEFORE(text,\"-\") keeps what precedes the delimiter; =TEXTAFTER keeps what follows",
+    "explain": "Splitting a cell on a separator used to be a LEFT and a FIND glued together. TEXTBEFORE and TEXTAFTER do that job in one call each, and they name the two halves explicitly so the formula reads like the sentence that asked for it. The delimiter is a piece of text, not a position, which is the change that matters: the formula keeps working when the prefix grows from three letters to five, and it keeps working on the next row where the code is a different length. Each function answers the half on its side of the delimiter and drops the delimiter itself. Where the text holds no delimiter at all, both raise #N/A rather than guessing, and that is a feature: a code that does not fit the pattern is a row you want to see fail rather than a row that quietly returns an empty answer. The two screens split the same order codes in opposite directions, so the learner writes both halves and sees that neither needs a position number anywhere.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The text holds no copy of the delimiter, so there is nothing to split on."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The instance number is not a number, so the split cannot be placed."
+      }
+    ],
+    "atWork": "Separating an order prefix from its number without counting characters.",
+    "outcome": "Split a code on its delimiter into the part before it and the part after it.",
+    "teaches": "TEXTBEFORE and TEXTAFTER naming the delimiter instead of a position",
+    "dataset": "Order codes: a three-letter prefix, a hyphen, a number",
+    "reference": "=TEXTBEFORE(A2,\"-\")"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In B2, read the three letters before the hyphen in the order code in A2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Order",
+            "Prefix"
+          ],
+          [
+            "ORD-4471",
+            null
+          ],
+          [
+            "INV-2210",
+            null
+          ],
+          [
+            "RCP-9008",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": "ORD"
+      },
+      "reference": "=TEXTBEFORE(A2,\"-\")",
+      "require": [
+        {
+          "id": "func-textbefore",
+          "func": "TEXTBEFORE",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=TEXTBEFORE(A2,\"-\") — the code, then the delimiter in quotes.",
+        "func-textbefore": "The prefix is everything before the hyphen, which is exactly what TEXTBEFORE answers.",
+        "require-ref": "The order code is in A2.",
+        "value": "Everything before the hyphen is ORD.",
+        "error": "A delimiter the code does not hold gives #N/A."
+      },
+      "fixtures": {
+        "accept": [
+          "=TEXTBEFORE(A2,\"-\")",
+          "=textbefore(a2,\"-\")",
+          "=TEXTBEFORE($A$2,\"-\")",
+          "=TEXTBEFORE(A$2,\"-\")",
+          "=TEXTBEFORE( A2 , \"-\" )",
+          "=TEXTBEFORE(A2,\"-\",1)",
+          "=UPPER(TEXTBEFORE(A2,\"-\"))"
+        ],
+        "reject": [
+          {
+            "formula": "=LEFT(A2,3)",
+            "rule": "func-textbefore",
+            "why": "counting three characters breaks the moment the prefix changes length"
+          },
+          {
+            "formula": "=TEXTBEFORE(A2,\"4\")",
+            "rule": "value",
+            "why": "splitting on the first four characters keeps the hyphen"
+          },
+          {
+            "formula": "=TEXTBEFORE(A2,\"-\")&\" \"",
+            "rule": "value",
+            "why": "the answer picks up a trailing space"
+          },
+          {
+            "formula": "=LOWER(TEXTBEFORE(A2,\"-\"))",
+            "rule": "value",
+            "why": "the prefix is upper case in the code"
+          },
+          {
+            "formula": "=TEXTBEFORE(A3,\"-\")",
+            "rule": "require-ref",
+            "why": "the formula reads the second row rather than A2"
+          },
+          {
+            "formula": "=TEXTBEFORE(A2,\"-\",2)",
+            "rule": "error",
+            "why": "the code holds only one hyphen"
+          },
+          {
+            "formula": "=TEXTBEFORE(A2,\"_\")",
+            "rule": "error",
+            "why": "there is no underscore to split on"
+          },
+          {
+            "formula": "=TEXTBEFORE(\"ORD-4471\",\"-\")",
+            "rule": "require-ref",
+            "why": "the code is typed in rather than read from A2"
+          },
+          {
+            "formula": "=TEXTBEFORE A2,\"-\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In B2, read the four digits after the hyphen in the order code in A2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Order",
+            "Number"
+          ],
+          [
+            "ORD-4471",
+            null
+          ],
+          [
+            "INV-2210",
+            null
+          ],
+          [
+            "RCP-9008",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": "4471"
+      },
+      "reference": "=TEXTAFTER(A2,\"-\")",
+      "require": [
+        {
+          "id": "func-textafter",
+          "func": "TEXTAFTER",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=TEXTAFTER(A2,\"-\") — the code, then the delimiter in quotes.",
+        "func-textafter": "The number is everything after the hyphen, which is exactly what TEXTAFTER answers.",
+        "require-ref": "The order code is in A2.",
+        "value": "Everything after the hyphen is 4471.",
+        "error": "A delimiter the code does not hold gives #N/A."
+      },
+      "fixtures": {
+        "accept": [
+          "=TEXTAFTER(A2,\"-\")",
+          "=textafter(a2,\"-\")",
+          "=TEXTAFTER($A$2,\"-\")",
+          "=TEXTAFTER(A$2,\"-\")",
+          "=TEXTAFTER( A2 , \"-\" )",
+          "=TEXTAFTER(A2,\"-\",1)",
+          "=TEXTAFTER(A2,\"-\",-1)"
+        ],
+        "reject": [
+          {
+            "formula": "=RIGHT(A2,4)",
+            "rule": "func-textafter",
+            "why": "counting four characters from the right breaks on a shorter number"
+          },
+          {
+            "formula": "=TEXTAFTER(A2,\"ORD\")",
+            "rule": "value",
+            "why": "splitting on the prefix keeps the hyphen in the answer"
+          },
+          {
+            "formula": "=TEXTAFTER(A2,\"4\")",
+            "rule": "value",
+            "why": "splitting on the first digit keeps the last one"
+          },
+          {
+            "formula": "=TEXTAFTER(A3,\"-\")",
+            "rule": "require-ref",
+            "why": "the formula reads the second row rather than A2"
+          },
+          {
+            "formula": "=TEXTAFTER(A2,\"-\",2)",
+            "rule": "error",
+            "why": "the code holds only one hyphen"
+          },
+          {
+            "formula": "=TEXTAFTER(\"ORD-4471\",\"-\")",
+            "rule": "require-ref",
+            "why": "the code is typed in rather than read from A2"
+          },
+          {
+            "formula": "=TEXTAFTER A2,\"-\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2
+}

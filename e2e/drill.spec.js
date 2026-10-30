@@ -6,9 +6,12 @@
 import { expect, test } from "@playwright/test";
 
 import { passGate, seedBefore } from "../lib/seed.js";
-import { loadSite } from "../lib/site.js";
+import { freeDrill, loadSite } from "../lib/site.js";
 
 const LESSONS = loadSite().index.length;
+/** The opening intro drill: the free half is the three intro lessons, so this one has no gate in
+ *  front of it and the literals below are hand-computed against `what-a-formula-actually-does`. */
+const FREE = freeDrill();
 
 const ANSWER_CELL = ".cell[data-cell='B5']";
 
@@ -34,23 +37,23 @@ async function check(page, formula) {
 }
 
 test("a correct formula is accepted and reported", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
   await expect(page.locator("#feedback-head")).toHaveText("Correct");
-  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 3580.");
+  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 35.");
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-correct/);
 });
 
 test("a wrong total keeps the SUM and names the value rule", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
   await check(page, "=SUM(B2:B3)");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await expect(page.locator("#feedback-head")).toHaveText("Not the answer");
   await expect(page.locator("#feedback-body")).toHaveText(
-    "Your formula returns 2650, but this lesson expects 3580.",
+    "Your formula returns 21, but this lesson expects 35.",
   );
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-wrong/);
 
@@ -64,16 +67,16 @@ test("a wrong total keeps the SUM and names the value rule", async ({ page }) =>
 });
 
 test("the missing function is rejected before the value is even considered", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
-  await check(page, "=B2+B3");
+  await check(page, "=B2+B3+B4");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await expect(page.locator("#feedback-body")).toContainText("This lesson is about SUM");
   await expect(page.locator("#feedback-head")).not.toHaveText("Correct");
 });
 
 test("a formula that cannot be read points at the character", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
   await check(page, "=SUM(B2:B4");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
@@ -152,7 +155,7 @@ function setHidden(page, hidden) {
 }
 
 test("the session clock stops while the tab is hidden", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
   const opened = await lastElapsed(page, "screen_view");
   expect(typeof opened).toBe("number");
 
@@ -169,12 +172,12 @@ test("the session clock stops while the tab is hidden", async ({ page }) => {
 });
 
 test("progress survives a reload on the same device", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
 
   await page.reload();
-  await expect(page.locator(".rail-item[data-lesson='01-sum-basics']")).toHaveClass(/is-done/);
+  await expect(page.locator(`.rail-item[data-lesson='${FREE.exercise.id}']`)).toHaveClass(/is-done/);
   await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
 });
 
@@ -190,7 +193,7 @@ test("a drill in a browser that refuses storage warns before the work evaporates
       },
     });
   });
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
   await expect(page.locator("#rail-blocked")).toBeVisible();
   await expect(page.locator("#rail-blocked")).toHaveText(
@@ -202,7 +205,7 @@ test("a drill in a browser that refuses storage warns before the work evaporates
 });
 
 test("arrow keys move the selection and stop at the edge of the block", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
   const cell = (key) => page.locator(`.cell[data-cell='${key}']`);
   const selected = (key) => expect(cell(key)).toHaveAttribute("aria-selected", "true");
   /** Press a key on the cell that holds the selection, the way a learner's focus does. */
@@ -215,18 +218,19 @@ test("arrow keys move the selection and stop at the edge of the block", async ({
   await selected("B2");
 
   // Movement comes from the sheet model, so it walks the cells the page drew, not the DOM order.
-  expect(await press("ArrowRight", "B2")).toBe("C2");
-  expect(await press("ArrowDown", "C2")).toBe("C3");
-  expect(await press("ArrowLeft", "C3")).toBe("B3");
-  expect(await press("ArrowUp", "B3")).toBe("B2");
+  expect(await press("ArrowDown", "B2")).toBe("B3");
+  expect(await press("ArrowLeft", "B3")).toBe("A3");
+  expect(await press("ArrowUp", "A3")).toBe("A2");
+  expect(await press("ArrowRight", "A2")).toBe("B2");
 
-  // The block is A1:C5, so the selection stops at each edge instead of wrapping to the far side.
+  // The block is A1:B5, so the selection stops at each edge instead of wrapping to the far side.
+  expect(await press("ArrowRight", "B2")).toBe("B2");
   expect(await press("ArrowUp", "B2")).toBe("B1");
   expect(await press("ArrowUp", "B1")).toBe("B1");
   expect(await press("ArrowLeft", "B1")).toBe("A1");
   expect(await press("ArrowLeft", "A1")).toBe("A1");
-  expect(await press("End", "A1")).toBe("C1");
-  expect(await press("Home", "C1")).toBe("A1");
+  expect(await press("End", "A1")).toBe("B1");
+  expect(await press("Home", "B1")).toBe("A1");
   for (let step = 0; step < 4; step += 1) await press("ArrowDown", "A1");
   expect(await press("ArrowDown", "A5")).toBe("A5");
 

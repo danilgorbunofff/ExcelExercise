@@ -32,9 +32,9 @@ function cellText(value) {
   return value;
 }
 
-function evaluateCell(formula, cells) {
+function evaluateCell(formula, cells, options) {
   try {
-    return compute(formula, cells);
+    return compute(formula, cells, options);
   } catch (error) {
     // A formula that cannot be evaluated is a cell a spreadsheet fills with an error code, not a page
     // that fails to build. Anything that is not a formula error is a bug here, and it propagates.
@@ -49,7 +49,7 @@ function evaluateCell(formula, cells) {
  * formula }` for every cell the preview had to compute, because a value with no visible formula hides
  * the very thing the lesson is teaching.
  */
-export function previewSheet(sheet) {
+export function previewSheet(sheet, options = {}) {
   const model = gridModel({ grid: sheet });
   const cells = buildCells({ grid: sheet });
   const formulas = Object.keys(cells)
@@ -63,7 +63,7 @@ export function previewSheet(sheet) {
     const next = { ...values };
     let settled = true;
     for (const { address } of formulas) {
-      next[address] = evaluateCell(cells[address], values);
+      next[address] = evaluateCell(cells[address], values, options);
       if (cellText(next[address]) !== cellText(values[address])) settled = false;
     }
     values = next;

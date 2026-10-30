@@ -632,9 +632,12 @@ describe("content-lint: the authoring CLI", () => {
   it("scaffolds a lesson that passes the gate with no edits", () => {
     withSandbox(({ content, fixtures }) => {
       const before = readJson(join(content, "track.json"));
-      const slot = before.lessons.findIndex((entry) => !entry.id && entry.group === "lookup");
+      // The group is read from the catalog: earlier cohorts exhaust a group's planned slots, so naming
+      // one here would break the day its last slot ships.
+      const group = before.lessons.find((entry) => !entry.id && entry.group)?.group;
+      const slot = before.lessons.findIndex((entry) => !entry.id && entry.group === group);
       const number = nextNumber(content);
-      const created = run(["new", "--lesson", String(number), "--group", "lookup"], { content, fixtures });
+      const created = run(["new", "--lesson", String(number), "--group", group], { content, fixtures });
       assert.equal(created.status, 0, created.stdout + created.stderr);
       assert.match(created.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-[a-z0-9-]+\\.json`));
       assert.match(
@@ -645,7 +648,7 @@ describe("content-lint: the authoring CLI", () => {
       const track = readJson(join(content, "track.json"));
       const id = track.lessons[slot].id;
       assert.match(id, new RegExp(`^${number}-`), "the file is named after the number it was given");
-      assert.deepEqual(track.lessons[slot], { id, group: "lookup" }, "the slot became the authored lesson");
+      assert.deepEqual(track.lessons[slot], { id, group }, "the slot became the authored lesson");
 
       const lesson = readJson(lessonPath(content, id));
       assert.equal(lesson.schemaVersion, 2, "new lessons ship in the v2 shape");
@@ -678,7 +681,9 @@ describe("content-lint: the authoring CLI", () => {
 
       const bare = run(["new"], { content, fixtures });
       assert.equal(bare.status, 0, bare.stdout + bare.stderr);
-      assert.match(bare.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-what-a-formula-actually-does\\.json`));
+      // The slug comes from the slot the scaffold takes, which moves as earlier cohorts ship, so the
+      // file name is asserted by number only.
+      assert.match(bare.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-[a-z0-9-]+\\.json`));
     });
   });
 
@@ -709,7 +714,8 @@ describe("content-lint: the authoring CLI", () => {
   it("previews a lesson as its page will read it", () => {
     withSandbox(({ content, fixtures }) => {
       const number = nextNumber(content);
-      const created = run(["new", "--lesson", String(number), "--group", "lookup"], { content, fixtures });
+      const group = readJson(join(content, "track.json")).lessons.find((entry) => !entry.id && entry.group)?.group;
+      const created = run(["new", "--lesson", String(number), "--group", group], { content, fixtures });
       assert.equal(created.status, 0, created.stdout + created.stderr);
       const published = Number(/published as lesson (\d+) of/.exec(created.stdout)[1]);
       const preview = run(["preview", "--lesson", String(number)], { content, fixtures });

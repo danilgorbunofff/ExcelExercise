@@ -1,7 +1,7 @@
 {
   "id": "formula-drills",
   "title": "Excel formula drills",
-  "promise": "26 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
+  "promise": "85 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
   "freeLessonCount": 3,
   "showAnswerAfter": 3,
   "groups": [
@@ -88,18 +88,15 @@
   ],
   "lessons": [
     {
-      "title": "What a formula actually does",
-      "level": 1,
+      "id": "27-what-a-formula-actually-does",
       "group": "intro"
     },
     {
-      "title": "Cell references: relative and absolute",
-      "level": 1,
+      "id": "28-cell-references-relative-and-absolute",
       "group": "intro"
     },
     {
-      "title": "AutoSum and the status bar total",
-      "level": 1,
+      "id": "29-autosum-and-the-status-bar-total",
       "group": "intro"
     },
     {
@@ -107,38 +104,31 @@
       "group": "sum"
     },
     {
-      "title": "SUMIFS: two conditions at once",
-      "level": 2,
+      "id": "48-sumifs-two-conditions-at-once",
       "group": "sum"
     },
     {
-      "title": "SUMIF with a sum range on another column",
-      "level": 2,
+      "id": "49-sumif-a-sum-range-on-another-column",
       "group": "sum"
     },
     {
-      "title": "Add only the positives",
-      "level": 2,
+      "id": "50-add-only-the-positives",
       "group": "sum"
     },
     {
-      "title": "Debug a total that skips a row",
-      "level": 2,
+      "id": "51-debug-a-total-that-skips-a-row",
       "group": "sum"
     },
     {
-      "title": "SUM across several sheets",
-      "level": 2,
+      "id": "52-sum-across-several-blocks",
       "group": "sum"
     },
     {
-      "title": "Running total down a column",
-      "level": 2,
+      "id": "53-running-total-down-a-column",
       "group": "sum"
     },
     {
-      "title": "Sum functions summary",
-      "level": 2,
+      "id": "54-sum-functions-summary",
       "group": "sum"
     },
     {
@@ -150,28 +140,23 @@
       "group": "statistical"
     },
     {
-      "title": "LARGE and SMALL: the nth highest",
-      "level": 2,
+      "id": "43-large-and-small-the-nth-highest",
       "group": "statistical"
     },
     {
-      "title": "MEDIAN: the middle value",
-      "level": 2,
+      "id": "44-median-the-middle-value",
       "group": "statistical"
     },
     {
-      "title": "MODE: the most common value",
-      "level": 2,
+      "id": "45-mode-the-most-common-value",
       "group": "statistical"
     },
     {
-      "title": "Rank a list without sorting it",
-      "level": 2,
+      "id": "46-rank-a-list-without-sorting-it",
       "group": "statistical"
     },
     {
-      "title": "Average functions summary",
-      "level": 2,
+      "id": "47-average-functions-summary",
       "group": "statistical"
     },
     {
@@ -187,53 +172,44 @@
       "group": "count"
     },
     {
-      "title": "COUNTIFS: several conditions",
-      "level": 2,
-      "group": "count"
+      "group": "count",
+      "id": "55-countifs-several-conditions"
     },
     {
-      "title": "COUNTIF with wildcards",
-      "level": 2,
-      "group": "count"
+      "group": "count",
+      "id": "56-countif-with-wildcards"
     },
     {
-      "title": "Count functions summary",
-      "level": 2,
-      "group": "count"
+      "group": "count",
+      "id": "57-count-functions-summary"
     },
     {
       "id": "04-if-pass-fail",
       "group": "logical"
     },
     {
-      "title": "TRUE and FALSE: what a comparison returns",
-      "level": 1,
-      "group": "logical"
+      "group": "logical",
+      "id": "58-true-and-false-what-a-comparison-returns"
     },
     {
-      "title": "AND, OR and NOT: combining tests",
-      "level": 2,
-      "group": "logical"
+      "group": "logical",
+      "id": "59-and-or-not-combining-tests"
     },
     {
-      "title": "IFS: more than two outcomes",
-      "level": 2,
-      "group": "logical"
+      "group": "logical",
+      "id": "60-ifs-more-than-two-outcomes"
     },
     {
-      "title": "SWITCH: match a list of values",
-      "level": 3,
-      "group": "logical"
+      "group": "logical",
+      "id": "61-switch-match-a-list-of-values"
     },
     {
-      "title": "IS functions: test what a cell holds",
-      "level": 2,
-      "group": "logical"
+      "group": "logical",
+      "id": "62-isblanks-and-isnumbers"
     },
     {
-      "title": "Logical functions summary",
-      "level": 2,
-      "group": "logical"
+      "group": "logical",
+      "id": "63-logical-functions-summary"
     },
     {
       "id": "05-sumif-region",
@@ -248,8 +224,7 @@
       "group": "rounding"
     },
     {
-      "title": "MROUND and FLOOR: round to a multiple",
-      "level": 2,
+      "id": "42-mround-and-floor-round-to-a-multiple",
       "group": "rounding"
     },
     {
@@ -285,13 +260,11 @@
       "group": "lookup"
     },
     {
-      "title": "VLOOKUP and XLOOKUP on the same table",
-      "level": 3,
+      "id": "30-vlookup-and-xlookup-on-the-same-table",
       "group": "lookup"
     },
     {
-      "title": "Lookup functions summary",
-      "level": 3,
+      "id": "31-lookup-functions-summary",
       "group": "lookup"
     },
     {
@@ -307,18 +280,15 @@
       "group": "index-match"
     },
     {
-      "title": "INDEX MATCH: look left of the key",
-      "level": 3,
+      "id": "32-index-match-look-left-of-the-key",
       "group": "index-match"
     },
     {
-      "title": "Two-way INDEX MATCH",
-      "level": 3,
+      "id": "33-two-way-index-match",
       "group": "index-match"
     },
     {
-      "title": "INDEX and MATCH summary",
-      "level": 3,
+      "id": "34-index-and-match-summary",
       "group": "index-match"
     },
     {
@@ -330,141 +300,116 @@
       "group": "text-search"
     },
     {
-      "title": "MID: characters from the middle",
-      "level": 2,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "71-mid-characters-from-the-middle"
     },
     {
-      "title": "FIND and SEARCH: case-sensitive or not",
-      "level": 2,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "72-find-and-search-case"
     },
     {
-      "title": "Wildcards in text criteria",
-      "level": 2,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "73-wildcards-in-text-criteria"
     },
     {
-      "title": "TEXTBEFORE and TEXTAFTER: split on a delimiter",
-      "level": 3,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "74-textbefore-and-textafter"
     },
     {
-      "title": "Text search summary",
-      "level": 2,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "75-text-search-summary"
     },
     {
       "id": "10-capstone-margin",
       "group": "capstone"
     },
     {
-      "title": "Sales summary end to end",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "81-a-sales-summary-end-to-end"
     },
     {
-      "title": "Lookup dashboard from three tables",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "82-a-lookup-dashboard-from-three-tables"
     },
     {
-      "title": "Clean up an imported list",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "83-clean-up-an-imported-list"
     },
     {
-      "title": "Budget versus actual with a variance flag",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "84-budget-versus-actual-with-a-variance-flag"
     },
     {
-      "title": "Formula audit: fix five broken sheets",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "85-formula-audit-fix-five-broken-sheets"
     },
     {
       "id": "25-concat-and-the-operator",
       "group": "text-change"
     },
     {
-      "title": "TEXTJOIN: join a range and skip blanks",
-      "level": 2,
+      "id": "35-textjoin-join-a-range-and-skip-blanks",
       "group": "text-change"
     },
     {
-      "title": "UPPER, LOWER and PROPER",
-      "level": 1,
+      "id": "36-upper-lower-and-proper",
       "group": "text-change"
     },
     {
-      "title": "SUBSTITUTE: replace one piece of text",
-      "level": 2,
-      "group": "text-change"
+      "group": "text-change",
+      "id": "76-substitute-replace-one-piece-of-text"
     },
     {
       "id": "26-iferror-catch-the-error-show-your-text",
       "group": "errors"
     },
     {
-      "title": "IFNA: catch only a missing match",
-      "level": 2,
-      "group": "errors"
+      "group": "errors",
+      "id": "64-ifna-catch-only-a-missing-match"
     },
     {
-      "title": "Read #N/A, #VALUE! and #REF!",
-      "level": 2,
-      "group": "errors"
+      "group": "errors",
+      "id": "65-reading-error-values"
     },
     {
-      "title": "Error handling summary",
-      "level": 2,
-      "group": "errors"
+      "group": "errors",
+      "id": "66-error-handling-summary"
     },
     {
-      "title": "TODAY and NOW: the volatile clock",
-      "level": 2,
+      "id": "37-today-and-now-the-volatile-clock",
       "group": "date"
     },
     {
-      "title": "DATE: build a date from parts",
-      "level": 2,
+      "id": "38-date-build-a-date-from-parts",
       "group": "date"
     },
     {
-      "title": "DATEDIF: days, months or years between",
-      "level": 3,
+      "id": "39-datedif-days-months-or-years-between",
       "group": "date"
     },
     {
-      "title": "DAYS and simple date maths",
-      "level": 2,
+      "id": "40-days-and-simple-date-maths",
       "group": "date"
     },
     {
-      "title": "Date functions summary",
-      "level": 2,
+      "id": "41-date-functions-summary",
       "group": "date"
     },
     {
-      "title": "SUMPRODUCT: multiply, then add",
-      "level": 3,
-      "group": "aggregate"
+      "group": "aggregate",
+      "id": "67-sumproduct-multiply-then-add"
     },
     {
-      "title": "SUBTOTAL: totals that ignore hidden rows",
-      "level": 3,
-      "group": "aggregate"
+      "group": "aggregate",
+      "id": "68-subtotal-a-sum-over-a-group"
     },
     {
-      "title": "AGGREGATE: skip errors and hidden rows",
-      "level": 3,
-      "group": "aggregate"
+      "group": "aggregate",
+      "id": "69-aggregate-a-total-that-can-skip"
     },
     {
-      "title": "Aggregate functions summary",
-      "level": 3,
-      "group": "aggregate"
+      "group": "aggregate",
+      "id": "70-aggregate-functions-summary"
     },
     {
       "title": "UNIQUE: one row per distinct value",
@@ -482,24 +427,20 @@
       "group": "arrays"
     },
     {
-      "title": "A commission sheet that updates itself",
-      "level": 3,
-      "group": "modeling"
+      "group": "modeling",
+      "id": "77-a-commission-sheet-that-updates-itself"
     },
     {
-      "title": "A headcount and payroll summary",
-      "level": 3,
-      "group": "modeling"
+      "group": "modeling",
+      "id": "78-a-headcount-and-payroll-summary"
     },
     {
-      "title": "An inventory reorder report",
-      "level": 3,
-      "group": "modeling"
+      "group": "modeling",
+      "id": "79-an-inventory-reorder-report"
     },
     {
-      "title": "A monthly close checklist in formulas",
-      "level": 3,
-      "group": "modeling"
+      "group": "modeling",
+      "id": "80-a-monthly-close-checklist-in-formulas"
     }
   ]
 }

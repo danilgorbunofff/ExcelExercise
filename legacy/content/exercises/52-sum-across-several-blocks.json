@@ -1,0 +1,244 @@
+{
+  "id": "52-sum-across-several-blocks",
+  "slug": "sum-across-several-blocks",
+  "level": 2,
+  "title": "SUM across several blocks",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B4, total both quarters, which sit in two blocks with an empty column between them.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Team",
+            "Q1",
+            null,
+            "Q2"
+          ],
+          [
+            "North",
+            320,
+            null,
+            300
+          ],
+          [
+            "South",
+            250,
+            null,
+            260
+          ],
+          [
+            "Both quarters",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B4",
+      "expect": {
+        "value": 1130
+      },
+      "reference": "=SUM(B2:B3,D2:D3)",
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUM(B2:B3,D2:D3) — a comma between blocks adds both.",
+        "func-sum": "One function should take both blocks; adding them separately hides a mistake.",
+        "require-ref": "Point at the two blocks in the grid rather than typing the eight numbers in.",
+        "value": "320 + 250 + 300 + 260 is 1130.",
+        "error": "Dividing by zero never gets as far as a total."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B2:B3,D2:D3)",
+          "=sum(b2:b3,d2:d3)",
+          "=SUM($B$2:$B$3,$D$2:$D$3)",
+          "=SUM(B2:B3,D2:D3)+0",
+          "=SUM(B2:B3,D2:D3)*1",
+          "=SUM(B$2:B$3,D$2:D$3)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B3)",
+            "rule": "value",
+            "why": "570 — the first quarter only"
+          },
+          {
+            "formula": "=SUM(B2:B3,D3:D3)",
+            "rule": "value",
+            "why": "560, because North's second quarter is left out"
+          },
+          {
+            "formula": "=SUM(C2:C3,D2:D3)",
+            "rule": "require-ref",
+            "why": "column C is empty and the Q1 block is never referenced"
+          },
+          {
+            "formula": "=B2+B3+D2+D3",
+            "rule": "func-sum",
+            "why": "the right total typed out cell by cell instead of as ranges"
+          },
+          {
+            "formula": "=SUM(B3:B3,D2:D3)",
+            "rule": "require-ref",
+            "why": "North's Q1 is outside the range"
+          },
+          {
+            "formula": "=SUM(B2:B3,D2:D3)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUM(B2:B3 D2:D3)",
+            "rule": "syntax",
+            "why": "the missing comma jams the two blocks into one reference"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B5, total the whole block, skipping the two text cells and the empty one.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Team",
+            "Jan",
+            "Feb",
+            "Mar"
+          ],
+          [
+            "North",
+            320,
+            180,
+            300
+          ],
+          [
+            "South",
+            250,
+            "n/a",
+            260
+          ],
+          [
+            "West",
+            400,
+            null,
+            150
+          ],
+          [
+            "Block total",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B5",
+      "expect": {
+        "value": 1860
+      },
+      "reference": "=SUM(B2:D4)",
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUM(B2:D4) — one rectangle covering three teams and three months.",
+        "func-sum": "This is a single SUM over a rectangle, not an addition of columns.",
+        "require-ref": "Read the block from the grid; a typed list cannot hold the text cells at all.",
+        "value": "The numbers are 320, 180, 300, 250, 260, 400 and 150, which total 1860.",
+        "error": "A division by zero leaves #DIV/0! instead of a total."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B2:D4)",
+          "=sum(b2:d4)",
+          "=SUM($B$2:$D$4)",
+          "=SUM(B2:D4)+0",
+          "=SUM(B2:D4)*1",
+          "=SUM(B$2:D$4)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B4)",
+            "rule": "value",
+            "why": "970 — one column of three months instead of the block"
+          },
+          {
+            "formula": "=SUM(B2:C4)",
+            "rule": "value",
+            "why": "the block stops before March, so the total is short"
+          },
+          {
+            "formula": "=SUM(B2:D4)*2",
+            "rule": "value",
+            "why": "twice the block, because the multiplier doubles everything"
+          },
+          {
+            "formula": "=B2+C2+D2+B3+C3+D3+B4+C4+D4",
+            "rule": "func-sum",
+            "why": "the text cell turns the whole chain into #VALUE!"
+          },
+          {
+            "formula": "=SUM(C2:D4)",
+            "rule": "require-ref",
+            "why": "the first column is outside the range"
+          },
+          {
+            "formula": "=SUM(B2:D4)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUM(B2:D4",
+            "rule": "syntax",
+            "why": "the closing bracket is missing"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUM(range1, range2, ...) across separate blocks, or =SUM(B2:D4) across one rectangle",
+    "explain": "SUM takes as many arguments as you like, and each one can be its own block, so two quarters that sit in columns B and D are one call with a comma between them: SUM(B2:B3,D2:D3). The comma is doing the work — with no comma the two blocks become a single broken reference and the formula refuses to read. The alternative, when the blocks form a rectangle, is one range across the lot: SUM(B2:D4) counts every number inside it and ignores the text in the middle and the empty cell in the corner. That is the reason a block total is safer than a column of subtotals: text and blanks cannot poison it, while a chain of plus signs hits the text and returns an error. Watch for a block that includes a total row of its own, because a rectangle is only too big when the extra cells are numbers, and a total row always is.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "A cell in a hand-written chain holds text; SUM over a range would have skipped it."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "A division by zero in the formula stops it before a total is produced."
+      },
+      {
+        "code": "#REF!",
+        "text": "A block references a range that no longer exists after rows or columns were deleted."
+      }
+    ],
+    "atWork": "A quarterly board pack whose two halves sit apart on the sheet, and an imported block with gaps in it.",
+    "outcome": "Add several separate blocks, or one block with gaps, in a single SUM call.",
+    "teaches": "SUM with multiple block arguments and a rectangular range with text in it",
+    "dataset": "Split quarters and a three-team block with gaps",
+    "reference": "=SUM(B2:B3,D2:D3)"
+  }
+}

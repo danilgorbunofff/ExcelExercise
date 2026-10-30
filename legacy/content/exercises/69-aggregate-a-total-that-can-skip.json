@@ -1,0 +1,236 @@
+{
+  "id": "69-aggregate-a-total-that-can-skip",
+  "slug": "aggregate-a-total-that-can-skip",
+  "level": 3,
+  "title": "AGGREGATE: a total that says what to ignore",
+  "docs": {
+    "syntax": "=AGGREGATE(function-number, options, range) — nine is SUM, one is AVERAGE, six ignores error values",
+    "explain": "AGGREGATE is SUBTOTAL's more careful cousin. It takes three arguments instead of two: the function number, which works the same way, then an options number that says what the answer should skip, and only then the range. The options number is the point. Six means ignore error values, seven means ignore hidden rows and error values as well, and there are settings for nested subtotals and for ignoring nothing at all. That matters because a plain SUM refuses to answer when one cell in its range holds an error: one broken reference and the total is #VALUE! for the whole column, which is the opposite of helpful when you are trying to see the rest of the numbers. AGGREGATE with six keeps adding the cells that work. The cost of that convenience is that a real mistake can disappear into a total that looks reasonable, so the options number is a decision, not a default. On this drill nothing in the range is an error, so the aggregate agrees with the plain sum, and that is the useful lesson: the shape of the formula, and where the number you choose sits inside it.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The options number is not one AGGREGATE recognises."
+      },
+      {
+        "code": "#NUM!",
+        "text": "The function number is outside the range of supported functions."
+      }
+    ],
+    "atWork": "A total that keeps working when one row of the source data has broken.",
+    "outcome": "Write a three-argument aggregate and know what the options number is buying.",
+    "teaches": "AGGREGATE's function number, options number and range, in that order",
+    "dataset": "Stock list where the total has to survive a broken row",
+    "reference": "=AGGREGATE(9,6,B2:B4)"
+  },
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In D5, add the prices up so that a broken cell in the range would not stop the total.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Price",
+            "Qty",
+            "Value"
+          ],
+          [
+            "pen",
+            10,
+            2,
+            null
+          ],
+          [
+            "pad",
+            5,
+            4,
+            null
+          ],
+          [
+            "ink",
+            20,
+            3,
+            null
+          ],
+          [
+            "Total stock",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D5",
+      "expect": {
+        "value": 35
+      },
+      "reference": "=AGGREGATE(9,6,B2:B4)",
+      "require": [
+        {
+          "id": "func-aggregate",
+          "func": "AGGREGATE",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=AGGREGATE(9,6,B2:B4) — function number, options number, range.",
+        "func-aggregate": "The total that can skip a broken cell is AGGREGATE.",
+        "require-ref": "The range is the price column of the table.",
+        "value": "Ten plus five plus twenty is 35.",
+        "error": "Dividing the total by zero replaces it with #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=AGGREGATE(9,6,B2:B4)",
+          "=aggregate(9,6,b2:b4)",
+          "=AGGREGATE(9,6,$B$2:$B$4)",
+          "=AGGREGATE(9,6,B$2:B$4)",
+          "=AGGREGATE( 9 , 6 , B2:B4 )",
+          "=AGGREGATE(9,6,B2:B4)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B4)",
+            "rule": "func-aggregate",
+            "why": "a plain SUM gives up on the whole range when one cell breaks"
+          },
+          {
+            "formula": "=AGGREGATE(9,6,B2:B3)",
+            "rule": "value",
+            "why": "the last price is left out of the range"
+          },
+          {
+            "formula": "=AGGREGATE(1,6,B2:B4)",
+            "rule": "value",
+            "why": "function number one averages the prices instead of adding them"
+          },
+          {
+            "formula": "=AGGREGATE(9,6,B3:B4)",
+            "rule": "require-ref",
+            "why": "the range starts one row late"
+          },
+          {
+            "formula": "=AGGREGATE(9,6,B2:B4)/0",
+            "rule": "error",
+            "why": "the total is divided by zero"
+          },
+          {
+            "formula": "=AGGREGATE 9,6,B2:B4",
+            "rule": "syntax",
+            "why": "the range sits outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In D5, average the prices with AGGREGATE and round the answer to one decimal place.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Price",
+            "Qty",
+            "Value"
+          ],
+          [
+            "pen",
+            10,
+            2,
+            null
+          ],
+          [
+            "pad",
+            5,
+            4,
+            null
+          ],
+          [
+            "ink",
+            20,
+            3,
+            null
+          ],
+          [
+            "Total stock",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D5",
+      "expect": {
+        "value": 11.7
+      },
+      "reference": "=ROUND(AGGREGATE(1,6,B2:B4),1)",
+      "require": [
+        {
+          "id": "func-aggregate",
+          "func": "AGGREGATE",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=ROUND(AGGREGATE(1,6,B2:B4),1) — the aggregate sits inside the ROUND.",
+        "func-aggregate": "The average has to survive a broken cell, so it is an AGGREGATE rather than an AVERAGE.",
+        "require-ref": "The prices live in B2:B4.",
+        "value": "35 divided by 3 is 11.666..., which rounds to 11.7.",
+        "error": "A zero denominator leaves nothing to round, so #DIV/0! comes back."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUND(AGGREGATE(1,6,B2:B4),1)",
+          "=round(aggregate(1,6,b2:b4),1)",
+          "=ROUND(AGGREGATE(1,6,$B$2:$B$4),1)",
+          "=ROUND(AGGREGATE(1,6,B$2:B$4),1)",
+          "=ROUND( AGGREGATE(1, 6, B2:B4) , 1 )",
+          "=ROUND(AGGREGATE(1,6,B2:B4)*1,1)"
+        ],
+        "reject": [
+          {
+            "formula": "=AVERAGE(B2:B4)",
+            "rule": "func-aggregate",
+            "why": "one broken cell would make AVERAGE return an error instead of a number"
+          },
+          {
+            "formula": "=AGGREGATE(1,6,B2:B4)",
+            "rule": "value",
+            "why": "the average is left unrounded at eleven and two thirds"
+          },
+          {
+            "formula": "=ROUND(AGGREGATE(9,6,B2:B4),1)",
+            "rule": "value",
+            "why": "function number nine adds the prices instead of averaging them"
+          },
+          {
+            "formula": "=ROUND(AGGREGATE(1,6,B3:B4),1)",
+            "rule": "require-ref",
+            "why": "the first price is missing from the average"
+          },
+          {
+            "formula": "=ROUND(AGGREGATE(1,6,B2:B4),1)/0",
+            "rule": "error",
+            "why": "the average is then divided by zero"
+          },
+          {
+            "formula": "=ROUND AGGREGATE(1,6,B2:B4),1",
+            "rule": "syntax",
+            "why": "the aggregate falls outside the parentheses ROUND needs"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2
+}

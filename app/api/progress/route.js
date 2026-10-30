@@ -11,12 +11,18 @@
  * Both are idempotent on the same batch id, both check the lesson ids against the catalog, and both
  * refuse rather than pretend: without accounts configured the answer is 503, and an anonymous request
  * is 401 — the drills keep working locally either way.
+ *
+ * A batch that lands is also credited (phase 5): points per payable screen, and the streak on the
+ * day's first completion. That happens after the write, in `lib/retention/write.js`, and a refusal
+ * there is logged rather than returned — the lesson is recorded either way, and re-sending a batch to
+ * collect points it already collected would be the wrong trade.
  */
 import { authConfig } from "../../../lib/auth/config.js";
 import { currentUser } from "../../../lib/auth/server.js";
 import { parseBatch } from "../../../lib/progress/derive.js";
 import { parseMigration } from "../../../lib/progress/migrate.js";
 import { importProgress, progressClient, writeBatch } from "../../../lib/progress/write.js";
+import { creditBatch } from "../../../lib/retention/write.js";
 import { loadSite } from "../../../lib/site.js";
 
 function json(body, status) {
@@ -94,6 +100,25 @@ export async function POST(request) {
       : json({ ok: false, error: result.error }, 502);
   }
 
+  // The batch is committed; points and the streak are what it was worth. This runs after the fact and
+  // its failure is a log line, not a status: a completed lesson is complete whether or not the award
+  // answered, and asking the browser to retry a batch it already landed would be worse than losing a
+  // day's points. `creditBatch` also refuses to re-ask on a replay, where the claim is already spent.
+  let credit = { points: null, streak: null };
+  try {
+    credit = await creditBatch(client, {
+      user,
+      lessonId: parsed.lessonId,
+      attempts: parsed.attempts,
+      summary: parsed.summary,
+      replayed: result.replayed,
+    });
+    if (credit.points?.ok === false) console.error(`api/progress: award refused — ${credit.points.error}`);
+    if (credit.streak?.ok === false) console.error(`api/progress: streak refused — ${credit.streak.error}`);
+  } catch (error) {
+    console.error("api/progress: the retention write threw, the batch stands", error);
+  }
+
   return json(
     {
       ok: true,
@@ -102,6 +127,8 @@ export async function POST(request) {
       status: result.status,
       score: result.score,
       first_try_accuracy: result.firstTryAccuracy,
+      points: credit.points?.ok ? { awarded: credit.points.awarded, total: credit.points.total } : null,
+      streak: credit.streak?.ok ? { current: credit.streak.current, longest: credit.streak.longest } : null,
     },
     result.replayed ? 200 : 201,
   );

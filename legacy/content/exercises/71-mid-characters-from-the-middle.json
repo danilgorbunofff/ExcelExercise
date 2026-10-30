@@ -1,0 +1,243 @@
+{
+  "id": "71-mid-characters-from-the-middle",
+  "slug": "mid-characters-from-the-middle",
+  "level": 2,
+  "title": "MID: characters from the middle",
+  "docs": {
+    "syntax": "=MID(text,start,num_chars) counts positions from 1 and reads num_chars characters",
+    "explain": "Codes hide their parts in fixed places. A product code like AN-1042 is a region letter pair, a hyphen, then a four-digit number, and every one of those parts is one column away from being usable. MID is the function that reads a fixed position, and it is the one learners reach for last because LEFT and RIGHT are easier to picture. The trick that makes it worth learning is that MID counts from the left, always, so the start position is a number you work out rather than a number you can see. On a code where the hyphen sits at position three, the digits start at four, and the same MID call keeps working on every row because the shape does not change. The second half of MID is the length, and length is the argument people get wrong: too short truncates the answer, too long is harmless because MID stops at the end of the text. Both screens here read a fixed slice of the same code column, so the only thing that changes is which slice the question asks for.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The start position or the length is not a number, or the start is less than one."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name is misspelled, so the sheet has nothing to call."
+      }
+    ],
+    "atWork": "Pulling a fixed part out of a product, order or account code.",
+    "outcome": "Read any fixed slice of a code with MID and know why the start number is the one you computed.",
+    "teaches": "MID reading a fixed slice, with the length counted rather than guessed",
+    "dataset": "Product codes that put two letters, a hyphen and four digits",
+    "reference": "=MID(B2,4,4)"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In C2, read the four digits at the end of the code in B2 with MID.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Code",
+            "Answer"
+          ],
+          [
+            "pen",
+            "AN-1042",
+            null
+          ],
+          [
+            "pad",
+            "BO-2299",
+            null
+          ],
+          [
+            "ink",
+            "CY-3140",
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": "1042"
+      },
+      "reference": "=MID(B2,4,4)",
+      "require": [
+        {
+          "id": "func-mid",
+          "func": "MID",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=MID(B2,4,4) — the text, the position to start at, then how many characters.",
+        "func-mid": "The digits sit inside the code, so LEFT and RIGHT are the wrong end of it.",
+        "require-ref": "The code is in B2.",
+        "value": "The hyphen is the third character, so the digits start at four.",
+        "error": "A start position below one has nothing to read."
+      },
+      "fixtures": {
+        "accept": [
+          "=MID(B2,4,4)",
+          "=mid(b2,4,4)",
+          "=MID($B$2,4,4)",
+          "=MID(B$2,4,4)",
+          "=MID( B2 , 4 , 4 )",
+          "=MID(B2,4,LEN(B2)-3)",
+          "=MID(B2,4,99)"
+        ],
+        "reject": [
+          {
+            "formula": "=RIGHT(B2,4)",
+            "rule": "func-mid",
+            "why": "the right four characters are the answer, but RIGHT is not the function the screen teaches"
+          },
+          {
+            "formula": "=LEFT(B2,2)",
+            "rule": "func-mid",
+            "why": "the letters at the start are not the digits"
+          },
+          {
+            "formula": "=MID(B2,5,4)",
+            "rule": "value",
+            "why": "starting at five leaves the first digit behind"
+          },
+          {
+            "formula": "=MID(B2,4,3)",
+            "rule": "value",
+            "why": "three characters truncate the number"
+          },
+          {
+            "formula": "=MID($B$2,3,4)",
+            "rule": "value",
+            "why": "starting at the hyphen keeps it in the answer"
+          },
+          {
+            "formula": "=MID(B3,4,4)",
+            "rule": "require-ref",
+            "why": "the formula reads the second row rather than B2"
+          },
+          {
+            "formula": "=MID(B2,\"x\",4)",
+            "rule": "error",
+            "why": "a start position that is not a number gives #VALUE!"
+          },
+          {
+            "formula": "=MID(B2,0,4)",
+            "rule": "error",
+            "why": "MID counts from one, so zero is not a position"
+          },
+          {
+            "formula": "=MID B2,4,4",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In C2, read the two letters at the start of the code in B2 with MID.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Code",
+            "Answer"
+          ],
+          [
+            "pen",
+            "AN-1042",
+            null
+          ],
+          [
+            "pad",
+            "BO-2299",
+            null
+          ],
+          [
+            "ink",
+            "CY-3140",
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": "AN"
+      },
+      "reference": "=MID(B2,1,2)",
+      "require": [
+        {
+          "id": "func-mid",
+          "func": "MID",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=MID(B2,1,2) — starting at the first character, reading two.",
+        "func-mid": "The prefix is a slice of the code, which is what MID reads.",
+        "require-ref": "The code is in B2.",
+        "value": "The first two characters of AN-1042 are AN.",
+        "error": "MID cannot read a negative number of characters."
+      },
+      "fixtures": {
+        "accept": [
+          "=MID(B2,1,2)",
+          "=mid(b2,1,2)",
+          "=MID($B$2,1,2)",
+          "=MID(B$2,1,2)",
+          "=MID( B2 , 1 , 2 )",
+          "=MID(B2,1,LEN(B2)-5)",
+          "=MID(B2,1,2)&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=LEFT(B2,2)",
+            "rule": "func-mid",
+            "why": "LEFT answers the question but is not the function being taught"
+          },
+          {
+            "formula": "=RIGHT(B2,2)",
+            "rule": "func-mid",
+            "why": "the digits at the end are not the letters at the start"
+          },
+          {
+            "formula": "=MID(B2,1,3)",
+            "rule": "value",
+            "why": "three characters drag the hyphen in"
+          },
+          {
+            "formula": "=MID(B2,2,2)",
+            "rule": "value",
+            "why": "starting at two skips the first letter"
+          },
+          {
+            "formula": "=MID(B2,1,1)",
+            "rule": "value",
+            "why": "one character is half the prefix"
+          },
+          {
+            "formula": "=MID(B3,1,2)",
+            "rule": "require-ref",
+            "why": "the formula reads the second row rather than B2"
+          },
+          {
+            "formula": "=MID(B2,1,-1)",
+            "rule": "error",
+            "why": "a negative length gives #VALUE!"
+          },
+          {
+            "formula": "=MID B2,1,2",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2
+}

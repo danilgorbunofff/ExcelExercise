@@ -255,6 +255,209 @@ describe("aggregates", () => {
   });
 });
 
+describe("conditional aggregates", () => {
+  // Region / rep / Q1 / Q2 — two North rows, so a second criterion has something to remove.
+  const TABLE = {
+    A1: "Region",
+    B1: "Rep",
+    C1: "Q1",
+    D1: "Q2",
+    A2: "North",
+    B2: "Ana",
+    C2: 1200,
+    D2: 1300,
+    A3: "South",
+    B3: "Bo",
+    C3: 1450,
+    D3: 900,
+    A4: "North",
+    B4: "Cy",
+    C4: 930,
+    D4: 1100,
+    A5: "West",
+    B5: "Dee",
+    C5: 620,
+    D5: 700,
+  };
+
+  it("tests more than one condition at once", () => {
+    assert.equal(run('=SUMIFS(C2:C5,A2:A5,"North",D2:D5,">1000")', TABLE), 2130);
+    assert.equal(run('=SUMIFS(C2:C5,A2:A5,"North")', TABLE), 2130);
+    assert.equal(run('=COUNTIFS(A2:A5,"North")', TABLE), 2);
+    assert.equal(run('=COUNTIFS(C2:C5,"<1300")', TABLE), 3);
+    assert.equal(run('=COUNTIFS(A2:A5,"North",D2:D5,">=1300")', TABLE), 1);
+  });
+
+  it("averages, mins and maxes over the same filter", () => {
+    assert.equal(run('=AVERAGEIFS(C2:C5,A2:A5,"North")', TABLE), 1065);
+    assert.equal(run('=MINIFS(C2:C5,A2:A5,"North")', TABLE), 930);
+    assert.equal(run('=MAXIFS(C2:C5,A2:A5,"North")', TABLE), 1200);
+    throwsCode(() => run('=AVERAGEIFS(C2:C5,A2:A5,"Nowhere")', TABLE), CODES.DIV0);
+    assert.equal(run('=MINIFS(C2:C5,A2:A5,"Nowhere")', TABLE), 0);
+  });
+
+  it("refuses a criterion range of a different shape, and a range with no criterion", () => {
+    throwsCode(() => run('=SUMIFS(C2:C5,A2:A4,"North")', TABLE), CODES.VALUE);
+    throwsCode(() => run('=COUNTIFS(A2:A5)', TABLE), CODES.VALUE);
+    throwsCode(() => run('=SUMIFS(C2:C5,A2:A5,"North",D2:D5)', TABLE), CODES.VALUE);
+  });
+});
+
+describe("statistics over a block", () => {
+  const BLOCK = { A2: 1200, A3: 1450, A4: 930, A5: 620 };
+
+  it("picks from either end by position", () => {
+    assert.equal(run("=LARGE(A2:A5,2)", BLOCK), 1200);
+    assert.equal(run("=SMALL(A2:A5,1)", BLOCK), 620);
+    assert.equal(run("=SMALL(A2:A5,3)", BLOCK), 1200);
+    throwsCode(() => run("=LARGE(A2:A5,9)", BLOCK), CODES.NUM);
+    throwsCode(() => run("=LARGE(A2:A5,0)", BLOCK), CODES.NUM);
+  });
+
+  it("finds the middle and the most common value", () => {
+    assert.equal(run("=MEDIAN(A2:A5)", BLOCK), 1065);
+    assert.equal(run("=MEDIAN(3,1,2)", BLOCK), 2);
+    assert.equal(run("=MODE(A2:A5)", { A2: 5, A3: 7, A4: 5, A5: 9 }), 5);
+    throwsCode(() => run("=MODE(A2:A5)", BLOCK), CODES.NA);
+  });
+
+  it("ranks by position without sorting the block", () => {
+    assert.equal(run("=RANK(A2,A2:A5)", BLOCK), 2);
+    assert.equal(run("=RANK(A5,A2:A5)", BLOCK), 4);
+    assert.equal(run("=RANK(A5,A2:A5,1)", BLOCK), 1);
+    throwsCode(() => run("=RANK(7,A2:A5)", BLOCK), CODES.NA);
+  });
+});
+
+describe("rounding to a multiple", () => {
+  it("rounds to the nearest multiple, then down, then up", () => {
+    assert.equal(run("=MROUND(7,5)"), 5);
+    assert.equal(run("=MROUND(8,5)"), 10);
+    assert.equal(run("=MROUND(2.5,5)"), 5, "a tie rounds away from zero");
+    assert.equal(run("=FLOOR(7,5)"), 5);
+    assert.equal(run("=CEILING(7,5)"), 10);
+    assert.equal(run("=CEILING(10,5)"), 10, "a value already on the step stays put");
+  });
+
+  it("refuses a zero step and mixed signs", () => {
+    throwsCode(() => run("=MROUND(7,0)"), CODES.DIV0);
+    throwsCode(() => run("=MROUND(7,-5)"), CODES.NUM);
+    assert.equal(run("=FLOOR(0.24,0.1)"), 0.2);
+  });
+});
+
+describe("choosing between more than two cases", () => {
+  it("evaluates only the IFS branch it returns", () => {
+    assert.equal(run('=IFS(FALSE,1/0,TRUE,7)'), 7);
+    assert.equal(run('=IFS(2>1,"first",TRUE,"second")'), "first");
+    throwsCode(() => run('=IFS(FALSE,1,FALSE,2)'), CODES.NA);
+    throwsCode(() => run("=IFS(FALSE,1,TRUE)"), CODES.VALUE);
+  });
+
+  it("matches a SWITCH case and falls back to its default", () => {
+    assert.equal(run('=SWITCH("North","North",1,"South",2,0)'), 1);
+    assert.equal(run('=SWITCH("West","North",1,"South",2,0)'), 0);
+    assert.equal(run('=SWITCH("West","North",1,"other")'), "other");
+    throwsCode(() => run('=SWITCH("West","North",1)'), CODES.NA);
+    throwsCode(() => run('=SWITCH("East","North",1,"South",2)'), CODES.NA);
+  });
+
+  it("tests what a cell holds", () => {
+    const cells = { A1: 5, A2: "text", A3: true };
+    assert.equal(run("=ISNUMBER(A1)", cells), true);
+    assert.equal(run("=ISTEXT(A2)", cells), true);
+    assert.equal(run("=ISLOGICAL(A3)", cells), true);
+    assert.equal(run("=ISBLANK(A9)", cells), true);
+    assert.equal(run("=ISTEXT(A1)", cells), false);
+  });
+
+  it("tests for errors without letting them escape", () => {
+    assert.equal(run("=ISERROR(1/0)"), true);
+    assert.equal(run("=ISERROR(NA())"), true);
+    assert.equal(run("=ISERROR(7)"), false);
+    assert.equal(run("=ISNA(NA())"), true);
+    assert.equal(run("=ISNA(1/0)"), false);
+  });
+
+  it("lets IFNA catch only #N/A", () => {
+    assert.equal(run('=IFNA(NA(),"missing")'), "missing");
+    assert.equal(run('=IFNA(7,"missing")'), 7);
+    throwsCode(() => run('=IFNA(1/0,"missing")'), CODES.DIV0);
+  });
+});
+
+describe("aggregates over several ranges", () => {
+  const TABLE = { A2: 1200, A3: 1450, A4: 930, A5: 620, B2: 1300, B3: 900, B4: 1100, B5: 700 };
+
+  it("multiplies row by row and totals the products", () => {
+    assert.equal(run("=SUMPRODUCT(A2:A5,B2:B5)", TABLE), 4322000);
+    assert.equal(run("=SUMPRODUCT(A2:A5)", TABLE), 4200);
+    assert.equal(run("=SUMPRODUCT(2,3,4)"), 24);
+    throwsCode(() => run("=SUMPRODUCT(A2:A5,B2:B4)", TABLE), CODES.VALUE);
+  });
+
+  it("totals through SUBTOTAL's code table", () => {
+    assert.equal(run("=SUBTOTAL(9,A2:A5)", TABLE), 4200);
+    assert.equal(run("=SUBTOTAL(109,A2:A5)", TABLE), 4200);
+    assert.equal(run("=SUBTOTAL(1,A2:A5)", TABLE), 1050);
+    assert.equal(run("=SUBTOTAL(2,A2:A5)", TABLE), 4);
+    assert.equal(run("=SUBTOTAL(4,A2:A5)", TABLE), 1450);
+    throwsCode(() => run("=SUBTOTAL(99,A2:A5)", TABLE), CODES.VALUE);
+  });
+
+  it("reaches the statistics codes through AGGREGATE", () => {
+    assert.equal(run("=AGGREGATE(9,0,A2:A5)", TABLE), 4200);
+    assert.equal(run("=AGGREGATE(14,6,A2:A5,2)", TABLE), 1200);
+    assert.equal(run("=AGGREGATE(15,6,A2:A5,1)", TABLE), 620);
+    throwsCode(() => run("=AGGREGATE(9,9,A2:A5)", TABLE), CODES.VALUE);
+  });
+});
+
+describe("functions that answer with a block", () => {
+  const REGIONS = { A2: "North", A3: "South", A4: "North", A5: "West" };
+
+  it("lists each distinct value once", () => {
+    assert.equal(run("=TEXTJOIN(\",\",TRUE,UNIQUE(A2:A5))", REGIONS), "North,South,West");
+    assert.equal(run("=COUNTA(UNIQUE(A2:A5))", REGIONS), 3);
+    assert.equal(run("=COUNTA(UNIQUE(A2:A5,FALSE,TRUE))", REGIONS), 2);
+  });
+
+  it("sorts a block by one of its columns", () => {
+    assert.equal(run("=INDEX(SORT(A2:A5,1,-1),2)", REGIONS), "South");
+  });
+
+  it("filters on a block comparison", () => {
+    const cells = { ...REGIONS, B2: 1200, B3: 1450, B4: 930, B5: 620 };
+    assert.equal(run('=TEXTJOIN(",",TRUE,FILTER(A2:A5,B2:B5>1000))', cells), "North,South");
+    assert.equal(run("=COUNTA(FILTER(A2:A5,B2:B5>1000))", cells), 2);
+    throwsCode(() => run("=FILTER(A2:A5,B2:B5>9999)", cells), CODES.NA);
+    assert.equal(run('=FILTER(A2:A5,B2:B5>9999,"none")', cells), "none");
+  });
+});
+
+describe("a lesson about a comparison", () => {
+  const lesson = {
+    grid: { startCell: "A1", rows: [["Units"], [1200], [850]] },
+    answerCell: "B2",
+    expect: { value: true },
+    require: [{ id: "compare-gt", op: ">" }],
+    forbid: [],
+    rules: [],
+    hints: { "compare-gt": "Compare A2 with > instead of retyping TRUE." },
+  };
+
+  it("accepts a formula that compares and rejects one that retypes the answer", () => {
+    const passed = grade(lesson, "=A2>1000");
+    assert.equal(passed.ok, true);
+    assert.equal(passed.value, true);
+
+    const failed = grade(lesson, "=TRUE");
+    assert.equal(failed.ok, false);
+    assert.equal(failed.rule, "compare-gt");
+    assert.equal(failed.hint, "Compare A2 with > instead of retyping TRUE.");
+  });
+});
+
 describe("logic", () => {
   it("returns the chosen IF branch only", () => {
     assert.equal(run('=IF(B2>=1000,"Pass","Fail")', SALES), "Pass");
@@ -372,6 +575,24 @@ describe("text", () => {
     assert.equal(run('=TRIM("  a   b  ")'), "a b");
   });
 
+  it("substitutes every instance, or one named instance", () => {
+    assert.equal(run('=SUBSTITUTE("A-B-C","-","/")'), "A/B/C");
+    assert.equal(run('=SUBSTITUTE("A-B-C","-","")'), "ABC");
+    assert.equal(run('=SUBSTITUTE("A-B-C","-","",2)'), "A-BC");
+    assert.equal(run('=SUBSTITUTE("abc","x","y")'), "abc");
+    assert.equal(run('=SUBSTITUTE("abc","","x")'), "abc");
+    throwsCode(() => run('=SUBSTITUTE("A-B","-","/",0)'), CODES.VALUE);
+  });
+
+  it("splits before and after a delimiter, counting from either end", () => {
+    assert.equal(run('=TEXTBEFORE("A-B-C","-")'), "A");
+    assert.equal(run('=TEXTAFTER("A-B-C","-")'), "B-C");
+    assert.equal(run('=TEXTBEFORE("A-B-C","-",2)'), "A-B");
+    assert.equal(run('=TEXTAFTER("A-B-C","-",-1)'), "C");
+    throwsCode(() => run('=TEXTBEFORE("A-B-C","x")'), CODES.NA);
+    throwsCode(() => run('=TEXTAFTER("A-B","-",0)'), CODES.VALUE);
+  });
+
   it("joins text", () => {
     assert.equal(run('=CONCAT("a",1)'), "a1");
     assert.equal(run('=CONCATENATE("a","b")'), "ab");
@@ -407,11 +628,11 @@ describe("errors", () => {
 
   it("names an unsupported function", () => {
     try {
-      run("=SUMPRODUCT(A1:A2)");
+      run("=VSTACK(A1:A2)");
       assert.fail("expected a throw");
     } catch (error) {
       assert.equal(error.code, CODES.NAME);
-      assert.match(error.message, /SUMPRODUCT/);
+      assert.match(error.message, /VSTACK/);
     }
   });
 
@@ -924,5 +1145,95 @@ describe("typed answers", () => {
   it("rejects an empty answer and a screen with no answers at all", () => {
     assert.equal(gradeAnswer(picture, "   ").ok, false);
     assert.equal(gradeAnswer({ type: "picture" }, "B2:B6").ok, false);
+  });
+});
+
+describe("dates come from the screen's pinned clock", () => {
+  const pinned = { today: "2024-03-15" };
+  const runToday = (formula) => run(formula, {}, pinned);
+
+  it("answers TODAY with the serial of the pinned day, the same on every run", () => {
+    assert.equal(runToday("=TODAY()"), 45366);
+    assert.equal(runToday("=TODAY()"), runToday("=TODAY()"));
+  });
+
+  it("carries no time of day into NOW when the clock is pinned to a day", () => {
+    assert.equal(runToday("=NOW()"), 45366);
+    assert.equal(runToday("=NOW()") - Math.trunc(runToday("=NOW()")), 0);
+  });
+
+  it("reads a live clock when the screen pins nothing", () => {
+    const today = run("=TODAY()");
+    assert.equal(typeof today, "number");
+    // One day either way covers a machine clock that has crossed midnight since the test started.
+    assert.ok(Math.abs(today - run("=DATE(1970,1,1)")) > 0, "a live clock is a date, not a constant");
+    assert.equal(Number.isInteger(today), true);
+  });
+
+  it("rolls an out-of-range month or day into the neighbouring month, as Excel does", () => {
+    assert.equal(run("=DATE(2024,3,15)"), 45366);
+    assert.equal(run("=DATE(2024,13,1)"), run("=DATE(2025,1,1)"));
+    assert.equal(run("=DATE(2024,1,0)"), run("=DATE(2023,12,31)"));
+    assert.equal(run('=DATE(2024,1,1)+MONTH(DATE(2024,3,15))'), run("=DATE(2024,1,4)"));
+  });
+
+  it("takes a serial apart again with YEAR, MONTH and DAY", () => {
+    assert.equal(run("=YEAR(45366)"), 2024);
+    assert.equal(run("=MONTH(45366)"), 3);
+    assert.equal(run("=DAY(45366)"), 15);
+    assert.equal(run("=DAYS(DATE(2024,4,1),DATE(2024,3,15))"), 17);
+  });
+
+  it("counts the complete units DATEDIF was asked for", () => {
+    const start = "DATE(1990,5,20)";
+    const end = "DATE(2024,3,15)";
+    assert.equal(run(`=DATEDIF(${start},${end},"Y")`), 33);
+    assert.equal(run(`=DATEDIF(${start},${end},"M")`), 405);
+    assert.equal(run(`=DATEDIF(${start},${end},"D")`), 12353);
+    assert.equal(run(`=DATEDIF(${start},${end},"YM")`), 9);
+    assert.equal(run(`=DATEDIF(${start},${end},"YD")`), 300);
+    // A birthday that has not come round yet does not count.
+    assert.equal(run('=DATEDIF(DATE(1990,5,20),DATE(2024,5,19),"Y")'), 33);
+    assert.equal(run('=DATEDIF(DATE(1990,5,20),DATE(2024,5,20),"Y")'), 34);
+  });
+
+  it("pins EDATE and EOMONTH to the end of a shorter month", () => {
+    assert.equal(run("=EDATE(DATE(2024,1,31),1)"), run("=DATE(2024,2,29)"));
+    assert.equal(run("=EOMONTH(DATE(2024,1,15),0)"), run("=DATE(2024,1,31)"));
+    assert.equal(run("=EOMONTH(DATE(2024,1,15),1)"), run("=DATE(2024,2,29)"));
+    assert.equal(run("=EOMONTH(DATE(2023,1,31),-1)"), run("=DATE(2022,12,31)"));
+  });
+
+  it("numbers the week the way WEEKDAY's second argument asks", () => {
+    // 2024-03-15 is a Friday.
+    assert.equal(run("=WEEKDAY(DATE(2024,3,15))"), 6);
+    assert.equal(run("=WEEKDAY(DATE(2024,3,15),2)"), 5);
+    assert.equal(run("=WEEKDAY(DATE(2024,3,15),3)"), 4);
+    assert.equal(run("=WEEKDAY(DATE(2024,3,15),11)"), 5);
+    assert.equal(run("=WEEKDAY(DATE(2024,3,15),17)"), 6);
+  });
+
+  it("refuses a date that ran backwards, a unit it does not know, and a week type it cannot number", () => {
+    throwsCode(() => run('=DATEDIF(DATE(2024,3,15),DATE(2024,1,1),"D")'), CODES.NUM);
+    throwsCode(() => run('=DATEDIF(DATE(2024,1,1),DATE(2024,3,15),"W")'), CODES.NUM);
+    throwsCode(() => run("=WEEKDAY(DATE(2024,3,15),9)"), CODES.NUM);
+    throwsCode(() => run("=DATE(-1,1,1)"), CODES.NUM);
+    throwsCode(() => run('=YEAR("last Tuesday")'), CODES.VALUE);
+    // DATE reads a year under 1900 as one in the 1900s, which is Excel's own rule.
+    assert.equal(run("=YEAR(DATE(1800,1,1))"), 3700);
+  });
+
+  it("grades a date answer against the day the screen pinned, not against today", () => {
+    const lesson = {
+      grid: { startCell: "A1", rows: [["Invoice date"], [null]] },
+      answerCell: "A2",
+      today: "2024-03-15",
+      expect: { value: 14 },
+      require: [{ id: "func-today", func: "TODAY", minArgs: 0 }],
+    };
+    assert.equal(grade({ ...lesson, require: [], today: undefined }, "=TODAY()").rule !== undefined, true);
+    assert.equal(grade(lesson, "=TODAY()-DATE(2024,3,1)").ok, true);
+    assert.equal(grade(lesson, "=DATE(2024,3,15)-DATE(2024,3,1)").ok, false);
+    assert.equal(grade(lesson, "=DATE(2024,3,15)-DATE(2024,3,1)").rule, "func-today");
   });
 });

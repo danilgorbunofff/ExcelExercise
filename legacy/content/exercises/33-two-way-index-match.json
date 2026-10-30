@@ -1,0 +1,165 @@
+{
+  "id": "33-two-way-index-match",
+  "slug": "two-way-index-match",
+  "level": 2,
+  "title": "Two-way INDEX MATCH",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, read the units for the region in B6 and the quarter in B7 from the grid B2:D4.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Q1",
+            "Q2",
+            "Q3"
+          ],
+          [
+            "North",
+            120,
+            140,
+            160
+          ],
+          [
+            "South",
+            90,
+            110,
+            130
+          ],
+          [
+            "West",
+            75,
+            95,
+            115
+          ],
+          [
+            "Region?",
+            "South",
+            null,
+            null
+          ],
+          [
+            "Quarter?",
+            "Q3",
+            null,
+            null
+          ],
+          [
+            "Units",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 130
+      },
+      "require": [
+        {
+          "id": "func-index",
+          "func": "INDEX",
+          "minArgs": 3
+        },
+        {
+          "id": "func-match",
+          "func": "MATCH",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B5",
+      "rules": [
+        {
+          "id": "match-exact",
+          "type": "matchType",
+          "func": "MATCH",
+          "arg": 3,
+          "values": [
+            0
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "One MATCH for the row and one for the column: =INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0)).",
+        "func-index": "INDEX takes three arguments here \u2014 the grid, the row, the column \u2014 because the answer sits inside a grid rather than in one column.",
+        "func-match": "Both positions come from MATCH: one searches the region labels, the other searches the quarter headers.",
+        "match-exact": "Neither list is sorted, so both MATCH calls need 0 to match exactly.",
+        "require-ref": "Read the region from B5 and the quarter from B6 so the drill follows the sheet.",
+        "value": "South is the second data row and Q3 is the third column of the grid, so INDEX reads 130.",
+        "error": "A region or quarter that is not in the labels leaves MATCH with #N/A."
+      },
+      "fixtures": {
+        "accept": [
+          "=INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0))",
+          "=index(b2:d4,match(b5,a2:a4,0),match(b6,b1:d1,0))",
+          "=INDEX($B$2:$D$4,MATCH($B$5,$A$2:$A$4,0),MATCH($B$6,$B$1:$D$1,0))",
+          "=INDEX(B2:D4,MATCH(B5,A2:A4,FALSE),MATCH(B6,B1:D1,FALSE))",
+          "=INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0))+0",
+          "=INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0))*1"
+        ],
+        "reject": [
+          {
+            "formula": "=INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0)",
+            "rule": "syntax",
+            "why": "one bracket is still open, so nothing computes"
+          },
+          {
+            "formula": "=INDEX(B2:D4,2,3)",
+            "rule": "func-match",
+            "why": "the right cell, but both positions are hardcoded instead of looked up"
+          },
+          {
+            "formula": "=MATCH(B5,A2:A4,0)",
+            "rule": "func-index",
+            "why": "answers 2, the row South sits on, not the units in it"
+          },
+          {
+            "formula": "=INDEX(B2:D4,MATCH(B5,A2:A4,1),MATCH(B6,B1:D1,0))",
+            "rule": "match-exact",
+            "why": "approximate match on an unsorted region column"
+          },
+          {
+            "formula": "=INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B2:D2,0))",
+            "rule": "error",
+            "why": "the quarter headers are in row 1, so searching row 2 finds no Q3"
+          },
+          {
+            "formula": "=INDEX(B2:D4,MATCH(\"South\",A2:A4,0),MATCH(\"Q3\",B1:D1,0))",
+            "rule": "require-ref",
+            "why": "the region and quarter typed into the formula, so a change in B6 or B7 never reaches the answer"
+          },
+          {
+            "formula": "=INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0)-1)",
+            "rule": "value",
+            "why": "steps one column before the month that was matched, so the total is one month early"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=INDEX(grid, row, column)",
+    "explain": "A two-way lookup is two questions: which row is South, and which column is Q3. MATCH answers each one against its own labels, and INDEX takes the grid plus those two numbers. That is why the two ranges are different shapes \u2014 A2:A4 is a column of regions and B1:D1 is a row of quarters \u2014 and why mixing them up returns #N/A rather than a wrong number. Both MATCH calls need the zero, since region names and quarter labels are both in the order they were typed. INDEX does no searching of its own; it reads a coordinate, so a wrong row number and a wrong column number look exactly alike in the result until you check the two MATCH calls separately.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "One of the two MATCH calls found no label, so the row or column number is missing."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The two MATCH ranges were swapped, so a quarter label was searched in the region column."
+      }
+    ],
+    "atWork": "A budget grid with regions down the side and quarters across the top, where the numbers change every month.",
+    "outcome": "Read one cell out of a grid by matching its row and column labels.",
+    "teaches": "Two-way INDEX MATCH",
+    "dataset": "Three regions, three quarters",
+    "reference": "=INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0))"
+  }
+}

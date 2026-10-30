@@ -20,6 +20,11 @@ function json(body, status) {
 }
 
 export async function POST(request) {
+  // A form post is a browser with a person in front of it: it must land somewhere readable, never
+  // on a JSON body. The API answer for the same condition stays 409.
+  const isForm = (request.headers.get("content-type") ?? "").includes(
+    "application/x-www-form-urlencoded",
+  );
   const config = stripeConfig();
   if (!config.enabled) return json({ ok: false, error: "stripe_unconfigured", reason: config.reason }, 503);
 
@@ -44,7 +49,14 @@ export async function POST(request) {
     return json({ ok: false, error: "portal_lookup_failed" }, 502);
   }
   const customerId = data?.[0]?.stripe_customer_id;
-  if (!customerId) return json({ ok: false, error: "no_billing_account" }, 409);
+  if (!customerId) {
+    // Nothing to manage: a lifetime plan, an institutional seat, or a free account that reached
+    // this by hand. Back to the page that offers the button, not a wall of JSON.
+    if (isForm) {
+      return new Response(null, { status: 303, headers: { location: "/account", "cache-control": "no-store" } });
+    }
+    return json({ ok: false, error: "no_billing_account" }, 409);
+  }
 
   const origin = (process.env.NEXT_PUBLIC_SITE_URL ?? "").trim() || new URL(request.url).origin;
   const result = await stripePost(
@@ -59,7 +71,7 @@ export async function POST(request) {
   const url = result.body?.url;
   if (!url) return json({ ok: false, error: "stripe_returned_no_url" }, 502);
 
-  if ((request.headers.get("content-type") ?? "").includes("application/x-www-form-urlencoded")) {
+  if (isForm) {
     return new Response(null, { status: 303, headers: { location: url, "cache-control": "no-store" } });
   }
   return json({ ok: true, url }, 200);

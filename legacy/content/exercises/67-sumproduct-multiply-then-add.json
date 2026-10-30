@@ -1,0 +1,241 @@
+{
+  "id": "67-sumproduct-multiply-then-add",
+  "slug": "sumproduct-multiply-then-add",
+  "level": 3,
+  "title": "SUMPRODUCT: multiply the pair, then add them up",
+  "docs": {
+    "syntax": "=SUMPRODUCT(prices, quantities) multiplies the two ranges row by row and adds the products",
+    "explain": "SUMPRODUCT is the formula that values a stock list. You have a price in one column and a quantity in another, and the number you want is not the sum of either column: it is the sum of every row's price multiplied by that row's quantity. Typing the products into a helper column and summing it gives the same answer, but the helper column is a second place to make a mistake, and it stops being right the moment a row is inserted. SUMPRODUCT takes the two ranges and pairs them up in order, first row with first row, and there is no matching step to get wrong. The ranges have to be the same shape, which is the one thing to look at when the answer looks strange. The second screen goes one step further: a weighted average, where the products are divided by the total quantity rather than by the count of rows, because a row that holds three items should count three times. That is the same SUMPRODUCT, used as a numerator instead of the whole answer, and it is the shape most pricing sheets are built around. Both screens keep the answer on one row so the whole table stays visible while the formula is written.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The two ranges are different shapes, so the pairs do not line up."
+      },
+      {
+        "code": "#NAME?",
+        "text": "A bare range was typed after a comma that the function did not expect."
+      }
+    ],
+    "atWork": "Valuing a stock list without a helper column, then averaging by volume instead of by row.",
+    "outcome": "Value a table and compute a weighted average from the same two columns.",
+    "teaches": "SUMPRODUCT as a value total and as the numerator of a weighted average",
+    "dataset": "Stock list with a price chain and a quantity per row",
+    "reference": "=SUMPRODUCT(B2:B4,C2:C4)"
+  },
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In D5, total the value of the stock: price times quantity on every row, added up.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Price",
+            "Qty",
+            "Value"
+          ],
+          [
+            "pen",
+            10,
+            2,
+            null
+          ],
+          [
+            "pad",
+            5,
+            4,
+            null
+          ],
+          [
+            "ink",
+            20,
+            3,
+            null
+          ],
+          [
+            "Total stock",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D5",
+      "expect": {
+        "value": 100
+      },
+      "reference": "=SUMPRODUCT(B2:B4,C2:C4)",
+      "require": [
+        {
+          "id": "func-sumproduct",
+          "func": "SUMPRODUCT",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUMPRODUCT(B2:B4,C2:C4) — two ranges, one comma, no multiplication sign.",
+        "func-sumproduct": "The pairs are multiplied and added by the function itself, so no helper column is needed.",
+        "require-ref": "Point the ranges at the table rows rather than typing numbers.",
+        "value": "Ten times two, five times four, twenty times three: 100.",
+        "error": "Dividing the total by zero replaces it with #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMPRODUCT(B2:B4,C2:C4)",
+          "=sumproduct(b2:b4,c2:c4)",
+          "=SUMPRODUCT($B$2:$B$4,$C$2:$C$4)",
+          "=SUMPRODUCT(B$2:B$4,C$2:C$4)",
+          "=SUMPRODUCT( B2:B4 , C2:C4 )",
+          "=SUMPRODUCT(B2:B4,C2:C4)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B4)",
+            "rule": "func-sumproduct",
+            "why": "one column adds the prices and ignores the quantities"
+          },
+          {
+            "formula": "=SUMPRODUCT(B2:B4)",
+            "rule": "func-sumproduct",
+            "why": "one range on its own has nothing to pair with"
+          },
+          {
+            "formula": "=SUMPRODUCT(B2:B4,B2:B4)",
+            "rule": "value",
+            "why": "the prices are multiplied by themselves, so the quantities never count"
+          },
+          {
+            "formula": "=SUMPRODUCT(B3:B4,C3:C4)",
+            "rule": "require-ref",
+            "why": "the first item is left out of both ranges"
+          },
+          {
+            "formula": "=SUMPRODUCT(B2:B4,C2:C4)/0",
+            "rule": "error",
+            "why": "the total is divided by zero"
+          },
+          {
+            "formula": "=SUMPRODUCT B2:B4,C2:C4",
+            "rule": "syntax",
+            "why": "the ranges sit outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In D5, work out the average price paid per item, counting each row once per unit it holds.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Price",
+            "Qty",
+            "Value"
+          ],
+          [
+            "pen",
+            10,
+            2,
+            null
+          ],
+          [
+            "pad",
+            5,
+            4,
+            null
+          ],
+          [
+            "ink",
+            20,
+            3,
+            null
+          ],
+          [
+            "Total stock",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D5",
+      "expect": {
+        "value": 11.1
+      },
+      "reference": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4),1)",
+      "require": [
+        {
+          "id": "func-sumproduct",
+          "func": "SUMPRODUCT",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4),1) — the division sits inside the ROUND.",
+        "func-sumproduct": "The numerator is the value of the whole stock, which is what the pairs are for.",
+        "require-ref": "Both the value and the quantity total come from the table rows.",
+        "value": "100 divided by 9 units is 11.111..., which rounds to 11.1.",
+        "error": "A zero denominator leaves nothing to round, so #DIV/0! comes back."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4),1)",
+          "=round(sumproduct(b2:b4,c2:c4)/sum(c2:c4),1)",
+          "=ROUND(SUMPRODUCT($B$2:$B$4,$C$2:$C$4)/SUM($C$2:$C$4),1)",
+          "=ROUND(SUMPRODUCT(B$2:B$4,C$2:C$4)/SUM(C$2:C$4),1)",
+          "=ROUND( SUMPRODUCT(B2:B4, C2:C4) / SUM(C2:C4) , 1 )",
+          "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/(C2+C3+C4),1)"
+        ],
+        "reject": [
+          {
+            "formula": "=AVERAGE(B2:B4)",
+            "rule": "func-sumproduct",
+            "why": "the three rows are counted once each, not once per unit"
+          },
+          {
+            "formula": "=SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4)",
+            "rule": "value",
+            "why": "the answer is left at eleven and a sixth, with no rounding"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUM(B2:B4),1)",
+            "rule": "value",
+            "why": "the price total is the wrong denominator"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B3:B4,C3:C4)/SUM(C2:C4),1)",
+            "rule": "require-ref",
+            "why": "the first item is missing from the numerator"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4),0)",
+            "rule": "value",
+            "why": "the answer is rounded to a whole number"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4),1)/0",
+            "rule": "error",
+            "why": "the average is then divided by zero"
+          },
+          {
+            "formula": "=ROUND SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4),1",
+            "rule": "syntax",
+            "why": "the division falls outside the parentheses ROUND needs"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2
+}

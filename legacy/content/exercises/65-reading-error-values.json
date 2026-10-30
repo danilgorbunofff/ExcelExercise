@@ -1,0 +1,269 @@
+{
+  "id": "65-reading-error-values",
+  "slug": "reading-error-values",
+  "level": 3,
+  "title": "Read #N/A, #VALUE! and #REF!",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B9, say missing when the code in A8 is not in the table, and found when it is.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Price"
+          ],
+          [
+            "A-1",
+            10
+          ],
+          [
+            "B-2",
+            20
+          ],
+          [
+            "C-3",
+            30
+          ],
+          [
+            "A-1",
+            12
+          ],
+          [
+            "B-2",
+            22
+          ],
+          [
+            "C-3",
+            32
+          ],
+          [
+            "Q-9",
+            null
+          ],
+          [
+            "Missing or found",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": "missing"
+      },
+      "reference": "=IF(ISNA(MATCH(A8,A2:A7,0)),\"missing\",\"found\")",
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 2
+        },
+        {
+          "id": "func-isna",
+          "func": "ISNA",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A8",
+      "rules": [],
+      "hints": {
+        "syntax": "=IF(ISNA(test),\"missing\",\"found\") — the IS function goes inside the IF test.",
+        "func-if": "Two words come out of the formula, so it needs an IF to choose between them.",
+        "func-isna": "A match that fails raises #N/A, and ISNA is the test that recognises exactly that error.",
+        "require-ref": "Search for the code in the grid rather than typing Q-9.",
+        "value": "Q-9 is not in the code column, so the match fails with #N/A and the answer is missing.",
+        "error": "ISNA is a test, so arithmetic on its result gives #VALUE! rather than a word."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(ISNA(MATCH(A8,A2:A7,0)),\"missing\",\"found\")",
+          "=if(isna(match(a8,a2:a7,0)),\"missing\",\"found\")",
+          "=IF(ISNA(MATCH($A$8,$A$2:$A$7,0)),\"missing\",\"found\")",
+          "=IF(ISNA(VLOOKUP(A8,A2:A7,1,FALSE)),\"missing\",\"found\")",
+          "=IF(ISNA(MATCH($A8,A2:A7,0)),\"missing\",\"found\")",
+          "=IF(ISNA(MATCH(A$8,A2:A7,0)),\"missing\",\"found\")"
+        ],
+        "reject": [
+          {
+            "formula": "=IFERROR(A8,\"missing\")",
+            "rule": "func-if",
+            "why": "there is no match here, so nothing is tested and the code itself is returned"
+          },
+          {
+            "formula": "=IF(A8=\"Q-9\",\"found\",\"missing\")",
+            "rule": "func-isna",
+            "why": "a comparison to the code can only answer for that one value, not for a lookup that misses"
+          },
+          {
+            "formula": "=IF(ISNA(MATCH(A8,A2:A7,0)),\"found\",\"missing\")",
+            "rule": "value",
+            "why": "the two words are the wrong way round, so a miss reads as found"
+          },
+          {
+            "formula": "=IF(ISNA(MATCH(\"Q-9\",A2:A7,0)),\"missing\",\"found\")",
+            "rule": "require-ref",
+            "why": "the code is typed into the match instead of read from the grid"
+          },
+          {
+            "formula": "=IF(ISNA(MATCH(A8,A2:A7,0)),\"missing\",\"found\")/0",
+            "rule": "error",
+            "why": "the word missing is then divided by zero"
+          },
+          {
+            "formula": "=IF(ISNA MATCH(A8,A2:A7,0),\"missing\",\"found\")",
+            "rule": "syntax",
+            "why": "the missing parenthesis breaks the nested call"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B9, say out of range when the price column of the second column is not inside the table, otherwise fine.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Price"
+          ],
+          [
+            "A-1",
+            10
+          ],
+          [
+            "B-2",
+            20
+          ],
+          [
+            "C-3",
+            30
+          ],
+          [
+            "A-1",
+            12
+          ],
+          [
+            "B-2",
+            22
+          ],
+          [
+            "C-3",
+            32
+          ],
+          [
+            "Q-9",
+            null
+          ],
+          [
+            "Column check",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": "out of range"
+      },
+      "reference": "=IF(ISERROR(INDEX(A2:B7,1,3)),\"out of range\",\"fine\")",
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 2
+        },
+        {
+          "id": "func-iserror",
+          "func": "ISERROR",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "=IF(ISERROR(INDEX(A2:B7,1,3)),\"out of range\",\"fine\") — the test wraps the whole call.",
+        "func-if": "The formula has to choose between two words, so an IF carries the test.",
+        "func-iserror": "Any error at all is what this question asks about, and that is ISERROR.",
+        "require-ref": "Point at the table itself rather than typing the range by hand.",
+        "value": "The table has two columns, so asking for a third raises #REF! and the answer is out of range.",
+        "error": "Dividing the word out of range by zero replaces it with #VALUE!."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(ISERROR(INDEX(A2:B7,1,3)),\"out of range\",\"fine\")",
+          "=if(iserror(index(a2:b7,1,3)),\"out of range\",\"fine\")",
+          "=IF(ISERROR(INDEX($A$2:$B$7,1,3)),\"out of range\",\"fine\")",
+          "=IF(ISERROR(INDEX(A2:B7,0,3)),\"out of range\",\"fine\")",
+          "=IF(ISERROR(INDEX(A$2:B$7,1,3)),\"out of range\",\"fine\")",
+          "=IF(ISERROR(INDEX(A2:B7,1,3)+0),\"out of range\",\"fine\")"
+        ],
+        "reject": [
+          {
+            "formula": "=IF(ISNA(INDEX(A2:B7,1,3)),\"out of range\",\"fine\")",
+            "rule": "func-iserror",
+            "why": "a #REF! is not #N/A, so the narrower test answers fine"
+          },
+          {
+            "formula": "=IF(ISERROR(INDEX(A2:B7,1,2)),\"out of range\",\"fine\")",
+            "rule": "value",
+            "why": "the second column exists, so nothing fails and the answer is fine"
+          },
+          {
+            "formula": "=IF(ISERROR(INDEX(A2:B7,1,3)),\"fine\",\"out of range\")",
+            "rule": "value",
+            "why": "the two words are the wrong way round, so a real #REF! reads as fine"
+          },
+          {
+            "formula": "=ISERROR(INDEX(A2:B7,1,3))",
+            "rule": "func-if",
+            "why": "the test alone returns true or false, and the question asks for a word"
+          },
+          {
+            "formula": "=IF(ISERROR(INDEX(B1:C1,1,3)),\"out of range\",\"fine\")",
+            "rule": "require-ref",
+            "why": "a different range is tested, so the grid's table is never read"
+          },
+          {
+            "formula": "=IF(ISERROR(INDEX(A2:B7,1,3)),\"out of range\",\"fine\")/0",
+            "rule": "error",
+            "why": "the text answer is then divided by zero"
+          },
+          {
+            "formula": "=IF ISERROR(INDEX(A2:B7,1,3)),\"out of range\",\"fine\"",
+            "rule": "syntax",
+            "why": "the IF is missing its opening parenthesis"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=IF(ISNA(x),\"missing\",\"found\"); =IF(ISERROR(x),\"bad\",\"ok\")",
+    "explain": "An error in Excel is a value, not a crash: #N/A, #REF!, #VALUE!, #DIV/0!, #NAME? and #NUM! each sit in a cell and can be tested like anything else. Three tests matter here. ISNA answers TRUE only for #N/A, the error a lookup or a match raises when nothing matched, which is usually a data question rather than a formula question. ISERROR answers TRUE for any error at all, which is what you want when the question is simply whether the calculation worked. ISERR is the same test minus #N/A, for the rarer case where a missing match is expected and any other error is not. Reading the difference matters because the three errors come from three different problems: #N/A is a value that is not in the list, #REF! is a reference that no longer points at anything, and #VALUE! is the wrong kind of value in an arithmetic operation. In this drill the code Q-9 is missing, so ISNA says TRUE and the formula prints missing; the second screen asks the table for a third column, which raises #REF!, and ISERROR turns that into the words out of range. Both screens leave the error visible in the logic rather than deleting it.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "Nothing matched: the code is not in the list the lookup searched."
+      },
+      {
+        "code": "#REF!",
+        "text": "The reference is outside the range, as a column number past the last column is."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "Arithmetic was asked to work on text or on a logical value."
+      }
+    ],
+    "atWork": "Reporting which imported rows have no matching product code instead of showing a wall of #N/A.",
+    "outcome": "Tell a missing match apart from a broken reference, and name the error in words.",
+    "teaches": "ISNA versus ISERROR, and how #N/A, #REF! and #VALUE! are produced",
+    "dataset": "Code and price table with one code the table does not hold",
+    "reference": "=IF(ISNA(MATCH(A8,A2:A7,0)),\"missing\",\"found\")"
+  },
+  "schemaVersion": 2
+}

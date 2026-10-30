@@ -1,0 +1,257 @@
+{
+  "id": "79-an-inventory-reorder-report",
+  "slug": "an-inventory-reorder-report",
+  "level": 3,
+  "title": "An inventory reorder report",
+  "docs": {
+    "syntax": "=MAX(0,reorder_at-on_hand) floors a shortfall at zero; MAX(0,a-b) over totals nets it out",
+    "explain": "An inventory report has one rule that a spreadsheet gets wrong on its own: it must never ask for a negative number of parts. Subtracting what is on hand from the reorder point is the right arithmetic, and on a row that is over-stocked it returns a negative, which is meaningless on a purchase order. MAX wrapped around the subtraction is the whole fix. It does nothing on the rows that are short and floors the rest at zero, so the column reads as an order quantity rather than as a difference. The second screen works the same idea over the whole sheet instead of one row. Adding the reorder points and adding the stock, then taking the difference, gives the net shortfall, and MAX keeps that at zero for a month where the warehouse is ahead. Both screens use the same two columns, so the learner sees a row-level formula and a sheet-level formula that share one guard, and that guard is the reason a formula written this way can be filled down and totalled without ever producing an order for minus four bolts.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "A cell in the subtracted range holds text, so the difference cannot be worked out."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name is misspelled, so the sheet has nothing to call."
+      }
+    ],
+    "atWork": "Turning on-hand stock and reorder points into an order quantity that is never negative.",
+    "outcome": "Floor a shortfall at zero on one row, then net the whole sheet the same way.",
+    "teaches": "MAX as a zero floor, over one row and then over two column totals",
+    "dataset": "Four parts with stock, reorder points and one answer cell",
+    "reference": "=MAX(0,C2-B2)"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In D2, report how many bolts to order, never a negative number.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "On hand",
+            "Reorder at",
+            "Answer"
+          ],
+          [
+            "bolt",
+            4,
+            10,
+            null
+          ],
+          [
+            "nut",
+            12,
+            8,
+            null
+          ],
+          [
+            "washer",
+            2,
+            6,
+            null
+          ],
+          [
+            "screw",
+            9,
+            15,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 6
+      },
+      "reference": "=MAX(0,C2-B2)",
+      "require": [
+        {
+          "id": "func-max",
+          "func": "MAX",
+          "minArgs": 1
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=MAX(0,C2-B2) — the shortfall, with zero as the floor.",
+        "func-max": "The order quantity never drops below zero, so a floor is needed.",
+        "require-ref": "The stock on hand is in B2.",
+        "value": "Ten to order less four in stock leaves six.",
+        "error": "A part with no numbers in its row has nothing to subtract."
+      },
+      "fixtures": {
+        "accept": [
+          "=MAX(0,C2-B2)",
+          "=max(0,c2-b2)",
+          "=MAX(0,$C$2-$B$2)",
+          "=MAX(0,C$2-B$2)",
+          "=MAX( 0 , C2 - B2 )",
+          "=MAX(0,C2-B2)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=C2-B2",
+            "rule": "func-max",
+            "why": "an over-stocked row would ask for a negative order"
+          },
+          {
+            "formula": "=MAX(0,B2-C2)",
+            "rule": "value",
+            "why": "stock minus the reorder point is negative for a short part"
+          },
+          {
+            "formula": "=MAX(0,C2-B2)+1",
+            "rule": "value",
+            "why": "one spare bolt is not what the reorder point asks for"
+          },
+          {
+            "formula": "=MAX(0,C2-B2)+2",
+            "rule": "value",
+            "why": "two spare parts are added to every row"
+          },
+          {
+            "formula": "=MAX(0,C3-B3)",
+            "rule": "require-ref",
+            "why": "the formula reads the second part rather than B2"
+          },
+          {
+            "formula": "=MAX(0,C2-B2)/0",
+            "rule": "error",
+            "why": "the order quantity is then divided by zero"
+          },
+          {
+            "formula": "=MAX 0,C2-B2",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In D2, add up how far the sheet falls short of every reorder point.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "On hand",
+            "Reorder at",
+            "Answer"
+          ],
+          [
+            "bolt",
+            4,
+            10,
+            null
+          ],
+          [
+            "nut",
+            12,
+            8,
+            null
+          ],
+          [
+            "washer",
+            2,
+            6,
+            null
+          ],
+          [
+            "screw",
+            9,
+            15,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 12
+      },
+      "reference": "=MAX(0,SUM(C2:C5)-SUM(B2:B5))",
+      "require": [
+        {
+          "id": "func-max",
+          "func": "MAX",
+          "minArgs": 1
+        },
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=MAX(0,SUM(C2:C5)-SUM(B2:B5)) — the two column totals, with zero as the floor.",
+        "func-max": "The sheet can be ahead of its reorder points, so the net shortfall needs a floor.",
+        "func-sum": "Both sides of the subtraction are column totals.",
+        "require-ref": "The stock on hand is in B2.",
+        "value": "Thirty-nine reorder points against twenty-seven in stock leaves twelve.",
+        "error": "A total of text has no number to subtract."
+      },
+      "fixtures": {
+        "accept": [
+          "=MAX(0,SUM(C2:C5)-SUM(B2:B5))",
+          "=max(0,sum(c2:c5)-sum(b2:b5))",
+          "=MAX(0,SUM($C$2:$C$5)-SUM($B$2:$B$5))",
+          "=MAX(0,SUM(C$2:C$5)-SUM(B$2:B$5))",
+          "=MAX( 0 , SUM(C2:C5) - SUM(B2:B5) )",
+          "=MAX(0,SUM(C2:C5)-SUM(B2:B5))+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(C2:C5)-SUM(B2:B5)",
+            "rule": "func-max",
+            "why": "nothing keeps the net shortfall at zero on a well-stocked sheet"
+          },
+          {
+            "formula": "=MAX(0,SUM(B2:B5)-SUM(C2:C5))",
+            "rule": "value",
+            "why": "the subtraction is the wrong way round, so the floor swallows it"
+          },
+          {
+            "formula": "=MAX(0,SUM(C2:C5)-SUM(B2:B4))",
+            "rule": "value",
+            "why": "the last part is missing from the stock total"
+          },
+          {
+            "formula": "=MAX(0,SUM(C2:C4)-SUM(B2:B5))",
+            "rule": "value",
+            "why": "the last part is missing from the reorder total"
+          },
+          {
+            "formula": "=MAX(0,SUM(C2:C5)-SUM(B3:B5))",
+            "rule": "require-ref",
+            "why": "the first part's stock is missing from the total"
+          },
+          {
+            "formula": "=MAX(0,C2-B2)",
+            "rule": "func-sum",
+            "why": "one part's shortfall is not the whole sheet's"
+          },
+          {
+            "formula": "=MAX(0,SUM(C2:C5)-SUM(B2:B5))/0",
+            "rule": "error",
+            "why": "the shortfall is then divided by zero"
+          },
+          {
+            "formula": "=MAX 0,SUM(C2:C5)-SUM(B2:B5)",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2
+}

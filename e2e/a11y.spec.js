@@ -11,7 +11,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 import { passGate, seedBefore } from "../lib/seed.js";
-import { loadSite } from "../lib/site.js";
+import { freeDrill, loadSite } from "../lib/site.js";
 
 const SEVERITIES = ["critical", "serious"];
 
@@ -45,7 +45,7 @@ test("the dashboard passes with nothing to fix", async ({ page }) => {
 });
 
 test("a formula drill passes before and after a miss", async ({ page }) => {
-  await page.goto("/learn/excel/sum-basics");
+  await page.goto(freeDrill().path);
   await expect(page.locator("#formula")).toBeVisible();
   await scan(page, "a fresh formula drill");
 
@@ -94,7 +94,7 @@ test("a group page passes with progress in it", async ({ page }) => {
     );
   });
   await page.goto("/learn/groups/sum");
-  await expect(page.locator("[data-group-count='sum']")).toHaveText("1 of 2");
+  await expect(page.locator("[data-group-count='sum']")).toHaveText("1 of 9");
   await scan(page, "a group page with progress");
 });
 
@@ -249,4 +249,17 @@ test("the deletion receipt passes with nothing to fix", async ({ page }) => {
   await page.goto("/account/deleted");
   await expect(page.locator(".auth-card h1")).toHaveText("Your account is gone");
   await scan(page, "the deletion receipt");
+});
+
+// The four retention pages. In the state CI builds — accounts unconfigured — each renders an `AuthCard`
+// and a sentence rather than a board, a deck or a run, so this is the only browser check that ever lays
+// them out. It is deliberately not a check of the populated screens: those need a signed-in learner and
+// a database, which this suite does not have, and a fixture graph here would prove the fixture rather
+// than the page.
+test("the retention pages pass with nothing to fix", async ({ page }) => {
+  for (const path of ["/leaderboard", "/daily", "/daily/run", "/flashcards"]) {
+    await page.goto(path);
+    await expect(page.locator(".auth-card")).toBeVisible();
+    await scan(page, path);
+  }
 });

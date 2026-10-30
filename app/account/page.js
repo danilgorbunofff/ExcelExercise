@@ -4,9 +4,11 @@ import { Suspense } from "react";
 import { authConfig } from "../../lib/auth/config.js";
 import { needsOnboarding } from "../../lib/auth/profile.js";
 import { currentUser } from "../../lib/auth/server.js";
-import { AuthCard, Links, Notice } from "../auth/ui.js";
-import { AuthShell } from "../auth/shell.js";
+import { TREND_DAYS } from "../../lib/retention/trend.js";
 import { signOut } from "../auth/actions.js";
+import { AuthShell } from "../auth/shell.js";
+import { AuthCard, Links, Notice } from "../auth/ui.js";
+import { WeekPanel } from "./week.js";
 
 export const metadata = {
   title: "Your account",
@@ -48,15 +50,17 @@ async function AccountScreen() {
     );
   }
 
-  // Both reads go through row level security as this user: the profile because the policy is
-  // `id = auth.uid()`, the entitlement because `is_entitled` ignores any id but your own.
-  const [{ data: profile }, { data: entitled }] = await Promise.all([
+  // All three reads go through row level security as this user: the profile because the policy is
+  // `id = auth.uid()`, the entitlement because `is_entitled` ignores any id but your own, and the
+  // week because `retention_week` reads `auth.uid()` and nobody else.
+  const [{ data: profile }, { data: entitled }, { data: week, error: weekError }] = await Promise.all([
     supabase
       .from("profiles")
       .select("username, display_name, linkedin_url, role, created_at")
       .eq("id", user.id)
       .maybeSingle(),
     supabase.rpc("is_entitled", { uid: user.id }),
+    supabase.rpc("retention_week", { p_days: TREND_DAYS }),
   ]);
 
   const name = profile?.display_name?.trim() || profile?.username || user.email;
@@ -85,11 +89,36 @@ async function AccountScreen() {
           {profile?.created_at ? new Date(profile.created_at).toISOString().slice(0, 10) : "—"}
         </Row>
       </dl>
+      {weekError ? (
+        <section className="auth-week" aria-labelledby="this-week">
+          <h2 id="this-week">This week</h2>
+          <p className="auth-week-empty">
+            Your week could not be read just now. Nothing is lost — reload to see it.
+          </p>
+        </section>
+      ) : (
+        <WeekPanel data={week} />
+      )}
       <form action={signOut}>
         <button className="auth-submit" type="submit">
           Sign out
         </button>
       </form>
+      {entitled ? (
+        <section className="auth-billing" aria-labelledby="billing">
+          <h2 id="billing">Your plan</h2>
+          <p>
+            Cancel or change your card in the billing portal. Cancelling stops the next charge and
+            keeps the period you have already paid for: the drills stay open until it ends, and they
+            close when it does. A lifetime plan never renews, so it has nothing to cancel.
+          </p>
+          <form action="/api/stripe/portal" method="post">
+            <button className="auth-submit" type="submit">
+              Manage billing or cancel
+            </button>
+          </form>
+        </section>
+      ) : null}
       <section className="auth-data" aria-labelledby="data-rights">
         <h2 id="data-rights">Your data</h2>
         <p>
@@ -121,6 +150,7 @@ async function AccountScreen() {
       <Links
         items={[
           { href: "/account/profile", label: "Edit your profile" },
+          { href: "/leaderboard", label: "Today's board" },
           { href: "/learn", label: "Your drills" },
           { href: "/reset", label: "Change your password" },
         ]}

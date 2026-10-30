@@ -1,0 +1,126 @@
+{
+  "id": "27-what-a-formula-actually-does",
+  "slug": "what-a-formula-actually-does",
+  "level": 1,
+  "title": "What a formula actually does",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B5, total the crates delivered this week with a formula that adds the three rows rather than the number 35.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Delivery",
+            "Crates"
+          ],
+          [
+            "Mon",
+            12
+          ],
+          [
+            "Tue",
+            9
+          ],
+          [
+            "Wed",
+            14
+          ],
+          [
+            "Crates this week",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B5",
+      "expect": {
+        "value": 35
+      },
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "Every formula starts with = and ends with a bracket: =SUM(B2:B4).",
+        "func-sum": "The total comes from SUM over the crates column; typing 35 stops being true the moment a delivery is corrected.",
+        "require-ref": "Name the cells B2:B4 so the total follows the sheet when a delivery changes.",
+        "value": "Add the three deliveries down the Crates column, one row at a time.",
+        "error": "Dividing the total by zero returns #DIV/0!, which is what an empty divisor cell produces."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B2:B4)",
+          "=sum(b2:b4)",
+          "=SUM($B$2:$B$4)",
+          "=SUM(B2,B3,B4)",
+          "=SUM(B2:B4)+0",
+          "=SUM(B2:B4)*1"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B4",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so the formula never runs"
+          },
+          {
+            "formula": "=B2+B3+B4",
+            "rule": "func-sum",
+            "why": "correct arithmetic, but the screen is practising the one function that does it"
+          },
+          {
+            "formula": "=SUM(B2:B3)",
+            "rule": "value",
+            "why": "the Wednesday delivery is left out of the range"
+          },
+          {
+            "formula": "=SUM(B2:B4)/2",
+            "rule": "value",
+            "why": "the three deliveries added up, then halved"
+          },
+          {
+            "formula": "=SUM(12,9,14)",
+            "rule": "require-ref",
+            "why": "the numbers typed into the formula, so a corrected delivery never reaches the total"
+          },
+          {
+            "formula": "=SUM(B2:B4)/0",
+            "rule": "error",
+            "why": "a total divided by zero returns #DIV/0!"
+          },
+          {
+            "formula": "=COUNTA(B2:B4)",
+            "rule": "func-sum",
+            "why": "COUNTA answers how many deliveries there were, not how many crates"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUM(range)",
+    "explain": "B2, B3 and B4 hold 12, 9 and 14 crates. A formula in B5 says 'add these three cells' rather than 'the answer is 35', so when Tuesday's delivery is corrected the total corrects itself. SUM over B2:B4 is the shortest way to say that: the colon means every cell from the first address to the second, and the function adds whatever numbers it finds there. The = at the front is what tells the spreadsheet to compute instead of store a label. Nothing in the cell remembers the number 35; it remembers the three addresses, which is why a corrected delivery updates the total the moment you press Enter, and why copying the cell down one row would point at B3:B5 instead. That is the difference between a typed answer and a formula, and it is the whole reason the rest of these drills exist: type the rule once, let the sheet carry it.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The total was divided by a cell that is still empty, as in =SUM(B2:B4)/0."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "One of B2:B4 holds a word such as \"twelve\", which SUM cannot add; fixing that cell fixes the total."
+      }
+    ],
+    "atWork": "Any weekly tally on a delivery note, where the numbers are typed by three different people.",
+    "outcome": "Write a formula that totals a column and keeps working when the numbers change.",
+    "teaches": "Writing a first formula with SUM",
+    "dataset": "Three deliveries, one column",
+    "reference": "=SUM(B2:B4)"
+  }
+}

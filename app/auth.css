@@ -155,6 +155,45 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The leaderboard: a rank, a name and a score, on the same rules as the profile list. */
+.auth-table {
+  width: 100%;
+  margin: 0 0 var(--s-4);
+  border-collapse: collapse;
+  font-size: var(--fs-ui);
+}
+
+.auth-table caption {
+  color: var(--text-muted);
+  text-align: left;
+  padding-bottom: var(--s-2);
+}
+
+.auth-table th,
+.auth-table td {
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.auth-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.auth-table td:first-child,
+.auth-table th:first-child,
+.auth-table td:last-child,
+.auth-table th:last-child {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* The learner's own row, marked in the markup with `aria-current` and coloured here. */
+.auth-table tr[aria-current] td {
+  font-weight: 600;
+}
+
 /* The second way in, under the password form: same card, a rule instead of a heading. */
 .auth-magic {
   margin-top: var(--s-5);
@@ -224,4 +263,43 @@
 .auth-danger .auth-submit {
   background: var(--err);
   color: var(--bg);
+}
+
+.auth-week {
+  margin: var(--s-5) 0;
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.auth-week h2 {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+}
+
+.auth-week p {
+  margin: var(--s-2) 0 0;
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+  line-height: 1.5;
+}
+
+.auth-spark {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: var(--s-2);
+  overflow: visible;
+}
+
+.auth-spark path {
+  stroke: var(--text);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.auth-spark circle {
+  fill: var(--text);
 }

@@ -1,0 +1,245 @@
+{
+  "id": "51-debug-a-total-that-skips-a-row",
+  "slug": "debug-a-total-that-skips-a-row",
+  "level": 3,
+  "title": "Debug a total that skips a row",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B8, total every store's sales even though one cell in the column holds text.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Store",
+            "Sales"
+          ],
+          [
+            "Brooklyn",
+            320
+          ],
+          [
+            "Queens",
+            250
+          ],
+          [
+            "Bronx",
+            "n/a"
+          ],
+          [
+            "Harlem",
+            300
+          ],
+          [
+            "Astoria",
+            400
+          ],
+          [
+            "Fulton",
+            180
+          ],
+          [
+            "City total",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B8",
+      "expect": {
+        "value": 1450
+      },
+      "reference": "=SUM(B2:B7)",
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUM(B2:B7) — the whole block in one reference.",
+        "func-sum": "Adding the cells one by one is what a broken total looks like; use SUM.",
+        "require-ref": "Point at the column, or the range stops where somebody typed a row number by hand.",
+        "value": "The numbers are 320, 250, 300, 400 and 180, which total 1450; the text is skipped.",
+        "error": "Dividing by zero leaves #DIV/0! instead of a total."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B2:B7)",
+          "=sum(b2:b7)",
+          "=SUM($B$2:$B$7)",
+          "=SUM(B2:B7)+0",
+          "=SUM(B2:B7)*1",
+          "=SUM(B$2:B$7)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B6)",
+            "rule": "value",
+            "why": "1270 — the range stops before Fulton"
+          },
+          {
+            "formula": "=SUM(B2:B5)",
+            "rule": "value",
+            "why": "570, because the last two stores are outside the range"
+          },
+          {
+            "formula": "=B2+B3+B4+B5+B6+B7",
+            "rule": "func-sum",
+            "why": "one text cell in the chain makes the whole total an error"
+          },
+          {
+            "formula": "=SUM(B3:B7)",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so Brooklyn is missing"
+          },
+          {
+            "formula": "=SUM(B2:B7)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUM(B2:B7",
+            "rule": "syntax",
+            "why": "the closing bracket is missing"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B7, total January to April without counting the Q1 subtotal row above it.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Month",
+            "Amount"
+          ],
+          [
+            "Jan",
+            320
+          ],
+          [
+            "Feb",
+            250
+          ],
+          [
+            "Mar",
+            180
+          ],
+          [
+            "Apr",
+            140
+          ],
+          [
+            "Q1 total",
+            750
+          ],
+          [
+            "Four months",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 890
+      },
+      "reference": "=SUM(B2:B5)",
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUM(B2:B5) — the four months, stopping above the subtotal.",
+        "func-sum": "Add the months with SUM rather than by naming the cells one at a time.",
+        "require-ref": "Read the amount column from the grid so the range covers every month.",
+        "value": "320 + 250 + 180 + 140 is 890; pulling the 750 subtotal in as well gives 1640.",
+        "error": "A division by zero leaves #DIV/0! in the answer cell."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B2:B5)",
+          "=sum(b2:b5)",
+          "=SUM($B$2:$B$5)",
+          "=SUM(B2:B5)+0",
+          "=SUM(B2:B5)*1",
+          "=SUM(B$2:B$5)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B6)",
+            "rule": "value",
+            "why": "1640, because the subtotal row is counted inside the total"
+          },
+          {
+            "formula": "=SUM(B2:B4)",
+            "rule": "value",
+            "why": "750 — April is outside the range"
+          },
+          {
+            "formula": "=SUM(B2:B5)-B6",
+            "rule": "value",
+            "why": "140: subtracting the subtotal leaves one month"
+          },
+          {
+            "formula": "=B2+B3+B4+B5",
+            "rule": "func-sum",
+            "why": "the right number by hand, which is how the next row gets left out"
+          },
+          {
+            "formula": "=SUM(B3:B5)",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so January is missing"
+          },
+          {
+            "formula": "=SUM(B2:B5)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUM(B2 B5)",
+            "rule": "syntax",
+            "why": "the colon is missing, so the range is not a range"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUM(first_cell:last_cell)",
+    "explain": "A total that skips a row is almost never a broken SUM; it is a range that stops one row early, starts one row late, or swallows a row it should have stopped above. The two screens are the two common shapes. In the first, a cell in the middle holds text, which SUM ignores without complaint, so the correct range simply covers the whole block and the number comes out at 1450 — the trap is that a range written by hand around the text stops short of the stores below it. In the second, the row above the answer is a Q1 subtotal of 750, and a range that reaches it counts the first quarter twice: 890 becomes 1640. Both are read by comparing the total against a quick manual addition, then looking at which rows the range actually covers. Clicking the answer cell and dragging the range handles is the fast check, because the highlighted block on screen is exactly what the formula sees.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "A cell inside the range holds text that a chain of plus signs cannot add."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "A division by zero in the formula stops it before a total is produced."
+      },
+      {
+        "code": "#REF!",
+        "text": "The range names a column or row that no longer exists after rows were deleted."
+      }
+    ],
+    "atWork": "A monthly close where a subtotal row sits above the answer, and an imported list with one unreadable cell.",
+    "outcome": "Find the row a broken total skips and cover it without double-counting a subtotal.",
+    "teaches": "SUM over a block with text in it, and stopping a range above a subtotal",
+    "dataset": "City sales with a gap, and four months plus a subtotal",
+    "reference": "=SUM(B2:B7)"
+  }
+}

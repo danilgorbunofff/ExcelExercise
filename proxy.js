@@ -16,9 +16,13 @@ import { loginUrl } from "./lib/auth/redirect.js";
 import { entitledFor, paywallDecision, paywallEnforced } from "./lib/paywall.js";
 import { loadSite } from "./lib/site.js";
 
-// Everything under `/account` needs a session. Keep the list here rather than duplicating it in each
-// page: a page that forgets to check would render a signed-out shell and look like a bug.
-const GATED = [/^\/account(?:\/|$)/];
+// Everything under `/account`, the board it links to, and the daily challenge need a session. Keep the
+// list here rather than duplicating it in each page: a page that forgets to check would render a
+// signed-out shell and look like a bug.
+//
+// `/api/daily` is deliberately absent: it is fetched, not navigated to, and its own `401` is an answer
+// the runner can show. A redirect there would hand `fetch` a login page and read as a network failure.
+const GATED = [/^\/account(?:\/|$)/, /^\/leaderboard\/?$/, /^\/daily(?:\/|$)/];
 
 // The exception, and the only one: `/account/deleted` is where the delete form redirects, and by then
 // the session is gone by design — a gate there would bounce a just-deleted learner to `/login`.

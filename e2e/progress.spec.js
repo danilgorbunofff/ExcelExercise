@@ -8,6 +8,10 @@
  */
 import { expect, test } from "@playwright/test";
 
+import { freeDrill } from "../lib/site.js";
+
+const FREE = freeDrill();
+
 const post = (request, body) =>
   request.post("/api/progress", { data: body, headers: { "content-type": "application/json" } });
 
@@ -39,13 +43,13 @@ test("answers a malformed body with a status, never a crash", async ({ request }
 });
 
 /** The sender runs in the browser, so the only honest proof of it is a real browser: type the answer,
- *  finish the lesson, and read the request it made. `sum-basics` is one screen and free, so the drill
- *  reaches `lesson_complete` on the first accepted formula. */
+ *  finish the lesson, and read the request it made. The opening intro drill is one screen and inside the
+ *  free half, so it reaches `lesson_complete` on the first accepted formula. */
 test("the drill posts its lesson's events when the lesson ends", async ({ page }) => {
   const request = page.waitForRequest((r) => carries('"events"', r));
   const response = page.waitForResponse((r) => carries('"events"', r));
 
-  await page.goto("/learn/excel/sum-basics");
+  await page.goto(FREE.path);
   await expect(page.locator("#formula")).toBeVisible();
   await page.fill("#formula", "=SUM(B2:B4)");
   await page.click("#check");
@@ -58,7 +62,7 @@ test("the drill posts its lesson's events when the lesson ends", async ({ page }
   expect(types).toContain("check_correct");
   expect(types).toContain("lesson_complete");
   // One batch carries one lesson, and every event in it names that lesson.
-  expect([...new Set(body.events.map((event) => event.id))]).toEqual(["01-sum-basics"]);
+  expect([...new Set(body.events.map((event) => event.id))]).toEqual([FREE.exercise.id]);
   // No accounts in CI, so the refusal is the deployment's answer — and grading was unaffected.
   expect((await response).status()).toBe(503);
   await expect(page.locator("#feedback")).toBeVisible();

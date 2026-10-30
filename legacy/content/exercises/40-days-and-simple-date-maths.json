@@ -1,0 +1,221 @@
+{
+  "id": "40-days-and-simple-date-maths",
+  "slug": "days-and-simple-date-maths",
+  "level": 2,
+  "title": "DAYS and simple date maths",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "Both dates are serials, so put the number of days between the escalation and its resolution into D2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Milestone",
+            "From",
+            "To",
+            "Days"
+          ],
+          [
+            "Escalation",
+            45352,
+            45366,
+            null
+          ],
+          [
+            "Resolution",
+            45358,
+            45366,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 14
+      },
+      "reference": "=DAYS(C2,B2)",
+      "require": [
+        {
+          "id": "func-days",
+          "func": "DAYS",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "DAYS reads end date first, then start date: =DAYS(C2,B2).",
+        "func-days": "Name the function rather than relying on plain subtraction — DAYS says which date is the end.",
+        "require-ref": "Pass C2 and B2 rather than the two serials, so the row can be filled down.",
+        "value": "45366 minus 45352 is 14, and the arguments are the right way round: end first, start second.",
+        "error": "Dividing by zero anywhere in the formula leaves #DIV/0! instead of a count of days."
+      },
+      "fixtures": {
+        "accept": [
+          "=DAYS(C2,B2)",
+          "=days(c2,b2)",
+          "=DAYS($C$2,$B$2)",
+          "=DAYS(C2,B2)+0",
+          "=DAYS(C2,B2)*1",
+          "=DAYS(C$2,B$2)"
+        ],
+        "reject": [
+          {
+            "formula": "=B2-C2",
+            "rule": "func-days",
+            "why": "subtracting in this order gives -14: a difference of days is not the same statement as DAYS"
+          },
+          {
+            "formula": "=DAYS(C2)",
+            "rule": "func-days",
+            "why": "one date is not a distance — DAYS needs both ends"
+          },
+          {
+            "formula": "=DAYS(45366,45352)",
+            "rule": "require-ref",
+            "why": "the serials typed in, so the next milestone has to be typed out again"
+          },
+          {
+            "formula": "=DAYS(B2,C2)",
+            "rule": "value",
+            "why": "the arguments are swapped, so the answer is -14"
+          },
+          {
+            "formula": "=DAYS(C2,B2)/0",
+            "rule": "error",
+            "why": "dividing by zero leaves #DIV/0! in the cell"
+          },
+          {
+            "formula": "=DAYS(C2,B2",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "Give the audit's length in whole weeks in D2, building the division on the days between the two dates.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Project",
+            "Start",
+            "End",
+            "Whole weeks"
+          ],
+          [
+            "Audit",
+            45352,
+            45415,
+            null
+          ],
+          [
+            "Migration",
+            45366,
+            45443,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 9
+      },
+      "reference": "=DAYS(C2,B2)/7",
+      "require": [
+        {
+          "id": "func-days",
+          "func": "DAYS",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "DAYS gives the days and the /7 turns them into weeks: =DAYS(C2,B2)/7.",
+        "func-days": "Count the days with DAYS first; the weeks are arithmetic on top of that.",
+        "require-ref": "Read the two dates from B2 and C2 rather than typing the serials.",
+        "value": "63 days is 9 weeks, and 63 is what DAYS gives for 1 March to 3 May.",
+        "error": "Dividing by zero leaves #DIV/0!, so check the divisor rather than the dates."
+      },
+      "fixtures": {
+        "accept": [
+          "=DAYS(C2,B2)/7",
+          "=days(c2,b2)/7",
+          "=DAYS($C$2,$B$2)/7",
+          "=DAYS(C2,B2)/7+0",
+          "=DAYS(C2,B2)*1/7",
+          "=ROUND(DAYS(C2,B2)/7,0)"
+        ],
+        "reject": [
+          {
+            "formula": "=(C2-B2)/7",
+            "rule": "func-days",
+            "why": "the right arithmetic without DAYS, so the row no longer says which date is the end"
+          },
+          {
+            "formula": "=DAYS(C2)",
+            "rule": "func-days",
+            "why": "both ends are needed before anything can be divided into weeks"
+          },
+          {
+            "formula": "=DAYS(45415,45352)/7",
+            "rule": "require-ref",
+            "why": "the dates typed in, so the answer stops following the row"
+          },
+          {
+            "formula": "=DAYS(C2,B2)",
+            "rule": "value",
+            "why": "the days, 63, before they are turned into weeks"
+          },
+          {
+            "formula": "=DAYS(B2,C2)/7",
+            "rule": "value",
+            "why": "the ends swapped, so the answer is -9 weeks"
+          },
+          {
+            "formula": "=DAYS(C2,B2)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=DAYS(C2,B2)/7)",
+            "rule": "syntax",
+            "why": "a stray closing bracket, so the formula will not parse"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=DAYS(end, start)",
+    "explain": "DAYS and a plain subtraction answer the same question, and they answer it differently enough to matter: DAYS takes the end date first, so the answer is positive and the formula says which end is which, while `C2-B2` is a difference that reads backwards the moment somebody fills it down a column the wrong way. The unit is days and only days — turning that into weeks is ordinary arithmetic on the result, because a date is a number and everything you know about numbers applies to it. That is also why date maths works at all: adding thirty to a date gives the date thirty days later, subtracting one date from another gives the gap in days, and dividing the gap by seven gives weeks. Excel will even format the answer of a date plus a number as a date, which is the fastest way to build a due date from a term length. The trap is that a serial means nothing on its own: 45352 is only 1 March 2024 because somebody agreed on 1899 as the epoch, so a cell containing a day count must never be formatted as a date, or it will claim to be a Tuesday in 1900.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "One of the arguments was text that is not a date, so there is no serial to subtract from."
+      },
+      {
+        "code": "#NUM!",
+        "text": "An argument was outside the range of serials this workbook can hold, so no distance can be computed."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The weeks were divided by zero — a count of days survives that, a division does not."
+      }
+    ],
+    "atWork": "A service-level report that measures how long each ticket stayed open, and then reports the same figure in weeks for the management summary without recomputing anything.",
+    "outcome": "Measure the distance between two dates in days, then treat that answer as the number it is.",
+    "teaches": "DAYS, and arithmetic on date serials",
+    "dataset": "Two projects with a start and an end date",
+    "reference": "=DAYS(C2,B2)"
+  }
+}

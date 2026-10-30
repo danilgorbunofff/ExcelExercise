@@ -1,0 +1,254 @@
+{
+  "id": "54-sum-functions-summary",
+  "slug": "sum-functions-summary",
+  "level": 3,
+  "title": "Sum functions summary",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, total everything sold, and then be ready for the two questions that follow.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Amount"
+          ],
+          [
+            "North",
+            320
+          ],
+          [
+            "South",
+            250
+          ],
+          [
+            "North",
+            180
+          ],
+          [
+            "West",
+            300
+          ],
+          [
+            "North",
+            400
+          ],
+          [
+            "Everything",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 1450
+      },
+      "reference": "=SUM(B2:B6)",
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUM(B2:B6) — the whole column above the answer.",
+        "func-sum": "Every number in the column, added by one function.",
+        "require-ref": "Point at the amount column rather than typing the five numbers.",
+        "value": "320 + 250 + 180 + 300 + 400 is 1450.",
+        "error": "A division by zero leaves #DIV/0! in the cell."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B2:B6)",
+          "=sum(b2:b6)",
+          "=SUM($B$2:$B$6)",
+          "=SUM(B2:B6)+0",
+          "=SUM(B2:B6)*1",
+          "=SUM(B$2:B$6)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B5)",
+            "rule": "value",
+            "why": "1050 — the last North sale is outside the range"
+          },
+          {
+            "formula": "=B2+B3+B4+B5+B6",
+            "rule": "func-sum",
+            "why": "the right total typed out cell by cell"
+          },
+          {
+            "formula": "=SUM(B3:B6)",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so the first sale is missing"
+          },
+          {
+            "formula": "=SUM(B2:B6)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUM(B2:B6",
+            "rule": "syntax",
+            "why": "the closing bracket is missing"
+          },
+          {
+            "formula": "=SUM(C2:C6)",
+            "rule": "require-ref",
+            "why": "the range points at an empty column, so the amount column is never referenced"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In C7, total everything that is not North: one SUM, one SUMIF, subtracted.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Rep",
+            "Amount"
+          ],
+          [
+            "North",
+            "Ada",
+            320
+          ],
+          [
+            "South",
+            "Ben",
+            250
+          ],
+          [
+            "North",
+            "Cleo",
+            180
+          ],
+          [
+            "West",
+            "Dev",
+            300
+          ],
+          [
+            "North",
+            "Ada",
+            400
+          ],
+          [
+            "Outside North",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C7",
+      "expect": {
+        "value": 550
+      },
+      "reference": "=SUM(C2:C6)-SUMIF(A2:A6,\"North\",C2:C6)",
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        },
+        {
+          "id": "func-sumif",
+          "func": "SUMIF",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "C2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUM(C2:C6)-SUMIF(A2:A6,\"North\",C2:C6) — everything, minus the North rows.",
+        "func-sum": "The total of the column is a SUM; the part to remove is not.",
+        "func-sumif": "Removing the North rows needs SUMIF on the region column.",
+        "require-ref": "Read both the regions and the amounts from the grid.",
+        "value": "1450 in total minus 900 of North sales leaves 550.",
+        "error": "A division by zero in either half returns #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(C2:C6)-SUMIF(A2:A6,\"North\",C2:C6)",
+          "=sum(c2:c6)-sumif(a2:a6,\"north\",c2:c6)",
+          "=SUM($C$2:$C$6)-SUMIF($A$2:$A$6,\"North\",$C$2:$C$6)",
+          "=SUM(C2:C6)-SUMIF(A2:A6,\"North\",C2:C6)+0",
+          "=SUM(C2:C6)-SUMIF(A2:A6,\"North\",C2:C6)*1",
+          "=SUM(C$2:C$6)-SUMIF(A$2:A$6,\"North\",C$2:C$6)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUMIF(A2:A6,\"North\",C2:C6)",
+            "rule": "func-sum",
+            "why": "900 — this is the North total, not what is left outside it"
+          },
+          {
+            "formula": "=SUM(C2:C6)",
+            "rule": "func-sumif",
+            "why": "1450; without the SUMIF nothing is taken away"
+          },
+          {
+            "formula": "=SUM(C2:C6)-SUMIF(A2:A6,\"South\",C2:C6)",
+            "rule": "value",
+            "why": "1200, because only the South is removed"
+          },
+          {
+            "formula": "=SUM(C2:C6)+SUMIF(A2:A6,\"North\",C2:C6)",
+            "rule": "value",
+            "why": "2350 — the North rows are added twice instead of removed"
+          },
+          {
+            "formula": "=SUM(C3:C6)-SUMIF(A3:A6,\"North\",C3:C6)",
+            "rule": "require-ref",
+            "why": "the ranges start on row 3, so the first North sale is invisible"
+          },
+          {
+            "formula": "=SUM(C2:C6)-SUMIF(A2:A6,\"North\",C2:C6)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUM(C2:C6)-SUMIF(A2:A6 \"North\",C2:C6)",
+            "rule": "syntax",
+            "why": "the missing comma leaves the condition glued to its range"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUM(range) and =SUMIF(criteria_range, condition, sum_range), combined by subtraction",
+    "explain": "The sum group is really three questions about the same column: what does the lot come to, what do the rows I care about come to, and what is left when those two are compared. SUM answers the first, SUMIF the second with one condition, and SUMIFS the second with two or more. The second screen adds them to answer the third by subtraction: 1450 in the column minus 900 of North sales leaves 550 outside the region. That is not the only way to write it — SUMIF with a not-equal condition does it in one call — but the subtraction is the shape that generalises, because each half can be swapped for a different filter without rewriting the other. Two habits are worth taking away: the sum range and the condition range have to line up row for row, and a condition is text in quotes even when it looks like a number. Every drill in this group is the same three arguments in a different order, which is exactly why they are worth practising together.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "A range holds text where the sum expected numbers."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "A division by zero in either half of the formula stops it before the answer."
+      },
+      {
+        "code": "#NAME?",
+        "text": "One of the two functions is misspelled, or SUMIFS was used with SUMIF's argument order."
+      }
+    ],
+    "atWork": "A regional report that needs the grand total, the headline region and everything outside it on three lines.",
+    "outcome": "Combine SUM and SUMIF to total a column, a subset of it, and the remainder.",
+    "teaches": "SUM and SUMIF together, and subtracting one total from another",
+    "dataset": "Regional sales with two reps",
+    "reference": "=SUM(B2:B6)"
+  }
+}

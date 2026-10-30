@@ -464,6 +464,23 @@ describe("lesson schema v2", () => {
     });
   });
 
+  describe("a screen that asks about a date", () => {
+    const pinned = (today) => v2({ screens: [screenFrom(V1, today === undefined ? {} : { today })] });
+    const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+
+    it("carries the day it pinned, so TODAY answers the same on every run", () => {
+      const lesson = normalizeLesson(pinned("2024-03-15"), FILE);
+      assert.equal(lesson.screens[0].today, "2024-03-15");
+      assert.equal(normalizeLesson(pinned(undefined), FILE).screens[0].today, undefined);
+    });
+
+    it("rejects a day written any other way", () => {
+      throws(pinned("15/03/2024"), /screens\[0\]\.today must be a date written YYYY-MM-DD/);
+      throws(pinned("2024-3-5"), /screens\[0\]\.today must be a date written YYYY-MM-DD/);
+      throws(pinned(20240315), /screens\[0\]\.today must be a date written YYYY-MM-DD/);
+    });
+  });
+
   describe("rejections", () => {
     const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
 

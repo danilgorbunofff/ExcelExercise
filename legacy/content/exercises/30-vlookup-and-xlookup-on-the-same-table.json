@@ -1,0 +1,268 @@
+{
+  "id": "30-vlookup-and-xlookup-on-the-same-table",
+  "slug": "vlookup-and-xlookup-on-the-same-table",
+  "level": 2,
+  "title": "VLOOKUP and XLOOKUP on the same table",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, return the unit price for the SKU typed in B6 using the table A1:C5.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "SKU",
+            "Product",
+            "Unit price"
+          ],
+          [
+            "BX-210",
+            "Bracket",
+            2.4
+          ],
+          [
+            "CX-330",
+            "Clamp",
+            3.8
+          ],
+          [
+            "DX-410",
+            "Dowel",
+            1.15
+          ],
+          [
+            "EX-500",
+            "Extrusion",
+            9.6
+          ],
+          [
+            "Which SKU?",
+            "CX-330",
+            null
+          ],
+          [
+            "Unit price",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 3.8
+      },
+      "require": [
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B6",
+      "rules": [
+        {
+          "id": "exact-match",
+          "type": "matchType",
+          "func": "VLOOKUP",
+          "arg": 4,
+          "values": [
+            false,
+            0
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "VLOOKUP takes the value, the table, the column to return, and FALSE: =VLOOKUP(B6,A2:C5,3,FALSE).",
+        "func-vlookup": "VLOOKUP is the function this screen is practising; XLOOKUP is the same job with different arguments and gets its own screen.",
+        "exact-match": "The SKU list is not sorted, so the fourth argument has to be FALSE. Leaving it out searches the way an approximate match does and returns a neighbouring price.",
+        "require-ref": "Take the SKU from B6 so asking about another product is a one-cell edit.",
+        "value": "The third column of the matching row is the unit price. Counting from the SKU column, Product is 2 and Unit price is 3.",
+        "error": "A SKU that is not in the table returns #N/A rather than a blank or a zero."
+      },
+      "fixtures": {
+        "accept": [
+          "=VLOOKUP(B6,A2:C5,3,FALSE)",
+          "=vlookup(b6,a2:c5,3,false)",
+          "=VLOOKUP($B$6,$A$2:$C$5,3,FALSE)",
+          "=VLOOKUP(B6,A2:C5,3,0)",
+          "=VLOOKUP(B6,A1:C5,3,FALSE)",
+          "=VLOOKUP(B6,A2:C5,3,FALSE)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=VLOOKUP(B6,A2:C5,3,FALSE",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing is looked up"
+          },
+          {
+            "formula": "=VLOOKUP(B6,A2:C5,3)",
+            "rule": "exact-match",
+            "why": "no fourth argument, so the match falls back to approximate on an unsorted column"
+          },
+          {
+            "formula": "=VLOOKUP(B6,A2:C5,3,TRUE)",
+            "rule": "exact-match",
+            "why": "approximate match on a column of SKU codes"
+          },
+          {
+            "formula": "=VLOOKUP(B6,A2:C5,2,FALSE)",
+            "rule": "value",
+            "why": "column 2 is the product name, not the price"
+          },
+          {
+            "formula": "=XLOOKUP(B6,A2:A5,C2:C5)",
+            "rule": "func-vlookup",
+            "why": "the right answer by the other function; XLOOKUP gets its own screen"
+          },
+          {
+            "formula": "=VLOOKUP(B6,A2:B4,3,FALSE)",
+            "rule": "error",
+            "why": "the table stops one column short, so the column number runs off the edge"
+          },
+          {
+            "formula": "=VLOOKUP(\"CX-330\",A2:C5,3,FALSE)",
+            "rule": "require-ref",
+            "why": "the SKU typed into the formula, so a change in B6 never reaches the answer"
+          }
+        ]
+      },
+      "reference": "=VLOOKUP(B6,A2:C5,3,FALSE)"
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B7, return the same unit price with XLOOKUP instead: the SKU in B6, the SKU column, the price column.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "SKU",
+            "Product",
+            "Unit price"
+          ],
+          [
+            "BX-210",
+            "Bracket",
+            2.4
+          ],
+          [
+            "CX-330",
+            "Clamp",
+            3.8
+          ],
+          [
+            "DX-410",
+            "Dowel",
+            1.15
+          ],
+          [
+            "EX-500",
+            "Extrusion",
+            9.6
+          ],
+          [
+            "Which SKU?",
+            "CX-330",
+            null
+          ],
+          [
+            "Unit price",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 3.8
+      },
+      "require": [
+        {
+          "id": "func-xlookup",
+          "func": "XLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B6",
+      "rules": [],
+      "hints": {
+        "syntax": "XLOOKUP takes the value, the column of values to search, and the column to return: =XLOOKUP(B6,A2:A5,C2:C5).",
+        "func-xlookup": "This screen is XLOOKUP's turn: the same table, but two ranges instead of a table plus a column number.",
+        "require-ref": "Take the SKU from B6 so the drill follows the sheet.",
+        "value": "XLOOKUP returns the cell in the third argument that sits on the same row as the match in the second.",
+        "error": "A SKU that is not in the searched column returns #N/A, the same failure VLOOKUP has."
+      },
+      "fixtures": {
+        "accept": [
+          "=XLOOKUP(B6,A2:A5,C2:C5)",
+          "=xlookup(b6,a2:a5,c2:c5)",
+          "=XLOOKUP($B$6,$A$2:$A$5,$C$2:$C$5)",
+          "=XLOOKUP(B6,A2:A5,C2:C5)+0",
+          "=XLOOKUP(B6,A1:A5,C1:C5)",
+          "=XLOOKUP(B6,A2:A5,C2:C5)*1"
+        ],
+        "reject": [
+          {
+            "formula": "=XLOOKUP(B6,A2:A5,C2:C5",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing is looked up"
+          },
+          {
+            "formula": "=VLOOKUP(B6,A2:C5,3,FALSE)",
+            "rule": "func-xlookup",
+            "why": "the right price by the older function; this screen is the XLOOKUP version"
+          },
+          {
+            "formula": "=INDEX(C2:C5,MATCH(B6,A2:A5,0))",
+            "rule": "func-xlookup",
+            "why": "the same price built from two functions; this screen is the one-function version"
+          },
+          {
+            "formula": "=XLOOKUP(B6,A2:A5,B2:B5)",
+            "rule": "value",
+            "why": "returns the product name rather than the price"
+          },
+          {
+            "formula": "=XLOOKUP(B6,A2:A5,D2:D5)",
+            "rule": "value",
+            "why": "returns an empty column, so the price comes back as zero"
+          },
+          {
+            "formula": "=XLOOKUP(\"CX-330\",A2:A5,C2:C5)",
+            "rule": "require-ref",
+            "why": "the SKU typed into the formula, so a change in B6 never reaches the answer"
+          },
+          {
+            "formula": "=XLOOKUP(B6,A2:A5,C2:C5)+1/0",
+            "rule": "error",
+            "why": "adding a division by zero to the price returns #DIV/0!"
+          }
+        ]
+      },
+      "reference": "=XLOOKUP(B6,A2:A5,C2:C5)"
+    }
+  ],
+  "docs": {
+    "syntax": "=VLOOKUP(value, table, column, FALSE) \u00b7 =XLOOKUP(value, search, return)",
+    "explain": "Both functions walk a column until they find the SKU and then return something from that row. VLOOKUP takes the whole table and a column number, so the price is 3 because the table starts at A and prices are in C; change the table's start and the number silently means something else. XLOOKUP takes the searched column and the returned column separately, so the third argument names C2:C5 and there is no number to miscount. Two things VLOOKUP still needs spelling out are the FALSE for an exact match. The FALSE is worth noticing because it is the one argument that is not about addresses: it says whether a near miss counts as a match, and on a SKU column a near miss is a different product.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The SKU is not in the searched column, which is a missing product rather than a broken formula."
+      },
+      {
+        "code": "#REF!",
+        "text": "The column number is larger than the table is wide, so there is no column to return from."
+      }
+    ],
+    "atWork": "A price list pasted from a supplier, where the SKU column is the only thing you can rely on.",
+    "outcome": "Read a price off a table with either lookup function and know which argument does what.",
+    "teaches": "VLOOKUP and XLOOKUP side by side",
+    "dataset": "Four products, one price column",
+    "reference": "=VLOOKUP(B6,A2:C5,3,FALSE)"
+  }
+}

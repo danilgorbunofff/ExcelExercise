@@ -96,6 +96,7 @@ const FIXTURE_TABLES = [
   ['progress_batches', 'id'],
   ['attempts', 'id'],
   ['lesson_progress', 'user_id'],
+  ['screen_awards', 'user_id'],
   ['daily_points', 'user_id'],
   ['streaks', 'user_id'],
   ['group_invites', 'id'],

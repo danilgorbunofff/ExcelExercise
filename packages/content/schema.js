@@ -24,6 +24,9 @@ export const SCREEN_TYPES = ["formula", "chord", "sequence", "picture", "workboo
 /** The grader applies these and silently skips anything else, so the loader must reject the rest. */
 const RULE_TYPES = new Set(["matchType"]);
 
+/** The operators a `require` rule may name instead of a function — a comparison is the lesson. */
+const COMPARISON_OPERATORS = new Set([">", ">=", "<", "<=", "=", "<>"]);
+
 /** A picture screen is read, not typed into: the image is the data and `answers` is the grading. */
 const PICTURE_FIELDS = ["image", "alt", "answers"];
 
@@ -75,6 +78,7 @@ const SCREEN_FIELDS = [
   "steps",
   "reference",
   "sheet",
+  "today",
 ];
 
 /** v1 prompts are laid out for a 160-character line; v2 screens may run to the plan's 220. */
@@ -149,7 +153,15 @@ function validateScreen(screen, label, where, version) {
   else if (screen.type === "chord") validateChordScreen(screen, label, where);
   else if (screen.type === "sequence") validateSequenceScreen(screen, label, where);
   else validateFormulaScreen(screen, label, where, version);
+  // Every type shares the clock, because a workbook's preview and a formula screen's answer are
+  // computed by the same evaluator.
+  if (screen.today !== undefined && !DATE_ONLY.test(screen.today ?? "")) {
+    failAt(where, `${label}today must be a date written YYYY-MM-DD or YYYY-MM-DDTHH:MM (got ${JSON.stringify(screen.today)})`);
+  }
 }
+
+/** A pinned day (and optionally a time), which is what makes TODAY and NOW answerable in a drill. */
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/;
 
 /**
  * A picture screen: an image this repository ships, a line of alt text for the learner who cannot
@@ -485,6 +497,18 @@ function validateFormulaScreen(screen, label, where, version) {
     failAt(where, `${label}require must be a non-empty array`);
   }
   validateRules(screen.require, `${label}require`, where, (rule, ruleLabel) => {
+    if (rule.op !== undefined) {
+      if (rule.func !== undefined) {
+        failAt(where, `${ruleLabel} names both func and op; a require rule is one or the other`);
+      }
+      if (!COMPARISON_OPERATORS.has(rule.op)) {
+        failAt(
+          where,
+          `${ruleLabel}.op ${JSON.stringify(rule.op)} is not a comparison (${[...COMPARISON_OPERATORS].join(" ")})`,
+        );
+      }
+      return;
+    }
     requireFunction(rule, ruleLabel, where);
     if (rule.minArgs !== undefined && (!Number.isInteger(rule.minArgs) || rule.minArgs < 1)) {
       failAt(where, `${ruleLabel}.minArgs must be a positive integer`);
@@ -582,6 +606,9 @@ function pickScreen(screen, id, type, version) {
     type,
     prompt: screen.prompt.trim(),
     hints: screen.hints ?? {},
+    // A screen that asks about a date pins the day it is asking about, so TODAY and NOW answer the
+    // same on every run — see `pinnedClock` in the grader.
+    ...(screen.today === undefined ? {} : { today: screen.today }),
     // Carried as written when the screen has one: the page prints it, the player never grades from
     // it, and a screen with nothing of its own to say renders no box. A v1 lesson's `docs` is the
     // lesson's own block, so it is not copied down here.

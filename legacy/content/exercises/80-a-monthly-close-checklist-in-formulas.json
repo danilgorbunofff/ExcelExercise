@@ -1,0 +1,236 @@
+{
+  "id": "80-a-monthly-close-checklist-in-formulas",
+  "slug": "a-monthly-close-checklist-in-formulas",
+  "level": 3,
+  "title": "A monthly close checklist in formulas",
+  "docs": {
+    "syntax": "=IF(variance=0,\"ready\",\"check\") flags one check; =COUNTIF(range,\"<>0\") counts the rest",
+    "explain": "A close checklist is a list of reconciliations, and every line of it ends in the same question: does this variance come to zero. Reading four variances by eye is fine and reading forty is not, so the sheet should answer the question rather than display the number and let a person decide. IF is the tool for one row: compare the variance to zero and return a word rather than a number, because words are what a checklist is read for. The second screen counts the rows that still have a variance, and the criterion to use is the not-equal one, written as a string. That detail is worth its own screen because it is the criterion people get wrong: a comparison has to be quoted, and the value inside it stays a number. Together the two screens are the shape every close sheet converges on, one column that says whether a line is ready and one cell that says how many lines are not, and neither of them asks the reader to look at the variance column again.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "A variance is divided by zero before the comparison is made."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name is misspelled, so the sheet has nothing to call."
+      }
+    ],
+    "atWork": "Turning a column of close variances into a ready or check flag and a count.",
+    "outcome": "Flag one reconciliation from its variance, then count the rows that are still out.",
+    "teaches": "IF returning a word instead of a number, then COUNTIF with a not-equal criterion",
+    "dataset": "Four close reconciliations, each with a variance to judge",
+    "reference": "=IF(B2=0,\"ready\",\"check\")"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In C2, flag the first reconciliation ready when its variance is zero and check otherwise.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Check",
+            "Variance",
+            "Status"
+          ],
+          [
+            "bank",
+            0,
+            null
+          ],
+          [
+            "accruals",
+            12.5,
+            null
+          ],
+          [
+            "prepaids",
+            -3,
+            null
+          ],
+          [
+            "payroll",
+            0,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": "ready"
+      },
+      "reference": "=IF(B2=0,\"ready\",\"check\")",
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=IF(B2=0,\"ready\",\"check\") — the test, the answer when it holds, the answer when it does not.",
+        "func-if": "The cell has to choose between two words, which is what IF does.",
+        "require-ref": "The variance is in B2.",
+        "value": "The bank variance is zero, so the status is ready.",
+        "error": "A divide by zero inside the test never reaches the words."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(B2=0,\"ready\",\"check\")",
+          "=if(b2=0,\"ready\",\"check\")",
+          "=IF($B$2=0,\"ready\",\"check\")",
+          "=IF(B$2=0,\"ready\",\"check\")",
+          "=IF( B2 = 0 , \"ready\" , \"check\" )",
+          "=IF(B2=0,\"ready\",\"check\")&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=\"ready\"",
+            "rule": "func-if",
+            "why": "the word is typed rather than decided by the variance"
+          },
+          {
+            "formula": "=IF(B2=0,\"check\",\"ready\")",
+            "rule": "value",
+            "why": "the two branches are swapped"
+          },
+          {
+            "formula": "=IF(B2<>0,\"ready\",\"check\")",
+            "rule": "value",
+            "why": "a zero variance then reads as check"
+          },
+          {
+            "formula": "=IF(B2=0,\"ready\")",
+            "rule": "func-if",
+            "why": "a two-argument IF has no answer for the row that fails the test"
+          },
+          {
+            "formula": "=IF(B3=0,\"ready\",\"check\")",
+            "rule": "require-ref",
+            "why": "the formula reads the second reconciliation rather than B2"
+          },
+          {
+            "formula": "=IF(B2/0=0,\"ready\",\"check\")",
+            "rule": "error",
+            "why": "the variance is divided by zero before the test"
+          },
+          {
+            "formula": "=IF B2=0,\"ready\",\"check\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In C2, count the reconciliations whose variance is not zero.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Check",
+            "Variance",
+            "Status"
+          ],
+          [
+            "bank",
+            0,
+            null
+          ],
+          [
+            "accruals",
+            12.5,
+            null
+          ],
+          [
+            "prepaids",
+            -3,
+            null
+          ],
+          [
+            "payroll",
+            0,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 2
+      },
+      "reference": "=COUNTIF(B2:B5,\"<>0\")",
+      "require": [
+        {
+          "id": "func-countif",
+          "func": "COUNTIF",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=COUNTIF(B2:B5,\"<>0\") — the variance column, then the not-equal criterion in quotes.",
+        "func-countif": "Counting rows that meet a criterion is COUNTIF's job.",
+        "require-ref": "The variance column is B2:B5.",
+        "value": "Accruals and prepaids are out, so two rows have a variance.",
+        "error": "A criterion that cannot be read as a comparison gives #VALUE!."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTIF(B2:B5,\"<>0\")",
+          "=countif(b2:b5,\"<>0\")",
+          "=COUNTIF($B$2:$B$5,\"<>0\")",
+          "=COUNTIF(B$2:B$5,\"<>0\")",
+          "=COUNTIF( B2:B5 , \"<>0\" )",
+          "=COUNTIF(B2:B5,\">0\")+COUNTIF(B2:B5,\"<0\")"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTA(B2:B5)",
+            "rule": "func-countif",
+            "why": "every row counts, including the ones that balance"
+          },
+          {
+            "formula": "=COUNTIF(B2:B5,\">0\")",
+            "rule": "value",
+            "why": "only the positive variances are counted"
+          },
+          {
+            "formula": "=COUNTIF(B2:B5,\"<0\")",
+            "rule": "value",
+            "why": "only the negative variance is counted"
+          },
+          {
+            "formula": "=COUNTIF(B2:B5,\"<>0\")+1",
+            "rule": "value",
+            "why": "one is added to the count of rows that are out"
+          },
+          {
+            "formula": "=COUNTIF(C2:C5,\"<>0\")",
+            "rule": "require-ref",
+            "why": "the status column is counted instead of the variances"
+          },
+          {
+            "formula": "=COUNTIF(B2:B5,\"<>0\")/0",
+            "rule": "error",
+            "why": "the count is then divided by zero"
+          },
+          {
+            "formula": "=COUNTIF B2:B5,\"<>0\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2
+}

@@ -1,0 +1,230 @@
+{
+  "id": "38-date-build-a-date-from-parts",
+  "slug": "date-build-a-date-from-parts",
+  "level": 2,
+  "title": "DATE: build a date from parts",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "Column E wants the raised date as a real date number built from the year, month and day in B2:D2, so start with INV-2001 in E2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Invoice",
+            "Year",
+            "Month",
+            "Day",
+            "Date"
+          ],
+          [
+            "INV-2001",
+            2024,
+            3,
+            1,
+            null
+          ],
+          [
+            "INV-2002",
+            2024,
+            4,
+            15,
+            null
+          ],
+          [
+            "INV-2003",
+            2024,
+            5,
+            31,
+            null
+          ]
+        ]
+      },
+      "answerCell": "E2",
+      "expect": {
+        "value": 45352
+      },
+      "reference": "=DATE(B2,C2,D2)",
+      "require": [
+        {
+          "id": "func-date",
+          "func": "DATE",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "DATE takes three numbers in a fixed order — year, month, day: =DATE(B2,C2,D2).",
+        "func-date": "All three parts go in one call — passing two year/month pairs to one DATE is a different date entirely.",
+        "require-ref": "Read the three parts from the row rather than typing 2024, 3 and 1 into the formula.",
+        "value": "45352 is 1 March 2024: the three parts have to come from the same row, and E2 wants INV-2001's.",
+        "error": "A date built out of a formula that divides by zero comes back as #DIV/0!, not as a date."
+      },
+      "fixtures": {
+        "accept": [
+          "=DATE(B2,C2,D2)",
+          "=date(b2,c2,d2)",
+          "=DATE($B$2,$C$2,$D$2)",
+          "=DATE(B2,C2,D2)+0",
+          "=DATE(B2,C2,D2)*1",
+          "=DATE(B$2,C$2,D$2)"
+        ],
+        "reject": [
+          {
+            "formula": "=45352",
+            "rule": "func-date",
+            "why": "the serial typed in by hand, which is the number DATE exists to save you from knowing"
+          },
+          {
+            "formula": "=DATE(B2,C2)",
+            "rule": "func-date",
+            "why": "two parts are not a date — DATE needs the year, the month and the day"
+          },
+          {
+            "formula": "=DATE(2024,3,1)",
+            "rule": "require-ref",
+            "why": "the parts typed in, so a corrected month in column C never reaches the date"
+          },
+          {
+            "formula": "=DATE(B3,C3,D3)",
+            "rule": "require-ref",
+            "why": "the row below, so the formula no longer reads the year cell it is meant to build from"
+          },
+          {
+            "formula": "=DATE(B2,C2,D3)",
+            "rule": "value",
+            "why": "March's year and month with April's day, which lands on 15 March instead of 1 March"
+          },
+          {
+            "formula": "=DATE(B2,C2,D2)/0",
+            "rule": "error",
+            "why": "dividing the date away leaves #DIV/0! in the cell"
+          },
+          {
+            "formula": "=DATE(B2,C2,D2",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B3, build the first day of the month after the statement month in B2 — March means April.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Value"
+          ],
+          [
+            "Statement month",
+            3
+          ],
+          [
+            "First day of next month",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B3",
+      "expect": {
+        "value": 45383
+      },
+      "reference": "=DATE(2024,B2+1,1)",
+      "require": [
+        {
+          "id": "func-date",
+          "func": "DATE",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "The month argument may be an expression: =DATE(2024,B2+1,1) passes April's number, not March's.",
+        "func-date": "The month arithmetic belongs inside the DATE call, so the year and the roll-over stay in Excel's hands.",
+        "require-ref": "Pass B2 rather than a typed 3, and add the one inside the call.",
+        "value": "March 2024 is 45352 and April has 31 days, so the first of April is 45383.",
+        "error": "Dividing by zero anywhere in the formula leaves #DIV/0! instead of a date."
+      },
+      "fixtures": {
+        "accept": [
+          "=DATE(2024,B2+1,1)",
+          "=date(2024,b2+1,1)",
+          "=DATE(2024,1+B2,1)",
+          "=DATE(2024,B2+1,1)+0",
+          "=DATE(2024,B2+1,1)*1",
+          "=EDATE(DATE(2024,B2,1),1)"
+        ],
+        "reject": [
+          {
+            "formula": "=DATE(2024,B2,1)",
+            "rule": "value",
+            "why": "the first of the statement month, 45352, rather than the month after it"
+          },
+          {
+            "formula": "=DATE(2024,B2+1,0)",
+            "rule": "value",
+            "why": "day zero is the day before the first, so this is the last day of March, 45382"
+          },
+          {
+            "formula": "=DATE(2024,4,1)",
+            "rule": "require-ref",
+            "why": "the right answer with the month typed in, so a February statement still reports April"
+          },
+          {
+            "formula": "=45383",
+            "rule": "func-date",
+            "why": "the serial typed in rather than built, so nothing rolls over when the month changes"
+          },
+          {
+            "formula": "=DATE(2024,B2+1)",
+            "rule": "func-date",
+            "why": "no day argument, so DATE has nothing to build the first of the month from"
+          },
+          {
+            "formula": "=DATE(2024,B2+1,1)/0",
+            "rule": "error",
+            "why": "dividing the date away leaves #DIV/0! in the cell"
+          },
+          {
+            "formula": "=DATE(2024,B2+1,1",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=DATE(year, month, day)",
+    "explain": "A date in Excel is a number: the count of days since the end of 1899, with 1 January 1900 as day 1. That is why a date typed into a cell shows as 45352 in this grid — the serial is what the sheet stores and the formatted date is only what it draws. DATE builds that serial out of three ordinary numbers, so a year in one column, a month in another and a day in a third can become one real date that sorts, subtracts and formats like every other date. The parts do not have to be tidy: Excel rolls them over instead of complaining, so month 13 is January of the next year, day 0 is the day before the first, and month 0 is December of the year before. That roll-over is the most useful thing DATE does, because it means 'the first of next month' is written as the current month plus one rather than as a lookup table of which months have thirty-one days, and 'the last day of this month' is day zero of the next. The parts can also be expressions, which is why the month argument may hold `B2+1`, and a year below 1900 is read as 1900 plus that number, a leftover of Excel's early decision to accept two-digit years.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "One of the three parts was text that does not read as a number, so DATE has nothing to build with."
+      },
+      {
+        "code": "#NUM!",
+        "text": "The parts describe a date before 1900 or after the last serial Excel can hold, so the result is out of range."
+      },
+      {
+        "code": "#N/A",
+        "text": "DATE was called with fewer than three arguments, which this drill reports as a missing part rather than a wrong date."
+      }
+    ],
+    "atWork": "Turning the year, month and day that a finance export puts in three separate columns into one real date column, so the ledger can be sorted and aged by month instead of by substring.",
+    "outcome": "Build a real date from three numbers, and let Excel roll the overflow instead of guarding every month length.",
+    "teaches": "DATE, and how a date is stored as a number",
+    "dataset": "Invoice dates split into year, month and day columns",
+    "reference": "=DATE(B2,C2,D2)"
+  }
+}

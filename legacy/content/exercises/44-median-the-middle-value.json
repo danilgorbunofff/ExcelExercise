@@ -1,0 +1,245 @@
+{
+  "id": "44-median-the-middle-value",
+  "slug": "median-the-middle-value",
+  "level": 2,
+  "title": "MEDIAN: the middle value",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "Put the typical reading into C2, choosing the summary that one noisy reading cannot drag.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Reading",
+            "Value",
+            "Typical"
+          ],
+          [
+            "R-1",
+            12,
+            null
+          ],
+          [
+            "R-2",
+            18,
+            null
+          ],
+          [
+            "R-3",
+            14,
+            null
+          ],
+          [
+            "R-4",
+            19,
+            null
+          ],
+          [
+            "R-5",
+            15,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 15
+      },
+      "reference": "=MEDIAN(B2:B6)",
+      "require": [
+        {
+          "id": "func-median",
+          "func": "MEDIAN",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "MEDIAN takes the whole range: =MEDIAN(B2:B6).",
+        "func-median": "A mean moves when one reading moves; the middle of the list does not, and that is a different function.",
+        "require-ref": "Read the readings from B2:B6 rather than listing them in the formula.",
+        "value": "Sorted, the five readings are 12, 14, 15, 18, 19 — the middle one is 15.",
+        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=MEDIAN(B2:B6)",
+          "=median(b2:b6)",
+          "=MEDIAN($B$2:$B$6)",
+          "=MEDIAN(B2:B6)+0",
+          "=MEDIAN(B2:B6)*1",
+          "=MEDIAN(B$2:B$6)"
+        ],
+        "reject": [
+          {
+            "formula": "=AVERAGE(B2:B6)",
+            "rule": "func-median",
+            "why": "the mean, 15.6, which is a different summary and is dragged by outliers"
+          },
+          {
+            "formula": "=MEDIAN(B2:B4)",
+            "rule": "value",
+            "why": "the middle of three readings, 14, which ignores half the data"
+          },
+          {
+            "formula": "=MEDIAN(B2:B5)",
+            "rule": "value",
+            "why": "the middle of four readings, 16, which is an average of two of them"
+          },
+          {
+            "formula": "=MEDIAN(B3:B6)",
+            "rule": "require-ref",
+            "why": "the first reading is outside the range, so the reported middle is not the list's"
+          },
+          {
+            "formula": "=MEDIAN(B2:B6)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=MEDIAN(B2:B6",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "The audit has an even number of readings, so put the median into C2 and accept the half-way value.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Reading",
+            "Value",
+            "Median"
+          ],
+          [
+            "R-1",
+            12,
+            null
+          ],
+          [
+            "R-2",
+            18,
+            null
+          ],
+          [
+            "R-3",
+            14,
+            null
+          ],
+          [
+            "R-4",
+            19,
+            null
+          ],
+          [
+            "R-5",
+            15,
+            null
+          ],
+          [
+            "R-6",
+            40,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 16.5
+      },
+      "reference": "=MEDIAN(B2:B7)",
+      "require": [
+        {
+          "id": "func-median",
+          "func": "MEDIAN",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "The range grew by one row, so the reference has to grow with it: =MEDIAN(B2:B7).",
+        "func-median": "An even count has no single middle element, and MEDIAN handles that for you.",
+        "require-ref": "Read all six readings from the sheet so a new one is picked up automatically.",
+        "value": "The middle two are 15 and 18, so the median is the half-way value, 16.5.",
+        "error": "Dividing by zero leaves #DIV/0! in the cell instead of a median."
+      },
+      "fixtures": {
+        "accept": [
+          "=MEDIAN(B2:B7)",
+          "=median(b2:b7)",
+          "=MEDIAN($B$2:$B$7)",
+          "=MEDIAN(B2:B7)+0",
+          "=MEDIAN(B2:B7)*1",
+          "=MEDIAN(B$2:B$7)"
+        ],
+        "reject": [
+          {
+            "formula": "=AVERAGE(B2:B7)",
+            "rule": "func-median",
+            "why": "the mean, 19.67, pulled up by the last reading"
+          },
+          {
+            "formula": "=MEDIAN(B2:B6)",
+            "rule": "value",
+            "why": "the odd-count median, 15, which ignores the newest reading"
+          },
+          {
+            "formula": "=MEDIAN(B3:B7)",
+            "rule": "require-ref",
+            "why": "the range starts one row late, so the oldest reading is dropped"
+          },
+          {
+            "formula": "=MEDIAN(B2:B7)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=MEDIAN(B2:B7",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=MEDIAN(B2:B5)",
+            "rule": "value",
+            "why": "the median of the first four readings, 16, taken before the outlier arrived"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=MEDIAN(range)",
+    "explain": "AVERAGE adds everything and divides by the count, which means one extreme value moves the answer as far as its own size deserves. MEDIAN sorts the values in its head and returns the one in the middle, so half the data is above it and half below, and a single wild reading cannot shift it at all. That robustness is the whole reason the function exists: salaries, house prices and response times are all published as medians because the mean of a skewed list describes almost nobody. With an odd count the answer is a real member of the list. With an even count there is no middle element, so MEDIAN returns the average of the two that straddle the middle — 15 and 18 give 16.5, a number that may not appear in the data at all. Blanks and text are ignored rather than counted as zero, which is what makes MEDIAN safe over a column that is still being filled. If every value is text or the range is empty, there is nothing to sit in the middle and the result is `#NUM!`.",
+    "errors": [
+      {
+        "code": "#NUM!",
+        "text": "The range holds no numbers, so there is no middle value to return."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "A value was passed as text that cannot be read as a number, so it cannot join the sort."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The median was divided by zero somewhere downstream, so the cell reports that instead."
+      }
+    ],
+    "atWork": "A report of audit readings where one late-night outlier should not move the typical figure, and a salary band published as a median rather than a mean.",
+    "outcome": "Summarise a list with a middle value that an outlier cannot drag.",
+    "teaches": "MEDIAN, and why it differs from AVERAGE",
+    "dataset": "Five and six audit readings with one outlier",
+    "reference": "=MEDIAN(B2:B6)"
+  }
+}

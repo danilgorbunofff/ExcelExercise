@@ -1,0 +1,276 @@
+{
+  "id": "57-count-functions-summary",
+  "slug": "count-functions-summary",
+  "level": 3,
+  "title": "Count functions summary",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B10, count only the rows whose unit value is a number.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Units"
+          ],
+          [
+            "Bolt",
+            12
+          ],
+          [
+            "Nut",
+            8
+          ],
+          [
+            "Washer",
+            null
+          ],
+          [
+            "Bolt",
+            5
+          ],
+          [
+            "Screw",
+            "n/a"
+          ],
+          [
+            "Nut",
+            3
+          ],
+          [
+            "Bolt",
+            7
+          ],
+          [
+            "Washer",
+            4
+          ],
+          [
+            "Rows with a number",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B10",
+      "expect": {
+        "value": 6
+      },
+      "reference": "=COUNT(B2:B9)",
+      "require": [
+        {
+          "id": "func-count",
+          "func": "COUNT",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=COUNT(B2:B9) \u2014 one range, and the function decides what counts.",
+        "func-count": "COUNT counts numbers; COUNTA counts anything that is not empty.",
+        "require-ref": "Pass the units column of the grid rather than a typed list of quantities.",
+        "value": "Six rows hold a number: two blank-ish cells are not numbers, and n/a is text.",
+        "error": "A formula that divides by zero returns #DIV/0! instead of a count."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNT(B2:B9)",
+          "=count(b2:b9)",
+          "=COUNT($B$2:$B$9)",
+          "=COUNT(B2:B9)+0",
+          "=COUNT(B2:B9)*1",
+          "=COUNT(B$2:B$9)"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTA(B2:B9)",
+            "rule": "func-count",
+            "why": "everything that is not empty counts, including the n/a text \u2014 7"
+          },
+          {
+            "formula": "=COUNTA(A2:A9)",
+            "rule": "func-count",
+            "why": "the item column is counted instead of the units"
+          },
+          {
+            "formula": "=COUNT(A2:A9)",
+            "rule": "require-ref",
+            "why": "the item column holds text, so COUNT answers 0"
+          },
+          {
+            "formula": "=COUNT(B3:B9)",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so the first Bolt drops out and answers 5"
+          },
+          {
+            "formula": "=COUNT(B2:B9)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=COUNT B2:B9",
+            "rule": "syntax",
+            "why": "the range is outside the parentheses"
+          },
+          {
+            "formula": "=COUNT(B2:B9)+1",
+            "rule": "value",
+            "why": "the right function with a stray +1, which answers 7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B10, count the rows that have an item but no numeric unit value.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Units"
+          ],
+          [
+            "Bolt",
+            12
+          ],
+          [
+            "Nut",
+            8
+          ],
+          [
+            "Washer",
+            null
+          ],
+          [
+            "Bolt",
+            5
+          ],
+          [
+            "Screw",
+            "n/a"
+          ],
+          [
+            "Nut",
+            3
+          ],
+          [
+            "Bolt",
+            7
+          ],
+          [
+            "Washer",
+            4
+          ],
+          [
+            "Rows without one",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B10",
+      "expect": {
+        "value": 2
+      },
+      "reference": "=COUNTA(A2:A9)-COUNT(B2:B9)",
+      "require": [
+        {
+          "id": "func-counta",
+          "func": "COUNTA",
+          "minArgs": 1
+        },
+        {
+          "id": "func-count",
+          "func": "COUNT",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "=COUNTA(A2:A9)-COUNT(B2:B9) \u2014 all the rows minus the numeric ones.",
+        "func-counta": "COUNTA counts everything that is not empty; it is how you count rows rather than values.",
+        "func-count": "COUNT is the half that counts the numbers, and the difference is what is left.",
+        "require-ref": "Start both ranges on row 2 so the header row never enters the count.",
+        "value": "Eight items, six numeric units, so two rows are missing a number.",
+        "error": "A division by zero in the formula returns #DIV/0! instead of a count."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTA(A2:A9)-COUNT(B2:B9)",
+          "=counta(a2:a9)-count(b2:b9)",
+          "=COUNTA($A$2:$A$9)-COUNT($B$2:$B$9)",
+          "=COUNTA(A2:A9)-COUNT(B2:B9)+0",
+          "=COUNTA(A2:A9)-COUNT(B2:B9)*1",
+          "=COUNTA(A$2:A$9)-COUNT(B$2:B$9)"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNT(B2:B9)",
+            "rule": "func-counta",
+            "why": "the count of numbers alone \u2014 six \u2014 says nothing about the missing ones"
+          },
+          {
+            "formula": "=COUNTA(A2:A9)",
+            "rule": "func-count",
+            "why": "all eight items, with the numeric ones still counted"
+          },
+          {
+            "formula": "=COUNTA(B2:B9)-COUNT(B2:B9)",
+            "rule": "require-ref",
+            "why": "counting non-empty unit cells only finds the n/a row, which answers 1"
+          },
+          {
+            "formula": "=COUNTA(A2:A9)-COUNT(A2:A9)",
+            "rule": "value",
+            "why": "the item column holds no numbers, so the difference is the whole 8"
+          },
+          {
+            "formula": "=COUNTA(A3:A9)-COUNT(B3:B9)",
+            "rule": "require-ref",
+            "why": "the ranges start on row 3, so the header row is dropped and the offset shifts"
+          },
+          {
+            "formula": "=COUNTA(A2:A9)-COUNT(B2:B9)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=COUNTA(A2:A9)-COUNT(B2:B9",
+            "rule": "syntax",
+            "why": "the closing parenthesis is missing"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=COUNT(range) counts numbers; =COUNTA(range) counts anything not empty",
+    "explain": "The count family answers three different questions that look alike. COUNT counts numbers, and it quietly skips text, blanks and logical values, so a column with six quantities and one n/a answers six. COUNTA counts every cell that is not empty, whatever it holds, so the same column answers seven because the text is still something. COUNTIF and COUNTIFS count the cells that match conditions, which is the only way to answer a question about what the values are rather than what type they are. In this drill the units column holds six numbers, one blank and one n/a, so COUNT answers six while COUNTA would answer seven; the second screen subtracts one from the other and reports the two rows where the item exists but the quantity is missing. Choosing the wrong member of the family is the classic mistake: COUNTA on a numeric column looks correct until the first text value slips into the sheet, and COUNT on a text column answers zero without warning.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The count was combined with text where a number was expected."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "A count was divided by zero before it reached the cell."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function was misspelled, so nothing was counted at all."
+      }
+    ],
+    "atWork": "Checking how many rows of an import carry a real quantity before a pivot or a total is trusted.",
+    "outcome": "Tell the difference between counting values and counting rows, then use both together.",
+    "teaches": "COUNT and COUNTA, and subtracting one from the other to find gaps",
+    "dataset": "Parts list with a quantity column holding two gaps",
+    "reference": "=COUNT(B2:B9)"
+  },
+  "schemaVersion": 2
+}

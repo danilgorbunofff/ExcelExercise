@@ -1,0 +1,230 @@
+{
+  "id": "53-running-total-down-a-column",
+  "slug": "running-total-down-a-column",
+  "level": 3,
+  "title": "Running total down a column",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In C2, start a running total with a formula that fills down the column unchanged.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Day",
+            "Units",
+            "Running"
+          ],
+          [
+            "Mon",
+            12,
+            null
+          ],
+          [
+            "Tue",
+            8,
+            null
+          ],
+          [
+            "Wed",
+            15,
+            null
+          ],
+          [
+            "Thu",
+            3,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 12
+      },
+      "reference": "=SUM(B$2:B2)",
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUM(B$2:B2) — the start is pinned, the end moves as the formula fills down.",
+        "func-sum": "A running total is a SUM whose range grows; this drill wants the function.",
+        "require-ref": "Point at the units column so the range grows with the rows.",
+        "value": "Monday alone is 12; nothing has been added to it yet.",
+        "error": "A division by zero never reaches a total."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B$2:B2)",
+          "=sum(b$2:b2)",
+          "=SUM($B$2:B2)",
+          "=SUM(B$2:B2)+0",
+          "=SUM(B$2:B2)*1",
+          "=SUM(B$2:B$2)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B5)",
+            "rule": "value",
+            "why": "38, the grand total, not Monday's running total"
+          },
+          {
+            "formula": "=B2",
+            "rule": "func-sum",
+            "why": "the right number without the SUM that makes it fill down"
+          },
+          {
+            "formula": "=SUM(B2:B3)",
+            "rule": "value",
+            "why": "20 — it already counts Tuesday"
+          },
+          {
+            "formula": "=SUM(B3:B3)",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so Monday's units are outside it"
+          },
+          {
+            "formula": "=SUM(B$2:B2)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUM(B$2 B2)",
+            "rule": "syntax",
+            "why": "the colon is missing, so the range is not a range"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In C4, give Wednesday's running total — the same formula, filled down two rows.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Day",
+            "Units",
+            "Running"
+          ],
+          [
+            "Mon",
+            12,
+            null
+          ],
+          [
+            "Tue",
+            8,
+            null
+          ],
+          [
+            "Wed",
+            15,
+            null
+          ],
+          [
+            "Thu",
+            3,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C4",
+      "expect": {
+        "value": 35
+      },
+      "reference": "=SUM(B$2:B4)",
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUM(B$2:B4) — the same formula as C2, one row longer at the bottom.",
+        "func-sum": "The running total is a SUM over a growing range.",
+        "require-ref": "The range starts at B2, where the week's units begin.",
+        "value": "12 + 8 + 15 is 35; Thursday is not counted yet.",
+        "error": "Dividing by zero leaves #DIV/0! in the cell."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B$2:B4)",
+          "=sum(b$2:b4)",
+          "=SUM($B$2:B4)",
+          "=SUM(B$2:B4)+0",
+          "=SUM(B$2:B4)*1",
+          "=SUM(B$2:B$4)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B5)",
+            "rule": "value",
+            "why": "38 — the week's total, with Thursday included"
+          },
+          {
+            "formula": "=SUM(B$2:B3)",
+            "rule": "value",
+            "why": "20 — Tuesday's running total, one row short of Wednesday"
+          },
+          {
+            "formula": "=SUM(B$3:B4)",
+            "rule": "require-ref",
+            "why": "the range starts at row 3, so Monday is excluded"
+          },
+          {
+            "formula": "=B2+B3+B4",
+            "rule": "func-sum",
+            "why": "23 without a SUM, which will not fill down"
+          },
+          {
+            "formula": "=SUM(B$2:B4)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUM(B$2 B4)",
+            "rule": "syntax",
+            "why": "the colon is missing between the two cells"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUM(B$2:B2) filled down a column",
+    "explain": "A running total is one formula copied down a column, and the whole trick is which half of the range is pinned. Writing SUM(B$2:B2) locks the row of the start cell and leaves the column free, so filling down turns the second half into B3, B4 and so on while the start stays at row 2. The row 2 figure is 12, row 3 is 20, row 4 is 35, and each one is the sum of everything above it rather than a fresh total. If both halves are pinned the formula stops growing and every row repeats the first total; if neither is pinned the start walks down with the fill and each row reports only itself. That is why a running total is worth teaching as a reference problem rather than a function problem: SUM is trivial here and the dollars are in the dollar signs. The same shape works for a running balance, a cumulative percentage or a year-to-date column, and it survives rows being inserted because the range is built from cells rather than typed numbers.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "A division by zero in the formula stops it before a total is produced."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The range reaches a text cell that the formula tries to add directly."
+      },
+      {
+        "code": "#REF!",
+        "text": "The pinned start row was deleted, so the range has nothing to begin at."
+      }
+    ],
+    "atWork": "A cash book with a running balance, and a project plan with a cumulative percentage complete.",
+    "outcome": "Build a running total that can be filled down without editing each row.",
+    "teaches": "SUM with a mixed reference that grows as the formula is filled down",
+    "dataset": "Daily units and a week of activity",
+    "reference": "=SUM(B$2:B2)"
+  }
+}

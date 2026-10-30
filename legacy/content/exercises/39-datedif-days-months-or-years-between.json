@@ -1,0 +1,190 @@
+{
+  "id": "39-datedif-days-months-or-years-between",
+  "slug": "datedif-days-months-or-years-between",
+  "level": 3,
+  "title": "DATEDIF: days, months or years between",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "The dates in B and C are serials, not text: put the complete years Ada has served into D2, counting only full years.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Employee", "Started", "Review date", "Years served"],
+          ["Ada Lovelace", 44562, 45352, null],
+          ["Grace Hopper", 44197, 45352, null]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": { "value": 2 },
+      "reference": "=DATEDIF(B2,C2,\"Y\")",
+      "require": [{ "id": "func-datedif", "func": "DATEDIF", "minArgs": 3 }],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "DATEDIF reads left to right — start, then end, then the unit in quotes: =DATEDIF(B2,C2,\"Y\").",
+        "func-datedif": "DATEDIF is the one that answers in whole units; subtracting two serials answers in days, so read it off C2 and B2 instead.",
+        "require-ref": "Point at B2 and C2 rather than typing the two serials into the call.",
+        "value": "44562 is 1 January 2022 and 45352 is 1 March 2024, so two full years have passed and the two months since are not counted.",
+        "error": "DATEDIF answers #NUM! for a unit it does not know, or when the start date falls after the end date."
+      },
+      "fixtures": {
+        "accept": [
+          "=DATEDIF(B2,C2,\"Y\")",
+          "=DATEDIF(B2,C2,\"y\")",
+          "=DATEDIF($B$2,$C$2,\"Y\")",
+          "=DATEDIF(B2,C2,\"Y\")+0",
+          "=DATEDIF(B2,C2,\"Y\")*1",
+          "=DATEDIF(B$2,C$2,\"Y\")"
+        ],
+        "reject": [
+          {
+            "formula": "=DAYS(C2,B2)",
+            "rule": "func-datedif",
+            "why": "the days between, which is not the same question as the years served"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2)",
+            "rule": "func-datedif",
+            "why": "no unit, so DATEDIF has nothing to answer in — days, months and years are three different answers"
+          },
+          {
+            "formula": "=DATEDIF(44562,45352,\"Y\")",
+            "rule": "require-ref",
+            "why": "the serials typed in, so a corrected review date never reaches the answer"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"M\")",
+            "rule": "value",
+            "why": "the months between, 26, rather than the complete years"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"D\")",
+            "rule": "value",
+            "why": "the days between, 790 — a count of days is not a count of years"
+          },
+          {
+            "formula": "=DATEDIF(C2,B2,\"Y\")",
+            "rule": "error",
+            "why": "start and end swapped, so DATEDIF answers #NUM!"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"Q\")",
+            "rule": "error",
+            "why": "Q is not a unit DATEDIF knows, so the answer is #NUM!"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"Y\"",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "Same person, different question: put the complete months since Grace started into D2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Employee", "Started", "Review date", "Full months"],
+          ["Grace Hopper", 44197, 45352, null],
+          ["Ada Lovelace", 44562, 45352, null]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": { "value": 38 },
+      "reference": "=DATEDIF(B2,C2,\"M\")",
+      "require": [{ "id": "func-datedif", "func": "DATEDIF", "minArgs": 3 }],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "Same three arguments, a different unit: =DATEDIF(B2,C2,\"M\").",
+        "func-datedif": "DATEDIF with the month unit, not a subtraction and not DAYS.",
+        "require-ref": "Read the two serials from B2 and C2.",
+        "value": "44197 is 1 January 2021, so three whole years is 36 months and January to March 2024 adds the other two.",
+        "error": "A unit DATEDIF does not know comes back as #NUM!, so a typo in the quotes is a visible failure rather than a wrong number."
+      },
+      "fixtures": {
+        "accept": [
+          "=DATEDIF(B2,C2,\"M\")",
+          "=DATEDIF(B2,C2,\"m\")",
+          "=DATEDIF($B$2,$C$2,\"M\")",
+          "=DATEDIF(B2,C2,\"M\")+0",
+          "=DATEDIF(B2,C2,\"M\")*1",
+          "=DATEDIF(B$2,C$2,\"M\")"
+        ],
+        "reject": [
+          {
+            "formula": "=DAYS(C2,B2)",
+            "rule": "func-datedif",
+            "why": "the days between, 1155, rather than the complete months"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2)",
+            "rule": "func-datedif",
+            "why": "no unit at all, so DATEDIF cannot answer"
+          },
+          {
+            "formula": "=DATEDIF(44197,45352,\"M\")",
+            "rule": "require-ref",
+            "why": "the serials typed in, so the answer stops following the row"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"Y\")",
+            "rule": "value",
+            "why": "three whole years — the month unit counts thirty-eight"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"D\")",
+            "rule": "value",
+            "why": "1,155 days rather than 38 months"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"YM\")",
+            "rule": "value",
+            "why": "the months left over after whole years, which is 2, not the total since starting"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"L\")",
+            "rule": "error",
+            "why": "L is not a unit DATEDIF knows, so the cell fills with #NUM!"
+          },
+          {
+            "formula": "=DATEDIF(B2,C2,\"M\"",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=DATEDIF(start, end, \"unit\")",
+    "explain": "Subtracting one date from another answers in days and nothing else. DATEDIF answers in whichever unit you name, and it is the only function that also answers in the leftovers: the complete years between two dates, the complete months, the days left over after those years, the months left over after them. It takes a start date and an end date and a unit written as text in quotes — Y, M, D for whole years, months and days, and YM, MD, YD for the remainders. The word complete is the whole point: from 1 January 2022 to 1 March 2024 nobody has served three years yet, so Y answers 2, and a birthday that has not arrived is not a year of service. Nothing in the arguments says which unit you meant, so a wrong unit is a plausible number rather than an error — 26 is the right answer to a different question, which is why it grades as a wrong answer here rather than as a typo. DATEDIF is old enough that Excel still hides it from the function list, and it answers #NUM! when the unit is not one it knows or when the start date is later than the end date, so the two failure modes are at least loud.",
+    "errors": [
+      {
+        "code": "#NUM!",
+        "text": "The unit in quotes is not one DATEDIF knows — Y, M, D, YM, MD and YD are the whole list."
+      },
+      {
+        "code": "#NUM!",
+        "text": "The start date falls after the end date, so there is no positive difference to report."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "A date argument was text that does not read as a date, so DATEDIF has no serial to work from."
+      }
+    ],
+    "atWork": "A staff review sheet that reports years of service without dividing a day count by 365 — the question the HR export asks is complete years, and DATEDIF is the only function that answers it.",
+    "outcome": "Ask for the difference between two dates in whole years, months or days, and get the leftovers when you want them too.",
+    "teaches": "DATEDIF and its six units",
+    "dataset": "Two employees, their start dates and one review date",
+    "reference": "=DATEDIF(B2,C2,\"Y\")"
+  }
+}

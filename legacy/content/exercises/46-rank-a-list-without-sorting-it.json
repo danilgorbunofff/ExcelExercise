@@ -1,0 +1,245 @@
+{
+  "id": "46-rank-a-list-without-sorting-it",
+  "slug": "rank-a-list-without-sorting-it",
+  "level": 2,
+  "title": "Rank a list without sorting it",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "Put Ada's place in the team into C2, fastest first, without sorting the sheet.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Swimmer",
+            "Seconds",
+            "Place"
+          ],
+          [
+            "Ada",
+            58,
+            null
+          ],
+          [
+            "Ben",
+            61,
+            null
+          ],
+          [
+            "Cleo",
+            55,
+            null
+          ],
+          [
+            "Dev",
+            57,
+            null
+          ],
+          [
+            "Eli",
+            50,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 2
+      },
+      "reference": "=RANK(B2,B2:B6)",
+      "require": [
+        {
+          "id": "func-rank",
+          "func": "RANK",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "RANK takes the value, then the whole column: =RANK(B2,B2:B6).",
+        "func-rank": "Counting how many times are faster is a formula of its own — RANK does exactly that.",
+        "require-ref": "The second argument should be the range B2:B6, not a hand-typed list.",
+        "value": "Only Ben's 61 is faster than 58, so Ada is second.",
+        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=RANK(B2,B2:B6)",
+          "=rank(b2,b2:b6)",
+          "=RANK(B2,$B$2:$B$6)",
+          "=RANK(B2,B2:B6)+0",
+          "=RANK(B2,B2:B6)*1",
+          "=RANK(B2,B$2:B$6)"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTIF(B2:B6,\">\"&B2)+1",
+            "rule": "func-rank",
+            "why": "right arithmetic, wrong tool — the sheet should say rank, not count-if-plus-one"
+          },
+          {
+            "formula": "=RANK(B2,B2:B6,1)",
+            "rule": "value",
+            "why": "the third argument reverses the order, so Ada is ranked fourth-slowest instead"
+          },
+          {
+            "formula": "=RANK(B3,B2:B6)",
+            "rule": "value",
+            "why": "Ben's place, 1, sitting in Ada's row"
+          },
+          {
+            "formula": "=RANK(B3,B3:B5,1)",
+            "rule": "require-ref",
+            "why": "the range excludes B2, so the fast times are outside the ranking"
+          },
+          {
+            "formula": "=RANK(B2,B2:B6)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=RANK(B2 B2:B6)",
+            "rule": "syntax",
+            "why": "the missing comma means the arguments never separate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "The slowest swimmer gets the place number 1, so put Ada's place on that scale into C2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Swimmer",
+            "Seconds",
+            "Place (slowest first)"
+          ],
+          [
+            "Ada",
+            58,
+            null
+          ],
+          [
+            "Ben",
+            61,
+            null
+          ],
+          [
+            "Cleo",
+            55,
+            null
+          ],
+          [
+            "Dev",
+            57,
+            null
+          ],
+          [
+            "Eli",
+            50,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 4
+      },
+      "reference": "=RANK(B2,B2:B6,1)",
+      "require": [
+        {
+          "id": "func-rank",
+          "func": "RANK",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "The third argument is the order, and any nonzero value means ascending: =RANK(B2,B2:B6,1).",
+        "func-rank": "This is the same ranking read from the other end, and RANK takes an order argument.",
+        "require-ref": "Rank against the whole column B2:B6, so every swimmer is in the comparison.",
+        "value": "Ascending, the places run 50, 55, 57, 58, 61 — Ada's 58 is fourth from the bottom, so place 4.",
+        "error": "Dividing by zero leaves #DIV/0! instead of a place."
+      },
+      "fixtures": {
+        "accept": [
+          "=RANK(B2,B2:B6,1)",
+          "=rank(b2,b2:b6,1)",
+          "=RANK(B2,$B$2:$B$6,1)",
+          "=RANK(B2,B2:B6,1)+0",
+          "=RANK(B2,B2:B6,1)*1",
+          "=RANK(B2,B$2:B$6,1)"
+        ],
+        "reject": [
+          {
+            "formula": "=RANK(B2,B2:B6)",
+            "rule": "value",
+            "why": "the descending place, 2, not the ascending one"
+          },
+          {
+            "formula": "=RANK(B3,B2:B6,1)",
+            "rule": "value",
+            "why": "Ben's ascending place, 5, in Ada's row"
+          },
+          {
+            "formula": "=RANK(B3,B3:B5,1)",
+            "rule": "require-ref",
+            "why": "the range leaves out B2, so two swimmers are missing from the comparison"
+          },
+          {
+            "formula": "=RANK(B2,B2:B6,1)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=RANK(B2 B2:B6 1)",
+            "rule": "syntax",
+            "why": "the missing commas jam three arguments into one"
+          },
+          {
+            "formula": "=SMALL(B2:B6,2)",
+            "rule": "func-rank",
+            "why": "the second smallest time, 55, which is a value rather than a place"
+          },
+          {
+            "formula": "=RANK(B2,B2:B6,1)*2",
+            "rule": "value",
+            "why": "twice the ascending place, 8, which is not a place at all"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=RANK(number, ref, [order])",
+    "explain": "RANK answers a question sorting cannot: as you read each row, where does this one sit among all of them. Sorting the sheet answers it once and then loses the original order, and a saved sort is a change to the data rather than a calculation about it. RANK compares the value against a fixed range and counts how many are greater. The range must be anchored — `$B$2:$B$6` or at least the column locked — because the moment the formula is filled down, an unanchored reference slides with it and every row ends up ranking against a different slice. The optional third argument flips the direction: 0 or omitted ranks largest-first, any nonzero value ranks smallest-first. Equal values share a rank and then the next rank is skipped, so two swimmers tied at the top are both 1 and nobody is 2 — positions and ranks are not the same thing, and a report that pretends otherwise will not add up. RANK.EQ behaves the same way; RANK.AVG is the variant that shares the average of the tied places.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The value being ranked does not appear in the range it is being ranked against."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The number argument was text that cannot be read as a number, so no comparison was possible."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The rank was divided by zero downstream, so the cell shows that error instead."
+      }
+    ],
+    "atWork": "A league table that shows each swimmer's place on the row they already occupy, and the same sheet ranked slowest-first for handicap purposes.",
+    "outcome": "Put a place number on every row of an unsorted list, in either direction.",
+    "teaches": "RANK, and anchoring the range it compares against",
+    "dataset": "A team of swim times ranked both ways",
+    "reference": "=RANK(B2,B2:B6)"
+  }
+}

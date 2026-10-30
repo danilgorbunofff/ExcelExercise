@@ -1,0 +1,151 @@
+{
+  "id": "32-index-match-look-left-of-the-key",
+  "slug": "index-match-look-left-of-the-key",
+  "level": 2,
+  "title": "INDEX MATCH: look left of the key",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, return the product name in A2:A5 for the SKU in B6 with INDEX and MATCH.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Product",
+            "Unit price"
+          ],
+          [
+            "Cable reel",
+            8.5
+          ],
+          [
+            "Junction box",
+            3.25
+          ],
+          [
+            "Conduit",
+            2.75
+          ],
+          [
+            "Trunking",
+            5.4
+          ],
+          [
+            "Which price?",
+            3.25
+          ],
+          [
+            "Product",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": "Junction box"
+      },
+      "require": [
+        {
+          "id": "func-index",
+          "func": "INDEX",
+          "minArgs": 2
+        },
+        {
+          "id": "func-match",
+          "func": "MATCH",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B6",
+      "rules": [
+        {
+          "id": "match-exact",
+          "type": "matchType",
+          "func": "MATCH",
+          "arg": 3,
+          "values": [
+            0
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "MATCH finds the row number, INDEX reads that row: =INDEX(A2:A5,MATCH(B6,B2:B5,0)).",
+        "func-index": "INDEX takes the range to read from and the row to read; without it you have a row number, not a product.",
+        "func-match": "MATCH supplies the row number. Without it you are hardcoding the position of 3.25 in the list.",
+        "match-exact": "The price column is not sorted, so MATCH needs 0 as its third argument for an exact match.",
+        "require-ref": "Take the price from B7 so asking about another price is a one-cell edit.",
+        "value": "3.25 is the second price down, so INDEX reads the second product name.",
+        "error": "If the price is not in the list, MATCH returns #N/A and INDEX has no row to read."
+      },
+      "fixtures": {
+        "accept": [
+          "=INDEX(A2:A5,MATCH(B6,B2:B5,0))",
+          "=index(a2:a5,match(b6,b2:b5,0))",
+          "=INDEX($A$2:$A$5,MATCH($B$6,$B$2:$B$5,0))",
+          "=INDEX(A2:A5,MATCH(B6,B2:B5,FALSE))",
+          "=INDEX(A2:A6,MATCH(B6,B2:B6,0))",
+          "=INDEX(A2:A5,MATCH(B6,B2:B5,0))&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=INDEX(A2:A5,MATCH(B6,B2:B5,0)",
+            "rule": "syntax",
+            "why": "the outer bracket is never closed, so nothing computes"
+          },
+          {
+            "formula": "=MATCH(B6,B2:B5,0)",
+            "rule": "func-index",
+            "why": "answers 2, the row number, instead of the product on that row"
+          },
+          {
+            "formula": "=INDEX(A2:A5,2)",
+            "rule": "func-match",
+            "why": "correct product, but the row number is hardcoded instead of found"
+          },
+          {
+            "formula": "=INDEX(A2:A5,MATCH(B6,B2:B5,1))",
+            "rule": "match-exact",
+            "why": "approximate match on an unsorted price column"
+          },
+          {
+            "formula": "=INDEX(B2:B5,MATCH(B6,B2:B5,0))",
+            "rule": "value",
+            "why": "reads the price column back, so the answer is the price again"
+          },
+          {
+            "formula": "=INDEX(A2:A5,MATCH(3.25,B2:B5,0))",
+            "rule": "require-ref",
+            "why": "the price typed into the formula, so a corrected price never reaches the answer"
+          },
+          {
+            "formula": "=INDEX(A2:A5,MATCH(B6,B2:B5,0)/0)",
+            "rule": "error",
+            "why": "the row number was divided by zero, so INDEX never receives a row"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=INDEX(range, MATCH(value, list, 0))",
+    "explain": "MATCH answers a question about position: 3.25 is the second price down. INDEX answers a question about content: the second cell of A2:A5. Nested, they find the row by looking at the prices and read the names, which is how a lookup goes left. VLOOKUP cannot do this, because its third argument counts columns forward from the key and there is no column before the first one. The zero in MATCH is not optional here: the price column is in the order things were priced, so an approximate match would return whichever price happened to sit just below 3.25. Reading it out loud is the test: 'in this column, at the position where that value sits' \u2014 the outer function owns the answer, the inner one owns the position.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "MATCH found no exact price, so INDEX was handed a row number that does not exist."
+      },
+      {
+        "code": "#REF!",
+        "text": "INDEX was given a range shorter than the matched position, so the row number points past the end."
+      }
+    ],
+    "atWork": "A price list sorted by the order items were added, where you know the price and need the part name.",
+    "outcome": "Return a value from the left of the key with INDEX and MATCH.",
+    "teaches": "INDEX with MATCH",
+    "dataset": "Four priced products",
+    "reference": "=INDEX(A2:A5,MATCH(B6,B2:B5,0))"
+  }
+}

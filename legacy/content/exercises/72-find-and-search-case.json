@@ -1,0 +1,230 @@
+{
+  "id": "72-find-and-search-case",
+  "slug": "find-and-search-case",
+  "level": 2,
+  "title": "FIND and SEARCH: case-sensitive or not",
+  "docs": {
+    "syntax": "=FIND(needle,text) matches case; =SEARCH(needle,text) ignores it; both answer a position",
+    "explain": "FIND and SEARCH do the same job and disagree about only one thing: capital letters. That difference is the whole reason both exist, and it decides which one you write. When the text is a code, case is part of the meaning, so a hyphen has to be found as a hyphen and a lower-case letter has to be found as a lower-case letter. FIND does that, and it fails loudly when the character it was sent to look for is not there. When the text is a label somebody typed, case is noise, so SEARCH is the right tool: it finds north, North and NORTH wherever they sit in the cell. Both functions answer with a position number counted from the left, not with the text they found, which is what makes them useful inside MID. This lesson pins the difference down with one screen each, so the learner types the same shape twice and only the function name changes.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The text being searched for does not occur in the cell."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name is misspelled, so the sheet has nothing to call."
+      }
+    ],
+    "atWork": "Locating a separator or a word inside a code or a label before slicing it.",
+    "outcome": "Choose FIND for a case-sensitive position and SEARCH when the case should not matter.",
+    "teaches": "FIND reporting a case-sensitive position and SEARCH ignoring case",
+    "dataset": "Hyphenated codes and typed labels holding lower-case letters",
+    "reference": "=FIND(\"-\",A2)"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In B2, report the position of the hyphen in the code in A2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Position"
+          ],
+          [
+            "AN-1042",
+            null
+          ],
+          [
+            "BO-2299",
+            null
+          ],
+          [
+            "CY-3140",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": 3
+      },
+      "reference": "=FIND(\"-\",A2)",
+      "require": [
+        {
+          "id": "func-find",
+          "func": "FIND",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=FIND(\"-\",A2) — the character to look for first, then the text.",
+        "func-find": "Codes are case-sensitive text, so the position comes from FIND.",
+        "require-ref": "The code is in A2.",
+        "value": "A, N, then the hyphen: it sits in third place.",
+        "error": "A character the cell does not hold is a #VALUE! error."
+      },
+      "fixtures": {
+        "accept": [
+          "=FIND(\"-\",A2)",
+          "=find(\"-\",a2)",
+          "=FIND(\"-\",$A$2)",
+          "=FIND(\"-\",A$2)",
+          "=FIND( \"-\" , A2 )",
+          "=FIND(\"-\",A2,1)",
+          "=FIND(\"-\",A2)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SEARCH(\"-\",A2)",
+            "rule": "func-find",
+            "why": "SEARCH would answer three too, but this screen is about the case-sensitive function"
+          },
+          {
+            "formula": "=LEN(A2)",
+            "rule": "func-find",
+            "why": "the length of the code is not the position of the hyphen"
+          },
+          {
+            "formula": "=FIND(\"-\",A2)-1",
+            "rule": "value",
+            "why": "the hyphen is in third place, not second"
+          },
+          {
+            "formula": "=FIND(\"-\",A2,4)",
+            "rule": "error",
+            "why": "searching from the fourth character misses the hyphen"
+          },
+          {
+            "formula": "=FIND(\"_\",A2)",
+            "rule": "error",
+            "why": "there is no underscore in the code"
+          },
+          {
+            "formula": "=FIND(\"-\",\"AN-1042\")",
+            "rule": "require-ref",
+            "why": "the code is typed in rather than read from A2"
+          },
+          {
+            "formula": "=FIND \"-\",A2",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In B2, report the position of the first N in the label in A2 whatever its case.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Label",
+            "Position"
+          ],
+          [
+            "banana grove",
+            null
+          ],
+          [
+            "mango stall",
+            null
+          ],
+          [
+            "lemon crate",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": 3
+      },
+      "reference": "=SEARCH(\"N\",A2)",
+      "require": [
+        {
+          "id": "func-search",
+          "func": "SEARCH",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=SEARCH(\"N\",A2) — the character, then the text, with case ignored.",
+        "func-search": "The label is typed text, so the position comes from SEARCH.",
+        "require-ref": "The label is in A2.",
+        "value": "b, a, n: the first N is in third place.",
+        "error": "A letter the label does not hold is a #VALUE! error."
+      },
+      "fixtures": {
+        "accept": [
+          "=SEARCH(\"N\",A2)",
+          "=search(\"n\",a2)",
+          "=SEARCH(\"N\",$A$2)",
+          "=SEARCH(\"N\",A$2)",
+          "=SEARCH( \"N\" , A2 )",
+          "=SEARCH(\"n\",A2)",
+          "=SEARCH(\"N\",A2)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=FIND(\"N\",A2)",
+            "rule": "func-search",
+            "why": "FIND is case-sensitive, so it never finds a capital N in this label"
+          },
+          {
+            "formula": "=LEN(A2)",
+            "rule": "func-search",
+            "why": "the length of the label is not a position"
+          },
+          {
+            "formula": "=SEARCH(\"a\",A2)",
+            "rule": "value",
+            "why": "the first A sits in second place"
+          },
+          {
+            "formula": "=SEARCH(\"N\",$A$2,4)",
+            "rule": "value",
+            "why": "searching from the fourth character finds the second N"
+          },
+          {
+            "formula": "=SEARCH(\"n\",A4)",
+            "rule": "require-ref",
+            "why": "the formula reads the third label rather than A2"
+          },
+          {
+            "formula": "=SEARCH(\"N\",A2,4)",
+            "rule": "value",
+            "why": "searching from the fourth character finds the second N"
+          },
+          {
+            "formula": "=SEARCH(\"z\",A2)",
+            "rule": "error",
+            "why": "the label holds no Z"
+          },
+          {
+            "formula": "=SEARCH(\"N\",\"banana grove\")",
+            "rule": "require-ref",
+            "why": "the label is typed in rather than read from A2"
+          },
+          {
+            "formula": "=SEARCH \"N\",A2",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2
+}

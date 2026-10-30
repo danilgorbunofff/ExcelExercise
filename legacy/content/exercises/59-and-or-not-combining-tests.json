@@ -1,0 +1,252 @@
+{
+  "id": "59-and-or-not-combining-tests",
+  "slug": "and-or-not-combining-tests",
+  "level": 3,
+  "title": "AND, OR and NOT: combining tests",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B9, answer TRUE only when the total is over 100 and every item has at least 15 units.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Units"
+          ],
+          [
+            "Bolt",
+            18
+          ],
+          [
+            "Nut",
+            22
+          ],
+          [
+            "Washer",
+            25
+          ],
+          [
+            "Screw",
+            30
+          ],
+          [
+            "Clip",
+            24
+          ],
+          [
+            "Pin",
+            31
+          ],
+          [
+            "Total",
+            150
+          ],
+          [
+            "Both tests",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": true
+      },
+      "reference": "=AND(B8>100,MIN(B2:B7)>=15)",
+      "require": [
+        {
+          "id": "func-and",
+          "func": "AND",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B8",
+      "rules": [],
+      "hints": {
+        "syntax": "=AND(test 1, test 2) — every test has to be TRUE for the answer to be TRUE.",
+        "func-and": "Two conditions joined by AND need the AND function; a single comparison cannot hold both.",
+        "require-ref": "Point at the total and at the units column rather than typing the numbers.",
+        "value": "The total is 150 and the smallest item is 18, so both tests hold and the answer is TRUE.",
+        "error": "A division by zero inside a test returns #DIV/0! instead of TRUE or FALSE."
+      },
+      "fixtures": {
+        "accept": [
+          "=AND(B8>100,MIN(B2:B7)>=15)",
+          "=and(b8>100,min(b2:b7)>=15)",
+          "=AND($B$8>100,MIN($B$2:$B$7)>=15)",
+          "=AND($B8>100,MIN($B2:$B$7)>=15)",
+          "=AND(B$8>100,MIN(B$2:B$7)>=15)",
+          "=AND(B8>100,MIN(B$2:B$7)>=15)"
+        ],
+        "reject": [
+          {
+            "formula": "=B8>100",
+            "rule": "func-and",
+            "why": "the second test is missing, so an item with no stock still passes"
+          },
+          {
+            "formula": "=AND(B8>100,MIN(B2:B7)>20)",
+            "rule": "value",
+            "why": "the smallest item is 18, so a >20 floor answers FALSE"
+          },
+          {
+            "formula": "=OR(B8>100,MIN(B2:B7)>=15)",
+            "rule": "func-and",
+            "why": "OR only needs one test, which makes it a weaker question than this one"
+          },
+          {
+            "formula": "=AND(C8>100,MIN(B2:B7)>=15)",
+            "rule": "require-ref",
+            "why": "the empty price column is tested instead of the total"
+          },
+          {
+            "formula": "=AND(B8>100,MIN(B2:B7)>=15)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=AND(B8>100 MIN(B2:B7)>=15)",
+            "rule": "syntax",
+            "why": "the missing comma turns two tests into one broken argument"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B9, answer TRUE when any single item has fewer than 20 units or the total is over 200.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Units"
+          ],
+          [
+            "Bolt",
+            18
+          ],
+          [
+            "Nut",
+            22
+          ],
+          [
+            "Washer",
+            25
+          ],
+          [
+            "Screw",
+            30
+          ],
+          [
+            "Clip",
+            24
+          ],
+          [
+            "Pin",
+            31
+          ],
+          [
+            "Total",
+            150
+          ],
+          [
+            "Either test",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": true
+      },
+      "reference": "=OR(MIN(B2:B7)<20,B8>200)",
+      "require": [
+        {
+          "id": "func-or",
+          "func": "OR",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=OR(test 1, test 2) — one TRUE is enough for the answer to be TRUE.",
+        "func-or": "Either test alone is enough, which is what OR is for; AND would demand both.",
+        "require-ref": "Read the units column so the smallest item is found rather than assumed.",
+        "value": "Bolt has 18 units, under 20, so the first test is already TRUE and the answer is TRUE.",
+        "error": "A division by zero inside a test returns #DIV/0! instead of TRUE or FALSE."
+      },
+      "fixtures": {
+        "accept": [
+          "=OR(MIN(B2:B7)<20,B8>200)",
+          "=or(min(b2:b7)<20,b8>200)",
+          "=OR(MIN($B$2:$B$7)<20,$B$8>200)",
+          "=OR($B2>200,MIN(B2:B7)<20)",
+          "=OR(MIN(B$2:B$7)<20,B$8>200)",
+          "=OR(MIN(B2:B7)<20,$B8>200)"
+        ],
+        "reject": [
+          {
+            "formula": "=AND(MIN(B2:B7)<20,B8>200)",
+            "rule": "func-or",
+            "why": "the total is 150, so demanding both tests answers FALSE"
+          },
+          {
+            "formula": "=MIN(B2:B7)<20",
+            "rule": "func-or",
+            "why": "only one of the two tests is asked, so the total is never read"
+          },
+          {
+            "formula": "=OR(MIN(B2:B7)<15,B8>200)",
+            "rule": "value",
+            "why": "18 is not under 15 and the total is under 200, so both tests answer FALSE"
+          },
+          {
+            "formula": "=OR(MIN(B3:B7)<20,B8>200)",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so Bolt's 18 units are never seen"
+          },
+          {
+            "formula": "=OR(MIN(B2:B7)<20,B8>200)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=OR(MIN(B2:B7)<20 B8>200)",
+            "rule": "syntax",
+            "why": "the missing comma merges the two tests into one argument"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=AND(test1, test2, ...) needs every test; =OR(...) needs one; =NOT(test) flips it",
+    "explain": "A single comparison answers one question, and most decisions ask several at once. AND joins tests and answers TRUE only when all of them hold; OR answers TRUE when any one of them does; NOT flips a single logical value. All three take logical tests rather than numbers, so each argument is a comparison — a bare number is treated as TRUE when it is not zero, which is a quiet way to write a test that always passes. In this drill the stock list has a total of 150 and a smallest item of 18 units, so =AND(B8>100,MIN(B2:B7)>=15) is TRUE while OR with the same two tests is also TRUE, which is exactly why picking the wrong one changes nothing on this data and everything on the next sheet. The second screen asks whether any item is under 20 or the total is over 200: the first test is already TRUE, so the answer is TRUE. The usual mistake is reaching for AND when the question says or, and the second is testing an empty column because the range was typed rather than read.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "An argument was text where a logical test was expected."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "One of the tests divided by zero before it could be judged."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name was misspelled, so no test was run."
+      }
+    ],
+    "atWork": "Flagging a restock only when the total is thin and no single item can cover it.",
+    "outcome": "Combine several tests into one answer, and choose AND or OR to match the question.",
+    "teaches": "AND and OR over comparison arguments, and what a bare number argument means",
+    "dataset": "Stock list with a total row and a smallest item",
+    "reference": "=AND(B8>100,MIN(B2:B7)>=15)"
+  },
+  "schemaVersion": 2
+}

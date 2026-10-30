@@ -1,6 +1,6 @@
 import { parseRef } from "./address.js";
 import { FormulaError } from "./errors.js";
-import { buildCells, createContext, evaluate, formatValue } from "./evaluate.js";
+import { buildCells, createContext, evaluate, formatValue, pinnedClock } from "./evaluate.js";
 import { callsOf, parse, walkAst } from "./parse.js";
 import { valuesEqual, isBlank, isRange } from "./values.js";
 
@@ -69,6 +69,22 @@ export function referencesCell(ast, targetKey) {
 }
 
 function checkRequire(ast, rule) {
+  // A comparison rule is the one requirement that names an operator instead of a
+  // function: the lesson is about what `>`, `=` or `<>` returns, and no call is needed.
+  if (rule.op) {
+    let found = false;
+    walkAst(ast, (node) => {
+      if (node.type === "binary" && node.op === rule.op) found = true;
+    });
+    if (found) return null;
+    return {
+      rule: rule.id,
+      message:
+        rule.message ?? `This lesson compares two values with ${rule.op}. Your formula does not.`,
+      hint: rule.hint,
+    };
+  }
+
   const calls = callsOf(ast, rule.func);
   if (!calls.length) {
     return {
@@ -232,7 +248,7 @@ export function grade(exercise, input) {
   }
 
   const cells = exercise.cells ?? (exercise.grid ? buildCells(exercise) : {});
-  const ctx = createContext(cells);
+  const ctx = createContext(cells, { clock: pinnedClock(exercise.today) });
   const expected = exercise.expect.value;
   const tolerance = exercise.expect.tolerance ?? 1e-9;
 

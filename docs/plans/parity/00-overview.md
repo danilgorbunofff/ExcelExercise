@@ -165,16 +165,17 @@ lands and never stops.
 
 **Total:** 6–9 months for one engineer plus a content author in parallel.
 
-**Phases 0–3 verification:** every phase above has a matching review and verification plan under
+**Phases 0–4 verification:** every phase above has a matching review and verification plan under
 [`reviews/`](reviews/00-foundation-verification-plan.md) — measured baselines, the exact gate commands
 with their expected output, the failure modes a green gate hides, and the criteria that cannot be
-closed by a machine in this checkout.
+closed by a machine in this checkout. Phase 4's plan
+([`reviews/phase-04-accounts-entitlements-verification-plan.md`](reviews/phase-04-accounts-entitlements-verification-plan.md))
+was written after eight units landed; its 15 gate rows separate the 11 that run here from the four
+that wait on live Stripe test keys, a second environment and the `PAYWALL=on` decision.
 
-**Phases 4+ verification:** no `reviews/phase-04-*` verification plan exists yet, so phase 4's evidence
-lives in a `## Unit log` section at the end of
-[its phase plan](phase-04-accounts-entitlements.md) — gate output per unit, deviations from the plan, and
-the rows still open with the reason. A review plan should be written once phase 4 has more than one unit
-landed.
+**Phases 5+ verification:** no review plan exists yet for those phases, so their evidence lives in the
+`## Unit log` section of each phase plan — gate output per unit, deviations from the plan, and the rows
+still open with the reason. A review plan is written once a phase has more than one unit landed.
 
 ## 9. Working agreements
 

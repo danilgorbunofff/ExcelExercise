@@ -1,0 +1,134 @@
+{
+  "id": "35-textjoin-join-a-range-and-skip-blanks",
+  "slug": "textjoin-join-a-range-and-skip-blanks",
+  "level": 2,
+  "title": "TEXTJOIN: join a range and skip blanks",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, join the departments in B2:B6 into one line, separated by a comma and a space, skipping the blanks.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Name",
+            "Department"
+          ],
+          [
+            "Ada",
+            "Engineering"
+          ],
+          [
+            "Grace",
+            null
+          ],
+          [
+            "Alan",
+            "Research"
+          ],
+          [
+            "Katherine",
+            null
+          ],
+          [
+            "Mary",
+            "Ops"
+          ],
+          [
+            "Departments",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": "Engineering, Research, Ops"
+      },
+      "require": [
+        {
+          "id": "func-textjoin",
+          "func": "TEXTJOIN",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "TEXTJOIN takes the separator, whether to skip blanks, then the range: =TEXTJOIN(\", \",TRUE,B2:B6).",
+        "func-textjoin": "TEXTJOIN is the one function that takes a separator and a blank rule; CONCAT would glue everything into one word.",
+        "require-ref": "Join B2:B6 so a department typed into a blank row is picked up.",
+        "value": "Three of the five rows hold a department, and they are joined by a comma and a space.",
+        "error": "TEXTJOIN itself does not error on blanks; string arithmetic on its result does, which is where #VALUE! comes from."
+      },
+      "fixtures": {
+        "accept": [
+          "=TEXTJOIN(\", \",TRUE,B2:B6)",
+          "=textjoin(\", \",true,b2:b6)",
+          "=TEXTJOIN(\", \",1,B2:B6)",
+          "=TEXTJOIN(\", \",TRUE,$B$2:$B$6)",
+          "=TEXTJOIN(\", \",TRUE,B2:B7)",
+          "=TEXTJOIN(\", \",TRUE,B2,B3,B4,B5,B6)"
+        ],
+        "reject": [
+          {
+            "formula": "=TEXTJOIN(\", \",TRUE,B2:B6",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing joins"
+          },
+          {
+            "formula": "=CONCAT(B2:B6)",
+            "rule": "func-textjoin",
+            "why": "glues the departments into EngineeringResearchOps with no separators"
+          },
+          {
+            "formula": "=TEXTJOIN(\", \",FALSE,B2:B6)",
+            "rule": "value",
+            "why": "keeping blanks leaves two empty slots in the line"
+          },
+          {
+            "formula": "=TEXTJOIN(\" \",TRUE,B2:B6)",
+            "rule": "value",
+            "why": "the departments are separated by spaces instead of commas"
+          },
+          {
+            "formula": "=TEXTJOIN(\", \",TRUE,B2:B5)",
+            "rule": "value",
+            "why": "the range stops one row short, so Ops is missing"
+          },
+          {
+            "formula": "=TEXTJOIN(\", \",TRUE,\"Engineering\",\"Research\",\"Ops\")",
+            "rule": "require-ref",
+            "why": "the departments typed into the formula, so a reassignment never reaches the line"
+          },
+          {
+            "formula": "=TEXTJOIN(\", \",TRUE,B2:B6)&1/0",
+            "rule": "error",
+            "why": "concatenating a string with a division by zero returns #VALUE!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=TEXTJOIN(delimiter, ignore_empty, range)",
+    "explain": "Two of the five rows have no department, and a list with ', ,' in the middle reads like a mistake. TEXTJOIN's second argument is the blank rule: TRUE skips empty cells, FALSE keeps them and leaves the separator behind. The first argument is the separator itself, typed as text in quotes \u2014\", \" means a comma and a space. CONCAT has neither argument, which is why it produces one long unreadable word and cannot be adjusted afterwards. Because the separator is an argument, changing a comma list into a semicolon list, or a space-separated line into something a database can read, is one character in one cell rather than an afternoon of retyping.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The joined text was used in arithmetic, which a string cannot do."
+      },
+      {
+        "code": "#NAME?",
+        "text": "TEXTJOIN was typed without its last letter, so the sheet sees a name it does not know."
+      }
+    ],
+    "atWork": "Building a summary line from a column of tags, roles or categories where some rows are empty.",
+    "outcome": "Join a column into one line and choose what happens to the blanks.",
+    "teaches": "TEXTJOIN",
+    "dataset": "Five people, three departments",
+    "reference": "=TEXTJOIN(\", \",TRUE,B2:B6)"
+  }
+}

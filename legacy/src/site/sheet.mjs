@@ -114,7 +114,7 @@ export function renderPicture(screen, { position = 0 } = {}) {
  */
 export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
   const url = workbookUrl(exercise.slug, screen.id);
-  const { rows, formulas } = previewSheet(screen.sheet);
+  const { rows, formulas } = previewSheet(screen.sheet, { today: screen.today });
   const preview = renderDataGrid({
     id: `workbook-grid-${position}`,
     label: `${screen.sheet.name}, preview of the workbook`,

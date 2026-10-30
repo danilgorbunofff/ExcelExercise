@@ -10,11 +10,13 @@
  */
 import { expect, test } from "@playwright/test";
 
-import { loadSite } from "../lib/site.js";
+import { freeDrill, loadSite } from "../lib/site.js";
 
 const ANSWER_CELL = ".cell[data-cell='B5']";
 // The count the rail prints is how many lessons the build shipped, so it moves with the catalog.
 const LESSONS = loadSite().index.length;
+/** The free half is the intro drills, so the static drill the specs open is the first of those. */
+const FREE = freeDrill();
 const SENTENCE =
   "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.";
 
@@ -36,11 +38,11 @@ test("the static build loads its module graph and grades a formula", async ({ pa
   page.on("pageerror", (error) => failures.push(`pageerror: ${error.message}`));
   page.on("requestfailed", (request) => failures.push(`request: ${request.url()}`));
 
-  await openStatic(page, "sum-basics");
+  await openStatic(page, FREE.slug);
   await check(page, "=SUM(B2:B4)");
 
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
-  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 3580.");
+  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 35.");
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-correct/);
   // A module served with the wrong MIME type is a console error, not a visible failure, so the
   // empty list is the assertion that the static host serves `text/javascript`.
@@ -57,18 +59,18 @@ test("the static build warns on blocked storage and still grades", async ({ page
     });
   });
 
-  await openStatic(page, "sum-basics");
+  await openStatic(page, FREE.slug);
   await expect(page.locator("#rail-blocked")).toHaveText(SENTENCE);
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
 });
 
 test("the static build remembers a finished lesson across a reload", async ({ page }) => {
-  await openStatic(page, "sum-basics");
+  await openStatic(page, FREE.slug);
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
 
   await page.reload();
   await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
-  await expect(page.locator(".rail-item[data-lesson='01-sum-basics']")).toHaveClass(/is-done/);
+  await expect(page.locator(`.rail-item[data-lesson='${FREE.exercise.id}']`)).toHaveClass(/is-done/);
 });

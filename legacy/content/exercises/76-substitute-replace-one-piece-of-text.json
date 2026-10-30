@@ -1,0 +1,218 @@
+{
+  "id": "76-substitute-replace-one-piece-of-text",
+  "slug": "substitute-replace-one-piece-of-text",
+  "level": 2,
+  "title": "SUBSTITUTE: replace one piece of text",
+  "docs": {
+    "syntax": "=SUBSTITUTE(text,old,new,[instance]) swaps old for new everywhere, or at one instance",
+    "explain": "SUBSTITUTE is the function that changes text without touching anything else. It takes the text, the piece to look for, and the piece to put in its place, and it does that everywhere in the string by default. The reason it deserves its own lesson rather than a footnote is that the obvious alternative, replacing a fixed position, breaks the moment the text changes length. A reference like WH-12-03 has two hyphens in the same places today and, on the next import, may have three. SUBSTITUTE names the piece rather than the position, so the formula survives that. The optional fourth argument is the part people miss. Give it a number and only that occurrence changes: one keeps the first hyphen, two keeps every hyphen before it and swaps the second. That turns one function into two: a global replace when the argument is absent, and a surgical replace when it is present. Both screens here work on the same reference column so the learner writes the three-argument form and then the four-argument form and sees the difference in the answer rather than in the explanation.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The instance number is not a number, or it is less than one."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name is misspelled, so the sheet has nothing to call."
+      }
+    ],
+    "atWork": "Restyling imported codes and references without changing anything but the separator.",
+    "outcome": "Replace a separator everywhere, then drill down to one occurrence with the instance argument.",
+    "teaches": "SUBSTITUTE replacing all matches, then one named occurrence",
+    "dataset": "Booking references that carry two hyphens in fixed places",
+    "reference": "=SUBSTITUTE(A2,\"-\",\"/\")"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In B2, replace every hyphen in the booking reference in A2 with a slash.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Reference",
+            "Answer"
+          ],
+          [
+            "WH-12-03",
+            null
+          ],
+          [
+            "AB-CD-EF",
+            null
+          ],
+          [
+            "ZZ-99-01",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": "WH/12/03"
+      },
+      "reference": "=SUBSTITUTE(A2,\"-\",\"/\")",
+      "require": [
+        {
+          "id": "func-substitute",
+          "func": "SUBSTITUTE",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\") — the text, what to look for, then what to put there.",
+        "func-substitute": "The separator is being swapped for another character, which is SUBSTITUTE's job.",
+        "require-ref": "The reference is in A2.",
+        "value": "Both hyphens become slashes, giving WH/12/03.",
+        "error": "An instance number below one has no occurrence to replace."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUBSTITUTE(A2,\"-\",\"/\")",
+          "=substitute(a2,\"-\",\"/\")",
+          "=SUBSTITUTE($A$2,\"-\",\"/\")",
+          "=SUBSTITUTE(A$2,\"-\",\"/\")",
+          "=SUBSTITUTE( A2 , \"-\" , \"/\" )",
+          "=SUBSTITUTE(A2,\"-\",\"/\")&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=MID(A2,1,2)&\"/\"&MID(A2,4,5)",
+            "rule": "func-substitute",
+            "why": "the answer is built from positions rather than from a replacement"
+          },
+          {
+            "formula": "=SUBSTITUTE(A2,\"-\",\"\")",
+            "rule": "value",
+            "why": "the hyphens are removed rather than swapped"
+          },
+          {
+            "formula": "=SUBSTITUTE(A2,\"_\",\"/\")",
+            "rule": "value",
+            "why": "there is no underscore, so the reference comes back unchanged"
+          },
+          {
+            "formula": "=SUBSTITUTE(A2,\"-\",\"/\",2)",
+            "rule": "value",
+            "why": "the instance argument leaves the first hyphen alone"
+          },
+          {
+            "formula": "=SUBSTITUTE(A3,\"-\",\"/\")",
+            "rule": "require-ref",
+            "why": "the formula reads the second reference rather than A2"
+          },
+          {
+            "formula": "=SUBSTITUTE(A2,\"-\",\"/\",0)",
+            "rule": "error",
+            "why": "there is no zeroth occurrence"
+          },
+          {
+            "formula": "=SUBSTITUTE A2,\"-\",\"/\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In B2, replace only the second hyphen in the booking reference in A2 with a slash.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Reference",
+            "Answer"
+          ],
+          [
+            "WH-12-03",
+            null
+          ],
+          [
+            "AB-CD-EF",
+            null
+          ],
+          [
+            "ZZ-99-01",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": "WH-12/03"
+      },
+      "reference": "=SUBSTITUTE(A2,\"-\",\"/\",2)",
+      "require": [
+        {
+          "id": "func-substitute",
+          "func": "SUBSTITUTE",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\",2) — the fourth argument names which occurrence changes.",
+        "func-substitute": "One separator is being swapped, which is the instance form of SUBSTITUTE.",
+        "require-ref": "The reference is in A2.",
+        "value": "Only the second hyphen turns into a slash, giving WH-12/03.",
+        "error": "An instance number that is not a number has no occurrence to replace."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUBSTITUTE(A2,\"-\",\"/\",2)",
+          "=substitute(a2,\"-\",\"/\",2)",
+          "=SUBSTITUTE($A$2,\"-\",\"/\",2)",
+          "=SUBSTITUTE(A$2,\"-\",\"/\",2)",
+          "=SUBSTITUTE( A2 , \"-\" , \"/\" , 2 )",
+          "=SUBSTITUTE(A2,\"-\",\"/\",2)&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=REPLACE(A2,4,1,\"/\")",
+            "rule": "func-substitute",
+            "why": "replacing a position breaks when the text changes length"
+          },
+          {
+            "formula": "=SUBSTITUTE(A2,\"-\",\"/\")",
+            "rule": "value",
+            "why": "without the instance argument both hyphens change"
+          },
+          {
+            "formula": "=SUBSTITUTE(A2,\"-\",\"/\",1)",
+            "rule": "value",
+            "why": "instance one replaces the first hyphen instead"
+          },
+          {
+            "formula": "=SUBSTITUTE(A2,\"_\",\"/\",2)",
+            "rule": "value",
+            "why": "there is no underscore, so nothing changes"
+          },
+          {
+            "formula": "=SUBSTITUTE(A3,\"-\",\"/\",2)",
+            "rule": "require-ref",
+            "why": "the formula reads the second reference rather than A2"
+          },
+          {
+            "formula": "=SUBSTITUTE(A2,\"-\",\"/\",\"x\")",
+            "rule": "error",
+            "why": "an instance number of x is not a number"
+          },
+          {
+            "formula": "=SUBSTITUTE A2,\"-\",\"/\",2",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2
+}

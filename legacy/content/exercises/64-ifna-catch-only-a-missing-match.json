@@ -1,0 +1,274 @@
+{
+  "id": "64-ifna-catch-only-a-missing-match",
+  "slug": "ifna-catch-only-a-missing-match",
+  "level": 3,
+  "title": "IFNA: catch only a missing match",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B9, look the code in A8 up in the table and say not on the list when it is missing.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Price"
+          ],
+          [
+            "A-1",
+            10
+          ],
+          [
+            "B-2",
+            20
+          ],
+          [
+            "C-3",
+            30
+          ],
+          [
+            "A-1",
+            12
+          ],
+          [
+            "B-2",
+            22
+          ],
+          [
+            "C-3",
+            32
+          ],
+          [
+            "Q-9",
+            null
+          ],
+          [
+            "Missing code",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": "not on the list"
+      },
+      "reference": "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE),\"not on the list\")",
+      "require": [
+        {
+          "id": "func-ifna",
+          "func": "IFNA",
+          "minArgs": 2
+        },
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A8",
+      "rules": [],
+      "hints": {
+        "syntax": "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE),\"not on the list\") — the fallback is the second argument.",
+        "func-ifna": "A lookup that finds nothing needs a replacement for #N/A, and only #N/A.",
+        "func-vlookup": "The price sits in the second column of the table, so a lookup is the shortest route.",
+        "require-ref": "Look the code up from the cell instead of typing Q-9 into the formula.",
+        "value": "Q-9 is not in the code column, so the fallback is the answer.",
+        "error": "IFNA replaces #N/A only; a #REF! from a wrong column comes through untouched."
+      },
+      "fixtures": {
+        "accept": [
+          "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE),\"not on the list\")",
+          "=ifna(vlookup(a8,a2:b7,2,false),\"not on the list\")",
+          "=IFNA(VLOOKUP($A$8,$A$2:$B$7,2,FALSE),\"not on the list\")",
+          "=IFNA(VLOOKUP(A8,A2:B7,2,0),\"not on the list\")",
+          "=IFNA(VLOOKUP($A$8,$A$2:$B$7,2,0),\"not on the list\")",
+          "=IFNA(VLOOKUP(A$8,$A$2:$B$7,2,FALSE),\"not on the list\")"
+        ],
+        "reject": [
+          {
+            "formula": "=IFNA(VLOOKUP(A8,A2:B7,2,TRUE),\"not on the list\")",
+            "rule": "value",
+            "why": "an approximate lookup answers 32 from the last row instead of reporting a miss"
+          },
+          {
+            "formula": "=IFERROR(VLOOKUP(A8,A2:B7,2,FALSE),\"missing\")",
+            "rule": "func-ifna",
+            "why": "IFERROR also hides #REF! and #VALUE!, which this question does not want"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(\"Q-9\",A2:B7,2,FALSE),\"not on the list\")",
+            "rule": "require-ref",
+            "why": "the code is typed into the formula instead of read from the grid"
+          },
+          {
+            "formula": "=IFNA(INDEX(B2:B7,MATCH(A8,A2:A7,0)),\"not on the list\")",
+            "rule": "func-vlookup",
+            "why": "an index and match finds the row, but this lesson asks for the lookup function itself"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(A8,A2:B7,3,FALSE),\"not on the list\")",
+            "rule": "error",
+            "why": "there is no third column, and IFNA does not catch #REF!"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE),\"not on the list\")/0",
+            "rule": "error",
+            "why": "the text fallback is then divided by zero"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE) \"not on the list\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves one argument where two are expected"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B9, price the code in A2 with the same lookup, keeping the fallback for a missing code.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Price"
+          ],
+          [
+            "A-1",
+            10
+          ],
+          [
+            "B-2",
+            20
+          ],
+          [
+            "C-3",
+            30
+          ],
+          [
+            "A-1",
+            12
+          ],
+          [
+            "B-2",
+            22
+          ],
+          [
+            "C-3",
+            32
+          ],
+          [
+            "Q-9",
+            null
+          ],
+          [
+            "Found code",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": 10
+      },
+      "reference": "=IFNA(VLOOKUP(A2,A2:B7,2,FALSE),\"not on the list\")",
+      "require": [
+        {
+          "id": "func-ifna",
+          "func": "IFNA",
+          "minArgs": 2
+        },
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "=IFNA(VLOOKUP(A2,A2:B7,2,FALSE),\"not on the list\") — the fallback stays even when the lookup works.",
+        "func-ifna": "The guard belongs in the formula even on a row that happens to be found.",
+        "func-vlookup": "The price is the second column of the table.",
+        "require-ref": "Read the code from the grid so the answer follows the row.",
+        "value": "A-1 is the first row of the table, so its price of 10 is returned.",
+        "error": "A #DIV/0! from outside the lookup is not #N/A, so IFNA passes it straight through."
+      },
+      "fixtures": {
+        "accept": [
+          "=IFNA(VLOOKUP(A2,A2:B7,2,FALSE),\"not on the list\")",
+          "=ifna(vlookup(a2,a2:b7,2,false),\"not on the list\")",
+          "=IFNA(VLOOKUP($A$2,$A$2:$B$7,2,FALSE),\"not on the list\")",
+          "=IFNA(VLOOKUP($A2,$A$2:$B$7,2,FALSE),\"not on the list\")",
+          "=IFNA(VLOOKUP(A$2,A2:B7,2,FALSE),\"not on the list\")",
+          "=IFNA(VLOOKUP(A2,A2:B7,2,FALSE),\"missing\")"
+        ],
+        "reject": [
+          {
+            "formula": "=VLOOKUP(A2,A2:B7,2,FALSE)",
+            "rule": "func-ifna",
+            "why": "the lookup is unguarded, so a code that is not on the list would show an error"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(A2,A2:B7,1,FALSE),\"not on the list\")",
+            "rule": "value",
+            "why": "the first column returns the code A-1 instead of the price"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(\"A-1\",C1:D7,2,FALSE),\"not on the list\")",
+            "rule": "require-ref",
+            "why": "a different range is searched, so the code in the grid is never read"
+          },
+          {
+            "formula": "=IFNA(INDEX(B2:B7,MATCH(A2,A2:A7,0)),\"not on the list\")",
+            "rule": "func-vlookup",
+            "why": "an index and match finds the row, but this lesson asks for the lookup function itself"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(A2,A2:B7,4,FALSE),\"not on the list\")",
+            "rule": "error",
+            "why": "the table has two columns, so the column number is out of range and #REF! escapes IFNA"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(A2,A2:B7,2,FALSE),\"not on the list\")/0",
+            "rule": "error",
+            "why": "the found price is then divided by zero"
+          },
+          {
+            "formula": "=IFNA(VLOOKUP(A2 A2:B7,2,FALSE),\"not on the list\")",
+            "rule": "syntax",
+            "why": "the missing comma inside VLOOKUP breaks the argument list"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=IFNA(value, value_if_na) replaces #N/A and nothing else",
+    "explain": "IFNA is IFERROR with a narrower net. It evaluates its first argument and, if that argument fails with #N/A — the error a lookup raises when it finds no match — returns the second argument instead. Any other error, and there are several, passes straight through: a #REF! from a column number that does not exist, a #VALUE! from text in arithmetic, a #DIV/0! from an empty divisor all survive IFNA and land in the cell. That narrowness is the point. Wrapping a lookup in IFERROR hides a broken range or a misspelled column behind the same friendly word that hides an ordinary miss, and the sheet then reports no match for a formula that has a bug. IFNA keeps the two apart: missing data says so, broken formulas still shout. In this drill Q-9 is not in the code column, so the first screen returns the fallback while the second looks up A-1, finds 10, and never reaches its fallback at all. Both screens keep the guard in place, because the point of a guard is the row that has not been typed yet. Nothing about IFNA changes the value when the lookup succeeds: it returns exactly what it was handed.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The error IFNA exists to replace, raised by a lookup or a match that found nothing."
+      },
+      {
+        "code": "#REF!",
+        "text": "A column or row number outside the range; IFNA does not catch this."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "Text used where a number was needed; IFNA does not catch this either."
+      }
+    ],
+    "atWork": "Pricing an order line from a product table and printing no match instead of a broken lookup.",
+    "outcome": "Replace a missing lookup match without hiding the other errors in the formula.",
+    "teaches": "IFNA around VLOOKUP, XLOOKUP and INDEX/MATCH, and which errors it leaves alone",
+    "dataset": "Code and price table with one code the table does not hold",
+    "reference": "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE),\"not on the list\")"
+  },
+  "schemaVersion": 2
+}

@@ -344,4 +344,31 @@ describe("the routes, as written", () => {
     assert.match(checkout, /status: 303/, "a form post must not be replayed by a refresh");
     assert.match(checkout, /location: "\/signup\?next=\/pricing"/, "a signed-out buyer signs up, then returns");
   });
+
+  it("sends a browser with nothing to manage back to the page instead of a JSON body", () => {
+    assert.match(portal, /const isForm = /, "the form path is not distinguished from the API path");
+    assert.match(portal, /location: "\/account"/, "a lifetime or institutional account has nowhere to land");
+    assert.match(portal, /"no_billing_account" }, 409\)/, "the API answer must stay 409");
+  });
+});
+
+describe("the account page, which is where cancelling starts", () => {
+  const page = readFileSync(join(ROOT, "app/account/page.js"), "utf8");
+
+  it("posts the portal form, so the route can answer with a redirect rather than JSON", () => {
+    assert.match(page, /<form action="\/api\/stripe\/portal" method="post">/);
+    assert.match(page, /type="submit"/);
+  });
+
+  it("offers it only to an account the database calls entitled", () => {
+    const gate = page.indexOf("{entitled ?");
+    const form = page.indexOf('action="/api/stripe/portal"');
+    assert.ok(gate !== -1, "there is no entitled branch to hang the button on");
+    assert.ok(form > gate, "the button is offered before entitlement is known");
+  });
+
+  it("says what cancelling does, and that a lifetime plan has nothing to cancel", () => {
+    assert.match(page, /keeps the period you have already paid for/);
+    assert.match(page, /lifetime plan never renews/);
+  });
 });

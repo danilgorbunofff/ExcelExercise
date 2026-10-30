@@ -180,18 +180,24 @@ describe("build", () => {
   });
 
   it("emits the mount contract the client will use", () => {
-    const html = readFileSync(join(out, "excel", "sum-basics.html"), "utf8");
+    const html = readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8");
     for (const id of ["drill", "drill-screens", "sheet-0", "sheet-grid-0", "screen-answer-cell", "formula-bar", "ref-chip", "formula", "check", "feedback", "hint", "solution", "progress-count", "exercise-data"]) {
       assert.match(html, new RegExp(`id="${id}"`), `#${id} is missing`);
     }
+    // The shape comes from the first shipped lesson rather than a fixed page: later cohorts land in
+    // earlier catalog slots, so which lesson publishes first is not a stable fact to hardcode.
+    const first = lessons[0];
+    const { answerCell } = first;
+    const columns = first.grid.rows[0].length;
+    const rows = first.grid.rows.length;
     assert.match(html, /<section class="sheet-card" id="drill"/);
-    assert.match(html, /data-cell="B5" data-kind="target" tabindex="0" aria-selected="true"/);
-    // Four columns on screen: the row-header column plus A, B and C.
-    assert.match(html, /aria-colcount="4"/);
-    assert.match(html, /aria-rowcount="6"/);
+    assert.match(html, new RegExp(`data-cell="${answerCell}" data-kind="target" tabindex="0" aria-selected="true"`));
+    // One extra column and one extra row for the row-header band.
+    assert.match(html, new RegExp(`aria-colcount="${columns + 1}"`));
+    assert.match(html, new RegExp(`aria-rowcount="${rows + 1}"`));
     // The address chip is a value display; the input carries its own name.
-    assert.match(html, /<span class="ref-chip" id="ref-chip">B5<\/span>/);
-    assert.match(html, /id="formula"[^>]*aria-label="Your formula for B5"/);
+    assert.match(html, new RegExp(`<span class="ref-chip" id="ref-chip">${answerCell}</span>`));
+    assert.match(html, new RegExp(`id="formula"[^>]*aria-label="Your formula for ${answerCell}"`));
     assert.ok(!/name="formula"/.test(html), "a named control would leak the draft into the URL on a no-JS submit");
     // Phase 5 additions: the answer reveal and the client-filled progress bar.
     assert.match(html, /id="show-answer"[^>]*hidden/, "the answer reveal must ship hidden");
@@ -297,7 +303,7 @@ describe("build", () => {
     assert.equal(index.hasPart.length, lessons.length);
 
     const lesson = JSON.parse(
-      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(readFileSync(join(out, "excel", "sum-basics.html"), "utf8"))[1],
+      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8"))[1],
     );
     assert.equal(lesson["@type"], "LearningResource");
     assert.equal(lesson["@context"], "https://schema.org");
@@ -326,11 +332,11 @@ describe("build", () => {
         );
       }
     }
-    const lesson = readFileSync(join(out, "excel", "sum-basics.html"), "utf8");
+    const lesson = readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8");
     assert.match(lesson, /<link rel="preload" href="\/assets\/fonts\/plex-sans-latin\.woff2" as="font" type="font\/woff2" crossorigin/);
     assert.match(lesson, /<html lang="en">/);
     assert.match(lesson, /<body class="light lesson">/);
-    assert.match(lesson, new RegExp(`<link rel="canonical" href="${BASE}/excel/sum-basics">`));
+    assert.match(lesson, new RegExp(`<link rel="canonical" href="${BASE}/excel/${lessons[0].slug}">`));
   });
 
   it("ships one concatenated stylesheet in the only order that resolves", () => {
@@ -367,7 +373,7 @@ describe("build", () => {
   });
 
   it("keeps the author off the byline when no author is configured", () => {
-    const html = readFileSync(join(out, "excel", "sum-basics.html"), "utf8");
+    const html = readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8");
     assert.ok(!/\bBy \w/.test(html), "no author is configured, so no name may be claimed");
     assert.match(html, /Updated 28 Oct 2026/);
     assert.ok(!/~\d+ min/.test(html), "the index must not claim a duration");
@@ -714,7 +720,7 @@ describe("serve", () => {
 
   it("serves the generated pages over HTTP", async () => {
     const base = `http://127.0.0.1:${server.address().port}`;
-    const lesson = await fetch(`${base}/excel/sum-basics`);
+    const lesson = await fetch(`${base}/excel/${lessons[0].slug}`);
     assert.equal(lesson.status, 200);
     assert.match(lesson.headers.get("content-type"), /text\/html/);
     assert.equal(lesson.headers.get("cache-control"), "no-store");

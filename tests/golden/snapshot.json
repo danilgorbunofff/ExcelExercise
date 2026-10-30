@@ -296,10 +296,15 @@
         {"input":"=VLOOKUP(A6,A2:B5,2,TRUE","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":0.05,"message":"VLOOKUP is missing its closing \")\".","hint":"Start with = and close every bracket: =VLOOKUP(A6,A2:B5,2,TRUE)."}
       ],
       "audit": [
+        {"input":"4200","ok":false,"rule":"value","code":null,"position":null,"value":"4200","expected":null,"message":"That is not what the image shows.","hint":"Approximate match needs the first column to rise, and this one does not: 1000 sits under 5000, so the 1000 band is on row 4. Go to that row and read the rate cell, not the band beside it."},
         {"input":"=VLOOKUP(4200,A2:B5,2,TRUE)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":0.05,"message":"Your formula does not refer to A6. The lesson checks that you point at the data rather than typing the number.","hint":"Point the first argument at A6 so the rate follows the revenue. Typing 4200 in returns a number that never updates."},
         {"input":"=VLOOKUP(A6,A2:B5,1,TRUE)","ok":false,"rule":"value","code":null,"position":null,"value":1000,"expected":0.05,"message":"Your formula returns 1000, but this lesson expects 0.05.","hint":"The rate for 4200 is the band that starts at 1000, so the third argument has to be 2: column 1 would hand back 1000."},
         {"input":"=VLOOKUP(A6,A2:B5,2,FALSE)","ok":false,"rule":"match-type","code":null,"position":null,"value":null,"expected":0.05,"message":"VLOOKUP's 4th argument is FALSE; this lesson needs TRUE.","hint":"Write TRUE as the fourth argument. That is the approximate match this band table needs, and 1 means the same thing to Excel."},
-        {"input":"=VLOOKUP(A6,A2:B5,2,TRUE)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""}
+        {"input":"=VLOOKUP(A6,A2:B5,2,TRUE)","ok":true,"rule":"correct","code":null,"position":null,"value":0.05,"expected":0.05,"message":"Correct.","hint":""},
+        {"input":"B3","ok":false,"rule":"value","code":null,"position":null,"value":"b3","expected":null,"message":"That is not what the image shows.","hint":"Approximate match needs the first column to rise, and this one does not: 1000 sits under 5000, so the 1000 band is on row 4. Go to that row and read the rate cell, not the band beside it."},
+        {"input":"B4","ok":true,"rule":"correct","code":null,"position":null,"value":"b4","expected":"B4","message":"Correct.","hint":""},
+        {"input":"B5","ok":false,"rule":"value","code":null,"position":null,"value":"b5","expected":null,"message":"That is not what the image shows.","hint":"Approximate match needs the first column to rise, and this one does not: 1000 sits under 5000, so the 1000 band is on row 4. Go to that row and read the rate cell, not the band beside it."},
+        {"input":"B6","ok":false,"rule":"value","code":null,"position":null,"value":"b6","expected":null,"message":"That is not what the image shows.","hint":"Approximate match needs the first column to rise, and this one does not: 1000 sits under 5000, so the 1000 band is on row 4. Go to that row and read the rate cell, not the band beside it."}
       ]
     },
     "12-hlookup-look-across-a-row": {

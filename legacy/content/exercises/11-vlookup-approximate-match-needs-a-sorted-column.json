@@ -8,6 +8,7 @@
     {
       "id": "formula-1",
       "type": "formula",
+      "reference": "=VLOOKUP(A6,A2:B5,2,TRUE)",
       "prompt": "In B6, look up the commission rate for the revenue in A6 across the bands in A2:B5, using approximate match.",
       "grid": {
         "startCell": "A1",
@@ -117,6 +118,19 @@
             "why": "a text column index stops the formula with #VALUE!"
           }
         ]
+      }
+    },
+    {
+      "id": "picture-1",
+      "type": "picture",
+      "prompt": "These bands are out of order, so which cell holds the rate that 4200 needs?",
+      "image": "images/vlookup-bands-out-of-order.svg",
+      "alt": "A commission band table with Revenue in column A and Rate in column B. Rows 2 to 5 read 0, 5000, 1000, 10000 with rates 2%, 8%, 5%, 10%. Cell A7 holds 4200 and B7 is empty; the formula bar reads =VLOOKUP(A7,A2:B5,2,TRUE).",
+      "answers": [
+        "B4"
+      ],
+      "hints": {
+        "value": "Approximate match needs the first column to rise, and this one does not: 1000 sits under 5000, so the 1000 band is on row 4. Go to that row and read the rate cell, not the band beside it."
       }
     }
   ],

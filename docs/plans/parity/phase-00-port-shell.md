@@ -36,7 +36,7 @@ identical, but the foundation for accounts, payments and 600 screens is in place
       `npm run next:build` compiles; `/` and `/api/health` both answer on `next start`.
 - [x] **2. Move legacy.** `git mv src legacy/src`, `content legacy/content`, `vendor legacy/vendor`, so
       `legacy/src/build.mjs` resolves its own root. `npm run build` / `verify` / `check` / `dev` now point
-      there, and the tree still builds and passes its checks (today: 27 pages and 839 checks;
+      there, and the tree still builds and passes its checks (today: 27 pages and 851 checks;
       `npm test` passes 653).
 - [x] **7. Golden.** `tests/golden/` recorded every fixture verdict before any code moved — 196 verdicts,
       byte-stable, proven to bite.

@@ -143,9 +143,9 @@ Run in order from the repo root. Each row: command → expected → what a failu
 |---|---|---|---|
 | 1 | `vendor:check` | `25 files match manifest.json` | A vendored grader/sheet input was edited by hand. Nothing else catches this. |
 | 2 | `npm test` | `tests 653`, `suites 105`, `pass 653`, `fail 0` | The golden snapshot, schema or build contract drifted. Check `tests/golden/` first — it is the byte-stable one. |
-| 3 | `next:build` | `built 27 pages (740.0 kB of HTML+CSS)` then a 27-route table, exit `0` | A route disappeared or a template threw. `27` is the floor: 16 lessons + index + dashboard + 9 group pages. |
+| 3 | `next:build` | `built 27 pages (741.4 kB of HTML+CSS)` then a 27-route table, exit `0` | A route disappeared or a template threw. `27` is the floor: 16 lessons + index + dashboard + 9 group pages. |
 | 4 | `next:check` | `next routes: 27 prerendered pages match the shared templates` | Next and static fragments diverged. This is the port's core invariant. |
-| 5 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 839 checks passed` | A markup pin, link, budget or style rule broke on the static build. Verify is silent per-check on success; the failing check prints its own message and the exit code is non-zero. |
+| 5 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed` | A markup pin, link, budget or style rule broke on the static build. Verify is silent per-check on success; the failing check prints its own message and the exit code is non-zero. |
 | 6 | `npx playwright test` | `52 passed` (49 Next + 3 static) | Either deployable broke in a real browser: `chromium` drives `next start` on 4174, `static` drives `legacy/dist` over HTTP on 4175. Chromium only — a WebKit/Firefox-specific break is not covered. |
 | 7 | `npm run check` | steps 2–6 green, wall ≈ 6 s | Steps interfere; usually a stale `.next/` or a temp-root test leaking. |
 | 8 | `GIT_SHA=abc123 npm run next:build && cat .next/server/app/api/health.body` | `{"status":"ok","sha":"abc123"}` | The health endpoint is prerendered without the SHA — the deploy cannot be identified. |
@@ -314,6 +314,54 @@ The document-only commit `180de73` was pushed and CI reproduced the tree unchang
 (`phase-0-port-shell`) and [run 40958925334](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40958925334)
 (`main`). Docs do not move gate numbers, and this run is the evidence.
 
+### Re-pin, 2026-10-29 — a second picture screen, on lesson 11
+
+`11-vlookup-approximate-match-needs-a-sorted-column` teaches that `TRUE` walks a band table
+downwards and stops at the last band whose value is *not greater* than the lookup value — which only
+bites when the table is out of order. The lesson said so in words and could not show it. It now ships
+a second screen, a `picture` of the same sheet with the bands deliberately unsorted (0→2%, 5000→8%,
+1000→5%, 10000→10%, blank row 6, `A7=4200`), the walked column `A2:A5` outlined, and the answer asked
+as a cell reference: `B4`. `["B4"]` normalises through `packages/grader/answers.js` like every other
+answer, so `b4` and `$B$4` pass and `B3` / `B5` / `B6` / `4200` are rejected with *That is not what
+the image shows.*
+
+Two schema facts made this more than a content append, and both are the schema working:
+
+- `screens[i].reference is required once a lesson has more than one screen` (`packages/content/schema.js:693`)
+  — the lesson's `formula-1` screen gained `"reference": "=VLOOKUP(A6,A2:B5,2,TRUE)"`, the same shape
+  lesson 03's multi-screen lesson already uses, so the reveal shows the screen's own formula and not
+  the lesson's first one.
+- `tests/golden/capture.mjs` records `picture` verdicts (it skips `chord`, `sequence` and `workbook`),
+  so the answer list grew the snapshot by five additive lines: `B4` correct, the other four wrong.
+  Each was read by hand before `npm run golden:update` was run with explicit consent; nothing was
+  regenerated to make a failure go away.
+
+The figure's first draft had a real collision — a caption sat on top of the `Rate` column header.
+Rather than eyeball it, the regenerated file was measured in Chromium: 25 `text` nodes, `getBBox()`
+called on each, **0 pairwise overlaps** (`ox > 0.5 && oy > 0.5`), **0 nodes outside the viewBox**,
+**0 nodes outside the card**, widest right edge 438 < card right 456, lowest bottom 354 < card 364.
+
+Two gates moved, and the ones that should not have did not:
+
+| Row | Was | Now | Measured by |
+|---|---|---|---|
+| 3 | `740.0 kB` | `built 27 pages (741.4 kB of HTML+CSS)` | `npm run next:build` |
+| 5 | `839 checks` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed` | `node legacy/src/verify.mjs` |
+
+with `content: 16 of 88 … 21 screens` → `22 screens` and the screen census taking a second `picture`.
+`tests 653`, `suites 105`, `111 accepted and 157 rejected`, `52 passed` and `vendor: 25` are unchanged:
+a picture screen ships an answer list, not formulas, and it adds one pre-existing CSS class to one page.
+
+A real content-lint rule also fired and was fixed at the cause rather than the assertion: the prompt
+was written as two sentences, and `packages/content-lint/index.js:196` warns above one sentence, which
+broke suites that pin the *global* warning count. The prompt is now one sentence. Rewriting the
+assertions would have hidden a genuine style rule.
+
+One open finding was recorded rather than fixed, because fixing it is a design decision: at a 375 px
+viewport the figure renders 293 px wide and its body text lands at 7.6 CSS px (smallest label 6.6 px).
+No clipping, no horizontal overflow, and lesson 16's pilot figure (524 units) is worse, so this is
+pre-existing. See phase 2's gate row 9.
+
 ## Baseline
 
 | Metric | Value |
@@ -321,9 +369,9 @@ The document-only commit `180de73` was pushed and CI reproduced the tree unchang
 | Prerendered pages | 27 |
 | Fragment parity | 27/27 |
 | Unit tests | 653 |
-| Verify checks | 839 |
+| Verify checks | 851 |
 | Browser tests | 52 (Chromium: 49 Next + 3 static) |
-| Static build HTML+CSS | 740.0 kB |
+| Static build HTML+CSS | 741.4 kB |
 | Static lesson route JS | 156,693 B raw / 52,125 B gzip (20 modules); 161,187 B / 53,917 B gzip as a page total with `feedback.js` |
 | Next lesson route JS | 460,544 B raw / 136,544 B gzip of chunks Chromium runs (573,138 B / 176,017 B counting the `noModule` fallback); 621,731 B / 190,461 B gzip as a page total (734,325 B / 229,934 B on the every-named-script rule) |
 | Next lesson route CSS | 47,822 B raw / 10,122 B gzip |

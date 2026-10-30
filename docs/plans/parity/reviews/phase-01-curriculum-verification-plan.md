@@ -7,7 +7,7 @@ Scope: the content pipeline — schema v2, the linter, the fixture-replay grader
 
 **Solid tooling, High Risk on scope.**
 
-The factory works and is proven: 16 lessons across 21 screens and 268 fixtures validate, and every
+The factory works and is proven: 16 lessons across 22 screens and 268 fixtures validate, and every
 fixture's expected verdict is replayed against the real grader on every run (111 accepted, 157
 rejected, zero disagreements). Schema v2, the v1 bridge and the sidecar path are all pinned by
 tests, including the two ways a lesson can carry fixtures twice.
@@ -62,7 +62,7 @@ regression.
 
 | # | Command | Expected | If it fails |
 |---|---|---|---|
-| 1 | `npm run content:check` | `content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed` and `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | A lesson violates v2, or a fixture's expected verdict disagrees with the grader. The disagreement is the real signal: either the lesson or the grader is wrong. |
+| 1 | `npm run content:check` | `content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed` and `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` | A lesson violates v2, or a fixture's expected verdict disagrees with the grader. The disagreement is the real signal: either the lesson or the grader is wrong. |
 | 2 | `node --test tests/golden.test.js` | `tests 2`, `pass 2` | A grader verdict moved. Confirm it is intended, then `npm run golden:update` and commit the snapshot. |
 | 3 | `node --test tests/schema-v2.test.js tests/content.test.js` | `tests 74`, `fail 0` | Schema/lint drift — the shape one layer accepts, the other rejects. |
 | 4 | `node --test tests/fixtures.test.js` | `tests 77`, `pass 77` | A lesson's fixture file went missing or a v2 lesson kept its fixtures in the sidecar. |
@@ -79,7 +79,7 @@ Run from `/Users/danil/Desktop/excelsupreme` on `30629e8`, Node `v25.9.0` (macOS
 
 | Row | Status | Evidence |
 |---|---|---|
-| 1 | **closed** | `npm run content:check` → `content: 16 of 88 catalogued lessons, 16 groups, 21 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` |
+| 1 | **closed** | `npm run content:check` → `content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed` then `✓ content passes — 111 accepted and 157 rejected formulas agree with the grader` (re-pinned 2026-10-29 from `18 screens` → `20` → `21` → `22` as screens shipped; the verdict counts never moved) |
 | 2 | **closed** | `node --test tests/golden.test.js` → `ℹ tests 2`, `ℹ pass 2`, `ℹ fail 0` |
 | 3 | **closed** | `node --test tests/schema-v2.test.js tests/content.test.js` → `ℹ tests 75`, `ℹ pass 75`, `ℹ fail 0` (re-pinned 2026-10-29: `content.test.js` gained a shortcut-acceptance test when lesson 03 shipped a chord and a sequence) |
 | 4 | **closed** | `node --test tests/fixtures.test.js` → `ℹ tests 78`, `ℹ pass 78`, `ℹ fail 0` (re-pinned 2026-10-29: gained *keeps formula fixtures off a shortcut screen*) |

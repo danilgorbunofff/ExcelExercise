@@ -108,9 +108,21 @@ export const AUDIT = {
     ],
   },
   "11-vlookup-approximate-match-needs-a-sorted-column": {
-    expected: 0.05, // 4200 sits in the band that starts at 1000, so the rate is the second column
-    reference: "=VLOOKUP(A6,A2:B5,2,TRUE)",
-    wrong: ["=VLOOKUP(A6,A2:B5,2,FALSE)", "=VLOOKUP(A6,A2:B5,1,TRUE)", "=VLOOKUP(4200,A2:B5,2,TRUE)"],
+    screens: [
+      {
+        expected: 0.05, // 4200 sits in the band that starts at 1000, so the rate is the second column
+        reference: "=VLOOKUP(A6,A2:B5,2,TRUE)",
+        wrong: ["=VLOOKUP(A6,A2:B5,2,FALSE)", "=VLOOKUP(A6,A2:B5,1,TRUE)", "=VLOOKUP(4200,A2:B5,2,TRUE)"],
+      },
+      {
+        // The picture screen reorders the same bands, so the row that holds the 1000 band's rate is no
+        // longer row 3: 1000 sits in A4 and 5% in B4. It is graded by its answer list, so `reference`
+        // is that one spelling and every near miss is a cell that holds a different band's rate.
+        expected: "B4",
+        reference: "B4",
+        wrong: ["B3", "B5", "B6", "4200"],
+      },
+    ],
   },
   "12-hlookup-look-across-a-row": {
     expected: 5, // Feb is the second column of B1:D3, and row 3 of that block is the price row

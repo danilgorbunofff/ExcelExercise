@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 464 372" width="464" height="372" role="img">
+  <rect x="8" y="8" width="448" height="356" rx="10" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <rect x="18" y="16" width="428" height="54" rx="6" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="30" y="42" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="13" font-style="italic" fill="#6b6a66">fx</text>
+  <text x="54" y="42" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="12.5" fill="#21201c">=VLOOKUP(A7,A2:B5,2,TRUE)</text>
+  <text x="438" y="62" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="10.5" fill="#c62a2f">dashed: the column it walks</text>
+  <rect x="24" y="80" width="26" height="26" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <rect x="50" y="80" width="176" height="26" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="138" y="98" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11.5" fill="#6b6a66">A</text>
+  <rect x="226" y="80" width="176" height="26" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="314" y="98" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11.5" fill="#6b6a66">B</text>
+  <rect x="24" y="106" width="26" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="46" y="125" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11" fill="#6b6a66">1</text>
+  <rect x="50" y="106" width="176" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <rect x="226" y="106" width="176" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="60" y="125" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#21201c">Revenue</text>
+  <text x="392" y="125" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#21201c">Rate</text>
+  <rect x="24" y="134" width="26" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="46" y="153" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11" fill="#6b6a66">2</text>
+  <rect x="50" y="134" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <rect x="226" y="134" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <text x="216" y="153" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" fill="#21201c">0</text>
+  <text x="392" y="153" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" fill="#21201c">2%</text>
+  <rect x="24" y="162" width="26" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="46" y="181" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11" fill="#6b6a66">3</text>
+  <rect x="50" y="162" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <rect x="226" y="162" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <text x="216" y="181" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" fill="#21201c">5000</text>
+  <text x="392" y="181" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" fill="#21201c">8%</text>
+  <rect x="24" y="190" width="26" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="46" y="209" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11" fill="#6b6a66">4</text>
+  <rect x="50" y="190" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <rect x="226" y="190" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <text x="216" y="209" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" fill="#21201c">1000</text>
+  <text x="392" y="209" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" fill="#21201c">5%</text>
+  <rect x="24" y="218" width="26" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="46" y="237" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11" fill="#6b6a66">5</text>
+  <rect x="50" y="218" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <rect x="226" y="218" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <text x="216" y="237" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" fill="#21201c">10000</text>
+  <text x="392" y="237" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" fill="#21201c">10%</text>
+  <rect x="24" y="246" width="26" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="46" y="265" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11" fill="#6b6a66">6</text>
+  <rect x="50" y="246" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <rect x="226" y="246" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <rect x="24" y="274" width="26" height="28" fill="#f4f4f2" stroke="#e5e4e0"/>
+  <text x="46" y="293" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11" fill="#6b6a66">7</text>
+  <rect x="50" y="274" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <rect x="226" y="274" width="176" height="28" fill="#fdfdfc" stroke="#e5e4e0"/>
+  <text x="216" y="293" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#21201c">4200</text>
+  <rect x="50" y="134" width="176" height="112" rx="2" fill="none" stroke="#c62a2f" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="24" y="332" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11.5" fill="#c62a2f">Out of order — 1000 sits below 5000, so no band is where its size says.</text>
+  <text x="24" y="352" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="11.5" fill="#6b6a66">The rate 4200 needs is the 1000 band’s. Find the cell that holds it.</text>
+</svg>

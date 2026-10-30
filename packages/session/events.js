@@ -21,6 +21,7 @@ export const EVENT_TYPES = Object.freeze([
   "lesson_exhausted",
   "lesson_abandon",
   "gate_view",
+  "grace_start",
   "paywall_view",
   "paywall_email",
   "trial_start",

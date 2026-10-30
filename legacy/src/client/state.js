@@ -7,6 +7,7 @@
 
 export const PROGRESS_KEY = "es.progress";
 export const TRIAL_KEY = "es.trial";
+export const GRACE_KEY = "es.grace";
 export const TRIAL_DAYS = 7;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -145,9 +146,45 @@ export function trialDaysLeft(trial, now = new Date()) {
   return Math.ceil((TRIAL_DAYS * DAY_MS - elapsed) / DAY_MS);
 }
 
-/** `open` or `paywall`, from the content flag and the local trial record. */
-export function gateFor({ free }, trial, now = new Date()) {
-  return free || trialActive(trial, now) ? "open" : "paywall";
+/**
+ * The free pass past the soft prompt, remembered per drill. The drill has no account to hang it on,
+ * so it is a browser fact like progress and the trial: same store, same honour system.
+ */
+export function emptyGrace() {
+  return { v: 1, used: [] };
+}
+
+export function parseGrace(text) {
+  if (typeof text !== "string" || text === "") return emptyGrace();
+  let raw;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    return emptyGrace();
+  }
+  if (!isPlainObject(raw) || !Array.isArray(raw.used)) return emptyGrace();
+  return { v: 1, used: raw.used.filter((id) => typeof id === "string" && id !== "") };
+}
+
+export function graceUsed(grace, id) {
+  return Array.isArray(grace?.used) && grace.used.includes(id);
+}
+
+export function grantGrace(grace, id) {
+  const used = Array.isArray(grace?.used) ? grace.used : [];
+  return { v: 1, used: used.includes(id) ? [...used] : [...used, id] };
+}
+
+/**
+ * `open`, `prompt` or `paywall`, from the content flags, the local trial record and the local grace
+ * record. `prompt` is the one drill past the free ones: it opens on a click once, so the boundary is
+ * a question before it is a wall. `proxy.js` asks this same function before it serves a lesson, so
+ * the boundary is one rule rather than two that drift.
+ */
+export function gateFor({ free, number, freeLessonCount }, trial, now = new Date()) {
+  if (free || trialActive(trial, now)) return "open";
+  if (Number.isInteger(freeLessonCount) && number === freeLessonCount + 1) return "prompt";
+  return "paywall";
 }
 
 /**

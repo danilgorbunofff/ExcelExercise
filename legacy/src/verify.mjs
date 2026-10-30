@@ -291,6 +291,31 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     );
   }
 
+  // --- pricing ----------------------------------------------------------------------
+  // The page the drill's wall sends a reader to. It is `noindex` and out of the sitemap, so nothing
+  // above would notice it going missing or drifting from what the drills actually charge for.
+  if (ok(existsSync(join(distDir, "pricing/index.html")), "pricing/index.html", "does not exist")) {
+    const html = read("pricing/index.html");
+    has(html, "<h1>The free half, and the paid half</h1>", "pricing/index.html heading");
+    has(html, '<meta name="robots" content="noindex">', "pricing/index.html noindex");
+    has(html, "<strong>$59.99/year</strong>", "pricing/index.html price");
+    has(html, "100% refund guarantee", "pricing/index.html refund guarantee");
+    has(html, "Cancel anytime", "pricing/index.html cancellation");
+    // The free drills stay one click away from the page that names the price; the paid ones are
+    // named but not linked, because a link into a wall is a dead end dressed as navigation.
+    for (const entry of index.filter((candidate) => candidate.free))
+      has(html, `href="${entry.path}"`, `pricing/index.html link to free ${entry.path}`);
+    for (const entry of index.filter((candidate) => !candidate.free)) {
+      has(html, esc(entry.exercise.title), `pricing/index.html paid drill ${entry.number}`);
+      ok(
+        !html.includes(`href="${entry.path}"`),
+        `pricing/index.html paid ${entry.path}`,
+        "links into a drill the page does not open",
+      );
+    }
+    has(html, 'href="/signup?next=/pricing"', "pricing/index.html account link");
+  }
+
   // --- sitemap and robots -----------------------------------------------------------
   if (ok(existsSync(join(distDir, "sitemap.xml")), "sitemap.xml", "does not exist")) {
     const xml = read("sitemap.xml");
@@ -298,6 +323,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     ok(locs.length === index.length + 1, "sitemap.xml", `lists ${locs.length} URLs, expected ${index.length + 1}`);
     ok(locs.includes(`${config.baseUrl}/`), "sitemap.xml", "does not list the index");
     ok(!locs.includes(`${config.baseUrl}/learn`), "sitemap.xml", "lists the dashboard, which is noindex");
+    ok(!locs.includes(`${config.baseUrl}/pricing`), "sitemap.xml", "lists the pricing page, which is noindex");
     for (const entry of index) {
       ok(locs.includes(`${config.baseUrl}${entry.path}`), "sitemap.xml", `does not list ${entry.path}`);
     }
@@ -371,7 +397,7 @@ if (invokedDirectly()) {
       process.exitCode = 1;
     } else {
       console.log(
-        `verified ${result.pages} lesson pages, the index, the dashboard and ${result.groupPages} group pages — ${result.checks} checks passed`,
+        `verified ${result.pages} lesson pages, the index, the dashboard, the pricing page and ${result.groupPages} group pages — ${result.checks} checks passed`,
       );
     }
   } catch (error) {

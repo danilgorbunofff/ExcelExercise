@@ -13,10 +13,34 @@ import { NextResponse } from "next/server";
 
 import { authConfig } from "./lib/auth/config.js";
 import { loginUrl } from "./lib/auth/redirect.js";
+import { entitledFor, paywallDecision, paywallEnforced } from "./lib/paywall.js";
+import { loadSite } from "./lib/site.js";
 
 // Everything under `/account` needs a session. Keep the list here rather than duplicating it in each
 // page: a page that forgets to check would render a signed-out shell and look like a bug.
 const GATED = [/^\/account(?:\/|$)/];
+
+// The one place a paid drill can be opened. The lesson pages are prerendered HTML, which cannot be
+// refused once it exists, so the refusal has to happen on the request.
+const LESSON = /^\/learn\/excel\/([^/]+)\/?$/;
+
+/**
+ * The paywall verdict for this path. Kept next to the session work because entitlement is only
+ * knowable for a signed-in reader, and the catalog is only read when enforcement is on at all.
+ */
+async function paywallFor(pathname, supabase, user) {
+  if (!paywallEnforced()) return null;
+  const slug = LESSON.exec(pathname)?.[1];
+  if (!slug) return null;
+  const { track, entryFor } = loadSite();
+  const entry = entryFor(decodeURIComponent(slug));
+  if (!entry) return null; // an unknown slug is the route's 404, not the paywall's business
+  return paywallDecision({
+    entry,
+    freeLessonCount: track.freeLessonCount,
+    entitled: await entitledFor(supabase, user),
+  });
+}
 
 export async function proxy(request) {
   const config = authConfig();
@@ -43,6 +67,12 @@ export async function proxy(request) {
     const next = request.nextUrl.pathname + request.nextUrl.search;
     return NextResponse.redirect(new URL(loginUrl(next), request.url));
   }
+
+  // After the session, not before: a signed-out reader on a paid drill belongs at the offer, and a
+  // signed-in one needs their entitlement asked for. Both answers come from the same rule the drill
+  // paints in the browser (`gateFor`), so the two cannot disagree.
+  const paywall = await paywallFor(request.nextUrl.pathname, supabase, user);
+  if (paywall) return NextResponse.redirect(new URL(paywall, request.url));
 
   return response;
 }

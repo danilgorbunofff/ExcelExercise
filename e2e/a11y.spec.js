@@ -11,6 +11,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 import { seedBefore } from "../lib/seed.js";
+import { loadSite } from "../lib/site.js";
 
 const SEVERITIES = ["critical", "serious"];
 
@@ -155,6 +156,33 @@ test("the workbook panel of a shipped lesson passes", async ({ page }) => {
 
   await page.locator(".workbook-preview > summary").click();
   await scan(page, "a lesson's workbook screen with the preview collapsed");
+});
+
+test("the offer page passes with nothing to fix", async ({ page }) => {
+  // Three sections of prose and a price: the page a walled reader lands on is the last place a label
+  // should point at nothing.
+  await page.goto("/pricing");
+  await expect(page.locator("#main h1")).toHaveText("The free half, and the paid half");
+  await scan(page, "the pricing page");
+});
+
+test("both paywalls pass with nothing to fix", async ({ page }) => {
+  // The prompt has a button where the wall has an email form, so they are different shapes of page and
+  // both are scanned. Neither was in the suite when the free count moved from 5 to 3.
+  // Read from the catalog rather than named here: the boundary is `freeLessonCount`, not a slug.
+  const { index, track } = loadSite();
+  const promptAt = index[track.freeLessonCount];
+  const wallAt = index[track.freeLessonCount + 1];
+
+  await seedBefore(page, promptAt.slug);
+  await page.goto(promptAt.path);
+  await expect(page.locator("#paywall[data-gate='prompt']")).toBeVisible();
+  await scan(page, "the soft prompt on the first paid drill");
+
+  await seedBefore(page, wallAt.slug);
+  await page.goto(wallAt.path);
+  await expect(page.locator("#paywall[data-gate='paywall']")).toBeVisible();
+  await scan(page, "the paywall on the drill behind it");
 });
 
 test("the feedback dialog passes while it is open", async ({ page }) => {

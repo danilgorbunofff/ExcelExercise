@@ -15,6 +15,7 @@ import { grade } from "../packages/grader/index.js";
 import { loadLesson } from "./lessons.js";
 
 import {
+  GRACE_KEY,
   PROGRESS_KEY,
   TRIAL_KEY,
   TRIAL_DAYS,
@@ -23,9 +24,13 @@ import {
   caretLine,
   completedCount,
   emptyProgress,
+  emptyGrace,
   gateFor,
+  graceUsed,
+  grantGrace,
   isComplete,
   normaliseFormula,
+  parseGrace,
   parsePayload,
   parseProgress,
   parseTrial,
@@ -156,6 +161,58 @@ describe("trial", () => {
   it("opens a trial record for the current time", () => {
     assert.deepEqual(startTrial(start), { startedAt: "2026-10-28T10:00:00.000Z" });
     assert.deepEqual(parseTrial(JSON.stringify(startTrial(start))), { startedAt: "2026-10-28T10:00:00.000Z" });
+  });
+});
+
+describe("gating", () => {
+  it("opens the free drills and the prompt drill, and walls the rest", () => {
+    const free = { free: true, number: 1 };
+    assert.equal(gateFor({ ...free, number: 1, freeLessonCount: 3 }, null), "open");
+    assert.equal(gateFor({ free: false, number: 4, freeLessonCount: 3 }, null), "prompt");
+    assert.equal(gateFor({ free: false, number: 5, freeLessonCount: 3 }, null), "paywall");
+    assert.equal(gateFor({ free: false, number: 16, freeLessonCount: 3 }, null), "paywall");
+  });
+
+  it("keeps a running trial ahead of the prompt and the wall", () => {
+    const trial = startTrial(new Date("2026-10-28T10:00:00.000Z"));
+    assert.equal(gateFor({ free: false, number: 4, freeLessonCount: 3 }, trial), "open");
+    assert.equal(gateFor({ free: false, number: 5, freeLessonCount: 3 }, trial), "open");
+  });
+
+  it("needs the free count to make the prompt, so an entry without one walls", () => {
+    // `track.freeLessonCount` is config. A payload that arrives without it must fall back to the
+    // wall rather than to the free pass.
+    assert.equal(gateFor({ free: false, number: 5 }, null), "paywall");
+    assert.equal(gateFor({ free: false, number: 5, freeLessonCount: "3" }, null), "paywall");
+  });
+});
+
+describe("grace", () => {
+  it("starts empty and remembers one drill per prompt", () => {
+    assert.deepEqual(emptyGrace(), { v: 1, used: [] });
+    assert.equal(graceUsed(emptyGrace(), "05-sumif-region"), false);
+    const once = grantGrace(emptyGrace(), "05-sumif-region");
+    assert.equal(graceUsed(once, "05-sumif-region"), true);
+    assert.equal(graceUsed(once, "07-vlookup-exact"), false);
+  });
+
+  it("is idempotent, so a double click does not spend a second pass", () => {
+    const once = grantGrace(emptyGrace(), "05-sumif-region");
+    assert.deepEqual(grantGrace(once, "05-sumif-region"), once);
+  });
+
+  it("treats a corrupt or foreign record as empty", () => {
+    assert.deepEqual(parseGrace("not json"), emptyGrace());
+    assert.deepEqual(parseGrace(""), emptyGrace());
+    assert.deepEqual(parseGrace('{"v":1,"used":5}'), emptyGrace());
+    assert.deepEqual(parseGrace('{"v":1,"used":["a",3,null,"b"]}'), { v: 1, used: ["a", "b"] });
+    assert.equal(parseGrace(undefined).used.length, 0);
+  });
+
+  it("does not reach for a key the trial or the progress already own", () => {
+    assert.equal(GRACE_KEY, "es.grace");
+    assert.notEqual(GRACE_KEY, PROGRESS_KEY);
+    assert.notEqual(GRACE_KEY, TRIAL_KEY);
   });
 });
 
@@ -537,6 +594,26 @@ describe("drill.js source", () => {
     // lesson_exhausted event is intentional (it marks the third miss).
     assert.doesNotMatch(code, /track\("paywall_email"[^)]*email[^)]*\)/);
     assert.doesNotMatch(code, /track\("paywall_email"[^)]*input\.value/);
+  });
+
+  it("prompts at the first paid drill and lets the reader through once", () => {
+    // The boundary is `gateFor`'s verdict, not a second copy of the rule: a drill that hardcoded
+    // `number === 4` would keep prompting after `track.json` moved the free count.
+    assert.match(code, /const verdict = gateFor\(payload\.track, trial\);/);
+    assert.match(code, /if \(verdict === "prompt" && !graceUsed\(grace, lessonId\)\) return \{ kind: "prompt" \};/);
+    assert.match(code, /"data-gate": blocked\.kind/);
+    // The pass is written to the store the trial and the progress already use, and it is recorded
+    // as an event so the funnel can tell a prompted reader from a walled one.
+    assert.match(code, /grace = grantGrace\(grace, lessonId\);/);
+    assert.match(code, /store\.write\(GRACE_KEY, JSON\.stringify\(grace\)\);/);
+    assert.match(code, /track\("grace_start", \{ id: lessonId, number: payload\.track\.number \}\);/);
+    assert.match(code, /track\("gate_view", \{ id: lessonId, reason: "prompt", after: null \}\);/);
+  });
+
+  it("points both walls at the offer page", () => {
+    // A wall with nowhere to go is a dead end: the prompt and the trial gate both name the price page.
+    assert.match(code, /class: "btn", href: "\/pricing", text: "See what the rest costs"/);
+    assert.match(code, /href: "\/pricing", text: "what it costs"/);
   });
 
   it("says storage is blocked on the drill page instead of losing the save in silence", () => {

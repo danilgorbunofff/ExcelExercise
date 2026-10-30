@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { dashboardGroups, prepareDashboardPage } from "../legacy/src/site/dashboard-page.mjs";
 import { prepareExercisePage } from "../legacy/src/site/exercise-page.mjs";
 import { prepareIndexPage } from "../legacy/src/site/index-page.mjs";
+import { preparePricingPage } from "../legacy/src/site/pricing-page.mjs";
 import { loadSite } from "../lib/site.js";
 import nextConfig from "../next.config.mjs";
 
@@ -78,6 +79,14 @@ function checkIsland(file) {
 }
 
 checkIsland("learn.html");
+
+// The offer the drill's wall links to. `noindex` and out of the sitemap, so the `index.length + 1`
+// assertion below stays the proof that it did not leak into it.
+checkPage({
+  file: "pricing.html",
+  prepare: preparePricingPage,
+  args: { config, track, index, icons },
+});
 
 // One page per group, so a reader can land on just that group's drills and link to it. They are
 // `noindex` and stay out of the sitemap — the count assertion below is what keeps them out.

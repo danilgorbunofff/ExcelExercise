@@ -19,6 +19,7 @@ import { siteConfig } from "./site/config.mjs";
 import { loadContent } from "./site/content.mjs";
 import { renderExercisePage } from "./site/exercise-page.mjs";
 import { renderIndexPage } from "./site/index-page.mjs";
+import { renderPricingPage } from "./site/pricing-page.mjs";
 import { dashboardGroups, renderDashboardPage } from "./site/dashboard-page.mjs";
 import { spreadsheet, workbookName } from "./xlsx.mjs";
 
@@ -114,6 +115,12 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const dashboardHtml = renderDashboardPage({ config, track, index, icons, clientAvailable });
   assertSelfContained(dashboardHtml, config, "learn/index.html");
   pages.push({ file: "learn/index.html", html: dashboardHtml });
+
+  // The offer. `noindex` and deliberately out of the sitemap: the index is the page search engines
+  // should land on. It exists because the drill's wall needs a URL to send a reader to.
+  const pricingHtml = renderPricingPage({ config, track, index, icons });
+  assertSelfContained(pricingHtml, config, "pricing/index.html");
+  pages.push({ file: "pricing/index.html", html: pricingHtml });
 
   for (const entry of index) {
     const html = renderExercisePage({ config, track, index, entry, icons, clientAvailable });

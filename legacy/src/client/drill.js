@@ -20,6 +20,7 @@ import {
 } from "../session/index.js";
 import { createSink } from "../session/index.js";
 import {
+  GRACE_KEY,
   PROGRESS_KEY,
   TRIAL_KEY,
   attemptsFor,
@@ -27,8 +28,11 @@ import {
   caretLine,
   completedCount,
   gateFor,
+  graceUsed,
+  grantGrace,
   isComplete,
   normaliseFormula,
+  parseGrace,
   parsePayload,
   parseProgress,
   parseTrial,
@@ -292,6 +296,7 @@ function mountDrill(payloadNode) {
   if (!storage) mountStorageWarning();
   let progress = parseProgress(store.read(PROGRESS_KEY));
   let trial = parseTrial(store.read(TRIAL_KEY));
+  let grace = parseGrace(store.read(GRACE_KEY));
 
   const lessonId = payload.id;
   const total = payload.track.total || 1;
@@ -946,16 +951,20 @@ function mountDrill(payloadNode) {
   }
 
   /**
-   * The wall in front of this drill, or `null`. Two stand here and both are local: the order gate (the
-   * track is in order, so the frontier is the first drill nobody has finished) and the trial gate
+   * The wall in front of this drill, or `null`. Three stand here, in the order a learner meets them:
+   * the order gate (the track is in order, so the frontier is the first drill nobody has finished),
+   * the soft prompt on the first drill past the free ones (one free pass, once), and the trial gate
    * (`freeLessonCount`). The order gate is asked first because finishing one drill is the honest way
-   * through it, and a trial form behind an order wall would be a second riddle.
+   * through it, and a paywall behind an order wall would be a second riddle.
    */
   function blockingGate() {
     if (progress.unlocked === true) return null;
     const start = canStart({ plan: payload.track.plan ?? [], progress, id: lessonId });
     if (!start.open) return { kind: "order", after: start.after };
-    return gateFor(payload.track, trial) === "open" ? null : { kind: "paywall" };
+    const verdict = gateFor(payload.track, trial);
+    if (verdict === "open") return null;
+    if (verdict === "prompt" && !graceUsed(grace, lessonId)) return { kind: "prompt" };
+    return { kind: "paywall" };
   }
 
   /** The one exit from a wall: take it down, say why, and put the drill under the cursor. */
@@ -984,7 +993,7 @@ function mountDrill(payloadNode) {
     const paywall = el("div", {
       class: "paywall",
       id: "paywall",
-      "data-gate": blocked.kind === "order" ? "order" : "trial",
+      "data-gate": blocked.kind,
     });
 
     if (blocked.kind === "order") {
@@ -1000,6 +1009,42 @@ function mountDrill(payloadNode) {
         ]),
       );
       track("gate_view", { id: lessonId, reason: "order", after: after.id });
+    } else if (blocked.kind === "prompt") {
+      // The boundary as a question. This drill is the first one past the free ones, so it opens on a
+      // click, once: the same honour system as the trial, kept in the same place and nowhere else.
+      const free = payload.track.freeLessonCount ?? 0;
+      const pass = el("button", {
+        class: "btn btn-primary",
+        id: "grace-pass",
+        type: "button",
+        text: "Continue free this once",
+      });
+      paywall.append(
+        el("h2", { class: "paywall-title", text: "The last drill before the paid half" }),
+        el("p", {
+          class: "paywall-body",
+          text: `Drills 1–${free} are free and stay free. This one opens on a click, once, so you can judge the rest before deciding anything.`,
+        }),
+        el("p", { class: "paywall-actions" }, [
+          pass,
+          el("a", { class: "btn", href: "/pricing", text: "See what the rest costs" }),
+        ]),
+        el("p", {
+          class: "paywall-note",
+          text: `Drills ${payload.track.number + 1}–${total} are the paid half. One free pass, remembered in this browser. Nothing is sent anywhere.`,
+        }),
+      );
+      track("gate_view", { id: lessonId, reason: "prompt", after: null });
+      pass.addEventListener("click", () => {
+        grace = grantGrace(grace, lessonId);
+        store.write(GRACE_KEY, JSON.stringify(grace));
+        track("grace_start", { id: lessonId, number: payload.track.number });
+        openAfterGate(
+          paywall,
+          "One free pass used",
+          `Drill ${payload.track.number} is open. Drills ${payload.track.number + 1}–${total} are the paid half of the track.`,
+        );
+      });
     } else {
       const remaining = Math.max(total - (payload.track.freeLessonCount ?? 0), 1);
       paywall.append(
@@ -1029,7 +1074,15 @@ function mountDrill(payloadNode) {
       });
       const submit = el("button", { class: "btn", type: "submit", text: "Start free trial" });
       const form = el("form", { class: "paywall-form", id: "paywall-form", novalidate: true }, [input, submit, error]);
-      paywall.append(form, el("p", { class: "paywall-note", text: "No card required. Nothing is sent anywhere: the trial is stored in this browser." }));
+      paywall.append(
+        form,
+        el("p", { class: "paywall-note", text: "No card required. Nothing is sent anywhere: the trial is stored in this browser." }),
+        el("p", { class: "paywall-note" }, [
+          "The whole track is one purchase; ",
+          el("a", { href: "/pricing", text: "what it costs" }),
+          " is on the pricing page.",
+        ]),
+      );
       track("paywall_view", { id: lessonId });
 
       form.addEventListener("submit", (event) => {

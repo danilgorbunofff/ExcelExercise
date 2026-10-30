@@ -28,7 +28,7 @@ describe("track schema", () => {
       lessonFiles.length,
       "the catalog marks a different number of lessons authored than there are files on disk",
     );
-    assert.equal(parsed.freeLessonCount, 5);
+    assert.equal(parsed.freeLessonCount, 3);
   });
 
   it("marks a lesson as planned purely by the absence of an id", () => {

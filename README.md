@@ -28,7 +28,7 @@ node --version          # 22 or newer — `node --test` expands the test globs; 
 npm install             # Next.js and React, for the new app shell only
 npm test                # 675 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
-npm run build           # writes legacy/dist — 27 pages, one stylesheet, the assets
+npm run build           # writes legacy/dist — 28 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
 npm run check           # all of it, including the Next.js build
 npm run dev             # build, then serve legacy/dist at http://localhost:4173
@@ -42,24 +42,24 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules | 734 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules, the paywall | 765 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
-| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 27 pages, exit 0 |
+| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 28 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
 | `npm run content:fixtures -- --lesson 6` | Prints every fixture for one lesson with declared vs reported rule | one row per fixture, all `✓`/`·` |
 | `npm run content:new -- --lesson 17 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
 | `npm run content:preview -- --lesson 13` | Prints a lesson the way its page reads: prompt, grid, docs, hints, fixtures | one screen, one row per fixture |
 | `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
-| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 851 checks pass |
+| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 888 checks pass |
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run db:start` | Starts the local Supabase stack (schema, RLS, seed) from `supabase/` | `supabase status` reports every service healthy |
 | `npm run db:check` | `supabase db reset`, then the RLS and auth suites in `tests/db/` | 89 assertions pass, 0 fail |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
 | `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 27 prerendered pages, exit 0 |
-| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 27 pages match |
+| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 28 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
-| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 67 tests pass |
+| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 74 tests pass |
 
 **Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
 `SITE_URL`, which is what canonical links, the sitemap and the JSON-LD `@id`s are built from. Serve on
@@ -198,9 +198,11 @@ row at `not_started` and the island paints the truth, so a browser without JavaS
 and the no-JS learner is neither tracked nor lied to. Both builds mark it `noindex` and both gates assert
 it is absent from the sitemap: what a crawler would index is one browser's zeroes.
 
-Gating stays where it was — the `freeLessonCount` trial gate. An order gate that opens lessons only after
-the previous one is finished needs an account to unlock it again; with local-only progress, clearing a
-browser would lock a learner out of the track. That lands in phase 4 with the server, not here.
+Gating is the order gate plus `freeLessonCount` (`track.json`, 3 today). Drills 1–3 are free, the fourth
+opens on one click (`grace_start`), and the rest sit behind the trial gate or a purchase — the boundary
+and its walls are described under [Accounts](#accounts-phase-4-in-progress). Clearing a browser loses
+the record, which is why the whole track can always be unlocked in one click and why the account is what
+carries progress to another device.
 
 ---
 
@@ -259,6 +261,21 @@ write are a column-level grant, so a hand-crafted PATCH cannot set `role` or `gr
 (`tests/db/profile.spec.js`). A first sign-in with no display name lands on
 `/account/profile?welcome=1` unless the learner asked for a specific `?next=`.
 
+`/pricing` is the offer both walls point at: it is built from the catalog (the free drills linked, the
+paid ones named and deliberately not linked), costs the same in both builds, is `noindex` and stays out
+of the sitemap. The rule behind the wall is one function — `paywallDecision` in `lib/paywall.js`
+delegating to the same `gateFor` the browser uses — and it is enforced in `proxy.js`, after the session
+is read, so a direct URL to a paid drill is a redirect rather than a page. Entitlement is
+`is_entitled(uid)` in Postgres: `status`, period end and the institutional grant are the database's
+facts, not a cookie's.
+
+Enforcement is off by default and has two env facts: `PAYWALL=on` **and** a configured Supabase project.
+Billing (Stripe) is not wired, so a wall that shipped on would dead-end thirteen drills with no way to
+buy; the in-browser trial stays the honest path until checkout exists. The two cannot run together — a
+request cannot prove a `localStorage` trial — which is also why the flag is opt-in rather than automatic.
+With it on, `proxy.js` reads `legacy/content` at request time, so a standalone deployment needs that
+directory next to the server bundle.
+
 ---
 
 ## Adding lesson 17
@@ -303,9 +320,9 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **734 passing**, 0 failing — 99 grader, 78 fixtures, 58 client, 56 content-lint, 53 schema-v2, 45 build, 32 keys, 32 progress, 30 sheet, 26 session, 25 profile-rules, 23 content, 22 auth, 17 styles, 15 track-schema, 14 dashboard-page, 13 progress-migrate, 13 verify, 11 progress-sender, 10 progress-sync, 10 xlsx, 8 feedback, 8 vendor, 7 metadata-routes, 6 screen-docs, 6 workbook-page, 5 keys-page, 3 five-types, 3 workbook-build, 2 fragments, 2 golden, 2 site-paths |
-| `npm run build` | 27 pages, 741.4 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 5 session modules, 1 progress module, 1 keyboard module, 1 sheet module, 4 client modules |
-| `node legacy/src/verify.mjs` | **851 checks passed** across 16 lesson pages, the index, the dashboard and 9 group pages |
+| `npm test` | **765 passing**, 0 failing — 99 grader, 78 fixtures, 67 client, 56 content-lint, 53 schema-v2, 45 build, 32 keys, 32 progress, 30 sheet, 26 session, 25 profile-rules, 23 content, 22 paywall, 22 auth, 17 styles, 15 track-schema, 14 dashboard-page, 13 progress-migrate, 13 verify, 11 progress-sender, 10 progress-sync, 10 xlsx, 8 feedback, 8 vendor, 7 metadata-routes, 6 screen-docs, 6 workbook-page, 5 keys-page, 3 five-types, 3 workbook-build, 2 fragments, 2 golden, 2 site-paths |
+| `npm run build` | 28 pages, 765.3 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 5 session modules, 1 progress module, 1 keyboard module, 1 sheet module, 4 client modules |
+| `node legacy/src/verify.mjs` | **888 checks passed** across 16 lesson pages, the index, the dashboard, the pricing page and 9 group pages |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |
 | axe-core 4 on a lesson | 0 violations, 50 passes |
 | Console | no errors or warnings, only the `[es]` debug funnel lines |

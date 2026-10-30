@@ -53,14 +53,15 @@ describe("build", () => {
     rmSync(out, { recursive: true, force: true });
   });
 
-  it("writes one page per lesson plus the index, the dashboard and a page per group", () => {
+  it("writes one page per lesson plus the index, the dashboard, the offer and a page per group", () => {
     const pages = htmlFiles(out).map((file) => file.slice(out.length + 1));
     const { index } = loadContent(join(ROOT, "legacy/content"));
     const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
-    const expected = lessons.length + 2 + groupIds.length;
+    const expected = lessons.length + 3 + groupIds.length;
     assert.equal(pages.length, expected, `expected ${expected} pages, got ${pages.length}`);
     assert.ok(pages.includes("index.html"));
     assert.ok(pages.includes("learn/index.html"));
+    assert.ok(pages.includes("pricing/index.html"));
     for (const exercise of lessons) assert.ok(pages.includes(`excel/${exercise.slug}.html`), `${exercise.slug} page is missing`);
     for (const id of groupIds) assert.ok(pages.includes(`learn/groups/${id}.html`), `${id} group page is missing`);
     assert.equal(summary.pages, expected);

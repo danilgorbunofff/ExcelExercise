@@ -258,6 +258,9 @@ accuracy and rank — never email or username.
    Server-side check in the lesson route, not only client-side. This is a deliberate change from the
    shipped build (`content/track.json` has `freeLessonCount: 5`; the reference allows 2): update the
    existing trial/paywall tests and the site copy in this phase, not later.
+   Delivered in unit 3e — `legacy/content/track.json` is the config (no code constant), the client
+   walls are proved in the browser, and the server check runs in `proxy.js` behind `PAYWALL=on`
+   because billing (item 6) is not wired; see the unit log for why the flag is opt-in.
 9. **Institutional access.** `groups` + `group_invites`; domain allowlist table; on signup, a matching
    domain creates an `institution` entitlement. No UI yet beyond the grant.
 10. **Legal and data rights.** `/privacy`, `/terms`, cookie banner (only if non-essential cookies
@@ -276,7 +279,10 @@ accuracy and rank — never email or username.
       gate is the database check, not a JWT claim.
 - [ ] A second device signed in before the purchase unlocks on its next request without a re-login.
 - [ ] Free user is soft-prompted at lesson 4 and hard-gated at lesson 5; direct URL is blocked
-      server-side.
+      server-side. *Half closed in unit 3e: the prompt and the wall are proved in a browser
+      (`e2e/paywall.spec.js`), and the server redirect is implemented and unit-proved
+      (`paywallDecision`, `proxy.js` probes) but only live with `PAYWALL=on`, which waits on item 6 —
+      without checkout it would dead-end thirteen drills.*
 - [ ] Deleting an account removes profile, progress, attempts, points, streaks, and the profile's
       referral code; `payments`, `entitlements` and the certificate are retained in the documented
       legal-retention form with the name anonymised — the retention list is written down, not implied.
@@ -817,3 +823,106 @@ proves the rule rather than restating it.
 | A saved profile over HTTP with a real session | the e2e job has no Supabase project, so `updateProfile` is proved at the RLS level (`tests/db/profile.spec.js`) and its rules at the unit level; the browser path needs a configured deployment |
 | The post-sign-in redirect actually firing | same: `afterSignIn` is unit-tested and wired, but a real sign-in needs GoTrue in the e2e environment |
 | Items 6 (Stripe), 8 (paywall), 9 (allowlist), 10 (legal/data rights) | not started; item 6 also needs Stripe test keys |
+
+### 2026-11-01 — unit 3e (the paywall, work item 8)
+
+Item 8 asks for four things: `freeLessonCount` as configuration rather than code, a soft prompt on the
+first drill past the free half, a hard gate from the next one, and a check the route itself performs so
+a direct URL does not skip it. All four ship here, plus the offer page the walls need to point at, and
+the number moves `5 → 3` as this document deliberately asked.
+
+```
+npm run check
+ℹ tests 765
+ℹ suites 128
+ℹ pass 765
+ℹ fail 0
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 28 pages (765.3 kB of HTML+CSS) → /Users/danil/Desktop/excelsupreme/legacy/dist
+next routes: 28 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard, the pricing page and 9 group pages — 888 checks passed
+
+npx playwright test
+  74 passed (11.9s)
+
+npm run db:check
+ℹ tests 89
+ℹ suites 23
+ℹ pass 89
+ℹ fail 0
+
+npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+`734 → 765` unit tests (`tests/paywall.test.js`, 22 cases; `tests/client.test.js` +9 in two new
+suites), `67 → 74` e2e (five in the new `e2e/paywall.spec.js`, two axe scans in `e2e/a11y.spec.js`),
+`27 → 28` pages (`pricing/index.html`), `741.4 → 765.3 kB`, `851 → 888` verify checks (the pricing
+block). Screens, fixtures, groups and the `111 accepted / 157 rejected` grading split are unchanged:
+no lesson content moved, so no verdict could.
+
+#### What ships
+
+- **`legacy/content/track.json`** — `freeLessonCount: 3`. Every consumer already reads it
+  (`content.mjs` sets `free` per entry, `index-page.mjs` and `exercise-page.mjs` print the split), so
+  the client, both builds, the offer page and the server rule all follow one number.
+- **`legacy/src/client/state.js`** — `gateFor` is now tri-state (`open` / `prompt` / `paywall`)
+  instead of boolean, and `GRACE_KEY`/`parseGrace`/`graceUsed`/`grantGrace` keep one free pass per
+  lesson in the same store the trial and progress already use. The rules stay DOM-free so the server
+  and the browser can share them.
+- **`legacy/src/client/drill.js`** — the prompt wall (a "Continue free this once" button, `grace_start`
+  in the event stream, and a note stating that the pass is remembered in this browser) and the trial
+  wall both link to `/pricing`. `blockingGate()` asks `gateFor` rather than re-deriving the boundary.
+- **`legacy/src/site/pricing-page.mjs`** (new) — `preparePricingPage` renders the offer from the
+  catalog: "What stays free" (linked), "What the paid half adds" (named, not linked), "The price,
+  plainly" (`$59.99/year`, refund guarantee, cancel anytime), and an honesty notice that checkout is
+  not open in this build. Counts are computed, never typed.
+- **`app/pricing/page.js`** + `pricing/index.html` in the static build — one template, two shells, the
+  same fragments `check-next-pages.mjs` diffs. `noindex`, out of the sitemap, `robots: follow`.
+- **`lib/paywall.js`** (new) — the single server rule: `paywallEnforced(env)` (flag **and** accounts
+  configured), `paywallDecision({entry, freeLessonCount, entitled, enforced})` delegating to the same
+  `gateFor` with `trial: null`, and `entitledFor(supabase, user)` → `rpc("is_entitled")`, fail-closed.
+- **`proxy.js`** — after `auth.getUser()`, a lesson request the catalog calls paid (and the learner is
+  not entitled for) is redirected to `/pricing`. Next 16's proxy runs on the Node.js runtime, so it
+  can import `loadSite()`; the alternative was a generated slug→number manifest, which is a second
+  source of truth for the same fact.
+- **`packages/session/events.js`** — `grace_start` added to the closed event vocabulary.
+- **Tests:** `tests/paywall.test.js` (decision matrix, flag matrix, entitlement RPC, `proxy.js` source
+  probes, offer-page facts), `tests/client.test.js` (`gating` and `grace` suites, plus drill source
+  probes), `tests/build.test.js` (28 pages), `tests/track-schema.test.js` (`3`), `e2e/paywall.spec.js`
+  (prompt opens once and does not reappear, wall blocks, offer page reachable from both, every
+  catalogued free drill served without a wall), `e2e/a11y.spec.js` (offer page and both walls).
+
+#### Why the prompt is served, not blocked
+
+Drill 4 is the first one past the free half and the server serves it on purpose. Its "continue free
+this once" button is the point of the row — a soft prompt that arrived as a redirect would be the hard
+gate with a different paragraph. The wall starts at drill 5, which the server refuses.
+
+#### Deviations from this document
+
+- **The wall is behind `PAYWALL=on` and configured accounts.** Item 6 (Stripe) needs keys this repo
+  does not have, so an unconditional wall would dead-end thirteen of sixteen drills with no way to
+  buy. The rule is written and enforced; it is switched on when billing is. Recorded as an open row
+  rather than a toggle nobody can test.
+- **Server enforcement and the browser trial cannot coexist.** With `PAYWALL=on` a `localStorage`
+  trial does not open a server wall, because a request cannot prove an honour-system fact. The flag
+  therefore stays off until logout/billing exists; keeping both live would be a wall some learners
+  could walk through and others could not.
+- **`/pricing` is `noindex` and out of the sitemap.** Precedent is the group pages: it is reachable
+  from every wall and from the header, and it is a page about a product that is not on sale yet.
+  `check-next-pages.mjs` still asserts `sitemap locs === index + 1`, which is the proof it did not
+  leak in.
+- **The proxy reads `legacy/content` at request time.** A standalone or traced deploy needs that
+  directory present next to the server bundle. Adding `outputFileTracingIncludes` for it would be a
+  build setting nothing in this repo can verify, so it is recorded rather than guessed.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| The wall refusing a direct URL with a real session | `PAYWALL=on` plus a configured deployment: no keys for item 6, so the redirect is proved by the decision matrix and the proxy source probes, not by a live 307 against a paid drill |
+| A purchase actually opening the paid half | item 6 (Stripe): `is_entitled` is proved at the database level (`tests/db/rls.spec.js`) and consumed by `lib/paywall.js`; nothing can write an entitled row but an operator today |
+| The pricing copy being the final offer | it states the price and the terms the reference uses, and says checkout is not open; it becomes a claim rather than a placeholder when billing lands |
+| Items 6 (Stripe), 9 (institutional allowlist), 10 (legal/data rights) | not started; item 6 needs Stripe test keys |

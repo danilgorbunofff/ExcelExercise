@@ -41,7 +41,7 @@ function renderSiteHeader({ config, page }) {
         config.name,
       )}</span></a>
       <p class="drill-count">${esc(page.counter)}</p>
-      <p class="badge">Free · no signup</p>
+      <p class="badge">${esc(page.badge ?? "Free · no signup")}</p>
     </header>`;
 }
 

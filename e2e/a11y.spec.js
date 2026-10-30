@@ -227,3 +227,23 @@ test("the profile page passes with nothing to fix", async ({ page }) => {
   await expect(page.locator(".auth-card h1")).toHaveText("Your profile");
   await scan(page, "the profile page with accounts unconfigured");
 });
+
+// The legal pages and the deletion receipt: long prose with definition lists, plus one destructive form
+// on `/account`. A contrast failure on a muted `<dd>` or an unlabelled confirmation field would be
+// invisible to every other check, because nothing else looks at these pages in a browser.
+test("the legal pages pass with nothing to fix", async ({ page }) => {
+  for (const [path, heading] of [
+    ["/privacy", "What this site keeps, and what it never sees"],
+    ["/terms", "The deal, in plain English"],
+  ]) {
+    await page.goto(path);
+    await expect(page.locator("#main h1")).toHaveText(heading);
+    await scan(page, path);
+  }
+});
+
+test("the deletion receipt passes with nothing to fix", async ({ page }) => {
+  await page.goto("/account/deleted");
+  await expect(page.locator(".auth-card h1")).toHaveText("Your account is gone");
+  await scan(page, "the deletion receipt");
+});

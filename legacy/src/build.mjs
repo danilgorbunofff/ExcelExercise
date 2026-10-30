@@ -19,6 +19,7 @@ import { siteConfig } from "./site/config.mjs";
 import { loadContent } from "./site/content.mjs";
 import { renderExercisePage } from "./site/exercise-page.mjs";
 import { renderIndexPage } from "./site/index-page.mjs";
+import { renderLegalPage } from "./site/legal-page.mjs";
 import { renderPricingPage } from "./site/pricing-page.mjs";
 import { dashboardGroups, renderDashboardPage } from "./site/dashboard-page.mjs";
 import { spreadsheet, workbookName } from "./xlsx.mjs";
@@ -121,6 +122,14 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const pricingHtml = renderPricingPage({ config, track, index, icons });
   assertSelfContained(pricingHtml, config, "pricing/index.html");
   pages.push({ file: "pricing/index.html", html: pricingHtml });
+
+  // The two pages a crawler is supposed to find, and the two a reader looks for before trusting a
+  // refund term. They carry the footer's own links, so they are not orphaned.
+  for (const kind of ["privacy", "terms"]) {
+    const html = renderLegalPage({ config, track, index, icons, kind });
+    assertSelfContained(html, config, `${kind}/index.html`);
+    pages.push({ file: `${kind}/index.html`, html });
+  }
 
   for (const entry of index) {
     const html = renderExercisePage({ config, track, index, entry, icons, clientAvailable });

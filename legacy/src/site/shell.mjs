@@ -123,7 +123,7 @@ function renderFooter({ config }) {
     : "";
   return `<footer class="foot">
       <p>${esc(config.name)} grades formulas in the browser. Nothing you type is sent anywhere.</p>
-      <p><a href="/">All drills</a> · <a href="/learn">Your progress</a>${contact ? ` · ${contact}` : ""} · <button class="foot-feedback" id="feedback-open" type="button" aria-haspopup="dialog">Send feedback</button></p>
+      <p><a href="/">All drills</a> · <a href="/learn">Your progress</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>${contact ? ` · ${contact}` : ""} · <button class="foot-feedback" id="feedback-open" type="button" aria-haspopup="dialog">Send feedback</button></p>
 ${renderFeedbackDialog()}
     </footer>`;
 }

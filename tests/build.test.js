@@ -53,15 +53,17 @@ describe("build", () => {
     rmSync(out, { recursive: true, force: true });
   });
 
-  it("writes one page per lesson plus the index, the dashboard, the offer and a page per group", () => {
+  it("writes one page per lesson plus the index, the dashboard, the offer, the legal pages and a page per group", () => {
     const pages = htmlFiles(out).map((file) => file.slice(out.length + 1));
     const { index } = loadContent(join(ROOT, "legacy/content"));
     const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
-    const expected = lessons.length + 3 + groupIds.length;
+    const expected = lessons.length + 5 + groupIds.length;
     assert.equal(pages.length, expected, `expected ${expected} pages, got ${pages.length}`);
     assert.ok(pages.includes("index.html"));
     assert.ok(pages.includes("learn/index.html"));
     assert.ok(pages.includes("pricing/index.html"));
+    assert.ok(pages.includes("privacy/index.html"));
+    assert.ok(pages.includes("terms/index.html"));
     for (const exercise of lessons) assert.ok(pages.includes(`excel/${exercise.slug}.html`), `${exercise.slug} page is missing`);
     for (const id of groupIds) assert.ok(pages.includes(`learn/groups/${id}.html`), `${id} group page is missing`);
     assert.equal(summary.pages, expected);
@@ -349,11 +351,12 @@ describe("build", () => {
   it("writes a sitemap of exactly the published URLs", () => {
     const xml = readFileSync(join(out, "sitemap.xml"), "utf8");
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-    assert.equal(locs.length, lessons.length + 1);
+    assert.equal(locs.length, lessons.length + 3);
     for (const loc of locs) assert.ok(loc.startsWith(`${BASE}/`), `${loc} is not absolute against the configured base`);
     assert.ok(locs.includes(`${BASE}/`));
     for (const exercise of lessons) assert.ok(locs.includes(`${BASE}/excel/${exercise.slug}`));
-    assert.equal((xml.match(/<lastmod>2026-10-28<\/lastmod>/g) ?? []).length, lessons.length + 1);
+    for (const legal of ["/privacy", "/terms"]) assert.ok(locs.includes(`${BASE}${legal}`), `${legal} is not in the sitemap`);
+    assert.equal((xml.match(/<lastmod>2026-10-28<\/lastmod>/g) ?? []).length, lessons.length + 3);
     assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   });
 

@@ -27,7 +27,8 @@ before(async () => {
 
 test("lists the index and every lesson, nothing else", async () => {
   const urls = sitemap().map((entry) => entry.url);
-  assert.equal(urls.length, site.index.length + 1);
+  // The index, the two legal pages, and every lesson — the same four groups the static build publishes.
+  assert.equal(urls.length, site.index.length + 3);
   assert.equal(new Set(urls).size, urls.length, "a URL is listed twice");
   assert.equal(urls[0], "https://example.com/");
   for (const entry of site.index) {
@@ -39,7 +40,7 @@ test("advertises no address that only redirects", async () => {
   for (const { url } of sitemap()) {
     const { pathname } = new URL(url);
     assert.ok(
-      pathname === "/" || pathname.startsWith("/learn/excel/"),
+      pathname === "/" || pathname === "/privacy" || pathname === "/terms" || pathname.startsWith("/learn/excel/"),
       `${url} is not a route the app serves`,
     );
   }

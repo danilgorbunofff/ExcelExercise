@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { dashboardGroups, prepareDashboardPage } from "../legacy/src/site/dashboard-page.mjs";
 import { prepareExercisePage } from "../legacy/src/site/exercise-page.mjs";
 import { prepareIndexPage } from "../legacy/src/site/index-page.mjs";
+import { prepareLegalPage } from "../legacy/src/site/legal-page.mjs";
 import { preparePricingPage } from "../legacy/src/site/pricing-page.mjs";
 import { loadSite } from "../lib/site.js";
 import nextConfig from "../next.config.mjs";
@@ -88,6 +89,16 @@ checkPage({
   args: { config, track, index, icons },
 });
 
+// The two indexable pages that are not lessons. Their sitemap entries are asserted below by the same
+// count the static build's verifier uses, so a route that drops one fails both checks.
+for (const kind of ["privacy", "terms"]) {
+  checkPage({
+    file: `${kind}.html`,
+    prepare: prepareLegalPage,
+    args: { config, track, index, icons, kind },
+  });
+}
+
 // One page per group, so a reader can land on just that group's drills and link to it. They are
 // `noindex` and stay out of the sitemap — the count assertion below is what keeps them out.
 for (const { id } of dashboardGroups({ track, index })) {
@@ -155,8 +166,13 @@ for (const [file, pattern] of [
   if (!pattern.test(text)) problems.push(`${file}: does not contain what the route returns`);
   if (file === "sitemap.xml.body") {
     const locs = [...text.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-    if (locs.length !== index.length + 1) {
-      problems.push(`${file}: lists ${locs.length} URLs, expected ${index.length + 1}`);
+    // Home, `/privacy`, `/terms`, then one entry per lesson — the same shape `legacy/src/verify.mjs`
+    // asserts for the static build's sitemap.
+    if (locs.length !== index.length + 3) {
+      problems.push(`${file}: lists ${locs.length} URLs, expected ${index.length + 3}`);
+    }
+    for (const path of ["/privacy", "/terms"]) {
+      if (!locs.includes(`${config.baseUrl}${path}`)) problems.push(`${file}: does not list ${path}`);
     }
     for (const entry of index) {
       if (!locs.includes(`${config.baseUrl}${entry.path}`)) problems.push(`${file}: does not list ${entry.path}`);

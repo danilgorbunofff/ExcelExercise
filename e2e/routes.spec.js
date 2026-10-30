@@ -59,11 +59,16 @@ test("the sitemap and robots the app serves describe the routes it actually has"
   expect(sitemap.status()).toBe(200);
   expect(sitemap.headers()["content-type"]).toContain("xml");
   const locs = [...(await sitemap.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-  expect(locs).toHaveLength(LESSON_COUNT + 1);
+  expect(locs).toHaveLength(LESSON_COUNT + 3);
   for (const loc of locs) {
     const { pathname } = new URL(loc);
     // A sitemap full of redirects is worse than none: `/excel/*` only ever 308s.
-    expect(pathname === "/" || pathname.startsWith("/learn/excel/"), `${loc} is not a served route`).toBe(true);
+    const served = pathname === "/" || pathname === "/privacy" || pathname === "/terms" || pathname.startsWith("/learn/excel/");
+    expect(served, `${loc} is not a served route`).toBe(true);
+  }
+  // The two legal pages are the only entries that are not the index and are not a lesson.
+  for (const legal of ["/privacy", "/terms"]) {
+    expect(locs.some((loc) => new URL(loc).pathname === legal), `${legal} is not in the sitemap`).toBe(true);
   }
 
   const robots = await request.get("/robots.txt");

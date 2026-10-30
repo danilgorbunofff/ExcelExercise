@@ -90,6 +90,34 @@ async function AccountScreen() {
           Sign out
         </button>
       </form>
+      <section className="auth-data" aria-labelledby="data-rights">
+        <h2 id="data-rights">Your data</h2>
+        <p>
+          You can take a copy of everything this site holds about you, or end the account. Ending it
+          erases your profile, your progress and your saved answers straight away, and it cannot be
+          undone. Payment records are kept without your name.{" "}
+          <a href="/privacy">What is kept, and for how long</a>.
+        </p>
+        <a href="/api/account/export" download>
+          Download your data
+        </a>
+        <form action="/api/account/delete" method="post" className="auth-danger">
+          <label htmlFor="confirm">
+            Type <strong>delete my account</strong> to confirm
+          </label>
+          <input
+            autoComplete="off"
+            id="confirm"
+            name="confirm"
+            pattern="\s*[Dd]elete [Mm]y [Aa]ccount\s*"
+            required
+            type="text"
+          />
+          <button className="auth-submit" type="submit">
+            Delete my account
+          </button>
+        </form>
+      </section>
       <Links
         items={[
           { href: "/account/profile", label: "Edit your profile" },

@@ -316,14 +316,66 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     has(html, 'href="/signup?next=/pricing"', "pricing/index.html account link");
   }
 
+  // --- privacy and terms ------------------------------------------------------------
+  // The two pages a reader looks at before trusting a refund term, and the two a crawler is meant to
+  // find. `noindex` here would be a regression the sitemap count would not notice, and a page that
+  // quietly stopped naming the export route would still be a page.
+  for (const [file, expected] of [
+    [
+      "privacy/index.html",
+      {
+        h1: "<h1>What this site keeps, and what it never sees</h1>",
+        retention: "Kept, unlinked from you:",
+        browser: "<code>localStorage</code>",
+        export: 'href="/account"',
+        tracked: "no analytics script",
+      },
+    ],
+    [
+      "terms/index.html",
+      {
+        h1: "<h1>The deal, in plain English</h1>",
+        retention: "If it does not do what this page says it does, the remedy is a refund",
+        browser: "Excel's formula rules vary by version and by locale",
+        export: 'href="/account"',
+        tracked: "not been reviewed by a lawyer",
+      },
+    ],
+  ]) {
+    if (!ok(existsSync(join(distDir, file)), file, "does not exist")) continue;
+    const html = read(file);
+    has(html, expected.h1, `${file} heading`);
+    // Indexable on purpose: this is the page a search result should be able to land on.
+    ok(
+      !html.includes('<meta name="robots" content="noindex">'),
+      `${file} robots`,
+      "is noindex, but these two pages are the ones search should find",
+    );
+    has(html, 'href="/privacy"', `${file} footer privacy link`);
+    has(html, 'href="/terms"', `${file} footer terms link`);
+    for (const [label, probe] of [
+      ["retention list", expected.retention],
+      ["browser storage section", expected.browser],
+      ["account page link", expected.export],
+      ["honest disclosure", expected.tracked],
+    ]) {
+      has(html, probe, `${file} ${label}`);
+    }
+  }
+
   // --- sitemap and robots -----------------------------------------------------------
   if (ok(existsSync(join(distDir, "sitemap.xml")), "sitemap.xml", "does not exist")) {
     const xml = read("sitemap.xml");
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-    ok(locs.length === index.length + 1, "sitemap.xml", `lists ${locs.length} URLs, expected ${index.length + 1}`);
+    // Home, `/privacy`, `/terms` and one entry per lesson. The legal pages are indexable, so they are
+    // the three non-lesson entries rather than the two a `+ 1` used to allow.
+    ok(locs.length === index.length + 3, "sitemap.xml", `lists ${locs.length} URLs, expected ${index.length + 3}`);
     ok(locs.includes(`${config.baseUrl}/`), "sitemap.xml", "does not list the index");
     ok(!locs.includes(`${config.baseUrl}/learn`), "sitemap.xml", "lists the dashboard, which is noindex");
     ok(!locs.includes(`${config.baseUrl}/pricing`), "sitemap.xml", "lists the pricing page, which is noindex");
+    for (const path of ["/privacy", "/terms"]) {
+      ok(locs.includes(`${config.baseUrl}${path}`), "sitemap.xml", `does not list ${path}, which is indexable`);
+    }
     for (const entry of index) {
       ok(locs.includes(`${config.baseUrl}${entry.path}`), "sitemap.xml", `does not list ${entry.path}`);
     }

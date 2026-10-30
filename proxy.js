@@ -20,6 +20,10 @@ import { loadSite } from "./lib/site.js";
 // page: a page that forgets to check would render a signed-out shell and look like a bug.
 const GATED = [/^\/account(?:\/|$)/];
 
+// The exception, and the only one: `/account/deleted` is where the delete form redirects, and by then
+// the session is gone by design — a gate there would bounce a just-deleted learner to `/login`.
+const PUBLIC = [/^\/account\/deleted\/?$/];
+
 // The one place a paid drill can be opened. The lesson pages are prerendered HTML, which cannot be
 // refused once it exists, so the refusal has to happen on the request.
 const LESSON = /^\/learn\/excel\/([^/]+)\/?$/;
@@ -63,8 +67,13 @@ export async function proxy(request) {
   const { data, error } = await supabase.auth.getUser();
   const user = error ? null : data.user ?? null;
 
-  if (!user && GATED.some((pattern) => pattern.test(request.nextUrl.pathname))) {
-    const next = request.nextUrl.pathname + request.nextUrl.search;
+  const pathname = request.nextUrl.pathname;
+  if (
+    !user &&
+    GATED.some((pattern) => pattern.test(pathname)) &&
+    !PUBLIC.some((pattern) => pattern.test(pathname))
+  ) {
+    const next = pathname + request.nextUrl.search;
     return NextResponse.redirect(new URL(loginUrl(next), request.url));
   }
 

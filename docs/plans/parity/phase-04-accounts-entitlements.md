@@ -286,6 +286,11 @@ accuracy and rank — never email or username.
 - [ ] Deleting an account removes profile, progress, attempts, points, streaks, and the profile's
       referral code; `payments`, `entitlements` and the certificate are retained in the documented
       legal-retention form with the name anonymised — the retention list is written down, not implied.
+      *Half closed in unit 3f: the erase, the anonymisation, the retention list and the unlinked money
+      rows are proved (`tests/db/legal.spec.js`, `e2e/legal.spec.js`); two named things do not exist
+      to erase or retain — no `referral_code` column was ever written, and no `certificates` table
+      exists before phase 6. The plan's "purge job" is an immediate purge because there is no
+      scheduler; both are recorded as annotations in the unit log rather than ticked.*
 - [ ] RLS suite proves user A cannot read or write user B's rows, and cannot insert a completion for
       themselves through PostgREST with their own JWT (15 assertions covering the policy set above).
 - [ ] Webhook replay of the same event produces no duplicate entitlement.
@@ -926,3 +931,123 @@ gate with a different paragraph. The wall starts at drill 5, which the server re
 | A purchase actually opening the paid half | item 6 (Stripe): `is_entitled` is proved at the database level (`tests/db/rls.spec.js`) and consumed by `lib/paywall.js`; nothing can write an entitled row but an operator today |
 | The pricing copy being the final offer | it states the price and the terms the reference uses, and says checkout is not open; it becomes a claim rather than a placeholder when billing lands |
 | Items 6 (Stripe), 9 (institutional allowlist), 10 (legal/data rights) | not started; item 6 needs Stripe test keys |
+
+### 2026-11-02 — unit 3f: legal and data rights (item 10)
+
+**Closed:** work item 10 — `/privacy`, `/terms`, `GET /api/account/export`, `POST /api/account/delete`,
+the retention list, and the deletion receipt. No cookie banner: the application sets no non-essential
+cookie, so the condition in the item ("only if non-essential cookies exist") is not met, and
+`tests/legal.test.js` asserts the sentence that says so rather than adding a banner nobody needs.
+
+```
+$ npm run check
+ℹ tests 794
+ℹ suites 137
+ℹ pass 794
+ℹ fail 0
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 30 pages (788.2 kB of HTML+CSS) → /Users/danil/Desktop/excelsupreme/legacy/dist
+next routes: 30 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard, the pricing page and 9 group pages — 908 checks passed
+
+$ npx playwright test
+  82 passed (17.3s)
+
+$ npm run vendor:check
+vendor: 25 files match manifest.json
+
+$ npm run db:check
+ℹ tests 99
+ℹ suites 25
+ℹ pass 99
+ℹ fail 0
+```
+
+Every earlier floor moved up or stayed: tests 765 → 794, verify checks 888 → 908, pages 28 → 30, next
+routes 28 → 30, Playwright 74 → 82, `db:check` 89 → 99. Content counts are unchanged at 16 of 88,
+22 screens, 268 fixtures, 111 accepted / 157 rejected.
+
+#### What was built
+
+- **`supabase/migrations/0006_account_deletion.sql`** — the data-rights half of the schema.
+  `profiles.deleted_at`; `entitlements` gains a surrogate `id` primary key so `user_id` can become
+  null once the identity is gone (its old key survives as `entitlements_user_plan_key unique
+  (user_id, plan)`, so item 6's `on conflict (user_id, plan)` still has a target); `entitlements` and
+  `payments` both `on delete set null`; `is_entitled()` gains `p.deleted_at is null` so a half-deleted
+  account cannot keep its subscription; `request_account_deletion()` (security definer, `auth.uid()`
+  guard, `42501`, one transaction) erases attempts, progress, points, streaks and account feedback,
+  anonymises `username` to `deleted-<digest>`, clears `display_name`/`linkedin_url`/`group_id`, drops
+  `role` to `learner`, stamps `deleted_at`, and returns the counts it erased plus `already_requested`;
+  `my_entitlements()` and `my_payments()` are definer table functions returning explicit column lists
+  with **no** Stripe identifier; `revoke all … from public, anon` and `grant execute … to
+  authenticated` for each.
+- **`legacy/src/site/legal-page.mjs`** (new) — both documents as data: eleven sections each, the
+  `RETENTION` table (three rows: payment records, entitlement, deleted-account digest), and
+  `LOCAL_KEYS` read from the client's own storage keys (`es.progress`, `es.trial`, `es.grace`,
+  `es.feedback`). Rendered by the static build (`privacy/index.html`, `terms/index.html`) and by
+  `app/privacy/page.js` / `app/terms/page.js` from the same function, so the two shells cannot drift.
+- **`lib/legal.js`** (new) — `EXPORT_FORMAT`, `EXPORT_VERSION`, `buildExport()`, `confirmed()`,
+  `exportFilename()`, re-exporting the same `RETENTION` the page renders.
+- **`app/api/account/export/route.js`** — 503 `account_export_unconfigured`, 401 `sign_in_required`,
+  every read through the **user's** client with an explicit column list, `my_entitlements()` and
+  `my_payments()` for the money, any read error → 502 `export_failed`, otherwise one pretty JSON
+  download with `content-disposition` and `no-store`. It never touches the service-role key, so an
+  export cannot out-scope the caller.
+- **`app/api/account/delete/route.js`** — config check, session check, confirmation word
+  (`delete my account`, form or JSON) → 400 `confirmation_required`, `request_account_deletion()`,
+  then `auth.admin.deleteUser()` for the identity that a definer function cannot remove; a failed
+  purge answers 502 `identity_purge_failed` **with the erased counts**, because the soft step really
+  did happen and saying otherwise would be a lie; success is 303 to `/account/deleted` for the form
+  and `{ ok, erased }` for JSON. CSRF is `SameSite=Lax` plus the confirmation word, documented in the
+  route header.
+- **`app/account/page.js`** — the data-rights block: the export link, the `/privacy` link, and the
+  destructive form (pattern `\s*[Dd]elete [Mm]y [Aa]ccount\s*`, `required`). **`app/account/deleted`**
+  is the receipt: what was erased, and the two rows kept unlinked. `proxy.js` exempts it, because the
+  session is gone by the time it renders.
+- **`app/sitemap.js`, `legacy/src/verify.mjs`, `scripts/check-next-pages.mjs`, `renderSitemap`,
+  `tests/build.test.js`, `tests/metadata-routes.test.js`, `e2e/routes.spec.js`** — the sitemap grew
+  from `index + 1` to `index + 3` in all six places at once. It throws on a mismatch, so the two legal
+  pages cannot be added to one build and not the other.
+- **Tests:** `tests/legal.test.js` (29 — page/section/storage-key/retention/copy/metadata invariants,
+  sitemap parity across both builds, `buildExport`, `confirmed`, `exportFilename`, and source probes
+  for the two routes, the account page and the proxy), `tests/db/legal.spec.js` (self-scoped RPCs, no
+  Stripe identifier, anon refused, a `{ uid }` body not honoured, anonymous erase refused with the
+  rows intact, the erase and its counts, `is_entitled` false while the other learner stays entitled,
+  the money retained and then unlinked, retry reported as a retry), `e2e/legal.spec.js` (both pages,
+  the receipt, the footer links, the sitemap entries, export 401/503, delete 401/503),
+  `e2e/a11y.spec.js` (both legal pages and the receipt).
+
+#### Deviations from this document
+
+- **"Soft delete then purge job" is a soft step plus an immediate purge.** There is no scheduler in
+  this repo and adding one would be new infrastructure this unit cannot verify. `request_account_deletion()`
+  erases the behaviour and anonymises the profile in one transaction; the route then deletes the auth
+  identity. If the identity deletion fails, the account is already inert and the route says so with
+  the counts, and a retry reports `already_requested` instead of pretending to erase again.
+- **`entitlements` re-keyed to a surrogate `id`.** Not in the plan; forced by the plan. A primary key
+  column cannot be null (`42P16`), and the retention form the acceptance row asks for needs the money
+  row to outlive the profile it points at. The unique constraint keeps the original intent.
+- **The legal copy is not the reference's.** The reference pages are App Factory, LLC boilerplate —
+  Privacy Shield, arbitration, a governing-law clause for an entity that does not operate this build.
+  Copying them would state things about this site that are false. The ported pages describe what this
+  code actually does and say plainly that they have not been reviewed by a lawyer.
+- **`/privacy` and `/terms` are in the sitemap, unlike `/pricing`.** They are the pages a crawler is
+  supposed to index; the offer page describes a product that is not on sale.
+
+#### Annotations, not ticks
+
+The deletion acceptance row names two things that do not exist to delete:
+
+- **`referral_code`** — `0001_accounts_schema.sql` has never had the column and nothing reads it, so
+  there is nothing for the erase to clear. Recorded here so the row is not quietly claimed.
+- **`certificates`** — no such table, and none before phase 6. The row's "the certificate is retained"
+  is unimplementable today; the two rows that do exist (payment, entitlement) are retained and proved.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| A deletion purge running on a schedule (the plan's "purge job") | no scheduler and no cron in this repo; the purge is immediate and the executor is the route |
+| The certificate half of the retention row | phase 6: no certificate is issued, so none can be retained |
+| The referral-code half of the same row | the column never existed; nothing writes it |

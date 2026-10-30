@@ -1375,6 +1375,41 @@
   font-size: var(--fs-ui);
 }
 
+/* Legal pages. A definition list is the honest shape for "what is kept, and why": the term is the
+   thing, the definition is the sentence that qualifies it. */
+.legal-list {
+  max-width: var(--prose);
+  margin: var(--s-4) 0 0;
+  padding: 0;
+}
+
+.legal-list dt {
+  margin-top: var(--s-3);
+  font-weight: 600;
+}
+
+.legal-list dt:first-child {
+  margin-top: 0;
+}
+
+/* The rule on the left is the "this qualifies the line above it" mark the docs use for formulas. */
+.legal-list dd {
+  margin: var(--s-1) 0 0;
+  padding-left: var(--s-3);
+  border-left: 2px solid var(--line);
+  color: var(--text-muted);
+}
+
+.legal-points {
+  max-width: var(--prose);
+  margin: var(--s-3) 0 0;
+  padding-left: var(--s-4);
+}
+
+.legal-points li {
+  margin-top: var(--s-2);
+}
+
 /* The one line the learner is meant to type: marked with the ink, not decorated. */
 .docs pre.reference {
   border-left: 2px solid var(--jade-9);

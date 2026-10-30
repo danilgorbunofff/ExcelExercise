@@ -66,12 +66,20 @@ export function buildStyles({ vendorDir, stylesDir }) {
   return { css: `${header}\n${css}\n`, sources };
 }
 
+/**
+ * Home, the two legal pages and one entry per lesson. The legal pages are in here on purpose: they are
+ * the pages a crawler is supposed to find, and `/privacy` being one of them is what makes the cookie
+ * stance findable rather than a claim in a README. Everything else — the dashboard, the group pages,
+ * `/pricing` — is `noindex` and stays out, which the count below is the proof of.
+ */
 export function renderSitemap({ config, track, index }) {
   const entries = [
     { loc: `${config.baseUrl}/`, priority: "1.0" },
+    { loc: `${config.baseUrl}/privacy`, priority: "0.3" },
+    { loc: `${config.baseUrl}/terms`, priority: "0.3" },
     ...index.map((entry) => ({ loc: `${config.baseUrl}${entry.path}`, priority: "0.8" })),
   ];
-  if (entries.length !== index.length + 1) throw new Error("sitemap: track size mismatch");
+  if (entries.length !== index.length + 3) throw new Error("sitemap: track size mismatch");
 
   const urls = entries
     .map(

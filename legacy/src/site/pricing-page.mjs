@@ -11,7 +11,7 @@ import { esc, inlineIcon } from "./html.mjs";
 import { renderByline, renderDocument } from "./shell.mjs";
 
 /** The reference premium modal, verbatim: `$59.99/year • 100% refund guarantee • Cancel anytime`. */
-const PRICE = "$59.99/year";
+export const PRICE = "$59.99/year";
 const TERMS = ["100% refund guarantee", "Cancel anytime"];
 
 function drillLine(entry, linked) {

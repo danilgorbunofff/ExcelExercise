@@ -247,9 +247,10 @@ accuracy and rank — never email or username.
    inserts the Stripe event id into `stripe_events` **before** doing any work: a duplicate
    primary-key insert short-circuits it, so a replayed or retried delivery cannot double-apply.
    Delivered in unit 3h — seed script, three routes, `lib/stripe.js` and one definer RPC that applies
-   an event exactly once; see the unit log for what is proved and the five deviations (no SDK, no live
-   keys, cancellation surfaces as `canceled` not `revoked`, `metadata.user_id` is the resolution path,
-   and the Billing Portal has no button yet).
+   an event exactly once; see the unit log for what is proved and the deviations (no SDK; no success or
+   cancel route, so those are query parameters on `/pricing`; cancellation is `canceled` rather than
+   `revoked`, only a refund revokes; `metadata.user_id` is the resolution path; and the Billing Portal
+   is an endpoint with no button yet).
 7. **Entitlement check, authoritative at request time.** `is_entitled(uid)`, `security definer`:
    active subscription OR non-refunded lifetime payment OR institutional grant. Every gated request
    calls it through `my_entitlements()` (one indexed lookup, in-process cache capped at 60 s per
@@ -257,14 +258,17 @@ accuracy and rank — never email or username.
    webhook cannot mutate a token that has already been issued, so a refund would otherwise leave
    access open for the token's remaining lifetime and a fresh purchase would not unlock on a second
    device.
+   Delivered in unit 1 (the function) and unit 3e (the gate); unit 3h is the first unit that makes it
+   change answer mid-session, which is what the refund and second-device rows assert.
 8. **Paywall.** `FREE_LESSON_COUNT=3` (config, not code). Lesson 4 shows a soft prompt with
    "continue free this once"; lesson 5 hard-gates to `/pricing`. Intro/`free: true` lessons bypass.
    Server-side check in the lesson route, not only client-side. This is a deliberate change from the
    shipped build (`content/track.json` has `freeLessonCount: 5`; the reference allows 2): update the
    existing trial/paywall tests and the site copy in this phase, not later.
    Delivered in unit 3e — `legacy/content/track.json` is the config (no code constant), the client
-   walls are proved in the browser, and the server check runs in `proxy.js` behind `PAYWALL=on`
-   because billing (item 6) is not wired; see the unit log for why the flag is opt-in.
+   walls are proved in the browser, and the server check runs in `proxy.js` behind `PAYWALL=on`,
+   which stays opt-in: billing is wired as of unit 3h, but until checkout can actually take money the
+   flag would wall lessons with no way to buy them; see the unit log for why the flag is opt-in.
 9. **Institutional access.** `groups` + `group_invites`; domain allowlist table; on signup, a matching
    domain creates an `institution` entitlement. No UI yet beyond the grant.
    Delivered in unit 3g — `institution_domains` is the authority, the grant is an `after insert`
@@ -272,9 +276,13 @@ accuracy and rank — never email or username.
    `institution` entitlement with no period; see the unit log.
 10. **Legal and data rights.** `/privacy`, `/terms`, cookie banner (only if non-essential cookies
     exist — goal is none), `POST /api/account/delete` (soft delete then purge job), export as JSON.
+    Delivered in unit 3f — no cookie banner, because the only cookie is the session cookie; see the
+    unit log.
 11. **RLS tests.** `tests/db/rls.spec.js` creates two users and asserts 15 negative cases, including a
     direct-PostgREST attempt by user A to insert a completion for themselves (must fail: no insert
     grant, no insert policy).
+    Delivered in unit 1, and every later migration that added a table or a function extended it; see
+    `tests/db/` for the current count.
 
 ## Acceptance criteria
 
@@ -1241,7 +1249,7 @@ when the deployment cannot take money, which is the state CI builds in.
   post to `/signup?next=/pricing`. `/api/stripe/portal` reads `stripe_customer_id` with the service role
   filtered by `user.id`, so the browser never supplies a customer id.
 - **`scripts/stripe-seed.mjs`** — one product, three prices, idempotent by `lookup_key`, printing the
-  five `STRIPE_*` lines to paste into `.env.local`. It prints; it never writes a secret file.
+  three `STRIPE_PRICE_*` lines to paste into `.env.local`. It prints; it never writes a secret file.
 - **The pricing page has a button, conditionally.** `preparePricingPage({ checkout })` renders the
   existing gate-note when this deployment cannot take money and a plain `<form method="post">` to
   `/api/stripe/checkout?plan=annual` when it can. Both builds are handed the flag from the same

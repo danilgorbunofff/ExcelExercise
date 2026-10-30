@@ -86,6 +86,10 @@ export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } 
  * A picture screen's image. `alt` is the question rather than a caption, so there is no `figcaption`
  * repeating it: a screen reader reads the figure's image and gets the whole prompt in one turn. The
  * image is first-party — `build.mjs` copies `content/images/` onto `/assets/img/`, where this points.
+ *
+ * The image sits in a scroll region of its own so a narrow phone can keep the figure at its drawn
+ * scale instead of shrinking its text under 8 px; the region is focusable because a box only a
+ * trackpad can scroll is not reachable at all.
  */
 export function imageUrl(path) {
   return `/assets/img/${path.slice("images/".length)}`;
@@ -93,13 +97,20 @@ export function imageUrl(path) {
 
 export function renderPicture(screen, { position = 0 } = {}) {
   return `<figure class="picture" id="picture-${position}">
-                  <img${attrs({
-                    class: "picture-img",
-                    src: imageUrl(screen.image),
-                    alt: screen.alt,
-                    loading: "lazy",
-                    decoding: "async",
+                  <div${attrs({
+                    class: "picture-scroll",
+                    tabindex: "0",
+                    role: "group",
+                    "aria-label": "The picture, which scrolls sideways when the screen is narrow",
                   })}>
+                    <img${attrs({
+                      class: "picture-img",
+                      src: imageUrl(screen.image),
+                      alt: screen.alt,
+                      loading: "lazy",
+                      decoding: "async",
+                    })}>
+                  </div>
                 </figure>`;
 }
 

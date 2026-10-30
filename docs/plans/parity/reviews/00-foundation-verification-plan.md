@@ -199,3 +199,11 @@ carrying `NEXT_PUBLIC_SUPABASE_*` is inlined by `next build`, so the browser sui
 assert the *supported unconfigured* accounts state — fails 14 tests that have nothing to do with the
 change being verified. `npm run check` stays green either way, which is what makes it easy to miss.
 `.env.example` now says so.
+
+Closed after that re-measurement, same day: phase 2's gate row 9, the `picture` screen's legibility on
+a phone. A figure is now drawn at its own scale inside a focusable scroll box rather than shrunk to
+293 px, which moved exactly one row of the table above — `11223.7` → `11224.8` kB of HTML+CSS, the CSS
+that carries the new box. The other six stayed put in a full re-run: `1565` unit tests, `88 of 88`
+lessons with `1946` fixtures and `903`/`1043` verdicts, `109` pages and `109` routes, `4378` checks,
+`111 passed`, `25` vendor files. See `reviews/phase-02-exercise-engine-verification-plan.md` row 9 for
+the before/after measurements.

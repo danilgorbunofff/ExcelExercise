@@ -463,6 +463,9 @@ function mountDrill(payloadNode) {
    */
   function onGridKey(event) {
     if (!MOVE_KEYS.has(event.key)) return;
+    // A screen with no grid has no selection, so the key is not this handler's to take: a picture
+    // screen's figure is a scroll box, and there the arrows belong to it.
+    if (!model) return;
     event.preventDefault();
     const nextKey = model ? moveSelection(selected, event.key, { model }) : null;
     if (nextKey) selectCell(nextKey, { focus: true });

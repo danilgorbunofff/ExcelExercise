@@ -215,6 +215,29 @@ test("a multi-screen lesson walks to its picture screen and completes on typed t
   await expect(page.locator("#screen-answer-cell")).toHaveText("the bar");
   await expect(page.locator("#formula")).toHaveAttribute("aria-label", "Your answer");
 
+  // A phone card is about 290 px wide and the shipped SVG is 524 units, so fitting it shrinks the
+  // figure's own text under 8 px. The figure keeps its scale instead and the card scrolls sideways,
+  // which only helps if the box is reachable and the arrows are not swallowed by the grid handler.
+  const desktop = page.viewportSize();
+  await page.setViewportSize({ width: 375, height: 800 });
+  const figure = page.locator("[data-screen='3'] .picture-scroll");
+  await expect(figure).toBeVisible();
+  await expect(figure).toHaveAttribute("tabindex", "0");
+  const [scrollWidth, clientWidth] = await figure.evaluate((node) => [node.scrollWidth, node.clientWidth]);
+  expect(scrollWidth).toBeGreaterThan(clientWidth);
+  expect(await picture.evaluate((img) => Math.round(img.getBoundingClientRect().width))).toBeGreaterThanOrEqual(
+    await picture.evaluate((img) => img.naturalWidth),
+  );
+  await figure.focus();
+  // `html` scrolls smoothly, so the focus jump can still be moving when the first press lands: press
+  // until the box moves instead of assuming which press is the one that counts.
+  for (let step = 0; step < 6 && (await figure.evaluate((node) => node.scrollLeft)) === 0; step += 1) {
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(150);
+  }
+  await expect.poll(() => figure.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
+  await page.setViewportSize(desktop);
+
   // A near miss is graded as text and nothing echoes the answer it wanted.
   await check(page, "C2:C6");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);

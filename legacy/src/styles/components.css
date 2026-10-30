@@ -550,9 +550,27 @@
   margin: 0;
 }
 
+/*
+ * A figure is drawn at its own scale rather than the card's. The shipped SVGs are 464 and 524 units
+ * wide, and a phone card is about 290, so fitting them shrinks the body text to under 8 px; below the
+ * figure's own width the card scrolls sideways instead. `max-content` is the image's intrinsic width,
+ * so each figure keeps its scale without a number per asset. The region takes focus because a box
+ * only a trackpad can scroll is not reachable at all, and the swipe stays inside it at either end.
+ */
+.picture-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.picture-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .picture-img {
   display: block;
   width: 100%;
+  min-width: max-content;
   height: auto;
   border: 1px solid var(--line);
   border-radius: var(--r-1);

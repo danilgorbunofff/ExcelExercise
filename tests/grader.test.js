@@ -422,6 +422,15 @@ describe("functions that answer with a block", () => {
     assert.equal(run("=COUNTA(UNIQUE(A2:A5,FALSE,TRUE))", REGIONS), 2);
   });
 
+  it("keeps whole rows and whole columns, not just their first cell", () => {
+    const cells = { A2: "North", B2: 1200, A3: "South", B3: 1450, A4: "North", B4: 1200 };
+    assert.equal(run("=COUNTA(UNIQUE(A2:B4))", cells), 4);
+    assert.equal(run("=INDEX(UNIQUE(A2:B4),2,2)", cells), 1450);
+    // by_col compares columns against each other, so a lone column comes back whole, all four rows.
+    assert.equal(run("=COUNTA(UNIQUE(A2:A5,TRUE))", REGIONS), 4);
+    assert.equal(run("=COUNTA(UNIQUE(A2:B4,TRUE))", cells), 6);
+  });
+
   it("sorts a block by one of its columns", () => {
     assert.equal(run("=INDEX(SORT(A2:A5,1,-1),2)", REGIONS), "South");
   });

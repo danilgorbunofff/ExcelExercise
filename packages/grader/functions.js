@@ -787,7 +787,7 @@ export const FUNCTIONS = {
     const once = args.length > 2 && toBoolean(scalar(args[2]));
     const lines = byColumn
       ? Array.from({ length: source.width }, (_, col) => source.values.map((row) => row[col]))
-      : source.values;
+      : source.values.map((row) => [...row]);
 
     const seen = new Map();
     for (const line of lines) {
@@ -799,7 +799,10 @@ export const FUNCTIONS = {
       .map((entry) => entry.line);
     if (!kept.length) throw new FormulaError(CODES.NA, "UNIQUE found no value left after filtering.");
 
-    return byColumn ? spill([kept.map((line) => line[0])]) : spill(kept.map((line) => [line[0]]));
+    /* Dedupe keeps whole rows (or whole columns), so the block hands back the shape of its source:
+       a repeated row of a two-column range answers with both of its cells, not just the first. */
+    if (!byColumn) return spill(kept);
+    return spill(source.values.map((row, index) => kept.map((line) => line[index])));
   },
 
   SORT: (args) => {

@@ -81,6 +81,11 @@
           {
             "formula": "=COUNTA(UNIQUE(A2:A7,TRUE))",
             "rule": "value",
+            "why": "TRUE in the second slot is by_col, not exactly_once, so all six deliveries come back"
+          },
+          {
+            "formula": "=COUNTA(UNIQUE(A2:A7,FALSE,TRUE))",
+            "rule": "value",
             "why": "exactly_once keeps only values that appear once, so only Crane survives"
           },
           {

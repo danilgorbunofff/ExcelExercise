@@ -984,14 +984,19 @@ window in which two shapes are both live.
       hold. `ROWS` is not implemented in the engine (`#NAME?`), which is why the count wrapper is
       `COUNTA` and not `ROWS`.
 
-      Known divergences, recorded rather than fixed here:
+      Two engine behaviours were found while authoring and are now settled:
 
-      - `UNIQUE` on a multi-column range collapses to column 1 (`spill(kept.map((line) => [line[0]]))`);
-        `SORT` and `FILTER` return whole rows. No authored drill depends on it, because every array
-        drill is single-column or row-complete and indexed after the spill.
-      - `SORT`'s sort index is bounded by the source width (`SORT(A2:B7,3,-1)` → `#VALUE!`), and the
-        4-arg form `SORT(range,-1,2,-1)` misparses the arguments. Drill 88 teaches the 3-arg form
-        only, and a fixture pins the `#VALUE!` case as an accepted rejection.
+      - `UNIQUE` used to collapse every multi-column range to column 1
+        (`spill(kept.map((line) => [line[0]]))`), and its `by_col` branch returned one cell per
+        distinct column instead of the distinct columns whole. It now keeps whole rows, or whole
+        columns when `by_col` is TRUE, so it hands back the shape of its source like `SORT` and
+        `FILTER` do. `tests/grader.test.js` pins both shapes. The lesson's `=COUNTA(UNIQUE(A2:A7,TRUE))`
+        rejection therefore moved from 1 to 6 — TRUE in slot two is `by_col`, not `exactly_once` —
+        and a new rejection `=COUNTA(UNIQUE(A2:A7,FALSE,TRUE))` carries the "only Crane appears once"
+        case on the argument that actually means it.
+      - `SORT`'s sort index is bounded by the source width (`SORT(A2:B7,3,-1)` → `#VALUE!`). That
+        matches Excel rather than diverging from it, so it stays; drill 88 teaches the 3-arg form and
+        a fixture pins the out-of-range `#VALUE!` as an accepted rejection.
 
       The catalog is now **88 of 88**, 0 planned. `tests/audit.js`, `tests/content-lint.test.js` and
       `tests/golden/snapshot.json` moved with it.

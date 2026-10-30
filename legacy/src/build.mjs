@@ -119,7 +119,11 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
 
   // The offer. `noindex` and deliberately out of the sitemap: the index is the page search engines
   // should land on. It exists because the drill's wall needs a URL to send a reader to.
-  const pricingHtml = renderPricingPage({ config, track, index, icons });
+  // `legacy/` is deployed as a folder on its own (`tests/build.test.js` proves it), so the static build
+  // may not import the Next app's `lib/`. Checkout exists on this deployment when the secret key does;
+  // `lib/stripe.js` stays the authority for how a session is actually built.
+  const checkout = { enabled: Boolean((process.env.STRIPE_SECRET_KEY ?? "").trim()) };
+  const pricingHtml = renderPricingPage({ config, track, index, icons, checkout });
   assertSelfContained(pricingHtml, config, "pricing/index.html");
   pages.push({ file: "pricing/index.html", html: pricingHtml });
 

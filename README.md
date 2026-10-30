@@ -54,7 +54,7 @@ while the port is in progress.
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run db:start` | Starts the local Supabase stack (schema, RLS, seed) from `supabase/` | `supabase status` reports every service healthy |
-| `npm run db:check` | `supabase db reset`, then the RLS, auth, data-rights and institutional-access suites in `tests/db/` | 112 assertions pass, 0 fail |
+| `npm run db:check` | `supabase db reset`, then the RLS, auth, data-rights, institutional-access and payment suites in `tests/db/` | 129 assertions pass, 0 fail |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
 | `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 30 prerendered pages, exit 0 |
 | `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 30 pages match |
@@ -220,7 +220,7 @@ lesson and the dashboard behave exactly as before. Configure a project and those
 cp .env.example .env.local     # both variables are optional; unset is the supported default
 npm run db:start               # local Supabase on ports 54350–54359 (needs Docker or colima)
 npm run db:reset               # migrations + seed; run this after any migration change
-npm run db:check               # 112 assertions: RLS, sign-in and emailed links, the progress writer, the roll-up import, the profile columns, the export RPCs, the erase and the institution allowlist
+npm run db:check               # 129 assertions: RLS, sign-in and emailed links, the progress writer, the roll-up import, the profile columns, the export RPCs, the erase, the institution allowlist and the payment webhook
 ```
 
 `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read at build time for the browser
@@ -273,10 +273,23 @@ is read, so a direct URL to a paid drill is a redirect rather than a page. Entit
 `is_entitled(uid)` in Postgres: `status`, period end and the institutional grant are the database's
 facts, not a cookie's.
 
-Enforcement is off by default and has two env facts: `PAYWALL=on` **and** a configured Supabase project.
-Billing (Stripe) is not wired, so a wall that shipped on would dead-end thirteen drills with no way to
-buy; the in-browser trial stays the honest path until checkout exists. The two cannot run together — a
-request cannot prove a `localStorage` trial — which is also why the flag is opt-in rather than automatic.
+Billing is wired but every Stripe variable is optional: with none of them set, the pricing page says
+checkout is closed and `/api/stripe/{checkout,portal,webhook}` answer 503, which is the state CI runs in.
+Set `STRIPE_SECRET_KEY` (and the three prices `npm run stripe:seed` prints) and the page replaces its
+note with a plain form post to `/api/stripe/checkout?plan=annual`; set `STRIPE_WEBHOOK_SECRET` and
+`POST /api/stripe/webhook` starts believing deliveries. There is no Stripe SDK — the two things needed
+are a form-encoded `fetch` and an HMAC-SHA256 comparison in `lib/stripe.js`, both tested directly, and a
+dependency in the one path that moves money would buy nothing but upgrade risk.
+
+`apply_stripe_event()` in `0008` is the whole handler, and it claims the event id in `stripe_events`
+**before** any row moves: a retried delivery is a no-op, a refund revokes every Stripe-sourced plan of
+that account in one statement, and an institution grant is left alone because an employer refunded
+nothing. Money rows are unreadable to learners (0002), so `my_payments()` is the only door.
+
+Enforcement is off by default and has two env facts: `PAYWALL=on` **and** a configured Supabase project
+with Stripe keys, because a wall that shipped on without checkout would dead-end thirteen drills. The
+in-browser trial stays the honest path until then. The two cannot run together — a request cannot prove
+a `localStorage` trial — which is also why the flag is opt-in rather than automatic.
 With it on, `proxy.js` reads `legacy/content` at request time, so a standalone deployment needs that
 directory next to the server bundle.
 

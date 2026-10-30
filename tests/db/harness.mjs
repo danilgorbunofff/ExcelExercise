@@ -89,7 +89,10 @@ export async function rest(path, { as, method = 'GET', body, prefer } = {}) {
 const FIXTURE_TABLES = [
   ['feedback', 'id'],
   ['payments', 'id'],
-  ['entitlements', 'user_id'],
+  // `id`, not `user_id`: 0006 lets an entitlement outlive the account it was bought by, and an
+  // orphaned money row is exactly the row a later assertion counts.
+  ['entitlements', 'id'],
+  ['stripe_events', 'id'],
   ['progress_batches', 'id'],
   ['attempts', 'id'],
   ['lesson_progress', 'user_id'],

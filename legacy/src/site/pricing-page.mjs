@@ -28,11 +28,29 @@ function renderDrills(entries, linked) {
 }
 
 /** The pricing page as `<main>` markup plus its head metadata; see `prepareIndexPage` for why. */
-export function preparePricingPage({ config, track, index, icons = {} }) {
+export function preparePricingPage({ config, track, index, icons = {}, checkout = { enabled: false } }) {
   const first = index[0];
   const free = index.filter((entry) => entry.free);
   const paid = index.filter((entry) => !entry.free);
   const freeCount = track.freeLessonCount;
+  // The two builds render this page from the same arguments, so "can this deployment take money"
+  // has to be an argument and not a guess. When it is false the page says so, and the markup below is
+  // byte-identical to the page that shipped before checkout existed.
+  const cta = checkout.enabled
+    ? `<form class="cta-row" method="post" action="/api/stripe/checkout?plan=annual">
+        <button class="btn btn-primary" type="submit">Pay ${esc(PRICE)}${inlineIcon(icons["arrow-right"], {
+          size: 16,
+        })}</button>
+        <a class="btn" href="${esc(first.path)}">Start with drill 1 · ${esc(first.exercise.title)}</a>
+      </form>
+      <p class="gate-note">Card payment through Stripe. Every paid drill opens the moment the payment clears, and you can cancel or ask for a refund from your account page.</p>`
+    : `<p class="cta-row">
+        <a class="btn btn-primary" href="/signup?next=/pricing">Create an account${inlineIcon(icons["arrow-right"], {
+          size: 16,
+        })}</a>
+        <a class="btn" href="${esc(first.path)}">Start with drill 1 · ${esc(first.exercise.title)}</a>
+      </p>
+      <p class="gate-note">Checkout is not open yet in this build. Until it opens, the free drills are open and the paid drills open with the in-browser trial.</p>`;
 
   const body = `<main class="shell" id="main">
       <div class="page-head">
@@ -44,13 +62,7 @@ export function preparePricingPage({ config, track, index, icons = {} }) {
         ${renderByline({ config, index })}
       </div>
 
-      <p class="cta-row">
-        <a class="btn btn-primary" href="/signup?next=/pricing">Create an account${inlineIcon(icons["arrow-right"], {
-          size: 16,
-        })}</a>
-        <a class="btn" href="${esc(first.path)}">Start with drill 1 · ${esc(first.exercise.title)}</a>
-      </p>
-      <p class="gate-note">Checkout is not open yet in this build. Until it opens, the free drills are open and the paid drills open with the in-browser trial.</p>
+      ${cta}
 
       <section class="how" aria-labelledby="free-heading">
         <h2 id="free-heading">What stays free</h2>

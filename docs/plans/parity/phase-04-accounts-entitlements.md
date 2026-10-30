@@ -246,6 +246,10 @@ accuracy and rank — never email or username.
    `customer.subscription.created|updated|deleted`, `invoice.paid`, `charge.refunded`. The handler
    inserts the Stripe event id into `stripe_events` **before** doing any work: a duplicate
    primary-key insert short-circuits it, so a replayed or retried delivery cannot double-apply.
+   Delivered in unit 3h — seed script, three routes, `lib/stripe.js` and one definer RPC that applies
+   an event exactly once; see the unit log for what is proved and the five deviations (no SDK, no live
+   keys, cancellation surfaces as `canceled` not `revoked`, `metadata.user_id` is the resolution path,
+   and the Billing Portal has no button yet).
 7. **Entitlement check, authoritative at request time.** `is_entitled(uid)`, `security definer`:
    active subscription OR non-refunded lifetime payment OR institutional grant. Every gated request
    calls it through `my_entitlements()` (one indexed lookup, in-process cache capped at 60 s per
@@ -276,11 +280,22 @@ accuracy and rank — never email or username.
 
 - [ ] Progress survives a device switch and a browser cache clear.
 - [ ] A test-mode subscription unlocks gated lessons within one webhook tick (<5 s).
+      *Half closed in unit 3h: the unlock itself is proved (`tests/db/stripe.spec.js` applies a real
+      `customer.subscription.created` and `is_entitled()` flips in the same transaction), but "test
+      mode" and "<5 s" need live keys and a running `stripe listen` — see the open rows.*
 - [ ] A refund revokes access on the next request.
+      *Closed in unit 3h at the database: `charge.refunded` marks the payment and revokes the plan, and
+      the very next `is_entitled()` answers false. The route-level round trip through Stripe waits on
+      test-mode keys.*
 - [ ] Revocation holds with a pre-existing access token: sign in and load a gated lesson, refund,
       then re-request with the same token (no refresh) → blocked. This is the test that proves the
       gate is the database check, not a JWT claim.
+      *Closed in unit 3h: the suite signs in once, applies the refund, and asks with the same token —
+      `is_entitled()` is the check, so no token refresh is needed for the answer to change. The proxy
+      half of the row was proved in unit 3e.*
 - [ ] A second device signed in before the purchase unlocks on its next request without a re-login.
+      *Closed in unit 3h: two tokens issued before the purchase, one `checkout.session.completed`
+      after it, both answer entitled with no sign-in in between.*
 - [ ] Free user is soft-prompted at lesson 4 and hard-gated at lesson 5; direct URL is blocked
       server-side. *Half closed in unit 3e: the prompt and the wall are proved in a browser
       (`e2e/paywall.spec.js`), and the server redirect is implemented and unit-proved
@@ -297,6 +312,8 @@ accuracy and rank — never email or username.
 - [ ] RLS suite proves user A cannot read or write user B's rows, and cannot insert a completion for
       themselves through PostgREST with their own JWT (15 assertions covering the policy set above).
 - [ ] Webhook replay of the same event produces no duplicate entitlement.
+      *Closed in unit 3h: the same event id delivers twice, the second answer is
+      `{applied: false, reason: "duplicate"}`, and the row counts do not move.*
 - [ ] No secret is present in the client bundle (`grep` gate in CI).
 
 ## Test plan
@@ -1158,3 +1175,144 @@ touched nothing it should not have.
 |---|---|
 | A retroactive sweep for domains added after sign-up | product decision, not code; the per-account backfill path is proved |
 | Group admin UI for an institution owner | out of scope per the item ("No UI yet beyond the grant") |
+
+### 2026-11-02 — unit 3h: the payment path (item 6)
+
+**Closed:** work item 6 — `supabase/migrations/0008_stripe_webhook.sql`, `lib/stripe.js`,
+`app/api/stripe/{checkout,portal,webhook}/route.js`, `scripts/stripe-seed.mjs`, the pricing page's
+button, `tests/stripe.test.js` (32) and `tests/db/stripe.spec.js` (17). Written and proved without a
+Stripe account: every network call is either injected (`stripePost` takes a `fetchImpl`) or replaced by
+the database function the webhook would have called.
+
+```
+$ npm run db:check
+ℹ tests 129
+ℹ suites 33
+ℹ pass 129
+ℹ fail 0
+
+$ npm run check
+ℹ tests 826
+ℹ suites 144
+ℹ pass 826
+ℹ fail 0
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 30 pages (788.2 kB of HTML+CSS) → /Users/danil/Desktop/excelsupreme/legacy/dist
+next routes: 30 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard, the pricing page and 9 group pages — 908 checks passed
+
+$ npx playwright test
+  82 passed (12.5s)
+
+$ npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+`db:check` moved 112 → 129 assertions and 29 → 33 suites; `npm test` moved 794 → 826 and 137 → 144.
+Everything else holds exactly, including the 788.2 kB of HTML: the pricing page renders byte-identically
+when the deployment cannot take money, which is the state CI builds in.
+
+#### What was built
+
+- **`stripe_events` is the lock, and it was already there.** 0001 declared it; this unit is the first
+  thing that writes to it. `apply_stripe_event()` inserts the event id **first** and returns
+  `{applied: false, reason: "duplicate"}` when the insert loses, so every branch below runs at most
+  once. One function rather than six route handlers means the claim and the work share a transaction:
+  a handler that claims and then throws would leave a claimed-but-unapplied event, which is the one
+  state that costs a learner their purchase.
+- **Five handlers, one transaction.** `checkout.session.completed` records the payment and settles a
+  lifetime purchase; `customer.subscription.created|updated|deleted` map Stripe's status to the four
+  the schema allows (`trialing` is access, `past_due` is **not** — the plan's risk table says default to
+  not entitled); `invoice.paid` records the money and extends `current_period_end`; `charge.refunded`
+  marks the payment and revokes every `source = 'stripe'` plan of that account in one statement.
+  Anything else is claimed and stamped `processed_at` with `reason: "ignored"`, because a delivery that
+  is remembered is a delivery Stripe stops retrying.
+- **`lib/stripe.js`** — configuration, the plan table, `checkoutForm`/`portalForm`, `verifySignature`
+  and `stripePost`. Pure except for the `fetch` it is handed. `verifySignature` parses `t=`/`v1=`,
+  refuses a timestamp outside ±300 s, accepts any one of several `v1` candidates (a key rotation), and
+  compares with `timingSafeEqual` over `${t}.${raw}`. It is tested against real HMACs in both
+  directions: good signature, one-byte change, wrong secret, stale timestamp, future timestamp,
+  missing/malformed header, unset secret, empty body, non-hex candidate.
+- **Three routes.** `/api/stripe/webhook` reads `request.text()` and verifies before it parses — never
+  `request.json()`, because a JSON round trip is not byte-identical and the signature would fail for a
+  reason nobody could see. `/api/stripe/checkout` creates the session **server-side** from the plan name
+  and the session cookie, answers 303 for a form post and `{url}` for JSON, and sends a signed-out form
+  post to `/signup?next=/pricing`. `/api/stripe/portal` reads `stripe_customer_id` with the service role
+  filtered by `user.id`, so the browser never supplies a customer id.
+- **`scripts/stripe-seed.mjs`** — one product, three prices, idempotent by `lookup_key`, printing the
+  five `STRIPE_*` lines to paste into `.env.local`. It prints; it never writes a secret file.
+- **The pricing page has a button, conditionally.** `preparePricingPage({ checkout })` renders the
+  existing gate-note when this deployment cannot take money and a plain `<form method="post">` to
+  `/api/stripe/checkout?plan=annual` when it can. Both builds are handed the flag from the same
+  environment, so the static page and the Next page cannot disagree; the disabled branch is byte-for-byte
+  the markup that shipped before this unit.
+
+#### Four defects found by running it, fixed at cause
+
+- **`invoice.paid` matched on the invoice id.** The branch reused `v_sub` (`p_object ->> 'id'`, the
+  invoice's own id) and then filtered entitlements by it, so a renewal fell through to the
+  `stripe_subscription_id is null` arm and could extend an unrelated plan. It now overwrites `v_sub`
+  with `p_object ->> 'subscription'`, and the test asserting the period moved is what caught it.
+- **A renewal could not re-open a closed window.** The update required `status in ('active','past_due')`,
+  so a paid invoice for a subscription that had already lapsed updated nothing — money taken, access
+  still closed. `canceled` is now included, `revoked` excluded (that is a refund, and a stray invoice
+  must not buy back what was returned) and `lifetime` excluded (no window to extend).
+- **`export const dynamic = "force-dynamic"` is an error here.** `next.config.mjs` runs with
+  `cacheComponents`, where route segment config is rejected outright and `next build` fails. Removed
+  from all three routes; a `POST` handler is never cached and the responses carry `no-store`.
+- **`legacy/src/build.mjs` may not import the Next app's `lib/`.** The first version did, and
+  `tests/build.test.js` ("names the missing packages when legacy/ is copied without packages/") caught
+  it: `legacy/` is deployed as a folder on its own, so the static build now derives the checkout flag
+  from `STRIPE_SECRET_KEY` locally and `lib/stripe.js` stays the authority for how a session is built.
+
+#### Deviations from this document
+
+- **No Stripe SDK.** The two things Stripe is used for are a form-encoded POST and an HMAC-SHA256
+  comparison; `fetch` and `node:crypto` do both. A dependency would add a second HTTP stack and a large
+  type surface to the one code path that moves money, and the repo's "no new dependencies" rule applies.
+- **No success/cancel routes — they are query parameters on the existing offer page.** The item says
+  "success/cancel routes"; creating two pages would change the page, route and verify counts for no
+  behaviour, so `success_url` and `cancel_url` are `/pricing?checkout=complete` and
+  `/pricing?checkout=cancelled`. **The page does not yet read that parameter** — see the open rows.
+- **A cancelled subscription is `canceled`, not `revoked`.** Only a refund revokes. Both fail
+  `is_entitled()` (which requires `status = 'active'`), but the distinction is what lets a re-subscribe
+  reuse the row without pretending the earlier subscription never existed.
+- **`metadata.user_id` is the resolution path, with two fallbacks.** A session carries the account in
+  `client_reference_id` and `metadata.user_id`; a subscription inherits it through
+  `subscription_data[metadata]`, because the session object is not part of a subscription event. If an
+  event names no learner the function falls back to the customer id then the subscription id already on
+  an entitlement row, and refuses with `reason: "no_user"` rather than guessing.
+- **The Billing Portal is an endpoint with no button.** `/api/stripe/portal` is proved as a route, and
+  its 409 for an account that never paid is the honest answer; nothing links to it yet, because
+  `/account` is a client-rendered screen whose markup is asserted by the phase-4 profile tests and the
+  link belongs with the copy that says what cancelling does (open below).
+- **`harness.mjs`'s `FIXTURE_TABLES` widened.** `entitlements` is cleaned by `id` rather than
+  `user_id` (0006 lets an entitlement outlive its account, and an orphaned money row is exactly what a
+  later assertion counts) and `stripe_events` was added. The first version of the payment spec failed
+  on stale events from the previous run, which is the reason this is a fix and not a preference.
+
+#### Annotations, not ticks
+
+- **`is_entitled()` needed no change.** It already required `status = 'active'`, so `past_due`,
+  `canceled` and `revoked` all read as "not entitled" the moment the webhook writes them. That is the
+  plan's item 7 holding under the load item 6 puts on it.
+- **`charge.refunded` deliberately does not touch `source = 'institution'`.** An employer did not refund
+  anything; the spec buys a lifetime plan on an institutionally granted account, refunds it, and asserts
+  the grant is still `active` and access is still open.
+- **`stripe_events` rows are never deleted by the application.** Forty bytes each, and the row is the
+  record that a delivery was applied. Only the test harness clears them.
+- **Stripe Tax is requested, not configured.** `automatic_tax[enabled]=true` is in the session because
+  the terms page says the price is the price; the registrations themselves are account state and cannot
+  be created from this repo.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| Live test-mode proof: real Checkout, `stripe listen`, one subscription unlock in one tick | needs a Stripe account's test keys; the same code path is proved against the RPC it calls |
+| `<5 s` unlock, and the whole flow through the route | same — the clock is Stripe's, not this repo's |
+| `/pricing` reading `?checkout=complete|cancelled` and showing a receipt or a "payment cancelled" note | UI work that needs keys to be meaningful; today the parameters are ignored |
+| A "Manage billing / cancel" button on `/account` posting to `/api/stripe/portal` | the endpoint is proved; the copy that says what cancelling does is not written |
+| Flipping `PAYWALL=on` | every row above, plus a decision that the wall should ship before live keys exist |
+| Stripe Tax registrations, test clocks, dunning settings | Stripe account state, not code |

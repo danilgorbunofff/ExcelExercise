@@ -94,7 +94,7 @@
 }
 
 .flashcard-grade:focus-visible {
-  outline: 2px solid var(--text-muted);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 

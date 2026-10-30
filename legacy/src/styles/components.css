@@ -950,8 +950,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A placeholder is text a learner has to read to know what the bar wants; sand-9 measured 3.3:1 on
+   the surface, under the 4.5:1 the rest of the page meets. The muted token is the lightest step that
+   clears it. */
 .formula-input::placeholder {
-  color: var(--sand-9);
+  color: var(--text-muted);
   font-style: italic;
 }
 

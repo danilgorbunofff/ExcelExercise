@@ -44,6 +44,39 @@ test("the dashboard passes with nothing to fix", async ({ page }) => {
   await scan(page, "the dashboard");
 });
 
+test("the formula prompt is readable before anything is typed", async ({ page }) => {
+  await page.goto(freeDrill().path);
+  await expect(page.locator("#formula")).toBeVisible();
+
+  // A placeholder is not a text node, so axe walks straight past it: the sheet is empty, the bar looks
+  // labelled, and the hint colour was 3.3:1 against the surface it sits on. Measured, not assumed.
+  const pair = await page.evaluate(() => {
+    const input = document.querySelector("#formula");
+    const placeholder = getComputedStyle(input, "::placeholder").color;
+    let node = input;
+    let background = "rgba(0, 0, 0, 0)";
+    while (node && background === "rgba(0, 0, 0, 0)") {
+      background = getComputedStyle(node).backgroundColor;
+      node = node.parentElement;
+    }
+    return { placeholder, background };
+  });
+
+  const channel = (value) => {
+    const n = Number(value) / 255;
+    return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = (colour) => {
+    const [r, g, b] = colour.match(/[\d.]+/g).slice(0, 3).map(channel);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const [light, dark] = [luminance(pair.placeholder), luminance(pair.background)].sort((a, b) => b - a);
+  const ratio = (light + 0.05) / (dark + 0.05);
+
+  expect(pair.background).not.toBe("rgba(0, 0, 0, 0)");
+  expect(Math.round(ratio * 100) / 100).toBeGreaterThanOrEqual(4.5);
+});
+
 test("a formula drill passes before and after a miss", async ({ page }) => {
   await page.goto(freeDrill().path);
   await expect(page.locator("#formula")).toBeVisible();

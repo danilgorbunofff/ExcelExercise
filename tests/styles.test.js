@@ -170,6 +170,19 @@ describe("visual constraints", () => {
     assert.match(base, /:focus-visible/);
   });
 
+  it("gives the Next-only stylesheets the same ring", () => {
+    // The auth pages and the flashcard deck ship their own CSS, outside `components.css` and so outside
+    // the rule above: the deck's grade buttons wore a ring in the muted sand, which reads as no ring at
+    // all on the surface behind them. Every outline in every stylesheet is the one focus token now.
+    const app = ["auth.css", "flashcards/flashcards.css", "globals.css"].map((name) =>
+      readFileSync(join(ROOT, "..", "app", name), "utf8"),
+    );
+    const outlines = app.flatMap((text) => declarations(text, "outline"));
+    assert.ok(outlines.length >= 1, "the app stylesheets declare a focus ring");
+    for (const value of outlines) assert.equal(value, "2px solid var(--focus)");
+    for (const text of app) assert.equal(/outline:\s*none/.test(text), false);
+  });
+
   it("defines every custom property it reads", () => {
     const defined = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]));
     const used = new Set([...css.matchAll(/var\((--[\w-]+)/g)].map((match) => match[1]));

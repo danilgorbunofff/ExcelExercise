@@ -94,6 +94,43 @@ test("a formula that cannot be read points at the character", async ({ page }) =
   await expect(page.locator(".feedback-caret")).toBeVisible();
 });
 
+test("a lesson the record already holds reads as a revisit, not as a first attempt", async ({ page }) => {
+  // The completed record is what makes this lesson done; arriving with it is the whole test. The page
+  // must say so instead of greeting a second visit with a first attempt's congratulations.
+  await page.addInitScript((lessonId) => {
+    window.localStorage.setItem(
+      "es.progress",
+      JSON.stringify({
+        v: 1,
+        done: { [lessonId]: { at: "2026-01-01T00:00:00.000Z", tries: 1, helped: false } },
+        tries: {},
+        unlocked: false,
+      }),
+    );
+  }, FREE.exercise.id);
+
+  await openDrill(page, FREE.slug);
+  const feedback = page.locator("#feedback");
+  await expect(feedback).toHaveClass(/is-revisit/);
+  // A revisit is not a verdict, so it is not dressed as one.
+  await expect(feedback).not.toHaveClass(/is-correct|is-wrong/);
+  await expect(page.locator("#feedback-head")).toHaveText("Already solved");
+  await expect(page.locator("#feedback-body")).toContainText(
+    "The answer is in the bar and in the cell — edit either one to practise it again.",
+  );
+  await expect(page.locator("#feedback .feedback-meta")).toContainText("On your record since");
+  // The answer is handed back rather than asked for again.
+  await expect(page.locator("#formula")).toHaveValue("=SUM(B2:B4)");
+  await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-correct/);
+
+  // Answering again is still graded, and says what it is: a second solve, not a first one.
+  await check(page, "=SUM(B2:B4)");
+  await expect(feedback).toHaveClass(/is-correct/);
+  await expect(page.locator("#feedback .feedback-meta")).toHaveText(
+    "Solved again — this lesson was already on your record.",
+  );
+});
+
 test("a multi-screen lesson walks to its picture screen and completes on typed text", async ({ page }) => {
   await openGatedDrill(page, "xlookup-search-from-the-bottom");
 

@@ -348,6 +348,10 @@ function mountDrill(payloadNode) {
   let exhausted = false;
   let solved = isComplete(progress, lessonId);
   let offeredSolution = solved && progress.done[lessonId].helped === true;
+  // `solved` also turns true when *this* visit finishes the lesson, so it cannot tell the two apart.
+  // A return visit is a different conversation: the record already holds the result, and neither the
+  // verdict nor the bar may congratulate it as a first attempt.
+  const revisit = solved;
 
   /** The first keystroke on the lesson, once, whichever door it came through. */
   function markStarted() {
@@ -675,8 +679,35 @@ function mountDrill(payloadNode) {
   }
 
   function successLabel(missed) {
+    if (revisit) return "Solved again — this lesson was already on your record.";
     if (missed === 0) return "Solved on the first attempt.";
     return `Solved after ${missed} ${missed === 1 ? "wrong attempt" : "wrong attempts"}.`;
+  }
+
+  /**
+   * What a returning learner reads where a verdict goes. The record already says this lesson is done,
+   * so the panel says exactly that, names the day it was recorded, and hands back the answer that is
+   * already in the bar — rather than greeting a second visit with a first attempt's congratulations.
+   */
+  function showRevisit() {
+    const done = progress.done[lessonId];
+    const since = new Date(done.at).toLocaleDateString(undefined, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    clearFeedback();
+    ui.feedback.classList.add("is-revisit");
+    ui.feedbackHead.textContent = "Already solved";
+    ui.feedbackBody.textContent = `${solvedLine(activeScreen())} The answer is in the bar and in the cell — edit either one to practise it again.`;
+    ui.feedback.append(
+      el("p", {
+        class: "feedback-meta",
+        text: done.helped
+          ? `On your record since ${since}, completed with the reference answer.`
+          : `On your record since ${since}.`,
+      }),
+    );
   }
 
   // Attempts are counted per screen: `revealAfter` misses on this screen open the reference answer,
@@ -1194,6 +1225,7 @@ function mountDrill(payloadNode) {
     // enterScreen reset the flag; a return visit that finished with the reveal must keep showing it.
     offeredSolution = progress.done[lessonId].helped === true;
     paintSolved();
+    showRevisit();
   }
 
   if (gate()) {

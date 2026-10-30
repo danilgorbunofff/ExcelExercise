@@ -1579,17 +1579,22 @@
   gap: var(--s-2);
 }
 
+/* One column of text with the counter in the gutter, rather than a two-cell grid. A grid puts each
+   *child* of the `<li>` in its own cell, so a `<li><strong>title</strong> — outcome</li>` line — every
+   row of the two drill rosters on /pricing — ran its description through the 24px counter cell one
+   word per line, which is how a 3-item list became a 34,600px page. */
 .how-steps li {
   counter-increment: step;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: var(--s-2);
+  position: relative;
+  padding-left: calc(24px + var(--s-2));
   font-size: var(--fs-ui);
   line-height: 1.55;
 }
 
 .how-steps li::before {
   content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: var(--fs-meta);

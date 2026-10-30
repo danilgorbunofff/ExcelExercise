@@ -64,6 +64,15 @@ export function preparePricingPage({ config, track, index, icons = {}, checkout 
 
       ${cta}
 
+      <section class="how" aria-labelledby="price-heading">
+        <h2 id="price-heading">The price, plainly</h2>
+        <ol class="how-steps">
+          <li><strong>${esc(PRICE)}</strong> for the whole track — one payment, not one per drill.</li>
+${TERMS.map((term) => `          <li>${esc(term)}.</li>`).join("\n")}
+        </ol>
+        <p class="how-note">Your progress lives in this browser whether you pay or not. An account is what carries it to another device.</p>
+      </section>
+
       <section class="how" aria-labelledby="free-heading">
         <h2 id="free-heading">What stays free</h2>
         <ol class="how-steps">
@@ -78,15 +87,6 @@ ${renderDrills(free, true)}
 ${renderDrills(paid, false)}
         </ol>
         <p class="how-note">Paid drills grade exactly like the free ones: the rule you missed, named, in your browser.</p>
-      </section>
-
-      <section class="how" aria-labelledby="price-heading">
-        <h2 id="price-heading">The price, plainly</h2>
-        <ol class="how-steps">
-          <li><strong>${esc(PRICE)}</strong> for the whole track — one payment, not one per drill.</li>
-${TERMS.map((term) => `          <li>${esc(term)}.</li>`).join("\n")}
-        </ol>
-        <p class="how-note">Your progress lives in this browser whether you pay or not. An account is what carries it to another device.</p>
       </section>
     </main>`;
 

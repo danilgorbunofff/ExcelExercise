@@ -547,8 +547,82 @@ What the suites assert, so this log is checkable rather than reassuring:
 
 | Row | Blocked by |
 |---|---|
-| The browser sender (drain `__esEvents`, POST on lesson end and on `pagehide`) | unit 3b; the drill's sink is module-private, so it needs a subscription hook rather than a second copy of the buffer |
-| Anonymous `es.progress` import with `min(completed_at)` merge and an `es.progress.migrated` marker | unit 3b; needs the sender to exist first |
+| The browser sender (drain `__esEvents`, POST on lesson end and on `pagehide`) | closed in unit 3b — see the next entry |
+| Anonymous `es.progress` import with `min(completed_at)` merge and an `es.progress.migrated` marker | still open; needs the merge rule, not just a transport |
 | The `201` path of `POST /api/progress` over HTTP | needs a Next server with a configured Supabase project in the test job; today the route's success path is proved at the function and module level, and its refusal path in a browser |
+| Profile onboarding step (name + username, optional LinkedIn) — work item 3 | not started |
+| Items 5 (legal/data rights), 6 (Stripe), 8 (paywall), 9 (allowlist) | not started; item 6 also needs Stripe test keys |
+
+### 2026-10-31 — unit 3b (the browser sender)
+
+The drill already kept a bounded event buffer in `globalThis.__esEvents`; nothing shipped it. This unit
+adds the transport and nothing else: the sink gained a subscription hook, the batching is a pure module,
+and a null-rendering client component owns the fetch. No template changed, so the static build and the
+fragment diff are untouched by design, and the numbers below are the proof.
+
+```
+npm run check
+ℹ tests 696
+ℹ suites 113
+ℹ pass 696
+ℹ fail 0
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 27 pages (741.4 kB of HTML+CSS) → /Users/danil/Desktop/excelsupreme/legacy/dist
+next routes: 27 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed
+
+npx playwright test
+  63 passed (10.0s)
+
+npm run db:check
+ℹ tests 66
+ℹ pass 66
+ℹ fail 0
+
+npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+`685 → 696` unit tests (the new `tests/progress-sender.test.js`, 11 cases) and `62 → 63` e2e. The page
+count, the byte count, the screen and fixture counts and the check count are unchanged: a component that
+renders `null` adds no markup, which is exactly what parity requires.
+
+#### What ships
+
+- **`legacy/src/client/drill.js`** — one `notify(event)` call in the sink's `write`, which calls
+  `globalThis.__esOnEvent` if a transport installed one, inside `try/catch`. Grading cannot depend on a
+  subscriber: a throw is logged at `debug` and the buffer keeps the event either way. No subscriber
+  exists in the static build, so its behaviour is unchanged.
+- **`lib/progress/sender.js`** — `createCollector()`: buckets by `event.id` (one lesson per batch, which
+  is what `deriveUpdates` accepts), dedupes by object identity (the seed and the hook deliver the same
+  object), drops events that name no lesson (`track_view` counts the whole track), offers a batch on
+  `lesson_complete`/`lesson_exhausted` or at 120 events, and separates `take` from `restore` so a refused
+  batch goes back in front of whatever arrived meanwhile.
+- **`app/progress-sender.js`** — `"use client"`, renders `null`. Seeds from `__esEvents`, installs
+  `__esOnEvent`, posts `{ batch_id: crypto.randomUUID(), events }` to `/api/progress`, flushes every
+  pending lesson on `visibilitychange → hidden` and `pagehide` with `keepalive`, gives up for the page on
+  `401`/`403`/`503`, restores on `400`/`5xx`/network error, and treats `409` (a key already used) as done.
+  It refuses to install when a hook already exists — a second mount would re-seed the same buffer and
+  send it again under a fresh id, a replay the server cannot recognise.
+- **`app/layout.js`** — mounts it next to the feedback script.
+- **`tests/progress-sender.test.js`** (11), **`e2e/progress.spec.js`** (+1): the e2e case types a real
+  answer into `sum-basics`, and reads the request the page actually made — the batch id is a v4 uuid, the
+  batch carries `drill_start`/`check_correct`/`lesson_complete`, every event names `01-sum-basics`, and
+  the answer is `503` with grading unaffected.
+
+#### Why the id is a slug in the URL and an id in the event
+
+`deriveUpdates` and `record_progress` key on the catalog id (`01-sum-basics`); the page URL is the slug
+(`/learn/excel/sum-basics`). The e2e case asserts the event id, because that is what the route checks
+against `loadSite().index`.
+
+#### Still open
+
+| Row | Blocked by |
+|---|---|
+| Anonymous `es.progress` import with a `min(completed_at)` merge and an `es.progress.migrated` marker | needs a merge rule the database does not have yet; the sender is a prerequisite and now exists |
+| The `201` path of `POST /api/progress` over HTTP | needs a Next server with a configured Supabase project in CI; the success path is proved at the function and module level (`tests/db/progress.spec.js`, `tests/progress-sync.test.js`), the refusal path in a browser |
+| A signed-in flush through the real route | same: no database in the e2e job |
 | Profile onboarding step (name + username, optional LinkedIn) — work item 3 | not started |
 | Items 5 (legal/data rights), 6 (Stripe), 8 (paywall), 9 (allowlist) | not started; item 6 also needs Stripe test keys |

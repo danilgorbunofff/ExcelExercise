@@ -58,9 +58,26 @@ const RULE_LABEL = {
 const globalObject = globalThis;
 
 /**
+ * A transport subscribes by setting `globalThis.__esOnEvent`; nothing here reads the network. The call
+ * is defensive because grading must not depend on it: a subscriber that throws or is slow is its own
+ * problem, and the buffer above stays the record either way.
+ */
+function notify(event) {
+  const hook = globalObject.__esOnEvent;
+  if (typeof hook !== "function") return;
+  try {
+    hook(event);
+  } catch (error) {
+    if (typeof globalObject.console?.debug === "function") {
+      globalObject.console.debug("[es] event subscriber threw", error);
+    }
+  }
+}
+
+/**
  * Funnel events go through the shared sink, which owns the vocabulary and the envelope
- * and refuses names it does not know. Nothing is shipped anywhere yet: the buffer is
- * what the analytics collector will read once phase 10 wires a transport.
+ * and refuses names it does not know. The buffer is the record; whether anything ships it
+ * is up to whoever subscribes through `notify`, and the static build ships no subscriber.
  */
 const sink = createSink({
   write: (event) => {
@@ -69,6 +86,7 @@ const sink = createSink({
     if (typeof globalObject.console?.debug === "function") {
       globalObject.console.debug(`[es] ${event.type}`, event);
     }
+    notify(event);
   },
   context: () => ({ route: globalObject.location?.pathname ?? "" }),
 });

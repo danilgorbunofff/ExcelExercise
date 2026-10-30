@@ -1,5 +1,6 @@
 import "./globals.css";
 
+import ProgressSender from "./progress-sender.js";
 import { loadSite } from "../lib/site.js";
 
 const { config } = loadSite();
@@ -25,6 +26,9 @@ export default function RootLayout({ children }) {
         {/* The footer's feedback dialog is React-inserted markup, so its script cannot ride along in
             the fragment: a script set through innerHTML never runs. */}
         <script type="module" src="/assets/client/feedback.js" />
+        {/* The drill's event buffer is the browser's record of what happened; this posts it. Inert on
+            a deployment without accounts (the API refuses, and the sender stops there). */}
+        <ProgressSender />
       </body>
     </html>
   );

@@ -229,6 +229,12 @@ server-only and must never be prefixed `NEXT_PUBLIC_`; without it the route answ
 falling back to the anon key. The batch id is the idempotency key — a retry is a no-op — and
 `attempt_seq` is assigned inside the database.
 
+The browser half is `lib/progress/sender.js` (bucketing, dedupe, `take`/`restore`) driven by
+`app/progress-sender.js`, a client component that renders nothing and subscribes to the drill's sink
+through `globalThis.__esOnEvent`. It sends one batch per lesson when the lesson ends (or the page is
+hidden), and stops for the life of the page on the first 401/403/503 — a deployment without accounts
+should not be retried once per answer.
+
 ---
 
 ## Adding lesson 17

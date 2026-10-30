@@ -107,3 +107,27 @@ authoring, not verification. See the "Stop before content authoring" note in the
 | Cohort two progress | 5 of 10 |
 | Fixture floor per lesson | 6 accepted + 6 rejected (`MIN_FIXTURES`) |
 | Golden snapshot | 2 tests, byte-stable |
+
+## Re-pin after the content push (2026-10-30)
+
+Everything above is the state of this verification run — 16 of 88 authored, 268 fixtures — and it
+stays as written. The catalog has since been authored out. This section records the same gate rows
+re-run against the current tree, run from `/Users/danil/Desktop/excelsupreme` on branch
+`phase-0-port-shell`. Nothing above is edited to match it.
+
+| Row | Status | Evidence (re-run 2026-10-30) |
+|---|---|---|
+| 1 | **closed** | `npm run content:check` → `content: 88 of 88 catalogued lessons, 16 groups, 152 screens, 1946 fixtures replayed` then `✓ content passes — 903 accepted and 1043 rejected formulas agree with the grader` |
+| 2 | **closed** | `node --test tests/golden.test.js` → `ℹ tests 2`, `ℹ pass 2`, `ℹ fail 0` (snapshot grew to 88 lessons, 2492 verdicts) |
+| 3 | **closed** | `node --test tests/schema-v2.test.js tests/content.test.js` → `ℹ tests 78`, `ℹ pass 78`, `ℹ fail 0` |
+| 4 | **closed** | `node --test tests/fixtures.test.js` → `ℹ tests 598`, `ℹ pass 598`, `ℹ fail 0` |
+| 5 | **closed, with the refusal as the evidence** | `node packages/content-lint/cli.js new --lesson 89 --group lookup --content "$TMP"` → `group "lookup" has no planned slots left — add one to track.json before scaffolding a lesson in it`. With every slot authored there is no free slot to scaffold into, so the row's own command cannot be replayed as written; the flow is covered by `node --test --test-name-pattern "scaffolds a lesson" tests/content-lint.test.js` → `ℹ tests 1`, `ℹ pass 1`, which appends a planned slot to a sandbox catalog and then scaffolds, lints and passes against it. |
+| 6 | **closed** | `node --test tests/build.test.js` → `ℹ tests 45`, `ℹ pass 45`, `ℹ fail 0` |
+| 7 | **still open** | Unchanged in kind: a person has to read lessons against Excel. It now covers 88 lessons rather than 16 |
+
+The content-scope rows are closed: 0 of 88 remain `planned`, 0 groups lack drills, and every group
+has a page (`verified 88 lesson pages, the index, the dashboard, the pricing page and 16 group pages
+— 4378 checks passed`). The three array lessons that finished the catalog are 86-88, and authoring
+them turned up one engine bug that is now fixed rather than recorded: `UNIQUE` answered multi-column
+ranges with column 1 only. See the superseded-scope note in
+`docs/plans/parity/phase-01-curriculum-content-factory.md`.

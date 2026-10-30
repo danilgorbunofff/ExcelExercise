@@ -29,7 +29,7 @@ and Phase 2 builds five screen types, all five of which a shipped lesson now ren
 | Phase | Doc | Assessment | Blocking gap that a machine cannot close |
 |---|---|---|---|
 | 0 — Port shell | [show](./phase-00-port-shell-verification-plan.md) | **Solid**, one accounting hole | No preview deploy; "bundle size documented" was measured as static bytes only |
-| 1 — Content factory | [show](./phase-01-content-factory-verification-plan.md) | **Solid tooling / High Risk on scope** | 16 of 88 lessons; 9 of 16 groups have drills |
+| 1 — Content factory | [show](./phase-01-curriculum-verification-plan.md) | **Solid tooling / High Risk on scope** | 16 of 88 lessons; 9 of 16 groups have drills |
 | 2 — Exercise engine | [show](./phase-02-exercise-engine-verification-plan.md) | **Solid engine / coverage closed** | The manual shortcut matrix and workbook-in-Excel behaviour: both have production pages now, but no machine can stand in for three real keyboards or for Excel |
 | 3 — Dashboard | [show](./phase-03-dashboard-verification-plan.md) | **Solid**, two recorded deviations | No server-side progress and no `/api/feedback` — a product decision, recorded |
 
@@ -167,3 +167,35 @@ Each phase file has the same three sections: **Assessment**, **Critical Failure 
 **Verification Gate** — a command-by-command checklist where each row says what to expect and what
 a failure means. Run the gate chain above first; if it is green, the per-phase gates tell you which
 parts of it carry the proof and which claims rest on a recorded deviation instead of a test.
+
+## Re-measured after the content push (2026-10-30)
+
+The tables above are the verification run's measurements and stay as written. This is the same gate
+chain re-run after the last 72 lessons were authored, from `/Users/danil/Desktop/excelsupreme` on
+branch `phase-0-port-shell`:
+
+| # | Command | Measured 2026-10-30 |
+|---|---|---|
+| 1 | `npm run vendor:check` | `vendor: 25 files match manifest.json` |
+| 2 | `npm test` (inside `npm run check`) | `ℹ tests 1565`, `ℹ suites 199`, `ℹ pass 1565`, `ℹ fail 0` |
+| 3 | `npm run content:check` | `content: 88 of 88 catalogued lessons, 16 groups, 152 screens, 1946 fixtures replayed` then `✓ content passes — 903 accepted and 1043 rejected formulas agree with the grader` |
+| 4 | `npm run next:build` | `built 109 pages (11223.7 kB of HTML+CSS)` |
+| 5 | `npm run next:check` | `next routes: 109 prerendered pages match the shared templates` |
+| 6 | `node legacy/src/verify.mjs` | `verified 88 lesson pages, the index, the dashboard, the pricing page and 16 group pages — 4378 checks passed` |
+| 7 | `npx playwright test` | `111 passed (20.5s)` |
+
+Phase 1's scope risk is therefore closed: 88 of 88 slots authored, 16 of 16 groups with drills, 0
+`planned`. The "Stop before content authoring" section above is history — it described the tree before
+the push. What remains red in the whole plan is unchanged and still not a machine's to close:
+
+- Phase 0: no preview deploy, and the bundle figure is still static bytes rather than a measured
+  network waterfall.
+- Phase 2: the manual shortcut matrix across three real keyboards, and workbook behaviour in Excel
+  itself.
+- Phase 3: no server-side progress and no `/api/feedback` — a recorded product decision, not a defect.
+
+One operational trap found while re-running row 7, worth keeping next to the gate: a `.env.local`
+carrying `NEXT_PUBLIC_SUPABASE_*` is inlined by `next build`, so the browser suite — whose specs
+assert the *supported unconfigured* accounts state — fails 14 tests that have nothing to do with the
+change being verified. `npm run check` stays green either way, which is what makes it easy to miss.
+`.env.example` now says so.

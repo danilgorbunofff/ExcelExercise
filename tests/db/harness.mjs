@@ -33,6 +33,7 @@ export function stack() {
     anon: env.ANON_KEY,
     service: env.SERVICE_ROLE_KEY,
     dbUrl: env.DB_URL,
+    mailpit: env.MAILPIT_URL ?? env.INBUCKET_URL,
   };
   return cached;
 }
@@ -105,4 +106,60 @@ export async function resetFixtures() {
     });
     if (status >= 400) throw new Error(`could not clear ${table}: ${status} ${JSON.stringify(body)}`);
   }
+}
+
+// ── GoTrue ───────────────────────────────────────────────────────────────────────────────────────
+// The auth server is the second half of the stack: sign-up, sign-in, recovery and magic links all go
+// through it, and it is the only thing that inserts into `auth.users`. The profile rows those inserts
+// produce are the trigger's job, so these helpers are how the suite proves the trigger fires.
+
+export async function gotrue(path, { method = 'POST', body, token } = {}) {
+  const s = stack();
+  const headers = { apikey: s.anon };
+  if (token) headers.authorization = `Bearer ${token}`;
+  if (body !== undefined) headers['content-type'] = 'application/json';
+  const res = await fetch(`${s.api}/auth/v1/${path}`, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const text = await res.text();
+  let json;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    json = text;
+  }
+  return { status: res.status, body: json };
+}
+
+export async function signUp(email, password = 'password123', data = {}) {
+  const res = await gotrue('signup', { body: { email, password, data } });
+  return res;
+}
+
+// The mailbox the local stack writes to (Mailpit). Nothing here reads a production inbox.
+export async function mailbox(email) {
+  const s = stack();
+  const res = await fetch(`${s.mailpit}/api/v1/messages?limit=200`);
+  if (!res.ok) throw new Error(`mailpit list failed: ${res.status}`);
+  const { messages = [] } = await res.json();
+  const mine = messages.filter((m) =>
+    (m.To ?? []).some((to) => String(to.Address).toLowerCase() === email.toLowerCase()),
+  );
+  return mine.map((m) => ({ id: m.ID, subject: m.Subject, to: email }));
+}
+
+export async function message(id) {
+  const s = stack();
+  const res = await fetch(`${s.mailpit}/api/v1/message/${id}`);
+  if (!res.ok) throw new Error(`mailpit message failed: ${res.status}`);
+  return res.json();
+}
+
+// Users made by the suite are removed afterwards: the seed owns the three named accounts, and a
+// leftover probe address would make the next run's username collisions depend on history.
+export function purgeUsers(emails) {
+  const list = emails.map((e) => `'${e.replace(/'/g, "''")}'`).join(', ');
+  psql(`delete from auth.users where email in (${list});`);
 }

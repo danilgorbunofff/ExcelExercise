@@ -377,3 +377,90 @@ Each was fixed in `0002_accounts_rls.sql` by adding a grant or revoke. No assert
 | Item 9 institutional domain allowlist | not started |
 | RLS suite in CI | no database in CI today; needs a Postgres service container |
 | Seed users authenticate against `auth.users`/`auth.identities` by direct insert — version-sensitive; recreate through the GoTrue admin API if a CLI upgrade breaks it | maintenance note |
+
+### 2026-10-31 — unit 2: the auth flows (work item 2, and item 3's provisioning half)
+
+**Closed:** work item 2 — `/signup`, `/login`, `/reset`, `/reset/password`, the magic-link callback,
+session refresh on every request, and the `?next=` gate on `/account`. Work item 3 is half closed: a
+`profiles` row is now created for every sign-up by a trigger, so no account can exist without one; the
+name/username onboarding *step* is still open.
+
+Every page renders and is usable with no Supabase project configured — the state CI and a fresh clone
+are in. That is asserted in a browser, not assumed:
+
+```
+$ npm run db:check
+ℹ tests 52      # 34 RLS + 18 auth
+ℹ suites 10
+ℹ pass 52
+ℹ fail 0
+
+$ npx playwright test
+60 passed (10.0s)     # was 52: +5 auth routes, +3 axe scans
+
+$ npm run check
+ℹ tests 675 / suites 110 / pass 675 / fail 0        # was 653 / 105: +22 auth rule tests
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 27 pages (741.4 kB of HTML+CSS)
+next routes: 27 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed
+
+$ npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+What the suites actually assert, so this log is checkable rather than reassuring:
+
+- `tests/auth.test.js` (22) imports the pure rules and never restates them: the `safeNext` matrix
+  (`//evil.com`, `/\evil.com`, `http://…`, control characters, non-strings all rejected), `loginUrl`
+  encoding, `authConfig` parsing (http/https only, trailing slashes, reason strings), the 8–72 password
+  bound, and the six error-copy rewrites.
+- `tests/db/auth.spec.js` (18) runs against the real stack: the trigger's username derivation,
+  display-name passthrough, collision suffix and `learner_<hex>` fallback; `profiles` readable by its
+  owner over PostgREST and not insertable (403); password sign-in, wrong password 400, unknown address
+  400, refresh, and sign-out revoking the refresh token; recovery and magic-link e-mails arriving in
+  Mailpit with the right `type=` on the verify link, with an unknown address still answering 200 (no
+  enumeration).
+- `e2e/auth.spec.js` (5) and three new axe scans cover the unconfigured path: the notice, the disabled
+  form, `noindex` on all three pages, and `/auth/callback?next=//evil.com` landing on `/login`.
+
+#### Deviations from this document
+
+- **`middleware.js` → `proxy.js`.** Next 16 deprecated the `middleware` convention; the file exports
+  `proxy()` and the same `config.matcher`. Session refresh lives there, as planned.
+- **`[auth.rate_limit] email_sent = 2 → 30`** in `supabase/config.toml`. The DB suite sends three
+  e-mails per run and the local catcher is the only consumer; the documented default makes the suite
+  fail on its second run within the hour. Stack-local only — no production setting changes.
+- **`0003_profile_provisioning.sql` (new)** — a `security definer` trigger on `auth.users`. Work item 3
+  assumed the application would insert the profile; with `enable_confirmations = false` a sign-up
+  returns a session immediately, so between the GoTrue insert and the application insert there is a
+  window where a signed-in learner has no profile, and any failure leaves them without one forever. The
+  seed's own profile insert became an upsert for the same reason.
+- **The magic-link form is rendered on `/login` only when a project is configured**, so the
+  unconfigured page stays a single honest card rather than a second control that cannot work.
+- **`app/auth.css` is Next-only.** The static build has no auth pages; adding rules to
+  `legacy/src/styles/components.css` would move its byte count for pages that do not exist there.
+
+#### Two defects the suites found
+
+1. **No profile was ever created on sign-up.** The seed inserted profiles by hand, which hid it: a real
+   sign-up produced an `auth.users` row and nothing else, so `/account` had nothing to read. Fixed by
+   the trigger above, not by a test that tolerated a missing row.
+2. **The Suspense fallback was styled as a notice.** `Loading the form…` carried `.auth-notice`, the
+   same class the "accounts are not configured" explanation uses, so a caller (and a screen reader)
+   looking for the notice found two of them, and the browser suite failed on the streamed page. Fixed at
+   the cause: the fallback is its own `Loading` component with `.auth-loading` and `role="status"`.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| Header/footer links to `/login` and `/account` | every shared template's bytes and the fragment parity check; needs a decision on whether the static build learns about accounts |
+| Profile onboarding step (name + username, optional LinkedIn) | unit 3, with the progress writer |
+| E-mail templates (reset, magic link) | local GoTrue defaults are used; product copy and a SMTP provider are a deployment decision |
+| Items 4–5 (progress writer, anonymous import), 8 (paywall), 10 (legal/data rights) | not started; each is its own unit |
+| Item 6 (Stripe) and the subscription/refund/second-device acceptance criteria | needs Stripe test keys and a deployed Supabase project |
+| Item 9 institutional domain allowlist | not started |
+| `tests/db` in CI | no database in CI today; needs a Postgres service container |
+| `feedback` insert with `return=representation` | unchanged decision from unit 1 |

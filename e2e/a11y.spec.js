@@ -173,3 +173,23 @@ test("the feedback dialog passes while it is open", async ({ page }) => {
   await expect(page.locator("#feedback-done")).toBeVisible();
   await scan(page, "the feedback confirmation");
 });
+
+// The auth pages are the only forms on the site. Labels that point at nothing and disabled controls
+// with no explanation are exactly what axe is good at, and both were live risks here: the forms are
+// hand-written rather than generated from the templates the rest of the site uses.
+test("the sign-in form passes with nothing to fix", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.locator(".auth-card h1")).toHaveText("Sign in");
+  await scan(page, "the sign-in page");
+});
+
+test("the sign-up form passes with nothing to fix", async ({ page }) => {
+  await page.goto("/signup");
+  await expect(page.locator(".auth-card h1")).toHaveText("Create an account");
+  await scan(page, "the sign-up page");
+});
+
+test("the account page passes with nothing to fix", async ({ page }) => {
+  await page.goto("/account");
+  await scan(page, "the account page with accounts unconfigured");
+});

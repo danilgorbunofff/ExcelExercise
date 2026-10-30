@@ -14,3 +14,4 @@
 @import "../legacy/src/styles/tokens.css";
 @import "../legacy/src/styles/base.css";
 @import "../legacy/src/styles/components.css";
+@import "./auth.css";

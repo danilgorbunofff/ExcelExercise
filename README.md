@@ -24,7 +24,7 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 653 tests, no build step
+npm test                # 675 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
 npm run build           # writes legacy/dist — 27 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
@@ -40,7 +40,7 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification | 653 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules | 675 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
 | `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 27 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
@@ -52,12 +52,12 @@ while the port is in progress.
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run db:start` | Starts the local Supabase stack (schema, RLS, seed) from `supabase/` | `supabase status` reports every service healthy |
-| `npm run db:check` | `supabase db reset`, then the RLS suite in `tests/db/` | 34 assertions pass, 0 fail |
+| `npm run db:check` | `supabase db reset`, then the RLS and auth suites in `tests/db/` | 52 assertions pass, 0 fail |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
 | `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 27 prerendered pages, exit 0 |
 | `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 27 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
-| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 52 tests pass |
+| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 60 tests pass |
 
 **Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
 `SITE_URL`, which is what canonical links, the sitemap and the JSON-LD `@id`s are built from. Serve on
@@ -77,12 +77,17 @@ app/                      the ported Next.js shell, built beside the static site
   learn/page.js           the dashboard route: counts, badges and the up-next drill, noindex
   learn/excel/[lesson]/   the lesson route: 16 prerendered slugs from generateStaticParams
   api/health/route.js     status plus the deploy SHA
+  login/ signup/ reset/   the auth routes: five forms, all noindex, all working with no env set
+  account/page.js         the profile, the entitlement flag and sign-out; gated by proxy.js
+  auth/                   shared card/field/notice markup, the six server actions, the link callback
   error.js not-found.js   the two boundaries: a render error, and a 404 that still looks like the site
   sitemap.js robots.js    Metadata routes: every served URL, and the crawler policy that points at them
-e2e/                      Playwright: the index, the drill loop, the URL contract (npm run e2e)
+e2e/                      Playwright: the index, the drill loop, the URL contract, axe, the auth pages
 .github/workflows/ci.yml  three jobs: unit + build gates, the browser suite, and the static site
 lib/
   site.js                 loads config + validated content + icons once, from legacy/, for the routes
+  auth/                   the rules: config parsing, safe redirects, credential bounds, error copy
+proxy.js                  session refresh, the /account gate, and the matcher for both (Next 16 proxy)
 scripts/
   next-assets.mjs         copies legacy/dist/assets → public/assets so both builds serve one asset tree
   check-next-pages.mjs    asserts each prerendered page equals the shared template fragments, plus
@@ -133,8 +138,12 @@ packages/
     README.md             the checks, the floor, and what is deliberately left to the schema
 tests/                    node --test suites, one per layer
 tests/golden/             byte-stable record of every grader verdict (phase 0 tripwire)
-tests/db/                 the RLS suite: sign-in, PostgREST and psql against the local Supabase stack
-supabase/                 phase 4 schema, RLS policies and seed (npm run db:start / db:check)
+tests/db/                 the DB suites: RLS over psql + PostgREST, and sign-in/emailed links over GoTrue
+supabase/                 phase 4 schema, RLS policies, the profile trigger and seed (npm run db:*)
+  config.toml             ports 5435x, and the email-send limit the DB suite needs
+  migrations/             0001 schema, 0002 RLS, 0003 profile provisioning
+  seed.sql                three learners and one group, applied by `supabase db reset`
+.env.example              the two public Supabase variables; copy to .env.local, both optional
 docs/phases/              the plan each phase was built from, with what was built and what changed
 docs/plans/parity/        the reference-parity program, one file per phase
 docs/content-authoring.md how to write, preview, fixture and gate a lesson
@@ -191,6 +200,30 @@ browser would lock a learner out of the track. That lands in phase 4 with the se
 
 ---
 
+## Accounts (phase 4, in progress)
+
+The drills never needed a server and still do not: with no Supabase project configured, `/login`,
+`/signup` and `/reset` render a card that says so, `/account` explains it is signed out, and every
+lesson and the dashboard behave exactly as before. Configure a project and those pages become real.
+
+```bash
+cp .env.example .env.local     # both variables are optional; unset is the supported default
+npm run db:start               # local Supabase on ports 54350–54359 (needs Docker or colima)
+npm run db:reset               # migrations + seed; run this after any migration change
+npm run db:check               # 52 assertions: RLS over psql/PostgREST, sign-in and emailed links
+```
+
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read at build time for the browser
+client and on each request for the server client. Both are public by design — the anon key carries no
+privileges of its own; RLS is the only thing standing between one learner's rows and another's, which is
+why `tests/db/rls.spec.js` proves the policies against a real Postgres rather than mocking the client.
+
+Sign-up writes a `profiles` row from an `auth.users` trigger (`0003_profile_provisioning.sql`) — the
+display name from the sign-up metadata, a username derived from the address with a `learner_<hex>`
+fallback, so there is never an account without a profile.
+
+---
+
 ## Adding lesson 17
 
 The full procedure — every field limit, the fixture checklist and a worked example — is
@@ -233,7 +266,7 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **653 passing**, 0 failing — 99 grader, 78 fixtures, 58 client, 56 content-lint, 53 schema, 45 build/server, 32 progress, 32 keys, 30 sheet, 26 session, 23 content, 17 styles, 15 track schema, 14 dashboard, 13 verify, 10 xlsx, 8 feedback, 8 vendor, 7 metadata routes, 6 screen docs, 6 workbook page, 5 keys page, 3 five types, 3 workbook build, 2 fragments, 2 golden, 2 site paths |
+| `npm test` | **675 passing**, 0 failing — 99 grader, 78 fixtures, 58 client, 56 content-lint, 53 schema, 45 build/server, 32 progress, 32 keys, 30 sheet, 26 session, 23 content, 22 auth, 17 styles, 15 track schema, 14 dashboard, 13 verify, 10 xlsx, 8 feedback, 8 vendor, 7 metadata routes, 6 screen docs, 6 workbook page, 5 keys page, 3 five types, 3 workbook build, 2 fragments, 2 golden, 2 site paths |
 | `npm run build` | 27 pages, 741.4 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 5 session modules, 1 progress module, 1 keyboard module, 1 sheet module, 4 client modules |
 | `node legacy/src/verify.mjs` | **851 checks passed** across 16 lesson pages, the index, the dashboard and 9 group pages |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |

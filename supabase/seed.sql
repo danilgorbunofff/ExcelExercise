@@ -24,10 +24,14 @@ select gen_random_uuid(), u.id, u.id::text,
 from auth.users u
 where u.email in ('alice@example.com', 'bob@example.com', 'carol@example.com');
 
+-- 0003's trigger already created these rows from the auth.users insert above, with the same usernames
+-- (it derives them from the email local part). This upsert exists so the seed states the profile state
+-- it wants instead of inheriting whatever the trigger chose.
 insert into profiles (id, username, display_name, role) values
   ('a1a1a1a1-0000-4000-8000-000000000001', 'alice', 'Alice', 'learner'),
   ('b1b1b1b1-0000-4000-8000-000000000002', 'bob',   'Bob',   'learner'),
-  ('c1c1c1c1-0000-4000-8000-000000000003', 'carol', 'Carol', 'learner');
+  ('c1c1c1c1-0000-4000-8000-000000000003', 'carol', 'Carol', 'learner')
+on conflict (id) do update set display_name = excluded.display_name, role = excluded.role;
 
 insert into groups (id, name, owner_id, seats) values
   ('6f6f6f6f-0000-4000-8000-000000000010', 'Northgate Academy',

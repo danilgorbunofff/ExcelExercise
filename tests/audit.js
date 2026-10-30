@@ -1070,4 +1070,19 @@ export const AUDIT = {
       },
     ],
   },
+  "86-unique-one-row-per-distinct-value": {
+    expected: 3, // Swift three times, Nordic twice, Crane once — three distinct couriers
+    reference: "=COUNTA(UNIQUE(A2:A7))",
+    wrong: ["=COUNTA(UNIQUE(A2:A4))", "=COUNTA(A2:A7)", "=COUNTA(UNIQUE(A2:A7,TRUE))"],
+  },
+  "87-filter-the-rows-that-meet-a-condition": {
+    expected: 170, // the open rows hold 40 + 70 + 60; all six orders total 297
+    reference: '=SUM(FILTER(C2:C7,B2:B7="Open"))',
+    wrong: ['=SUM(FILTER(C2:C7,B2:B7="Shipped"))', "=SUM(C2:C7)", '=COUNT(FILTER(C2:C7,B2:B7="Open"))'],
+  },
+  "88-sort-and-spilled-ranges": {
+    expected: "Mia", // 95 is the highest of 88, 95, 72, 91, 61 and 80
+    reference: "=INDEX(SORT(A2:B7,2,-1),1,1)",
+    wrong: ["=INDEX(SORT(A2:B7,2,1),1,1)", "=INDEX(SORT(A2:B7,1,-1),1,1)", "=MAX(B2:B7)"],
+  },
 };

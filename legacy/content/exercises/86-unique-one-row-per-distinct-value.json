@@ -1,0 +1,147 @@
+{
+  "id": "86-unique-one-row-per-distinct-value",
+  "slug": "unique-one-row-per-distinct-value",
+  "level": 3,
+  "title": "UNIQUE: one row per distinct value",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B8, count how many different couriers appear in A2:A7 by collapsing the list with UNIQUE.",
+      "reference": "=COUNTA(UNIQUE(A2:A7))",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Courier",
+            "Deliveries"
+          ],
+          [
+            "Swift",
+            4
+          ],
+          [
+            "Nordic",
+            7
+          ],
+          [
+            "Swift",
+            2
+          ],
+          [
+            "Crane",
+            5
+          ],
+          [
+            "Nordic",
+            3
+          ],
+          [
+            "Swift",
+            6
+          ],
+          [
+            "Distinct couriers",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B8",
+      "expect": {
+        "value": 3
+      },
+      "require": [
+        {
+          "id": "func-unique",
+          "func": "UNIQUE",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close every bracket: =COUNTA(UNIQUE(A2:A7)).",
+        "func-unique": "UNIQUE is the whole point of this lesson. Counting rows by hand works once and breaks the moment a delivery is added.",
+        "require-ref": "Point UNIQUE at the courier column A2:A7; the deliveries in column B are a different question.",
+        "value": "That is not the number of couriers. UNIQUE hands back a block of cells, so it needs COUNTA around it to turn that block into a count.",
+        "error": "#NAME? means the Excel version does not know UNIQUE, and #N/A means no value was left to return. #VALUE! with two arguments usually means by_col or exactly_once was given something other than TRUE or FALSE."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTA(UNIQUE(A2:A7))",
+          "=counta(unique(a2:a7))",
+          "=COUNTA(UNIQUE($A$2:$A$7))",
+          "=COUNTA(UNIQUE(A2:A7,FALSE,FALSE))",
+          "=COUNTA(UNIQUE(A2:A7))*1",
+          "=COUNTA(UNIQUE(A2:A7))+0"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTA(UNIQUE(A2:A7,TRUE))",
+            "rule": "value",
+            "why": "exactly_once keeps only values that appear once, so only Crane survives"
+          },
+          {
+            "formula": "=COUNTA(UNIQUE(A2:A4))",
+            "rule": "value",
+            "why": "range stops mid-list, so Nordic is never seen"
+          },
+          {
+            "formula": "=COUNTA(A2:A7)",
+            "rule": "func-unique",
+            "why": "counts the six delivery rows instead of the distinct couriers"
+          },
+          {
+            "formula": "=COUNTA(A2:A7)-3",
+            "rule": "func-unique",
+            "why": "types the arithmetic instead of collapsing the list"
+          },
+          {
+            "formula": "=COUNTA(UNIQUE(B2:B7))",
+            "rule": "require-ref",
+            "why": "collapses the deliveries column, which has six distinct numbers"
+          },
+          {
+            "formula": "=COUNTA(UNIQUE(A2:A7))/0",
+            "rule": "error",
+            "why": "divides the correct count by zero"
+          },
+          {
+            "formula": "=COUNTA(UNIQUE(A2:A7)",
+            "rule": "syntax",
+            "why": "unclosed UNIQUE bracket"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=UNIQUE(array, [by_col], [exactly_once])",
+    "explain": "UNIQUE reads a range and returns a block of cells holding one copy of each distinct value, in the order it first met them. Six deliveries sit in A2:A7, Swift appears three times, Nordic twice and Crane once, so UNIQUE(A2:A7) spills three rows: Swift, Nordic, Crane. That spill is the catch, because a block of cells is not a number; wrapping it in COUNTA counts the rows the block occupies, which is why the finished formula is =COUNTA(UNIQUE(A2:A7)) and not =UNIQUE(A2:A7). The third argument, exactly_once, flips the meaning: set it to TRUE and only the values that appear exactly once come back, which here would leave Crane alone. The answer sits in B8, below the range on purpose, because a spill that tries to grow into an occupied cell returns #SPILL! instead of pushing the neighbouring data aside.",
+    "errors": [
+      {
+        "code": "#SPILL!",
+        "text": "The block cannot grow; something is already sitting where the second row of results needs to go."
+      },
+      {
+        "code": "#N/A",
+        "text": "exactly_once found nothing that appears a single time, so the block would be empty."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The Excel version predates dynamic arrays, so UNIQUE is not recognised at all."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "by_col or exactly_once was given a value other than TRUE or FALSE."
+      }
+    ],
+    "atWork": "Deduplicating a supplier or courier list is the first job in any reconciliation, and building a validation list that survives new rows is the second.",
+    "outcome": "Count the distinct values in a column without retyping the list.",
+    "teaches": "UNIQUE",
+    "dataset": "Courier delivery log",
+    "reference": "=COUNTA(UNIQUE(A2:A7))"
+  }
+}

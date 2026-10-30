@@ -1,7 +1,7 @@
 {
   "id": "formula-drills",
   "title": "Excel formula drills",
-  "promise": "85 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
+  "promise": "88 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
   "freeLessonCount": 3,
   "showAnswerAfter": 3,
   "groups": [
@@ -412,18 +412,15 @@
       "id": "70-aggregate-functions-summary"
     },
     {
-      "title": "UNIQUE: one row per distinct value",
-      "level": 3,
+      "id": "86-unique-one-row-per-distinct-value",
       "group": "arrays"
     },
     {
-      "title": "FILTER: the rows that meet a condition",
-      "level": 3,
+      "id": "87-filter-the-rows-that-meet-a-condition",
       "group": "arrays"
     },
     {
-      "title": "SORT and spilled ranges",
-      "level": 3,
+      "id": "88-sort-and-spilled-ranges",
       "group": "arrays"
     },
     {

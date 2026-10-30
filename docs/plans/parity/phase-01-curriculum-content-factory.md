@@ -964,23 +964,37 @@ window in which two shapes are both live.
       pages — 4237 checks passed`; `82 passed (22.7s)` from `npx playwright test`; `vendor: 25 files
       match manifest.json`. `tests/golden/snapshot.json` went to 85 lessons and 1903 verdicts.
 
-### The `arrays` group is out of scope for this phase
+### The `arrays` group was out of scope for this phase (superseded)
 
-      Three slots stay `planned` (81-83): `UNIQUE`, `FILTER`, and `SORT and spilled ranges`. They
-      cannot be authored against the current grader. `evaluate.js` returns `null` for all three,
-      because `expect.value` is a single scalar and the result shape the lessons teach — a spilled
-      block of rows — has no representation in the fixture schema. Writing them as scalar exercises
-      (a `COUNTA(UNIQUE(...))` count, a `SUM(FILTER(...))` total) would ship three lessons whose
-      titles promise a spilled range and whose screens never show one, so nothing was written.
+      This section recorded the state at **85 of 88**. It no longer describes the tree.
 
-      Unblocking them needs a design decision, not more authoring:
+      It said three slots stayed `planned` (81-83) — `UNIQUE`, `FILTER`, and `SORT and spilled
+      ranges` — because `evaluate.js` returned `null` for all three: `expect.value` is a single
+      scalar, and a spilled block of rows had no representation in the fixture schema. Unblocking
+      them was scoped as grader work: an array return from `UNIQUE`/`FILTER`/`SORT`, an array form
+      for `expect.value`, a block comparison in `compareToExpected`, and a `content-lint` rule for a
+      spilled answer.
 
-      - the engine has to return an array from `UNIQUE`/`FILTER`/`SORT`, and
-      - `expect.value` needs an array form, and `compareToExpected` a block comparison, and
-      - `content-lint` needs a rule for a spilled answer that occupies more than the one `answerCell`.
+      That work landed in `2bd0547`, which added `spill()` to `packages/grader/functions.js`.
+      `UNIQUE`, `FILTER` and `SORT` now return a range value, and the block representation is the
+      range itself. The three lessons are authored (86-88) as **scalar-wrapped drills**:
+      `=COUNTA(UNIQUE(A2:A7))`, `=SUM(FILTER(C2:C7,B2:B7="Open"))`, and
+      `=INDEX(SORT(A2:B7,2,-1),1,1)`. The screen still shows the spilled block in the sheet; the
+      answer cell asks for one derived number or name, which is the only thing a one-cell answer can
+      hold. `ROWS` is not implemented in the engine (`#NAME?`), which is why the count wrapper is
+      `COUNTA` and not `ROWS`.
 
-      That is grader work with its own review cycle. The batch stops here at **85 of 88**, with the
-      remaining three catalogued, numbered, and visibly `planned`.
+      Known divergences, recorded rather than fixed here:
+
+      - `UNIQUE` on a multi-column range collapses to column 1 (`spill(kept.map((line) => [line[0]]))`);
+        `SORT` and `FILTER` return whole rows. No authored drill depends on it, because every array
+        drill is single-column or row-complete and indexed after the spill.
+      - `SORT`'s sort index is bounded by the source width (`SORT(A2:B7,3,-1)` → `#VALUE!`), and the
+        4-arg form `SORT(range,-1,2,-1)` misparses the arguments. Drill 88 teaches the 3-arg form
+        only, and a fixture pins the `#VALUE!` case as an accepted rejection.
+
+      The catalog is now **88 of 88**, 0 planned. `tests/audit.js`, `tests/content-lint.test.js` and
+      `tests/golden/snapshot.json` moved with it.
 
 ## Acceptance criteria
 
@@ -988,7 +1002,8 @@ window in which two shapes are both live.
       no framework knowledge.
 - [x] CI fails when any screen lacks 6 accepted or 6 rejected fixtures.
 - [x] Every fixture verdict matches its declared expectation across all authored lessons.
-- [ ] `content/tracks/excel.json` contains 88 lessons and 16 groups; counts match the catalog.
+- [x] `legacy/content/track.json` contains 88 lessons and 16 groups, 0 planned; counts match the
+      catalog (`content: 88 of 88 catalogued lessons, 16 groups`).
 - [x] 10 migrated lessons keep their existing behaviour (golden snapshots from phase 0 unchanged).
 - [x] Category intros authored for all 16 groups (150–250 words each, enforced by a test).
 - [x] `docs/content-authoring.md` exists and a second person can author a lesson from it unaided.

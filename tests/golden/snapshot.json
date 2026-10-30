@@ -3171,6 +3171,84 @@
         {"input":"=SUMIF(B2:B5,\"North\",A2:A5)","ok":false,"rule":"value","code":null,"position":null,"value":0,"expected":250,"message":"Your formula returns 0, but this lesson expects 250.","hint":"A hundred and a hundred and fifty are the two North rows, so 250."},
         {"input":"=VLOOKUP(E2,A2:C5,3,FALSE)","ok":false,"rule":"func-countif","code":null,"position":null,"value":null,"expected":"not found","message":"This lesson is about COUNTIF. Your formula does not use COUNTIF.","hint":"The key is tested for before the lookup asks for its row."}
       ]
+    },
+    "86-unique-one-row-per-distinct-value": {
+      "accepted": [
+        {"input":"=COUNTA(UNIQUE($A$2:$A$7))","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(UNIQUE(A2:A7))","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(UNIQUE(A2:A7))*1","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(UNIQUE(A2:A7))+0","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(UNIQUE(A2:A7,FALSE,FALSE))","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=counta(unique(a2:a7))","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=COUNTA(A2:A7)","ok":false,"rule":"func-unique","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about UNIQUE. Your formula does not use UNIQUE.","hint":"UNIQUE is the whole point of this lesson. Counting rows by hand works once and breaks the moment a delivery is added."},
+        {"input":"=COUNTA(A2:A7)-3","ok":false,"rule":"func-unique","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about UNIQUE. Your formula does not use UNIQUE.","hint":"UNIQUE is the whole point of this lesson. Counting rows by hand works once and breaks the moment a delivery is added."},
+        {"input":"=COUNTA(UNIQUE(A2:A4))","ok":false,"rule":"value","code":null,"position":null,"value":2,"expected":3,"message":"Your formula returns 2, but this lesson expects 3.","hint":"That is not the number of couriers. UNIQUE hands back a block of cells, so it needs COUNTA around it to turn that block into a count."},
+        {"input":"=COUNTA(UNIQUE(A2:A7)","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":3,"message":"COUNTA is missing its closing \")\".","hint":"Start with = and close every bracket: =COUNTA(UNIQUE(A2:A7))."},
+        {"input":"=COUNTA(UNIQUE(A2:A7))/0","ok":false,"rule":"error","code":"#DIV/0!","position":23,"value":null,"expected":3,"message":"#DIV/0! Dividing by zero. A cell in the divisor is empty or holds 0.","hint":"#NAME? means the Excel version does not know UNIQUE, and #N/A means no value was left to return. #VALUE! with two arguments usually means by_col or exactly_once was given something other than TRUE or FALSE."},
+        {"input":"=COUNTA(UNIQUE(A2:A7,TRUE))","ok":false,"rule":"value","code":null,"position":null,"value":1,"expected":3,"message":"Your formula returns 1, but this lesson expects 3.","hint":"That is not the number of couriers. UNIQUE hands back a block of cells, so it needs COUNTA around it to turn that block into a count."},
+        {"input":"=COUNTA(UNIQUE(B2:B7))","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":3,"message":"Your formula does not refer to A2. The lesson checks that you point at the data rather than typing the number.","hint":"Point UNIQUE at the courier column A2:A7; the deliveries in column B are a different question."}
+      ],
+      "audit": [
+        {"input":"=COUNTA(A2:A7)","ok":false,"rule":"func-unique","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about UNIQUE. Your formula does not use UNIQUE.","hint":"UNIQUE is the whole point of this lesson. Counting rows by hand works once and breaks the moment a delivery is added."},
+        {"input":"=COUNTA(UNIQUE(A2:A4))","ok":false,"rule":"value","code":null,"position":null,"value":2,"expected":3,"message":"Your formula returns 2, but this lesson expects 3.","hint":"That is not the number of couriers. UNIQUE hands back a block of cells, so it needs COUNTA around it to turn that block into a count."},
+        {"input":"=COUNTA(UNIQUE(A2:A7))","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(UNIQUE(A2:A7,TRUE))","ok":false,"rule":"value","code":null,"position":null,"value":1,"expected":3,"message":"Your formula returns 1, but this lesson expects 3.","hint":"That is not the number of couriers. UNIQUE hands back a block of cells, so it needs COUNTA around it to turn that block into a count."}
+      ]
+    },
+    "87-filter-the-rows-that-meet-a-condition": {
+      "accepted": [
+        {"input":"=SUM(FILTER($C$2:$C$7,$B$2:$B$7=\"Open\"))","ok":true,"rule":"correct","code":null,"position":null,"value":170,"expected":170,"message":"Correct.","hint":""},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"OPEN\"))","ok":true,"rule":"correct","code":null,"position":null,"value":170,"expected":170,"message":"Correct.","hint":""},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"Open\"))","ok":true,"rule":"correct","code":null,"position":null,"value":170,"expected":170,"message":"Correct.","hint":""},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"Open\"))+0","ok":true,"rule":"correct","code":null,"position":null,"value":170,"expected":170,"message":"Correct.","hint":""},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"Open\"),0)","ok":true,"rule":"correct","code":null,"position":null,"value":170,"expected":170,"message":"Correct.","hint":""},
+        {"input":"=sum(filter(c2:c7,b2:b7=\"open\"))","ok":true,"rule":"correct","code":null,"position":null,"value":170,"expected":170,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=COUNT(FILTER(C2:C7,B2:B7=\"Open\"))","ok":false,"rule":"func-sum","code":null,"position":null,"value":null,"expected":170,"message":"This lesson is about SUM. Your formula does not use SUM.","hint":"FILTER hands back the units, but somebody has to add them. SUM does that job."},
+        {"input":"=SUM(C2:C7)","ok":false,"rule":"func-filter","code":null,"position":null,"value":null,"expected":170,"message":"This lesson is about FILTER. Your formula does not use FILTER.","hint":"FILTER is what keeps only the Open rows. Without it the formula has no condition to apply."},
+        {"input":"=SUM(FILTER(B2:B7,B2:B7=\"Open\"))","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":170,"message":"Your formula does not refer to C2. The lesson checks that you point at the data rather than typing the number.","hint":"The units are in column C and the statuses in column B. The first FILTER argument is what gets returned; the second is the test."},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7))","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":170,"message":"#VALUE! \"Open\" is text; a condition needs TRUE or FALSE.","hint":"#N/A means the condition matched nothing, which usually means a misspelled status. #VALUE! means the include argument returned text instead of TRUE and FALSE, so the comparison is missing."},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"Cancelled\"))","ok":false,"rule":"error","code":"#N/A","position":null,"value":null,"expected":170,"message":"#N/A FILTER found no rows that match, and no value was given for that case.","hint":"#N/A means the condition matched nothing, which usually means a misspelled status. #VALUE! means the include argument returned text instead of TRUE and FALSE, so the comparison is missing."},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"Open\")","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":170,"message":"SUM is missing its closing \")\".","hint":"Two functions, two brackets: =SUM(FILTER(C2:C7,B2:B7=\"Open\"))."},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"Shipped\"))","ok":false,"rule":"value","code":null,"position":null,"value":127,"expected":170,"message":"Your formula returns 127, but this lesson expects 170.","hint":"That total is the wrong set of orders. Check which status the include condition tests, and that both ranges cover rows 2 to 7."},
+        {"input":"=SUMIF(B2:B7,\"Open\",C2:C7)","ok":false,"rule":"func-filter","code":null,"position":null,"value":null,"expected":170,"message":"This lesson is about FILTER. Your formula does not use FILTER.","hint":"FILTER is what keeps only the Open rows. Without it the formula has no condition to apply."}
+      ],
+      "audit": [
+        {"input":"=COUNT(FILTER(C2:C7,B2:B7=\"Open\"))","ok":false,"rule":"func-sum","code":null,"position":null,"value":null,"expected":170,"message":"This lesson is about SUM. Your formula does not use SUM.","hint":"FILTER hands back the units, but somebody has to add them. SUM does that job."},
+        {"input":"=SUM(C2:C7)","ok":false,"rule":"func-filter","code":null,"position":null,"value":null,"expected":170,"message":"This lesson is about FILTER. Your formula does not use FILTER.","hint":"FILTER is what keeps only the Open rows. Without it the formula has no condition to apply."},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"Open\"))","ok":true,"rule":"correct","code":null,"position":null,"value":170,"expected":170,"message":"Correct.","hint":""},
+        {"input":"=SUM(FILTER(C2:C7,B2:B7=\"Shipped\"))","ok":false,"rule":"value","code":null,"position":null,"value":127,"expected":170,"message":"Your formula returns 127, but this lesson expects 170.","hint":"That total is the wrong set of orders. Check which status the include condition tests, and that both ranges cover rows 2 to 7."}
+      ]
+    },
+    "88-sort-and-spilled-ranges": {
+      "accepted": [
+        {"input":"=INDEX(SORT($A$2:$B$7,2,-1),1,1)","ok":true,"rule":"correct","code":null,"position":null,"value":"Mia","expected":"Mia","message":"Correct.","hint":""},
+        {"input":"=INDEX(SORT(A2:B7,+2,-1),1,1)","ok":true,"rule":"correct","code":null,"position":null,"value":"Mia","expected":"Mia","message":"Correct.","hint":""},
+        {"input":"=INDEX(SORT(A2:B7,2,-1),+1,1)","ok":true,"rule":"correct","code":null,"position":null,"value":"Mia","expected":"Mia","message":"Correct.","hint":""},
+        {"input":"=INDEX(SORT(A2:B7,2,-1),1,1)","ok":true,"rule":"correct","code":null,"position":null,"value":"Mia","expected":"Mia","message":"Correct.","hint":""},
+        {"input":"=INDEX(SORT(A2:B7,2,-1),1,1)&\"\"","ok":true,"rule":"correct","code":null,"position":null,"value":"Mia","expected":"Mia","message":"Correct.","hint":""},
+        {"input":"=index(sort(a2:b7,2,-1),1,1)","ok":true,"rule":"correct","code":null,"position":null,"value":"Mia","expected":"Mia","message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=INDEX(A2:B7,3,1)","ok":false,"rule":"func-sort","code":null,"position":null,"value":null,"expected":"Mia","message":"This lesson is about SORT. Your formula does not use SORT.","hint":"Sorting is the point of this lesson. Reading the answer off the screen does not survive next month’s update."},
+        {"input":"=INDEX(SORT(A2:B7,1,-1),1,1)","ok":false,"rule":"value","code":null,"position":null,"value":"Sam","expected":"Mia","message":"Your formula returns \"Sam\", but this lesson expects \"Mia\".","hint":"The cell you picked is not the top of the ranking. Check the sort order and which row of the sorted block you asked for."},
+        {"input":"=INDEX(SORT(A2:B7,2,-1),1,1","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":"Mia","message":"INDEX is missing its closing \")\".","hint":"=INDEX(SORT(A2:B7,2,-1),1,1): SORT builds the ranked block, INDEX picks one cell from it."},
+        {"input":"=INDEX(SORT(A2:B7,2,-1),2,1)","ok":false,"rule":"value","code":null,"position":null,"value":"Ivy","expected":"Mia","message":"Your formula returns \"Ivy\", but this lesson expects \"Mia\".","hint":"The cell you picked is not the top of the ranking. Check the sort order and which row of the sorted block you asked for."},
+        {"input":"=INDEX(SORT(A2:B7,2,1),1,1)","ok":false,"rule":"value","code":null,"position":null,"value":"Sam","expected":"Mia","message":"Your formula returns \"Sam\", but this lesson expects \"Mia\".","hint":"The cell you picked is not the top of the ranking. Check the sort order and which row of the sorted block you asked for."},
+        {"input":"=INDEX(SORT(A2:B7,3,-1),1,1)","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":"Mia","message":"#VALUE! SORT's sort index must be from 1 to 2.","hint":"#VALUE! here means the sort index is outside the table width, or INDEX was given one argument instead of a row and a column."},
+        {"input":"=INDEX(SORT(A3:B7,2,-1),1,1)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":"Mia","message":"Your formula does not refer to B2. The lesson checks that you point at the data rather than typing the number.","hint":"Point SORT at the table starting at row 2 so the check can see the scores column."},
+        {"input":"=MAX(B2:B7)","ok":false,"rule":"func-sort","code":null,"position":null,"value":null,"expected":"Mia","message":"This lesson is about SORT. Your formula does not use SORT.","hint":"Sorting is the point of this lesson. Reading the answer off the screen does not survive next month’s update."},
+        {"input":"=SORT(A2:B7,2,-1)","ok":false,"rule":"func-index","code":null,"position":null,"value":null,"expected":"Mia","message":"This lesson is about INDEX. Your formula does not use INDEX.","hint":"SORT returns a whole block of rows. INDEX is how you ask that block for its first row and first column."}
+      ],
+      "audit": [
+        {"input":"=INDEX(SORT(A2:B7,1,-1),1,1)","ok":false,"rule":"value","code":null,"position":null,"value":"Sam","expected":"Mia","message":"Your formula returns \"Sam\", but this lesson expects \"Mia\".","hint":"The cell you picked is not the top of the ranking. Check the sort order and which row of the sorted block you asked for."},
+        {"input":"=INDEX(SORT(A2:B7,2,-1),1,1)","ok":true,"rule":"correct","code":null,"position":null,"value":"Mia","expected":"Mia","message":"Correct.","hint":""},
+        {"input":"=INDEX(SORT(A2:B7,2,1),1,1)","ok":false,"rule":"value","code":null,"position":null,"value":"Sam","expected":"Mia","message":"Your formula returns \"Sam\", but this lesson expects \"Mia\".","hint":"The cell you picked is not the top of the ranking. Check the sort order and which row of the sorted block you asked for."},
+        {"input":"=MAX(B2:B7)","ok":false,"rule":"func-sort","code":null,"position":null,"value":null,"expected":"Mia","message":"This lesson is about SORT. Your formula does not use SORT.","hint":"Sorting is the point of this lesson. Reading the answer off the screen does not survive next month’s update."}
+      ]
     }
   }
 }

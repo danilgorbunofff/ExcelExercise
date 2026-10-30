@@ -4,7 +4,7 @@ import { authConfig } from "../../lib/auth/config.js";
 import { currentUser } from "../../lib/auth/server.js";
 import { flagCopy, flagEnabled } from "../../lib/flags.js";
 import { AuthShell } from "../auth/shell.js";
-import { AuthCard, Links, Notice } from "../auth/ui.js";
+import { AuthCard, Links, Notice, Skeleton } from "../auth/ui.js";
 import { Deck } from "./deck.js";
 import "./flashcards.css";
 
@@ -73,7 +73,7 @@ async function FlashcardsScreen() {
 export default function FlashcardsPage() {
   return (
     <AuthShell counter="Flashcards" skipLabel="flashcards">
-      <Suspense fallback={<p className="auth-notice">Shuffling your cards…</p>}>
+      <Suspense fallback={<Skeleton label="Shuffling your cards…" rows={6} />}>
         <FlashcardsScreen />
       </Suspense>
     </AuthShell>

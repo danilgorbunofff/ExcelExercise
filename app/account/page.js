@@ -7,7 +7,7 @@ import { currentUser } from "../../lib/auth/server.js";
 import { TREND_DAYS } from "../../lib/retention/trend.js";
 import { signOut } from "../auth/actions.js";
 import { AuthShell } from "../auth/shell.js";
-import { AuthCard, Links, Notice } from "../auth/ui.js";
+import { AuthCard, Links, Notice, Skeleton } from "../auth/ui.js";
 import { WeekPanel } from "./week.js";
 
 export const metadata = {
@@ -162,7 +162,7 @@ async function AccountScreen() {
 export default function AccountPage() {
   return (
     <AuthShell counter="Your account" skipLabel="your account">
-      <Suspense fallback={<p className="auth-notice">Loading your account…</p>}>
+      <Suspense fallback={<Skeleton label="Loading your account…" rows={6} />}>
         <AccountScreen />
       </Suspense>
     </AuthShell>

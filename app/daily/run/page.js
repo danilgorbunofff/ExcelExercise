@@ -4,7 +4,7 @@ import { authConfig } from "../../../lib/auth/config.js";
 import { currentUser } from "../../../lib/auth/server.js";
 import { flagCopy, flagEnabled } from "../../../lib/flags.js";
 import { AuthShell } from "../../auth/shell.js";
-import { AuthCard, Links, Notice } from "../../auth/ui.js";
+import { AuthCard, Links, Notice, Skeleton } from "../../auth/ui.js";
 import { Runner } from "./runner.js";
 
 export const metadata = {
@@ -62,7 +62,7 @@ async function RunScreen() {
 export default function DailyRunPage() {
   return (
     <AuthShell counter="Today's run" skipLabel="run">
-      <Suspense fallback={<p className="auth-notice">Loading today&apos;s run…</p>}>
+      <Suspense fallback={<Skeleton label="Loading today's run…" rows={6} />}>
         <RunScreen />
       </Suspense>
     </AuthShell>

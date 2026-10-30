@@ -60,6 +60,9 @@
   --shadow-1: 0 1px 2px #21201c0f, 0 1px 3px -1px #21201c14;
   --dur-1: 120ms;
   --dur-2: 180ms;
+  /* The loading pulse. Long enough to read as work in progress rather than a flicker, which is why it
+     is a third duration instead of the interaction pair above. */
+  --dur-3: 1.4s;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
   --shell: 1080px;
   --prose: 68ch;

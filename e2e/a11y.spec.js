@@ -327,3 +327,53 @@ test("every page's skip link names the landmark it jumps to", async ({ page }) =
     await expect(page.locator("#main"), `${path} has no #main to land on`).toHaveCount(1);
   }
 });
+
+test.describe("motion", () => {
+  test("a smooth scroll jump is not forced on a reader who asked for less", async ({ page }) => {
+    await page.goto("/learn");
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe("auto");
+  });
+
+  test("the loading skeleton holds still, at the height of the line it stands in for", async ({ page }) => {
+    // A streamed section is only on screen for a moment, so the bars are measured where they are
+    // defined: inserted into the page that loads the stylesheet, then read back from the browser.
+    await page.goto("/account");
+    const bar = await page.evaluate(() => {
+      const host = document.createElement("div");
+      host.className = "skeleton";
+      const child = document.createElement("span");
+      child.className = "skeleton-bar";
+      host.append(child);
+      document.body.append(host);
+      const style = getComputedStyle(child);
+      const read = { animation: style.animationName, height: style.height, background: style.backgroundColor };
+      host.remove();
+      return read;
+    });
+    expect(bar.animation).toBe("none");
+    expect(bar.height).toBe("16px");
+    expect(bar.background).not.toBe("rgba(0, 0, 0, 0)");
+  });
+
+  test.describe("with no preference expressed", () => {
+    test.use({ reducedMotion: "no-preference" });
+
+    test("the page keeps its smooth jump and the skeleton breathes", async ({ page }) => {
+      await page.goto("/account");
+      expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe("smooth");
+      expect(
+        await page.evaluate(() => {
+          const host = document.createElement("div");
+          host.className = "skeleton";
+          const child = document.createElement("span");
+          child.className = "skeleton-bar";
+          host.append(child);
+          document.body.append(host);
+          const name = getComputedStyle(child).animationName;
+          host.remove();
+          return name;
+        }),
+      ).toBe("skeleton-breathe");
+    });
+  });
+});

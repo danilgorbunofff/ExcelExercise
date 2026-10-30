@@ -18,7 +18,7 @@ import { FALLBACK_TIMEZONE } from "../../lib/retention/points.js";
 import { batchDay, learnerTimezone } from "../../lib/retention/write.js";
 import { loadSite } from "../../lib/site.js";
 import { AuthShell } from "../auth/shell.js";
-import { AuthCard, Links, Notice } from "../auth/ui.js";
+import { AuthCard, Links, Notice, Skeleton } from "../auth/ui.js";
 
 export const metadata = {
   title: "Daily challenge",
@@ -197,7 +197,7 @@ async function ChallengeScreen() {
 export default function DailyPage() {
   return (
     <AuthShell counter="Daily challenge" skipLabel="daily challenge">
-      <Suspense fallback={<p className="auth-notice">Loading today&apos;s challenge…</p>}>
+      <Suspense fallback={<Skeleton label="Loading today's challenge…" rows={8} />}>
         <ChallengeScreen />
       </Suspense>
     </AuthShell>

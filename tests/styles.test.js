@@ -154,10 +154,15 @@ describe("visual constraints", () => {
   });
 
   it("moves only when the reader has not asked for less", () => {
-    assert.match(base, /@media \(prefers-reduced-motion: reduce\)/);
+    // Smooth scrolling used to sit inside base.css's `html` rule with a `reduce` override beside it.
+    // It is opt-in now like every other movement, so there is nothing left to override — and the
+    // override is gone, which is why this asserts the positive instead of looking for it.
+    const optIn = (text) => text.replace(/@media \(prefers-reduced-motion: no-preference\)[\s\S]*?\n\}/g, "");
+    assert.match(base, /@media \(prefers-reduced-motion: no-preference\) \{[\s\S]*?scroll-behavior: smooth/);
+    assert.equal(/scroll-behavior/.test(optIn(base)), false, "smooth scrolling still applies to everyone");
     const animated = [...components.matchAll(/@media \(prefers-reduced-motion: no-preference\)\s*\{/g)];
     assert.ok(animated.length >= 2, "component motion should live inside no-preference blocks");
-    assert.equal(/^\s*(animation|transition):/m.test(components.replace(/@media \(prefers-reduced-motion: no-preference\)[\s\S]*?\n\}/g, "")), false);
+    assert.equal(/^\s*(animation|transition):/m.test(optIn(components)), false);
   });
 
   it("has one focus treatment, applied through :focus-visible", () => {
@@ -181,6 +186,22 @@ describe("visual constraints", () => {
     assert.ok(outlines.length >= 1, "the app stylesheets declare a focus ring");
     for (const value of outlines) assert.equal(value, "2px solid var(--focus)");
     for (const text of app) assert.equal(/outline:\s*none/.test(text), false);
+  });
+
+  it("guards the Next-only stylesheets' motion as well", () => {
+    // `components.css` and `base.css` are checked above; the app stylesheets ship outside them, so a
+    // skeleton pulse could start animating for a reader who asked for less and nothing would notice.
+    const app = ["auth.css", "flashcards/flashcards.css", "globals.css"].map((name) =>
+      readFileSync(join(ROOT, "..", "app", name), "utf8"),
+    );
+    for (const text of app) {
+      const outside = text.replace(/@media \(prefers-reduced-motion: no-preference\)[\s\S]*?\n\}/g, "");
+      assert.equal(
+        /^\s*(animation|transition):/m.test(outside),
+        false,
+        "an animation in the app stylesheets applies to everyone",
+      );
+    }
   });
 
   it("defines every custom property it reads", () => {

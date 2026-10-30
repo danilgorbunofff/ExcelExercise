@@ -6,7 +6,7 @@ import { retentionFlags } from "../../lib/flags.js";
 import { cachedBoards } from "../../lib/retention/leaderboard.js";
 import { FALLBACK_TIMEZONE } from "../../lib/retention/points.js";
 import { batchDay } from "../../lib/retention/write.js";
-import { AuthCard, Links, Notice } from "../auth/ui.js";
+import { AuthCard, Links, Notice, Skeleton } from "../auth/ui.js";
 import { AuthShell } from "../auth/shell.js";
 
 export const metadata = {
@@ -141,7 +141,7 @@ async function LeaderboardScreen() {
 export default function LeaderboardPage() {
   return (
     <AuthShell counter="Today's board" skipLabel="leaderboard">
-      <Suspense fallback={<p className="auth-notice">Loading the board…</p>}>
+      <Suspense fallback={<Skeleton label="Loading the board…" rows={8} />}>
         <LeaderboardScreen />
       </Suspense>
     </AuthShell>

@@ -323,3 +323,38 @@
     min-height: 44px;
   }
 }
+
+/* What a streamed section shows while the server is still building it: one bar per line that is
+   coming, at the height of the text it stands in for, so the card does not jump when it fills. The
+   bars are decorative — the sentence inside the status region is the accessible content. */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  margin: 0 0 var(--s-4);
+}
+
+.skeleton-bar {
+  display: block;
+  height: var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface-sunk);
+}
+
+.skeleton-bar:last-child {
+  width: 45%;
+}
+
+/* Motion is opt-in here too: a reader who asked for less gets the same bars, still. */
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton-bar {
+    animation: skeleton-breathe var(--dur-3) var(--ease) infinite alternate;
+  }
+}
+
+@keyframes skeleton-breathe {
+  to {
+    opacity: 0.55;
+  }
+}

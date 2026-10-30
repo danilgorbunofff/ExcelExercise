@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { AuthShell } from "../../auth/shell.js";
 import { authConfig } from "../../../lib/auth/config.js";
 import { currentUser } from "../../../lib/auth/server.js";
-import { AuthCard, Links, Notice } from "../../auth/ui.js";
+import { AuthCard, Links, Notice, Skeleton } from "../../auth/ui.js";
 
 import { NewPasswordForm } from "./form.js";
 
@@ -47,7 +47,7 @@ async function NewPasswordScreen() {
 export default function NewPasswordPage() {
   return (
     <AuthShell counter="Set a new password">
-      <Suspense fallback={<p className="auth-notice">Checking your link…</p>}>
+      <Suspense fallback={<Skeleton label="Checking your link…" rows={2} />}>
         <NewPasswordScreen />
       </Suspense>
     </AuthShell>

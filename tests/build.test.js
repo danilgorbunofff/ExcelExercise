@@ -209,11 +209,12 @@ describe("build", () => {
       "assets/client/drill.js",
       "assets/client/state.js",
       "assets/client/feedback.js",
+      "assets/client/reward.js",
       "assets/grader/index.js",
     ]) {
       assert.doesNotThrow(() => readFileSync(join(out, file)), `${file} was not written`);
     }
-    assert.equal(summary.client, 4, "drill.js, its state module, the dashboard island, the feedback dialog");
+    assert.equal(summary.client, 5, "drill.js, its state and reward modules, the dashboard island, the feedback dialog");
 
     for (const page of ["excel/sum-basics.html", "index.html"]) {
       const html = readFileSync(join(out, page), "utf8");

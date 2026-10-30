@@ -131,6 +131,53 @@ test("a lesson the record already holds reads as a revisit, not as a first attem
   );
 });
 
+test("the award the server reports lands in the finished verdict, above the way out", async ({ page }) => {
+  // The sender is the only thing that knows the page's origin, so the event it dispatches is faked
+  // here — what is under test is the drill's half: that the line appears, where, and for whom.
+  const reward = (lessonId) =>
+    page.evaluate(
+      ([id]) =>
+        document.dispatchEvent(
+          new CustomEvent("es:reward", { detail: { lessonId: id, points: { awarded: 12 }, streak: { current: 3 } } }),
+        ),
+      [lessonId],
+    );
+
+  await openDrill(page, FREE.slug);
+
+  // Nothing is paid for a miss, and there is no verdict to decorate before one is given.
+  await reward(FREE.exercise.id);
+  await expect(page.locator(".feedback-reward")).toHaveCount(0);
+
+  await check(page, "=SUM(B2:B3)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
+  await reward(FREE.exercise.id);
+  await expect(page.locator(".feedback-reward")).toHaveCount(0);
+
+  await check(page, "=SUM(B2:B4)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+  // A batch for another lesson is another page's award.
+  await reward(FREE.next.id);
+  await expect(page.locator(".feedback-reward")).toHaveCount(0);
+
+  await reward(FREE.exercise.id);
+  const line = page.locator("#feedback .feedback-reward");
+  await expect(line).toHaveText("+12 points · 3-day streak");
+  // The next drill is what the panel ends on, so the award goes above it — and the reward does not
+  // take the focus the next link was given.
+  const order = await page.evaluate(() => {
+    const panel = document.getElementById("feedback");
+    return [...panel.children].map((child) => child.className);
+  });
+  expect(order.indexOf("feedback-reward")).toBeLessThan(order.findIndex((name) => name.includes("next-cta")));
+  await expect(page.locator("#feedback .next-cta")).toBeFocused();
+
+  // Replacing the verdict clears the award with it: it described the lesson that just ended.
+  await page.fill("#formula", "=SUM(B2:B3)");
+  await page.click("#check");
+  await expect(page.locator(".feedback-reward")).toHaveCount(0);
+});
+
 test("a multi-screen lesson walks to its picture screen and completes on typed text", async ({ page }) => {
   await openGatedDrill(page, "xlookup-search-from-the-bottom");
 

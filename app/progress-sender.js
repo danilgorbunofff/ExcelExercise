@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+import { rewardFrom } from "../legacy/src/client/reward.js";
 import { PROGRESS_KEY } from "../legacy/src/client/state.js";
 import { localLessons } from "../lib/progress/migrate.js";
 import { createCollector } from "../lib/progress/sender.js";
@@ -38,7 +39,20 @@ export default function ProgressSender() {
         body: JSON.stringify({ batch_id: crypto.randomUUID(), events }),
       })
         .then((response) => {
-          if (response.ok || response.status === 409) return; // written, or a batch id already used
+          if (response.status === 409) return; // a batch id already used: the award was paid there
+          if (response.ok) {
+            // The award is only knowable from the answer, and the drill owns the panel it goes in, so
+            // the number is handed over as an event rather than written into the DOM from here.
+            response
+              .json()
+              .then((body) => {
+                const reward = rewardFrom(body);
+                if (!reward) return;
+                document.dispatchEvent(new CustomEvent("es:reward", { detail: { lessonId, ...reward } }));
+              })
+              .catch(() => {}); // a body that is not JSON earned nothing worth showing
+            return;
+          }
           if (response.status === 401 || response.status === 403 || response.status === 503) {
             stopped = true;
             return;

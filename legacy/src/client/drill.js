@@ -43,6 +43,7 @@ import {
   trialDaysLeft,
   validEmail,
 } from "./state.js";
+import { rewardLine } from "./reward.js";
 
 /** What the player uses when a track file from before `showAnswerAfter` loads in it. */
 const DEFAULT_REVEAL_AFTER = 3;
@@ -472,7 +473,7 @@ function mountDrill(payloadNode) {
     ui.input?.removeAttribute("aria-invalid");
     ui.feedbackHead.textContent = "";
     ui.feedbackBody.textContent = "";
-    for (const extra of ui.feedback.querySelectorAll(".feedback-caret, .feedback-meta, .next-cta")) extra.remove();
+    for (const extra of ui.feedback.querySelectorAll(".feedback-caret, .feedback-meta, .feedback-reward, .next-cta")) extra.remove();
   }
 
   function showFeedback({ state, head, body, caret = "", meta = "", next = null }) {
@@ -1211,6 +1212,21 @@ function mountDrill(payloadNode) {
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) clock.pause();
     else clock.resume();
+  });
+
+  // The award is the server's, so it arrives after the verdict is already on the page — and only on
+  // a deployment with accounts. Nothing here invents a number: an unpaid lesson shows no line.
+  document.addEventListener("es:reward", (event) => {
+    const detail = event.detail;
+    if (!detail || detail.lessonId !== lessonId) return;
+    if (!ui.feedback.classList.contains("is-correct")) return;
+    const line = rewardLine(detail);
+    if (!line) return;
+    const note = el("p", { class: "feedback-reward", text: line });
+    // Above the way out, not below it: the next drill is the last thing in the panel by design.
+    const next = ui.feedback.querySelector(".next-cta");
+    if (next) next.before(note);
+    else ui.feedback.append(note);
   });
 
   paintProgress();

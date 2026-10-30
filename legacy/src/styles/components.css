@@ -1107,6 +1107,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The server's award, added after the verdict is on the page. `--ok` is the darkened jade that
+   clears 4.5:1 on `--ok-bg`, so it reads at meta size without borrowing the head's weight. */
+.feedback-reward {
+  margin-top: var(--s-2);
+  color: var(--ok);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 .next-cta {
   display: inline-flex;
   align-items: center;

@@ -98,6 +98,16 @@ names the trail when the walk misses; and the three reads that follow a walk now
 unproven — hypothesis says the loss happens. `retries: 1` is set for CI only, so the first CI run can
 still hide a recurrence.
 
+Still not reproduced on 2026-10-30, over three more full-suite passes at default workers — `112 passed`
+twice, plus `224 passed` at `--repeat-each=2` — while closing other rows. One adjacent observation,
+recorded because it looks like this one and is not: at `--workers=10`, double the configured
+parallelism, *"the session clock stops while the tab is hidden"* failed once on
+`expect(answered - opened).toBeLessThan(2)`, reading `2`. That test hides the tab for 1.3 s, shows it
+for 1.3 s, and demands the elapsed total stay under 2, so it has ~0.7 s of headroom; ten starved
+workers pushed the visible window past it. The app property is intact — a hidden second is not on
+task — the assertion is simply tight, and CI runs the configured worker count. Not changed: widening a
+boundary because a machine was overloaded on purpose trades a proof for a green.
+
 **5. The golden guard depends on a clean tree.** CI asserts `git status --porcelain -- tests/golden`
 is empty. That is correct, but it means a legitimate fixture change must be committed *before* the
 run, and a stale `golden:update` on a dirty tree fails in a way that reads like a real regression.

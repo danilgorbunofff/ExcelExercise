@@ -127,6 +127,9 @@
 }
 
 .auth-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   color: var(--text-muted);
   text-underline-offset: 3px;
 }
@@ -302,4 +305,21 @@
 
 .auth-spark circle {
   fill: var(--text);
+}
+
+/* A form field on a phone is a thumb target before it is a text box: 38px inputs and 40px buttons
+   sit under the 44px minimum, so everything the visitor has to hit grows on small screens. */
+@media (max-width: 767px) {
+  .auth-field input,
+  .auth-danger input {
+    height: 44px;
+  }
+
+  .auth-submit {
+    height: 44px;
+  }
+
+  .auth-links a {
+    min-height: 44px;
+  }
 }

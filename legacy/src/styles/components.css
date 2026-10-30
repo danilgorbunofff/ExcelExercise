@@ -82,12 +82,20 @@
   font-size: var(--fs-meta);
 }
 
+/* The footer is one row of small ways out; 17px of text is under the 24px pointer minimum, so the
+   links get a floor. It grows to 44px for touch in the phone branch at the bottom of this file. */
 .foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   text-decoration-color: var(--jade-7);
 }
 
 /* The feedback button reads as the link beside it, because that row is a row of small ways out. */
 .foot-feedback {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   padding: 0;
   border: 0;
   background: none;
@@ -387,7 +395,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The rail's rows are 34px tall but the anchor only paints its 18px line box, so the padded row
+   around it did nothing for the pointer. 3px of padding each side lifts the painted box to the 24px
+   minimum without moving a single pixel: on an inline box vertical padding never enters the line
+   box, and every rail row is taller than the result so the extra area overlaps nothing. */
 .rail-link {
+  padding-block: 3px;
   color: var(--text-muted);
   font-size: var(--fs-meta);
   line-height: 1.4;
@@ -1497,6 +1510,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-1);
+  min-height: 44px;
   max-width: 42ch;
   text-decoration: none;
   color: var(--text);
@@ -1604,6 +1618,12 @@
   margin-top: var(--s-3);
   color: var(--text-muted);
   font-size: var(--fs-meta);
+}
+
+/* The roster rows on /pricing are links whose 19px line box is the whole target. Inline padding lifts
+   the painted box to 25px without touching layout or eating into the row gap. */
+.how-steps a {
+  padding-block: 3px;
 }
 
 .level {
@@ -1733,7 +1753,31 @@
 
   .foot {
     margin-top: var(--s-8);
+    /* The footer stacks on a phone, so there is no reason to keep its links at a text-sized target:
+       they become full-width 44px rows, the minimum reachable thumb target. */
     flex-direction: column;
+    gap: 0;
+  }
+
+  .foot a,
+  .foot-feedback {
+    min-height: 44px;
+  }
+
+  /* The primary action of a drill is 32px tall on every viewport; on a phone it grows to a thumb
+     target and the formula bar grows with it. */
+  .btn {
+    height: auto;
+    min-height: 44px;
+  }
+
+  .formula-bar {
+    height: auto;
+    min-height: 52px;
+  }
+
+  .btn-check {
+    height: 44px;
   }
 
   .page-head {

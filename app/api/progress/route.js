@@ -1,15 +1,22 @@
 /**
- * `POST /api/progress` — the one way a signed-in learner's screen visits reach the database.
+ * `POST /api/progress` — the one way a signed-in learner's progress reaches the database.
  *
- * The body is `{ batch_id, events }`: the same buffer the drill already fills in memory. Everything
- * that becomes a row is derived from those events (`lib/progress/derive.js`), so a browser cannot post
- * itself a score. Without accounts configured the route answers 503 rather than pretending, and an
- * anonymous request is 401 — the drills keep working locally either way.
+ * Two bodies, because there are two things to say:
+ *
+ *   * `{ batch_id, events }` — the buffer the drill fills in memory. Every row is derived from those
+ *     events (`lib/progress/derive.js`), so a browser cannot post itself a score.
+ *   * `{ batch_id, lessons }` — the roll-up a signed-out browser kept in `es.progress`. It carries no
+ *     screen visits, so it writes `lesson_progress` only and never `attempts` (`lib/progress/migrate.js`).
+ *
+ * Both are idempotent on the same batch id, both check the lesson ids against the catalog, and both
+ * refuse rather than pretend: without accounts configured the answer is 503, and an anonymous request
+ * is 401 — the drills keep working locally either way.
  */
 import { authConfig } from "../../../lib/auth/config.js";
 import { currentUser } from "../../../lib/auth/server.js";
 import { parseBatch } from "../../../lib/progress/derive.js";
-import { progressClient, writeBatch } from "../../../lib/progress/write.js";
+import { parseMigration } from "../../../lib/progress/migrate.js";
+import { importProgress, progressClient, writeBatch } from "../../../lib/progress/write.js";
 import { loadSite } from "../../../lib/site.js";
 
 function json(body, status) {
@@ -17,6 +24,25 @@ function json(body, status) {
     status,
     headers: { "content-type": "application/json", "cache-control": "no-store" },
   });
+}
+
+/** The signed-out roll-up path: one RPC over the whole list, no attempts, no accuracy. */
+async function migrate({ client, user, body }) {
+  const parsed = parseMigration(body);
+  if (!parsed.ok) return json({ ok: false, error: parsed.error }, 400);
+
+  const known = new Set(loadSite().index.map((candidate) => candidate.exercise.id));
+  const unknown = parsed.lessons.find((lesson) => !known.has(lesson.lesson_id));
+  if (unknown) return json({ ok: false, error: `unknown lesson: ${unknown.lesson_id}` }, 400);
+
+  const result = await importProgress(client, { user, batchId: parsed.batchId, lessons: parsed.lessons });
+  if (!result.ok) {
+    return result.conflict
+      ? json({ ok: false, error: "batch_id_conflict" }, 409)
+      : json({ ok: false, error: result.error }, 502);
+  }
+
+  return json({ ok: true, replayed: result.replayed, lessons: result.lessons }, result.replayed ? 200 : 201);
 }
 
 export async function POST(request) {
@@ -40,6 +66,10 @@ export async function POST(request) {
   } catch {
     return json({ ok: false, error: "body is not JSON" }, 400);
   }
+
+  // A migration says `lessons`; an event batch says `events`. Anything else falls through to the event
+  // parser, which rejects it with the error a caller can act on.
+  if (Array.isArray(body?.lessons)) return migrate({ client, user, body });
 
   const parsed = parseBatch(body);
   if (!parsed.ok) return json({ ok: false, error: parsed.error }, 400);

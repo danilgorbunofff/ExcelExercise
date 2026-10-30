@@ -236,6 +236,8 @@ accuracy and rank — never email or username.
    duplicate row. `first_try_accuracy` is recomputed from `attempts`, never from client totals.
 5. **Migration of anonymous progress.** On first sign-in, read `es.progress` from localStorage, POST
    it, merge with `min(completed_at)` and keep the higher accuracy; then set `es.progress.migrated`.
+   Delivered in unit 3c — note that a signed-out record has no accuracy to keep, so the merge keeps
+   the greater score and leaves `first_try_accuracy` for the first real batch (see the unit log).
 6. **Stripe.** Products/prices created from `scripts/stripe-seed.mjs`; Checkout session server-side
    (never client-created); success/cancel routes; Billing Portal link; webhook with signature
    verification, and handlers for `checkout.session.completed`,
@@ -624,5 +626,96 @@ against `loadSite().index`.
 | Anonymous `es.progress` import with a `min(completed_at)` merge and an `es.progress.migrated` marker | needs a merge rule the database does not have yet; the sender is a prerequisite and now exists |
 | The `201` path of `POST /api/progress` over HTTP | needs a Next server with a configured Supabase project in CI; the success path is proved at the function and module level (`tests/db/progress.spec.js`, `tests/progress-sync.test.js`), the refusal path in a browser |
 | A signed-in flush through the real route | same: no database in the e2e job |
+| Profile onboarding step (name + username, optional LinkedIn) — work item 3 | not started |
+| Items 5 (legal/data rights), 6 (Stripe), 8 (paywall), 9 (allowlist) | not started; item 6 also needs Stripe test keys |
+
+### 2026-10-31 — unit 3c (the signed-out roll-up, item 5)
+
+Phase 2 has kept `es.progress` in `localStorage` since before there were accounts: per lesson a
+completion date, a `tries` count and a `helped` flag. Without this unit, signing in on a new browser
+throws all of it away. The row has been open since unit 3a because it needs a merge rule, not a
+transport — and the transport is now in place, so this unit adds the rule.
+
+```
+npm run check
+ℹ tests 709
+ℹ suites 115
+ℹ pass 709
+ℹ fail 0
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 27 pages (741.4 kB of HTML+CSS) → /Users/danil/Desktop/excelsupreme/legacy/dist
+next routes: 27 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed
+
+npx playwright test
+  65 passed (10.8s)
+
+npm run db:check
+ℹ tests 73
+ℹ suites 18
+ℹ pass 73
+ℹ fail 0
+
+npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+`696 → 709` unit tests (`tests/progress-migrate.test.js`, 13 cases), `66 → 73` database assertions
+(`tests/db/migrate.spec.js`, 7 cases), `63 → 65` e2e. Page count, bytes, screens, fixtures and verify
+checks are unchanged: the component still renders `null` and no template changed.
+
+#### What ships
+
+- **`supabase/migrations/0005_anonymous_progress.sql`** — `import_lesson_progress(p_user, p_batch,
+  p_lessons)`. The batch id is claimed from the same `progress_batches` table as `record_progress`, with
+  the same owner-scoped replay rule (a replay returns `replayed: true, lessons: 0`; another account's key
+  raises `23505`, which the route reports as `409`). Each lesson is `insert … on conflict (user_id,
+  lesson_id) do update` with `completed_at = least(coalesce(lp, excluded), coalesce(excluded, lp))`,
+  `score = greatest`, `helped` sticky, `status` latched to `complete`. `attempts` and `wrong_count` are
+  assigned `0` on insert and never incremented, so `first_try_accuracy` stays `null` until a real batch
+  arrives. Revoked from `public, anon, authenticated` — the service role calls it, nobody else may.
+- **`lib/progress/migrate.js`** — `localLessons(record)` reads the roll-up: a completion with its date,
+  a lesson with misses and no completion as `in_progress`, `score: 0` (a local record has no score, so
+  the merge keeps whatever the database already had), zero and non-numeric `tries` ignored, unreadable
+  dates dropped to `null` rather than invented, capped at 200 lessons. `parseMigration(body)` re-validates
+  the same shape server-side and clamps `score` to `0..100`.
+- **`lib/progress/write.js`** — `importProgress(client, {user, batchId, lessons})`, the RPC call; `track`
+  is fixed to `excel` server-side, so a browser cannot choose it.
+- **`app/api/progress/route.js`** — a `lessons` array routes to `migrate()` instead of `parseBatch`; the
+  status contract is the same one (503 unconfigured, 401 signed out, 400 malformed, 409 collision, 502
+  database, 201/200 written or replayed).
+- **`app/progress-sender.js`** — after installing its hook, one `migrate()`: read `es.progress`, skip
+  when absent, unparsable or already marked, POST `{ batch_id, lessons }`, and set
+  `es.progress.migrated = "1"` only on `2xx`. A corrupt record is left exactly as found — rewriting it
+  would destroy the evidence.
+- **Tests:** `tests/progress-migrate.test.js` (13, pure), `tests/db/migrate.spec.js` (7, real Postgres),
+  and two `e2e/progress.spec.js` cases: a seeded record produces the migrated body and, because CI has no
+  accounts, keeps the marker unset after the `503`; a corrupt record produces no request at all and is
+  not rewritten. Both e2e waiters now select the POST by its body, since two bodies share the route.
+
+#### Deviations from this document
+
+- **A dedicated RPC rather than synthesised events.** The tempting shortcut is to turn each completed
+  lesson into a `lesson_complete` event and let `record_progress` derive the row. That would fabricate
+  attempts and accuracy for screens nobody observed — the one thing the event path is built to prevent.
+  A roll-up that cannot be attributed writes a roll-up.
+- **`p_lessons` is a list, not a single lesson.** One migration carries the whole track, which is what a
+  learner expects from "sign in and see my progress"; it is bounded at 200 so the payload cannot be used
+  to write the catalog many times over.
+- **The merge is idempotent in effect, but the claim is kept anyway.** A duplicate migration would be
+  harmless, yet leaving it unclaimed would give the two write paths different contracts for the same key.
+  One table, one rule.
+- **The component asks once per page load while unmigrated.** In a deployment without accounts that is a
+  `503` on every page load until an account exists. The marker is deliberately not set on failure —
+  losing a learner's completed lessons to avoid a failed request is the worse trade — and the request is
+  one small POST with no event buffer attached.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| The `201` path of `POST /api/progress` over HTTP | needs a Next server with a configured Supabase project in CI; the write itself is proved at the function level (`tests/db/progress.spec.js`, `tests/db/migrate.spec.js`) and the refusal path in a browser |
+| A signed-in flush, and a signed-in migration, through the real route | same: the e2e job has no database |
 | Profile onboarding step (name + username, optional LinkedIn) — work item 3 | not started |
 | Items 5 (legal/data rights), 6 (Stripe), 8 (paywall), 9 (allowlist) | not started; item 6 also needs Stripe test keys |

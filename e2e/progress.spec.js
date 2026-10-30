@@ -11,6 +11,18 @@ import { expect, test } from "@playwright/test";
 const post = (request, body) =>
   request.post("/api/progress", { data: body, headers: { "content-type": "application/json" } });
 
+/** Two bodies share the route — an event batch and a migration — so every wait names the one it wants
+ *  rather than taking whichever POST arrived first. */
+const requestOf = (message) => (typeof message.request === "function" ? message.request() : message);
+const carries = (body, message) => {
+  const request = requestOf(message);
+  return (
+    request.method() === "POST" &&
+    request.url().endsWith("/api/progress") &&
+    (request.postData() ?? "").includes(body)
+  );
+};
+
 test("refuses a progress batch when accounts are not configured", async ({ request }) => {
   const response = await post(request, { batch_id: "11111111-1111-4111-8111-111111111111", events: [] });
   expect(response.status()).toBe(503);
@@ -30,8 +42,8 @@ test("answers a malformed body with a status, never a crash", async ({ request }
  *  finish the lesson, and read the request it made. `sum-basics` is one screen and free, so the drill
  *  reaches `lesson_complete` on the first accepted formula. */
 test("the drill posts its lesson's events when the lesson ends", async ({ page }) => {
-  const request = page.waitForRequest((r) => r.url().endsWith("/api/progress") && r.method() === "POST");
-  const response = page.waitForResponse((r) => r.url().endsWith("/api/progress") && r.request().method() === "POST");
+  const request = page.waitForRequest((r) => carries('"events"', r));
+  const response = page.waitForResponse((r) => carries('"events"', r));
 
   await page.goto("/learn/excel/sum-basics");
   await expect(page.locator("#formula")).toBeVisible();
@@ -50,4 +62,58 @@ test("the drill posts its lesson's events when the lesson ends", async ({ page }
   // No accounts in CI, so the refusal is the deployment's answer — and grading was unaffected.
   expect((await response).status()).toBe(503);
   await expect(page.locator("#feedback")).toBeVisible();
+});
+
+/** The signed-out roll-up: a page that already has `es.progress` offers it once, and only keeps the
+ *  marker when the server took it. CI has no accounts, so the refusal must leave the marker unset —
+ *  otherwise a learner's first signed-out lesson would be discarded on the first page load after
+ *  deployment. The write itself is proved by `tests/db/migrate.spec.js`. */
+test("the page offers a signed-out roll-up once, and keeps it when the server refuses", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "es.progress",
+      JSON.stringify({
+        v: 1,
+        done: { "01-sum-basics": { at: "2026-02-01T09:00:00.000Z", tries: 2, helped: true } },
+        tries: { "02-average-scores": 3 },
+        unlocked: false,
+      }),
+    );
+    localStorage.removeItem("es.progress.migrated");
+  });
+
+  const request = page.waitForRequest((r) => carries('"lessons"', r));
+  const response = page.waitForResponse((r) => carries('"lessons"', r));
+  await page.goto("/learn/excel/sum-basics");
+
+  const body = JSON.parse((await request).postData());
+  expect(body.batch_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  expect(body.lessons).toEqual([
+    { lesson_id: "01-sum-basics", completed_at: "2026-02-01T09:00:00.000Z", helped: true, score: 0 },
+    { lesson_id: "02-average-scores", completed_at: null, helped: false, score: 0 },
+  ]);
+  expect(body.events).toBeUndefined();
+
+  expect((await response).status()).toBe(503);
+  expect(await page.evaluate(() => localStorage.getItem("es.progress.migrated"))).toBeNull();
+});
+
+test("does not offer a corrupt roll-up at all", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("es.progress", "{not json");
+    localStorage.removeItem("es.progress.migrated");
+  });
+
+  const sent = [];
+  page.on("request", (request) => {
+    if (carries('"lessons"', request)) sent.push(request.postData());
+  });
+  await page.goto("/learn/excel/sum-basics");
+  // Hydration is the moment the migration would fire, so wait for it before concluding it did not.
+  await page.waitForFunction(() => typeof window.__esOnEvent === "function");
+  await page.waitForTimeout(300);
+
+  expect(sent).toEqual([]);
+  // The evidence is left alone: a record the browser mangled is not rewritten by the migration.
+  expect(await page.evaluate(() => localStorage.getItem("es.progress"))).toBe("{not json");
 });

@@ -210,7 +210,7 @@ lesson and the dashboard behave exactly as before. Configure a project and those
 cp .env.example .env.local     # both variables are optional; unset is the supported default
 npm run db:start               # local Supabase on ports 54350–54359 (needs Docker or colima)
 npm run db:reset               # migrations + seed; run this after any migration change
-npm run db:check               # 66 assertions: RLS, sign-in and emailed links, the progress writer
+npm run db:check               # 73 assertions: RLS, sign-in and emailed links, the progress writer, the roll-up import
 ```
 
 `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read at build time for the browser
@@ -234,6 +234,16 @@ The browser half is `lib/progress/sender.js` (bucketing, dedupe, `take`/`restore
 through `globalThis.__esOnEvent`. It sends one batch per lesson when the lesson ends (or the page is
 hidden), and stops for the life of the page on the first 401/403/503 — a deployment without accounts
 should not be retried once per answer.
+
+The same component also hands over what a signed-out browser kept: if `es.progress` exists and
+`es.progress.migrated` does not, it posts `{ batch_id, lessons }` — the roll-up, one entry per lesson —
+once per page load. The route recognises that body by its `lessons` array and calls
+`import_lesson_progress` (`0005_anonymous_progress.sql`), which merges instead of overwriting: the
+earlier `completed_at`, the greater score, `helped` sticky, `status` latched to complete. It writes
+`lesson_progress` only — never `attempts` — because a local `tries` count cannot be attributed to the
+screens that produced it, and inventing screen visits would fabricate accuracy. The marker is set only
+after a `2xx`, so a deployment without accounts asks again on the next page load rather than losing the
+learner's history.
 
 ---
 

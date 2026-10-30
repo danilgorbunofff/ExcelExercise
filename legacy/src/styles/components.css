@@ -433,10 +433,12 @@
   }
 
   .rail-item {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 30px;
+    min-width: 32px;
+    min-height: 32px;
     padding: 2px var(--s-1);
     border: 1px solid var(--line);
     border-radius: var(--r-1);
@@ -453,14 +455,20 @@
     color: var(--text);
   }
 
+  /* Below the two-column breakpoint the rail is a horizontal strip of number chips: the chip is the
+     target, the title stays in the accessible name. The anchor is stretched over the whole chip instead
+     of being clipped to a 1x1 box — clipping it left the number a decorative span and the link
+     untappable, which is why the 85-lesson map could not be used on a phone at all. */
   .rail-link {
     position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
+    inset: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
     overflow: hidden;
-    clip-path: inset(50%);
+    clip-path: none;
     white-space: nowrap;
+    text-indent: -100%;
   }
 
   .rail-tick {

@@ -1560,6 +1560,9 @@
 /* ── Track index ───────────────────────────────────────────────────────── */
 
 .cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
   margin-top: var(--s-5);
 }
 
@@ -1765,10 +1768,13 @@
   }
 
   /* The primary action of a drill is 32px tall on every viewport; on a phone it grows to a thumb
-     target and the formula bar grows with it. */
+     target and the formula bar grows with it. Button labels stop being unbreakable here too: a
+     46-character CTA cannot fit 390px in one line and used to push the page 70px wide. */
   .btn {
     height: auto;
     min-height: 44px;
+    white-space: normal;
+    text-align: center;
   }
 
   .formula-bar {

@@ -41,14 +41,14 @@ export function preparePricingPage({ config, track, index, icons = {}, checkout 
         <button class="btn btn-primary" type="submit">Pay ${esc(PRICE)}${inlineIcon(icons["arrow-right"], {
           size: 16,
         })}</button>
-        <a class="btn" href="${esc(first.path)}">Start with drill 1 · ${esc(first.exercise.title)}</a>
+        <a class="btn" href="${esc(first.path)}">Do drill 1 · ${esc(first.exercise.title)}</a>
       </form>
       <p class="gate-note">Card payment through Stripe. Every paid drill opens the moment the payment clears, and you can cancel or ask for a refund from your account page.</p>`
     : `<p class="cta-row">
         <a class="btn btn-primary" href="/signup?next=/pricing">Create an account${inlineIcon(icons["arrow-right"], {
           size: 16,
         })}</a>
-        <a class="btn" href="${esc(first.path)}">Start with drill 1 · ${esc(first.exercise.title)}</a>
+        <a class="btn" href="${esc(first.path)}">Do drill 1 · ${esc(first.exercise.title)}</a>
       </p>
       <p class="gate-note">Checkout is not open yet in this build. Until it opens, the free drills are open and the paid drills open with the in-browser trial.</p>`;
 

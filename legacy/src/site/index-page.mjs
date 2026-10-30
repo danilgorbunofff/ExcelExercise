@@ -95,7 +95,7 @@ export function prepareIndexPage({ config, track, index, icons = {}, clientAvail
       </div>
 
       <p class="cta-row">
-        <a class="btn btn-primary" href="${esc(first.path)}">Start with drill 1 · ${esc(
+        <a class="btn btn-primary" href="${esc(first.path)}">Do drill 1 · ${esc(
           first.exercise.title,
         )}${inlineIcon(icons["arrow-right"], { size: 16 })}</a>
         <a class="btn" href="/learn">Your progress</a>

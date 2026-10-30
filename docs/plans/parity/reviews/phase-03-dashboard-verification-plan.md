@@ -67,12 +67,12 @@ cannot keep, but the cap itself is invisible.
 | # | Command | Expected | If it fails |
 |---|---|---|---|
 | 1 | `node --test tests/progress.test.js tests/dashboard-page.test.js` | `tests 46`, `pass 46` (32 + 14) | Progress serialisation or the dashboard page contract broke. `parseProgress` is the one to read: it must survive a hand-edited or older payload. |
-| 2 | `npx playwright test e2e/dashboard.spec.js e2e/gate.spec.js e2e/feedback.spec.js` | `18 passed` (10 + 3 + 5), `5.5 s` | The dashboard renders wrong, the gate fails to unlock, or the feedback dialog regressed. The blocked-storage test is the one that proves the honest message appears instead of "0 of 16". |
+| 2 | `npx playwright test e2e/dashboard.spec.js e2e/gate.spec.js e2e/feedback.spec.js` | `19 passed` (11 + 3 + 5) | The dashboard renders wrong, the gate fails to unlock, or the feedback dialog regressed. The blocked-storage test is the one that proves the honest message appears instead of "0 of 16". |
 | 3 | `npx playwright test e2e/a11y.spec.js` | `8 passed` | An axe scan failed on a new page. The collision that forced `#feedback-dialog` was found by exactly this. |
 | 4 | `node legacy/src/verify.mjs` | `verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed` | Something in the static dist broke a pin, link or budget. The first-paint budget is silent on success; it fails as `learn/index.html first paint costs N B gzipped, over the 40 kB a throttled second affords`. |
 | 5 | Manual, private/incognito window | Dashboard shows the blocked-storage sentence; drills still work | The guard regressed. The **drill** half of this row is no longer a gap: failure mode 1 is closed and the sentence is asserted in the browser by `e2e/drill.spec.js`. The dashboard half stays manual. |
-| 6 | Manual, complete a lesson then reload | Completion, per-screen time and the recommendation persist | Progress is not being written — check `es.progress` in devtools before blaming the page. |
-| 7 | Manual, gate then unlock then reset | The gate is still unlocked after reset | Expected. If it is locked again, someone changed the documented reset semantics. |
+| 6 | `npx playwright test e2e/dashboard.spec.js -g "finished on its own page"` | `1 passed` — the free drill is solved, the drill page reloads, `/learn` then counts it | Progress is not being written — check `es.progress` in devtools before blaming the page. The manual sequence (complete, reload, look) is what this test performs; per-screen time is not stored client-side at all, so only the completion and the recommendation are assertable. |
+| 7 | `npx playwright test e2e/dashboard.spec.js -g "walls back"` | `1 passed` — seeded as unlocked, reset clicked twice, `es.progress.unlocked` still `true`, and the last drill opens with no `#paywall` | Someone changed the documented reset semantics: `armReset` builds the wiped record as `{ ...emptyProgress(), unlocked: state.progress.unlocked === true }` and must keep doing so. |
 
 Recorded deviations, not to be reported as green: no server-side progress, no `/api/feedback`,
 no aggregated analytics.
@@ -88,8 +88,8 @@ Run from `/Users/danil/Desktop/excelsupreme` on `30629e8`, Node `v25.9.0` (macOS
 | 3 | **closed** | `npx playwright test e2e/a11y.spec.js` → `8 passed (3.7s)` |
 | 4 | **closed** | `node legacy/src/verify.mjs` → `verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed` (re-pinned 2026-10-29: `817` → `827` → `839` → `851` as shipped screens gained markup) |
 | 5 | **half closed** | Drill half: `npx playwright test e2e/drill.spec.js` → `9 passed`, including "a drill in a browser that refuses storage warns before the work evaporates". Dashboard half still needs a human in a private window; the browser test uses a `localStorage` getter that throws, which is the same probe path but not literally incognito mode. |
-| 6 | **still open** | Manual: complete a lesson then reload. Needs a human, and the automated equivalent (`e2e/drill.spec.js` "progress survives a reload on the same device") already proves the write path. |
-| 7 | **still open** | Manual: gate → unlock → reset. Needs a human; `e2e/gate.spec.js` covers the unlock, not the reset-then-still-unlocked semantics. |
+| 6 | **closed** | `npx playwright test e2e/dashboard.spec.js -g "finished on its own page"` → `1 passed (2.1s)`. Re-pinned 2026-10-30: the dashboard test now reloads the drill page after the correct answer and asserts `.rail-item[data-lesson=…]` is `is-done` before opening `/learn`, so the count it checks comes from a fresh document rather than the page that just did the write. `e2e/drill.spec.js` "progress survives a reload on the same device" covers the same seam from the drill side. |
+| 7 | **closed** | `npx playwright test e2e/dashboard.spec.js -g "walls back"` → `1 passed (1.8s)`. New test "erasing progress does not put the walls back": the seed is one-shot (`sessionStorage` guard) so a re-running init script cannot hand the pre-reset record back; after two reset clicks it asserts `stored.done` is `{}` and `stored.unlocked` is `true`, then opens `index.at(-1)` — behind both the order gate and the paywall — and finds `#formula` visible with no `#paywall` in the DOM. Mutation-checked: with `armReset` forced to `unlocked: false` the test fails at `expect(stored.unlocked).toBe(true)`. |
 
 ## Baseline
 
@@ -98,7 +98,7 @@ Run from `/Users/danil/Desktop/excelsupreme` on `30629e8`, Node `v25.9.0` (macOS
 | `/learn` page and group pages | 1 dashboard + 9 group pages |
 | Progress package tests | 32 |
 | Dashboard page tests | 14 |
-| Dashboard browser tests | 10 |
+| Dashboard browser tests | 11 |
 | Gate browser tests | 3 |
 | Feedback browser tests | 5 |
 | Accessibility scans | 8 |

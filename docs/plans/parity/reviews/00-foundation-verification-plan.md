@@ -182,7 +182,7 @@ branch `phase-0-port-shell`:
 | 4 | `npm run next:build` | `built 109 pages (11223.7 kB of HTML+CSS)` |
 | 5 | `npm run next:check` | `next routes: 109 prerendered pages match the shared templates` |
 | 6 | `node legacy/src/verify.mjs` | `verified 88 lesson pages, the index, the dashboard, the pricing page and 16 group pages — 4378 checks passed` |
-| 7 | `npx playwright test` | `111 passed (20.5s)` |
+| 7 | `npx playwright test` | `112 passed (23.9s)` |
 
 Phase 1's scope risk is therefore closed: 88 of 88 slots authored, 16 of 16 groups with drills, 0
 `planned`. The "Stop before content authoring" section above is history — it described the tree before
@@ -207,3 +207,16 @@ that carries the new box. The other six stayed put in a full re-run: `1565` unit
 lessons with `1946` fixtures and `903`/`1043` verdicts, `109` pages and `109` routes, `4378` checks,
 `111 passed`, `25` vendor files. See `reviews/phase-02-exercise-engine-verification-plan.md` row 9 for
 the before/after measurements.
+
+Then phase 3's gate rows 6 and 7, the two that had been parked on "needs a human". Row 6 was not a
+gap at all: `e2e/dashboard.spec.js` "a lesson finished on its own page shows up here" now reloads the
+drill page between the correct answer and `/learn`, so the count the dashboard shows is read out of a
+fresh document by a test rather than by a person. Row 7 needed a real test: `armReset` builds the
+wiped record as `{ ...emptyProgress(), unlocked: state.progress.unlocked === true }`, and the new
+"erasing progress does not put the walls back" seeds through a one-shot init script (a `sessionStorage`
+guard) so nothing re-writes the pre-reset record, clicks reset twice, asserts `done` is `{}` while
+`unlocked` is still `true`, then opens the last drill — behind the order gate *and* the paywall — and
+finds `#formula` visible with no `#paywall` in the DOM. It was mutation-checked before it was trusted:
+with `armReset` forced to `unlocked: false` it fails on `expect(stored.unlocked).toBe(true)`, so it
+proves the semantics rather than restating them. Only the browser count moved, `111` → `112`, here and
+in phase 3's row 2 (`18` → `19`); the rest of the chain was untouched in a full re-run.

@@ -10,6 +10,7 @@ import { loadSite } from "../lib/site.js";
 const { track, index } = loadSite();
 const LESSONS = index.length;
 const FIRST = index[0].exercise.id;
+const LAST = index[index.length - 1];
 // The group the first drill sits in: more than one drill, so the page's own count has work to do.
 const GROUP = track.groups.find((group) => group.id === index[0].group);
 const GROUP_LESSONS = index.filter((entry) => entry.group === GROUP.id);
@@ -43,6 +44,11 @@ test("a lesson finished on its own page shows up here", async ({ page }) => {
   await page.fill("#formula", "=SUM(B2:B4)");
   await page.click("#check");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+
+  // The drill page reloads before the dashboard is opened: what the dashboard counts has to be what
+  // survived a fresh document, not what the previous page still had in memory.
+  await page.reload();
+  await expect(page.locator(`.rail-item[data-lesson="${FIRST}"]`)).toHaveClass(/is-done/);
 
   await page.goto("/learn");
 
@@ -117,6 +123,42 @@ test("resetting asks twice and then forgets everything", async ({ page }) => {
   // The seed script re-runs on every navigation, so the storage itself is what has to be empty.
   const stored = await page.evaluate(() => JSON.parse(window.localStorage.getItem("es.progress")));
   expect(stored.done).toEqual({});
+});
+
+test("erasing progress does not put the walls back", async ({ page }) => {
+  // Reset forgets what was learnt, not the learner's decision to open the track: `armReset` keeps
+  // `unlocked`. The seed is one-shot on purpose — an init script that re-runs on every navigation
+  // would write the pre-reset record back and let this pass without the reset ever preserving it.
+  await page.addInitScript(
+    (record) => {
+      if (window.sessionStorage.getItem("es.seeded") === "1") return;
+      window.sessionStorage.setItem("es.seeded", "1");
+      window.localStorage.setItem("es.progress", JSON.stringify(record));
+    },
+    {
+      v: 1,
+      done: { [FIRST]: { at: new Date().toISOString(), tries: 1, helped: false } },
+      tries: {},
+      unlocked: true,
+    },
+  );
+
+  await page.goto("/learn");
+  await expect(page.locator("#dash-complete")).toHaveText("1");
+
+  const reset = page.locator("#dash-reset");
+  await reset.click();
+  await reset.click();
+  await expect(page.locator("#dash-complete")).toHaveText("0");
+
+  const stored = await page.evaluate(() => JSON.parse(window.localStorage.getItem("es.progress")));
+  expect(stored.done).toEqual({});
+  expect(stored.unlocked).toBe(true);
+
+  // The last drill is behind both walls at once — the order gate and the paywall. Neither is one now.
+  await page.goto(LAST.path);
+  await expect(page.locator("#formula")).toBeVisible();
+  await expect(page.locator("#paywall")).toHaveCount(0);
 });
 
 test("a browser that refuses storage is told so, not shown zero", async ({ page }) => {

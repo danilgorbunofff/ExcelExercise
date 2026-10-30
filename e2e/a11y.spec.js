@@ -193,3 +193,9 @@ test("the account page passes with nothing to fix", async ({ page }) => {
   await page.goto("/account");
   await scan(page, "the account page with accounts unconfigured");
 });
+
+test("the profile page passes with nothing to fix", async ({ page }) => {
+  await page.goto("/account/profile");
+  await expect(page.locator(".auth-card h1")).toHaveText("Your profile");
+  await scan(page, "the profile page with accounts unconfigured");
+});

@@ -34,8 +34,17 @@ test("the account page renders without a session instead of throwing", async ({ 
   await expect(page.locator(".auth-notice")).toContainText("Accounts are not configured");
 });
 
+test("the profile page explains itself with no account to edit", async ({ page }) => {
+  const response = await page.goto("/account/profile");
+  expect(response.status()).toBe(200);
+  await expect(page.locator(".auth-card h1")).toHaveText("Your profile");
+  await expect(page.locator(".auth-notice")).toContainText("Accounts are not configured");
+  // No form at all, rather than a form whose fields are disabled: there is nothing to post to.
+  await expect(page.locator("input[name=username]")).toHaveCount(0);
+});
+
 test("the auth pages stay out of the index", async ({ page }) => {
-  for (const path of ["/login", "/signup", "/account"]) {
+  for (const path of ["/login", "/signup", "/account", "/account/profile"]) {
     await page.goto(path);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   }

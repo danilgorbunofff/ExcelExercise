@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { authConfig } from "../../lib/auth/config.js";
+import { needsOnboarding } from "../../lib/auth/profile.js";
 import { currentUser } from "../../lib/auth/server.js";
 import { AuthCard, Links, Notice } from "../auth/ui.js";
 import { AuthShell } from "../auth/shell.js";
@@ -49,16 +51,35 @@ async function AccountScreen() {
   // Both reads go through row level security as this user: the profile because the policy is
   // `id = auth.uid()`, the entitlement because `is_entitled` ignores any id but your own.
   const [{ data: profile }, { data: entitled }] = await Promise.all([
-    supabase.from("profiles").select("username, display_name, role, created_at").eq("id", user.id).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("username, display_name, linkedin_url, role, created_at")
+      .eq("id", user.id)
+      .maybeSingle(),
     supabase.rpc("is_entitled", { uid: user.id }),
   ]);
 
   const name = profile?.display_name?.trim() || profile?.username || user.email;
   return (
     <AuthCard title="Your account" lede={`Signed in as ${name}.`}>
+      {needsOnboarding(profile) ? (
+        <Notice>
+          Your profile has no display name yet.{" "}
+          <Link href="/account/profile?welcome=1">Finish your profile</Link>.
+        </Notice>
+      ) : null}
       <dl className="auth-profile">
         <Row label="Email">{user.email}</Row>
         <Row label="Username">{profile?.username ?? "—"}</Row>
+        <Row label="LinkedIn">
+          {profile?.linkedin_url ? (
+            <a href={profile.linkedin_url} rel="me noopener noreferrer" target="_blank">
+              {profile.linkedin_url.replace(/^https:\/\/www\.linkedin\.com/, "")}
+            </a>
+          ) : (
+            "—"
+          )}
+        </Row>
         <Row label="Plan">{entitled ? "Paid" : "Free"}</Row>
         <Row label="Member since">
           {profile?.created_at ? new Date(profile.created_at).toISOString().slice(0, 10) : "—"}
@@ -69,7 +90,13 @@ async function AccountScreen() {
           Sign out
         </button>
       </form>
-      <Links items={[{ href: "/learn", label: "Your drills" }, { href: "/reset", label: "Change your password" }]} />
+      <Links
+        items={[
+          { href: "/account/profile", label: "Edit your profile" },
+          { href: "/learn", label: "Your drills" },
+          { href: "/reset", label: "Change your password" },
+        ]}
+      />
     </AuthCard>
   );
 }

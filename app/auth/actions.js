@@ -4,11 +4,13 @@
 // in `lib/auth/credentials.js`, call GoTrue, then either redirect on success or hand a sentence back to
 // the form (`lib/auth/errors.js` decides which sentences are rewritten).
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { NOT_CONFIGURED, authConfig } from "../../lib/auth/config.js";
 import { friendly } from "../../lib/auth/errors.js";
+import { afterSignIn, parseProfile } from "../../lib/auth/profile.js";
 import { validateCredentials } from "../../lib/auth/credentials.js";
 import { DEFAULT_NEXT, safeNext } from "../../lib/auth/redirect.js";
 import { serverClient } from "../../lib/auth/server.js";
@@ -16,6 +18,18 @@ import { serverClient } from "../../lib/auth/server.js";
 /** The first credential problem, or null. The forms show one sentence at a time on purpose. */
 function firstProblem({ errors }) {
   return errors.email ?? errors.password ?? null;
+}
+
+/** The profile columns a post-sign-in decision needs, read through RLS. A failed read is `null`,
+ *  which the caller treats as "do not force a page the learner could not have filled in". */
+async function profileFor(supabase, userId) {
+  if (!userId) return null;
+  const { data } = await supabase
+    .from("profiles")
+    .select("username, display_name")
+    .eq("id", userId)
+    .maybeSingle();
+  return data ?? null;
 }
 
 /** The origin the request arrived on, so emailed links work on localhost and in production alike. */
@@ -40,10 +54,10 @@ export async function signIn(_prev, formData) {
   if (problem) return { error: problem };
 
   const supabase = await serverClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: friendly(error.message) };
 
-  redirect(next);
+  redirect(afterSignIn(next, await profileFor(supabase, data.user?.id)));
 }
 
 export async function signUp(_prev, formData) {
@@ -75,7 +89,7 @@ export async function signUp(_prev, formData) {
   if (!data.session) {
     return { ok: `Check ${email} for the confirmation link, then sign in.` };
   }
-  redirect(next);
+  redirect(afterSignIn(next, await profileFor(supabase, data.user?.id)));
 }
 
 export async function sendMagicLink(_prev, formData) {
@@ -140,4 +154,37 @@ export async function signOut() {
   const supabase = await serverClient();
   if (supabase) await supabase.auth.signOut();
   redirect("/");
+}
+
+export async function updateProfile(_prev, formData) {
+  const config = authConfig();
+  if (!config.enabled) return { error: NOT_CONFIGURED };
+
+  const parsed = parseProfile({
+    username: formData.get("username"),
+    display_name: formData.get("display_name"),
+    linkedin_url: formData.get("linkedin_url"),
+  });
+  if (!parsed.ok) {
+    const { errors } = parsed;
+    return { error: errors.username ?? errors.display_name ?? errors.linkedin_url };
+  }
+
+  const supabase = await serverClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Your session has ended. Sign in again to save your profile." };
+
+  // RLS-scoped client, and `profiles` only grants update on these three columns: posting `role` or
+  // `group_id` here is refused by the database rather than by this check.
+  const { error } = await supabase.from("profiles").update(parsed.value).eq("id", user.id);
+  if (error) {
+    if (error.code === "23505") return { error: "That username is taken. Try another." };
+    return { error: friendly(error.message) };
+  }
+
+  revalidatePath("/account");
+  revalidatePath("/account/profile");
+  return { ok: "Profile saved." };
 }

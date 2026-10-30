@@ -6,7 +6,9 @@ says exactly what is wrong — wrong value, wrong function, malformed syntax, wi
 offending token.
 
 Nothing is sent anywhere. There is no account, no backend, no analytics endpoint and no third-party
-request: the grader, the state and the styling all ship as first-party files.
+request: the grader, the state and the styling all ship as first-party files. The Next app in `app/`
+adds optional accounts on top of that build — see [Accounts](#accounts-phase-4-in-progress) — and
+nothing leaves the browser unless a learner signs in.
 
 **Stack:** the shipped site is static HTML rendered by Node, native ES modules, `node --test` — no
 bundler, no framework, no runtime dependency. Node serves `dist/`; the same directory is what you upload
@@ -40,7 +42,7 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules | 675 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules | 734 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
 | `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 27 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
@@ -52,12 +54,12 @@ while the port is in progress.
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run db:start` | Starts the local Supabase stack (schema, RLS, seed) from `supabase/` | `supabase status` reports every service healthy |
-| `npm run db:check` | `supabase db reset`, then the RLS and auth suites in `tests/db/` | 52 assertions pass, 0 fail |
+| `npm run db:check` | `supabase db reset`, then the RLS and auth suites in `tests/db/` | 89 assertions pass, 0 fail |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
 | `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 27 prerendered pages, exit 0 |
 | `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 27 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
-| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 60 tests pass |
+| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 67 tests pass |
 
 **Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
 `SITE_URL`, which is what canonical links, the sitemap and the JSON-LD `@id`s are built from. Serve on
@@ -79,6 +81,7 @@ app/                      the ported Next.js shell, built beside the static site
   api/health/route.js     status plus the deploy SHA
   login/ signup/ reset/   the auth routes: five forms, all noindex, all working with no env set
   account/page.js         the profile, the entitlement flag and sign-out; gated by proxy.js
+  account/profile/        the editable profile: display name, username, optional LinkedIn
   auth/                   shared card/field/notice markup, the six server actions, the link callback
   error.js not-found.js   the two boundaries: a render error, and a 404 that still looks like the site
   sitemap.js robots.js    Metadata routes: every served URL, and the crawler policy that points at them
@@ -86,7 +89,8 @@ e2e/                      Playwright: the index, the drill loop, the URL contrac
 .github/workflows/ci.yml  three jobs: unit + build gates, the browser suite, and the static site
 lib/
   site.js                 loads config + validated content + icons once, from legacy/, for the routes
-  auth/                   the rules: config parsing, safe redirects, credential bounds, error copy
+  auth/                   the rules: config parsing, safe redirects, credential bounds, the profile,
+                          error copy
 proxy.js                  session refresh, the /account gate, and the matcher for both (Next 16 proxy)
 scripts/
   next-assets.mjs         copies legacy/dist/assets → public/assets so both builds serve one asset tree
@@ -210,7 +214,7 @@ lesson and the dashboard behave exactly as before. Configure a project and those
 cp .env.example .env.local     # both variables are optional; unset is the supported default
 npm run db:start               # local Supabase on ports 54350–54359 (needs Docker or colima)
 npm run db:reset               # migrations + seed; run this after any migration change
-npm run db:check               # 73 assertions: RLS, sign-in and emailed links, the progress writer, the roll-up import
+npm run db:check               # 89 assertions: RLS, sign-in and emailed links, the progress writer, the roll-up import, the profile columns
 ```
 
 `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read at build time for the browser
@@ -244,6 +248,16 @@ earlier `completed_at`, the greater score, `helped` sticky, `status` latched to 
 screens that produced it, and inventing screen visits would fabricate accuracy. The marker is set only
 after a `2xx`, so a deployment without accounts asks again on the next page load rather than losing the
 learner's history.
+
+`/account/profile` is the one screen a learner writes to: display name, username and an optional
+LinkedIn address, prefilled from their own row (`id = auth.uid()` is the read policy) and saved by
+`updateProfile` through the same RLS-scoped client — never the service role. The rules are pure
+(`lib/auth/profile.js`) and run in the action as well as the form, so the sentence a form shows cannot
+disagree with the value the database takes. Uniqueness is not pre-checked: `username` is `citext
+unique`, a collision arrives as `23505` and reads "That username is taken"; the columns a learner may
+write are a column-level grant, so a hand-crafted PATCH cannot set `role` or `group_id`
+(`tests/db/profile.spec.js`). A first sign-in with no display name lands on
+`/account/profile?welcome=1` unless the learner asked for a specific `?next=`.
 
 ---
 
@@ -289,7 +303,7 @@ Run on Node v25.9.0, Chrome, macOS, `dist/` built with the default `SITE_URL`.
 
 | Check | Result |
 |---|---|
-| `npm test` | **675 passing**, 0 failing — 99 grader, 78 fixtures, 58 client, 56 content-lint, 53 schema, 45 build/server, 32 progress, 32 keys, 30 sheet, 26 session, 23 content, 22 auth, 17 styles, 15 track schema, 14 dashboard, 13 verify, 10 xlsx, 8 feedback, 8 vendor, 7 metadata routes, 6 screen docs, 6 workbook page, 5 keys page, 3 five types, 3 workbook build, 2 fragments, 2 golden, 2 site paths |
+| `npm test` | **734 passing**, 0 failing — 99 grader, 78 fixtures, 58 client, 56 content-lint, 53 schema-v2, 45 build, 32 keys, 32 progress, 30 sheet, 26 session, 25 profile-rules, 23 content, 22 auth, 17 styles, 15 track-schema, 14 dashboard-page, 13 progress-migrate, 13 verify, 11 progress-sender, 10 progress-sync, 10 xlsx, 8 feedback, 8 vendor, 7 metadata-routes, 6 screen-docs, 6 workbook-page, 5 keys-page, 3 five-types, 3 workbook-build, 2 fragments, 2 golden, 2 site-paths |
 | `npm run build` | 27 pages, 741.4 kB HTML+CSS, 14 style sources, 4 fonts, 10 grader modules, 5 session modules, 1 progress module, 1 keyboard module, 1 sheet module, 4 client modules |
 | `node legacy/src/verify.mjs` | **851 checks passed** across 16 lesson pages, the index, the dashboard and 9 group pages |
 | `npm run vendor:check` | 25 files match `vendor/manifest.json` |

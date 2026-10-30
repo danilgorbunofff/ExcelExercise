@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { authConfig } from "../../../lib/auth/config.js";
+import { afterSignIn } from "../../../lib/auth/profile.js";
 import { safeNext } from "../../../lib/auth/redirect.js";
 import { serverClient } from "../../../lib/auth/server.js";
 
@@ -31,10 +32,18 @@ export async function GET(request) {
   }
 
   const supabase = await serverClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error.message)}`, url.origin));
   }
 
-  return NextResponse.redirect(new URL(next, url.origin));
+  // A link is how someone arrives without ever passing through the sign-in form, so the first-time
+  // profile step has to be decided here too or it would only apply to password sign-ins.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, display_name")
+    .eq("id", data?.user?.id ?? "")
+    .maybeSingle();
+
+  return NextResponse.redirect(new URL(afterSignIn(next, profile), url.origin));
 }

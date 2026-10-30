@@ -227,7 +227,9 @@ accuracy and rank — never email or username.
 2. **Auth flows.** `/signup`, `/login`, `/reset`, magic-link callback, email verification, session
    refresh in middleware. Blocks: gated routes redirect with `?next=`.
 3. **Profile.** Onboarding step after first sign-in (name + username, optional LinkedIn), editable
-   later; username uniqueness enforced, case-insensitive.
+   later; username uniqueness enforced, case-insensitive. Delivered in unit 3d — the step is offered
+   when the display name is empty, and a failed profile read is treated as "unknown", never as
+   "incomplete" (see the unit log).
 4. **Progress writer.** `app/api/progress/route.js` consumes the phase-2 event stream in batches,
    writes with the **service-role** client (learners hold read-only grants on these tables), upserts
    `lesson_progress` on its primary key and inserts `attempts` with a **server-assigned**
@@ -719,3 +721,99 @@ checks are unchanged: the component still renders `null` and no template changed
 | A signed-in flush, and a signed-in migration, through the real route | same: the e2e job has no database |
 | Profile onboarding step (name + username, optional LinkedIn) — work item 3 | not started |
 | Items 5 (legal/data rights), 6 (Stripe), 8 (paywall), 9 (allowlist) | not started; item 6 also needs Stripe test keys |
+
+### 2026-10-31 — unit 3d (the profile, work item 3)
+
+Item 3 asks for four things: an onboarding step after the first sign-in, a name and a username, an
+optional LinkedIn, and an edit path that lasts longer than one visit — with uniqueness enforced and
+case-insensitive. The provisioning half has been in place since unit 2 (the `handle_new_user()`
+trigger), so this unit is the learner-facing half plus the decision of *when* a profile counts as
+unfinished.
+
+```
+npm run check
+ℹ tests 734
+ℹ suites 121
+ℹ pass 734
+ℹ fail 0
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 27 pages (741.4 kB of HTML+CSS) → /Users/danil/Desktop/excelsupreme/legacy/dist
+next routes: 27 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard and 9 group pages — 851 checks passed
+
+npx playwright test
+  67 passed (11.4s)
+
+npm run db:check
+ℹ tests 89
+ℹ suites 23
+ℹ pass 89
+ℹ fail 0
+
+npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+`709 → 734` unit tests (`tests/profile-rules.test.js`, 25 cases), `73 → 89` database assertions
+(`tests/db/profile.spec.js`, 16 cases), `65 → 67` e2e (the profile route renders and passes an axe
+scan with accounts unconfigured). Page count, bytes, screens, fixtures and verify checks are
+unchanged: the new route is a partial prerender like `/account`, never a static page, and no template
+moved.
+
+#### What ships
+
+- **`lib/auth/profile.js`** (new, pure) — `parseUsername` (3–32 characters, letters/digits/dot/
+  underscore/hyphen, must start and end with a letter or digit, lowercased, ~23 reserved handles that
+  would read as the deployment rather than as a learner), `parseDisplayName` (optional, ≤80, whitespace
+  collapsed), `parseLinkedin` (optional; accepts a bare `linkedin.com/in/…`, normalises to
+  `https://www.linkedin.com/…`, drops tracking queries, refuses any other host, any non-http scheme and
+  the site front page), `parseProfile` (one error per field), `needsOnboarding`, and `afterSignIn`.
+- **`app/account/profile/`** — `page.js` (document shell, `robots: noindex`, `instant = false`),
+  `screen.js` (unconfigured notice, signed-out notice, the learner's own row through RLS, `?welcome=1`
+  framing) and `form.js` (client form via `useActionState(updateProfile)`). The three fields are
+  prefilled from the row, and "Skip for now" is offered exactly when the profile is incomplete.
+- **`app/auth/actions.js`** — `updateProfile`: `NOT_CONFIGURED` guard → `parseProfile` → RLS-scoped
+  `update` on `profiles` for the caller's own id → `23505` becomes "That username is taken. Try
+  another." → `revalidatePath("/account")` so the account page shows the new name. `signIn`, `signUp`
+  and `app/auth/callback/route.js` now route through `afterSignIn`, so a first-time account with no
+  display name lands on `/account/profile?welcome=1` — unless it asked for a specific `?next=`, which
+  still wins.
+- **`app/account/page.js`** — a "Finish your profile" notice while the display name is empty, the
+  LinkedIn address as a row (`rel="me noopener noreferrer"`), and an "Edit your profile" link.
+- **Tests:** `tests/profile-rules.test.js` (rules, including every refusal a permissive check would
+  let through), `tests/db/profile.spec.js` (owner write, case-insensitive collision, self-case-change,
+  foreign row invisible, `role`/`id`/`group_id` refused by the column grant, anon refused),
+  `e2e/auth.spec.js` and `e2e/a11y.spec.js` for the unconfigured route.
+
+#### Why the rules live in a pure module
+
+The alternative is validating in the form and trusting the action, or validating in the action and
+re-checking in the form. Both drift. One pure module imported by the action (and by the test) means
+the sentence a learner reads and the value that reaches the database cannot disagree — and the test
+proves the rule rather than restating it.
+
+#### Deviations from this document
+
+- **No length constraints were added to `profiles`.** The doc asks for boundaries, not for them to
+  live in the schema. Adding `check` constraints would mean a migration that can fail on existing
+  rows; the pure rules are the gate, and the column types are permissive on purpose. The one property
+  that *must* be the database's is uniqueness, and it already is (`citext unique`).
+- **Onboarding is decided by an empty display name, not by a "first sign-in" flag.** A flag needs a
+  column nobody else uses, and it cannot answer the question a returning learner asks ("why is my
+  profile still blank?"). An empty name is a fact about the row, it is the field the step exists to
+  fill, and a failed read is treated as *not* incomplete — a redirect nobody can satisfy is worse than
+  no redirect.
+- **`?next=` always wins.** A learner who signed in to reach a specific drill goes to that drill. The
+  profile step is offered by the account page instead, which is where they will look.
+- **Username uniqueness is reported, not pre-checked.** A "is this free?" lookup would be a race and a
+  handle-enumeration oracle; the unique index answers the same question once, for the account that
+  asked.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| A saved profile over HTTP with a real session | the e2e job has no Supabase project, so `updateProfile` is proved at the RLS level (`tests/db/profile.spec.js`) and its rules at the unit level; the browser path needs a configured deployment |
+| The post-sign-in redirect actually firing | same: `afterSignIn` is unit-tested and wired, but a real sign-in needs GoTrue in the e2e environment |
+| Items 6 (Stripe), 8 (paywall), 9 (allowlist), 10 (legal/data rights) | not started; item 6 also needs Stripe test keys |

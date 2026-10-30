@@ -1,0 +1,106 @@
+{
+  "id": "18-count-numbers-only-and-what-it-skips",
+  "slug": "count-numbers-only-and-what-it-skips",
+  "level": 1,
+  "title": "COUNT: numbers only, and what it skips",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B8, count how many readings in B2:B7 are really numbers.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Sample", "Reading"],
+          ["S-01", 12.5],
+          ["S-02", "n/a"],
+          ["S-03", 8.2],
+          ["S-04", null],
+          ["S-05", 15],
+          ["S-06", "7"],
+          ["Readings counted", null]
+        ]
+      },
+      "answerCell": "B8",
+      "expect": { "value": 3 },
+      "require": [{ "id": "func-count", "func": "COUNT", "minArgs": 1 }],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close the bracket: =COUNT(B2:B7).",
+        "func-count": "COUNT answers how many numbers there are; SUM answers how much they add up to, which is a different question.",
+        "require-ref": "Point COUNT at B2:B7. Numbers typed into the formula stop matching the sheet the moment a sample is re-measured.",
+        "value": "That is not how many numbers the column holds. Read down B2:B7 and ask of each cell whether it is a number.",
+        "error": "COUNT of a range never fails on text, but dividing its answer by zero returns #DIV/0!, and a call with no argument at all returns #VALUE!."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNT(B2:B7)",
+          "=count(b2:b7)",
+          "=COUNT($B$2:$B$7)",
+          "=COUNT(B2:B7)/1",
+          "=COUNT(B2:B7)+0",
+          "=COUNT(B2:B7)*1"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNT(B2:B7",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=COUNTA(B2:B7)",
+            "rule": "func-count",
+            "why": "COUNTA counts the labels and the text too, which is the question this screen is not asking"
+          },
+          {
+            "formula": "=SUM(B2:B7)",
+            "rule": "func-count",
+            "why": "the readings added up are 35.7, not how many of them there are"
+          },
+          {
+            "formula": "=COUNT()",
+            "rule": "func-count",
+            "why": "COUNT with no argument has nothing to count"
+          },
+          {
+            "formula": "=COUNT(12.5,8.2,15)",
+            "rule": "require-ref",
+            "why": "the readings typed into the formula, so the count stops following the sheet"
+          },
+          {
+            "formula": "=COUNT(B2:B5)",
+            "rule": "value",
+            "why": "the range stops at S-04, so the 15 in S-05 is left out"
+          },
+          {
+            "formula": "=COUNT(B2:B7)/0",
+            "rule": "error",
+            "why": "a count divided by zero returns #DIV/0!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=COUNT(value1, [value2], ...)",
+    "explain": "Column B mixes things up on purpose: 12.5 in B2, the words n/a in B3, 8.2 in B4, an empty cell in B5, 15 in B6 and the text 7 in B7. COUNT walks the range and counts only the cells Excel holds as numbers, so it answers 3: the 12.5, the 8.2 and the 15. The n/a is text and is skipped, the blank in B5 is nothing at all, and the 7 in B7 is text because it was typed in with an apostrophe or pasted from a system that sends everything as text — it looks like a number and Excel does not treat it as one. SUM over the same range answers 35.7, which is why a count that comes back short is the fastest way to find cells that arrived as text.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The count was divided by zero, usually because a formula was filled into a row whose divisor is still empty."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "COUNT was called with no argument at all, as in =COUNT(). It needs at least one range or value to look at."
+      }
+    ],
+    "atWork": "Importing a supplier's stock file, where some quantities arrive as text and a count that disagrees with the row total is how you find them.",
+    "outcome": "Count the cells that hold real numbers, and know why the total looks one short.",
+    "teaches": "COUNT",
+    "dataset": "Readings with text and blanks",
+    "reference": "=COUNT(B2:B7)"
+  }
+}

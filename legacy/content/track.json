@@ -1,7 +1,7 @@
 {
   "id": "formula-drills",
   "title": "Excel formula drills",
-  "promise": "17 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
+  "promise": "26 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
   "freeLessonCount": 3,
   "showAnswerAfter": 3,
   "groups": [
@@ -179,13 +179,11 @@
       "group": "count"
     },
     {
-      "title": "COUNT: numbers only, and what it skips",
-      "level": 1,
+      "id": "18-count-numbers-only-and-what-it-skips",
       "group": "count"
     },
     {
-      "title": "COUNTA: count the non-empty cells",
-      "level": 1,
+      "id": "19-counta-count-the-non-empty-cells",
       "group": "count"
     },
     {
@@ -246,8 +244,7 @@
       "group": "rounding"
     },
     {
-      "title": "ROUNDUP and ROUNDDOWN: one direction only",
-      "level": 2,
+      "id": "20-roundup-and-rounddown-one-direction-only",
       "group": "rounding"
     },
     {
@@ -284,8 +281,7 @@
       "group": "lookup"
     },
     {
-      "title": "XLOOKUP with a fallback when nothing matches",
-      "level": 2,
+      "id": "21-xlookup-with-a-fallback-when-nothing-matches",
       "group": "lookup"
     },
     {
@@ -303,13 +299,11 @@
       "group": "index-match"
     },
     {
-      "title": "MATCH: find a value's position",
-      "level": 2,
+      "id": "22-match-find-a-value-s-position",
       "group": "index-match"
     },
     {
-      "title": "INDEX: a value at a row and column",
-      "level": 2,
+      "id": "23-index-a-value-at-a-row-and-column",
       "group": "index-match"
     },
     {
@@ -332,8 +326,7 @@
       "group": "text-search"
     },
     {
-      "title": "LEN, LEFT and RIGHT: count and cut",
-      "level": 1,
+      "id": "24-len-left-and-right-count-and-cut",
       "group": "text-search"
     },
     {
@@ -391,8 +384,7 @@
       "group": "capstone"
     },
     {
-      "title": "CONCAT and the & operator",
-      "level": 2,
+      "id": "25-concat-and-the-operator",
       "group": "text-change"
     },
     {
@@ -411,8 +403,7 @@
       "group": "text-change"
     },
     {
-      "title": "IFERROR: catch the error, show your text",
-      "level": 2,
+      "id": "26-iferror-catch-the-error-show-your-text",
       "group": "errors"
     },
     {

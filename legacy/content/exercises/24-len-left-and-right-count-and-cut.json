@@ -1,0 +1,232 @@
+{
+  "id": "24-len-left-and-right-count-and-cut",
+  "slug": "len-left-and-right-count-and-cut",
+  "level": 1,
+  "title": "LEN, LEFT and RIGHT: count and cut",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B2, count how many characters the code in A2 has, spaces included.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Code", "Characters"],
+          ["Invoice 2026-03", null]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": { "value": 15 },
+      "reference": "=LEN(A2)",
+      "require": [{ "id": "func-len", "func": "LEN", "minArgs": 1 }],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "LEN takes one thing to measure: =LEN(A2).",
+        "func-len": "LEN counts characters, so it answers how long the code is, not what it says.",
+        "require-ref": "Measure A2 rather than typing the code into the formula, so the count follows the cell.",
+        "value": "Count every character of Invoice 2026-03, the space between the word and the year included.",
+        "error": "LEN is not a number, so dividing it by another LEN returns a number; dividing by zero still returns #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=LEN(A2)",
+          "=len(a2)",
+          "=LEN($A$2)",
+          "=LEN(A2)+0",
+          "=LEN(A2)*1",
+          "=LEN(TRIM(A2))"
+        ],
+        "reject": [
+          {
+            "formula": "=LEN(A2",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=LEFT(A2,15)",
+            "rule": "func-len",
+            "why": "that returns the whole code as text, not a count of its characters"
+          },
+          {
+            "formula": "=LEN()",
+            "rule": "func-len",
+            "why": "LEN with nothing to measure has no length to report"
+          },
+          {
+            "formula": "=LEN(A2)-1",
+            "rule": "value",
+            "why": "dropping one character undercounts a fifteen-character code"
+          },
+          {
+            "formula": "=LEN(\"Invoice 2026-03\")",
+            "rule": "require-ref",
+            "why": "the code typed into the formula, so a corrected code would not change the count"
+          },
+          {
+            "formula": "=LEN(A2)/0",
+            "rule": "error",
+            "why": "a length divided by zero returns #DIV/0!"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B2, cut the first three characters of A2 to get the document prefix.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Code", "Prefix"],
+          ["Invoice 2026-03", null]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": { "value": "Inv" },
+      "reference": "=LEFT(A2,3)",
+      "require": [{ "id": "func-left", "func": "LEFT", "minArgs": 2 }],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "LEFT takes the text and how many characters to keep: =LEFT(A2,3).",
+        "func-left": "LEFT cuts from the beginning of the text; RIGHT cuts from the end, which is the other end of this code.",
+        "require-ref": "Cut from A2 instead of typing the code, so the prefix follows the cell.",
+        "value": "Three characters from the left of Invoice 2026-03 are I, n and v.",
+        "error": "A negative character count is not a cut LEFT can make, so it returns #VALUE!."
+      },
+      "fixtures": {
+        "accept": [
+          "=LEFT(A2,3)",
+          "=left(a2,3)",
+          "=LEFT($A$2,3)",
+          "=LEFT(A2,3)&\"\"",
+          "=TRIM(LEFT(A2,3))",
+          "=PROPER(LEFT(A2,3))"
+        ],
+        "reject": [
+          {
+            "formula": "=LEFT(A2,3",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=RIGHT(A2,3)",
+            "rule": "func-left",
+            "why": "RIGHT cuts from the end and returns 0-3, which is the suffix rather than the prefix"
+          },
+          {
+            "formula": "=LEFT(A2)",
+            "rule": "func-left",
+            "why": "without a count LEFT defaults to one character, and the prefix is three"
+          },
+          {
+            "formula": "=LEFT(A2,2)",
+            "rule": "value",
+            "why": "two characters gives In, and the prefix needs three"
+          },
+          {
+            "formula": "=LEFT(\"Invoice 2026-03\",3)",
+            "rule": "require-ref",
+            "why": "the code typed into the formula, so a new code would keep the old prefix"
+          },
+          {
+            "formula": "=LEFT(A2,-1)",
+            "rule": "error",
+            "why": "a negative count is impossible and LEFT returns #VALUE!"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-3",
+      "type": "formula",
+      "prompt": "In B2, cut the last four characters of A2 to get the year and month.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Code", "Year and month"],
+          ["Invoice 2026-03", null]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": { "value": "6-03" },
+      "reference": "=RIGHT(A2,4)",
+      "require": [{ "id": "func-right", "func": "RIGHT", "minArgs": 2 }],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "RIGHT takes the text and how many characters to keep from the end: =RIGHT(A2,4).",
+        "func-right": "The year and month sit at the end of the code, so this is the end-cutter, not the start-cutter.",
+        "require-ref": "Cut from A2 rather than typing the code, so the answer follows the cell.",
+        "value": "The last four characters of Invoice 2026-03 are 6, -, 0 and 3.",
+        "error": "RIGHT cannot cut a negative number of characters, and it returns #VALUE! when asked."
+      },
+      "fixtures": {
+        "accept": [
+          "=RIGHT(A2,4)",
+          "=right(a2,4)",
+          "=RIGHT($A$2,4)",
+          "=RIGHT(A2,4)&\"\"",
+          "=TRIM(RIGHT(A2,4))",
+          "=UPPER(RIGHT(A2,4))"
+        ],
+        "reject": [
+          {
+            "formula": "=RIGHT(A2,4",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=LEFT(A2,4)",
+            "rule": "func-right",
+            "why": "LEFT cuts from the start and returns Invo, which is not the year"
+          },
+          {
+            "formula": "=RIGHT(A2)",
+            "rule": "func-right",
+            "why": "the default is one character, and the year and month need four"
+          },
+          {
+            "formula": "=RIGHT(A2,3)",
+            "rule": "value",
+            "why": "three characters gives -03, and the year's last digit is missing"
+          },
+          {
+            "formula": "=RIGHT(\"Invoice 2026-03\",4)",
+            "rule": "require-ref",
+            "why": "the code typed into the formula, so a new code would keep the old year"
+          },
+          {
+            "formula": "=RIGHT(A2,-4)",
+            "rule": "error",
+            "why": "a negative count is impossible and RIGHT returns #VALUE!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=LEN(text), =LEFT(text, count), =RIGHT(text, count)",
+    "explain": "Invoice 2026-03 is fifteen characters, and that number is worth knowing before you cut anything: LEN(A2) reports 15 because it counts the space between the word and the year as a character like any other. LEFT(A2,3) keeps the first three and gives Inv, the document prefix. RIGHT(A2,4) keeps the last four and gives 6-03, the year without its century plus the month. Cutting by a fixed count works only when every code has the same shape; when a code arrives with a different prefix length, the count that was right for one row cuts the wrong characters off the next, and that is when LEN and FIND start doing the work instead of a typed number.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The character count was negative, so there is no left or right of a negative number of characters."
+      },
+      {
+        "code": "#NAME?",
+        "text": "A function was typed with a name the sheet does not know, as when LEN is spelled LN."
+      }
+    ],
+    "atWork": "Splitting a supplier's reference code into the document type and the period it covers, so each part can be matched against its own list.",
+    "outcome": "Measure a string and cut fixed pieces off either end of it.",
+    "teaches": "LEN, LEFT and RIGHT",
+    "dataset": "One fifteen-character code",
+    "reference": "=LEN(A2)"
+  }
+}

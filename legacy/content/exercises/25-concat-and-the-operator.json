@@ -1,0 +1,102 @@
+{
+  "id": "25-concat-and-the-operator",
+  "slug": "concat-and-the-operator",
+  "level": 2,
+  "title": "CONCAT and the & operator",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B4, join the first name in A2 and the last name in B2 with a single space between them.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["First", "Last"],
+          ["Ada", "Lovelace"],
+          ["Grace", "Hopper"],
+          ["Full name", null]
+        ]
+      },
+      "answerCell": "B4",
+      "expect": { "value": "Ada Lovelace" },
+      "require": [{ "id": "func-concat", "func": "CONCAT", "minArgs": 2 }],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "CONCAT takes the pieces one after another: =CONCAT(A2,\" \",B2).",
+        "func-concat": "CONCAT glues its arguments together in order, and the space between the names has to be one of the arguments.",
+        "require-ref": "Use the names in A2 and B2 rather than typing Ada and Lovelace, so the formula follows the row.",
+        "value": "That is not a first name, a space and a last name in that order. Check which cell comes first.",
+        "error": "Concatenated text divided by zero returns #VALUE!, because text cannot be a number."
+      },
+      "fixtures": {
+        "accept": [
+          "=CONCAT(A2,\" \",B2)",
+          "=concat(a2,\" \",b2)",
+          "=CONCAT($A$2,\" \",$B$2)",
+          "=CONCAT(A2,\" \",B2)&\"\"",
+          "=TRIM(CONCAT(A2,\" \",B2))",
+          "=CONCAT(A2,\" \",B2&\"\")"
+        ],
+        "reject": [
+          {
+            "formula": "=CONCAT(A2,\" \",B2",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=A2&\" \"&B2",
+            "rule": "func-concat",
+            "why": "the & operator does join text the same way, but this drill names CONCAT, and the graded answer uses it"
+          },
+          {
+            "formula": "=CONCAT(A2:B2)",
+            "rule": "func-concat",
+            "why": "a range glued together gives AdaLovelace with no space, and the space has to be passed in"
+          },
+          {
+            "formula": "=CONCATENATE(A2,\" \",B2)",
+            "rule": "func-concat",
+            "why": "CONCATENATE is the older function with the same job; the drill asks for the current name"
+          },
+          {
+            "formula": "=CONCAT(B2,\" \",A2)",
+            "rule": "value",
+            "why": "that joins the last name first and answers Lovelace Ada"
+          },
+          {
+            "formula": "=CONCAT(\"Ada\",\" \",\"Lovelace\")",
+            "rule": "require-ref",
+            "why": "the names typed into the formula, so the row below would never be used"
+          },
+          {
+            "formula": "=CONCAT(A2,\" \",B2)/0",
+            "rule": "error",
+            "why": "text divided by zero returns #VALUE!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=CONCAT(text1, [text2], ...) and =text1 & text2",
+    "explain": "The full name is three pieces in order: Ada, a space, and Lovelace. CONCAT takes them as arguments and glues them together, so =CONCAT(A2,\" \",B2) answers Ada Lovelace. The space is the piece people forget, because CONCAT(A2,B2) answers AdaLovelace, which looks like a name and is not one. The & operator does exactly the same join and is shorter to type — =A2&\" \"&B2 — and both forms answer the same text; this drill is graded on CONCAT because that is the function it names. Whatever you use, the pieces come from cells, so changing the row changes the answer without touching the formula.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The joined text was used where a number was expected, as when it is divided by a number."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name was typed wrongly, as when CONCAT is spelled CONCATE."
+      }
+    ],
+    "atWork": "Building a display name from two fields that a system stores separately, so the export reads as a name rather than as two columns.",
+    "outcome": "Glue cell values together and keep the spaces in the right places.",
+    "teaches": "CONCAT and &",
+    "dataset": "Two names in two columns",
+    "reference": "=CONCAT(A2,\" \",B2)"
+  }
+}

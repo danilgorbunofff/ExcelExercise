@@ -1,0 +1,184 @@
+{
+  "id": "20-roundup-and-rounddown-one-direction-only",
+  "slug": "roundup-and-rounddown-one-direction-only",
+  "level": 2,
+  "title": "ROUNDUP and ROUNDDOWN: one direction only",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B6, work out the crates needed: twelve units to a crate, and a part crate still ships.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Item", "Units"],
+          ["Bolts", 250],
+          ["Nuts", 130],
+          ["Washers", 96],
+          ["Total units", 476],
+          ["Crates needed", null]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": { "value": 40 },
+      "reference": "=ROUNDUP(B5/12,0)",
+      "require": [{ "id": "func-roundup", "func": "ROUNDUP", "minArgs": 2 }],
+      "forbid": [],
+      "requireRef": "B5",
+      "rules": [{ "id": "whole-crates", "type": "matchType", "func": "ROUNDUP", "arg": 2, "values": [0] }],
+      "hints": {
+        "syntax": "ROUNDUP takes the number and how many decimals to keep: =ROUNDUP(B5/12,0).",
+        "func-roundup": "ROUNDUP is the one that moves away from zero, and a part crate still has to be ordered.",
+        "whole-crates": "Crates are whole things, so the second argument is 0 decimals.",
+        "require-ref": "Take the total from B5 instead of typing 476, so the crate count follows the unit counts.",
+        "value": "476 units is a bit under 40 crates of twelve. A part crate still ships, so the answer is the next whole crate up.",
+        "error": "A part crate rounded with ROUNDDOWN leaves 476 units short of a crate and the order with no crates at all once the shortfall passes a full crate."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUNDUP(B5/12,0)",
+          "=roundup(b5/12,0)",
+          "=ROUNDUP($B$5/12,0)",
+          "=ROUNDUP(B5/12,0)+0",
+          "=ROUNDUP(B5/12,0)*1",
+          "=ROUNDUP(B5/12,0)/1"
+        ],
+        "reject": [
+          {
+            "formula": "=ROUNDUP(B5/12,0",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=ROUNDDOWN(B5/12,0)",
+            "rule": "func-roundup",
+            "why": "ROUNDDOWN drops the part crate and answers 39, leaving units unshipped"
+          },
+          {
+            "formula": "=ROUND(B5/12,0)",
+            "rule": "func-roundup",
+            "why": "ROUND happens to answer 40 here, but it would drop to 39 the moment the total fell below 474"
+          },
+          {
+            "formula": "=ROUNDUP(B5/12,2)",
+            "rule": "whole-crates",
+            "why": "two decimals keeps the part crate as 39.67, which is not a number of crates to order"
+          },
+          {
+            "formula": "=ROUNDUP(476/12,0)",
+            "rule": "require-ref",
+            "why": "the total typed into the formula, so the crate count stops following the unit column"
+          },
+          {
+            "formula": "=ROUNDUP(B5,0)",
+            "rule": "value",
+            "why": "476 is rounded, but 476 is not a number of crates"
+          },
+          {
+            "formula": "=ROUNDUP(B5/12,0)/0",
+            "rule": "error",
+            "why": "a crate count divided by zero returns #DIV/0!"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "Now in B6, count only the crates that are completely full.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Item", "Units"],
+          ["Bolts", 250],
+          ["Nuts", 130],
+          ["Washers", 96],
+          ["Total units", 476],
+          ["Full crates", null]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": { "value": 39 },
+      "reference": "=ROUNDDOWN(B5/12,0)",
+      "require": [{ "id": "func-rounddown", "func": "ROUNDDOWN", "minArgs": 2 }],
+      "forbid": [],
+      "requireRef": "B5",
+      "rules": [{ "id": "whole-crates", "type": "matchType", "func": "ROUNDDOWN", "arg": 2, "values": [0] }],
+      "hints": {
+        "syntax": "=ROUNDDOWN(B5/12,0) takes the number and the decimals to keep.",
+        "func-rounddown": "A full crate is the part crate thrown away, so this is the direction that moves toward zero.",
+        "whole-crates": "Crates are counted in whole numbers, so the second argument is 0.",
+        "require-ref": "Divide the total in B5 rather than the 476 typed in, so the answer follows the sheet.",
+        "value": "476 units is 39 full crates with 8 units left over, so the count of completely full crates is 39.",
+        "error": "Dividing the answer by zero returns #DIV/0!; ROUNDDOWN itself only fails when the digits argument is not a number."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUNDDOWN(B5/12,0)",
+          "=rounddown(b5/12,0)",
+          "=ROUNDDOWN($B$5/12,0)",
+          "=ROUNDDOWN(B5/12,0)+0",
+          "=ROUNDDOWN(B5/12,0)-0",
+          "=ROUNDDOWN(B5/12,0)/1"
+        ],
+        "reject": [
+          {
+            "formula": "=ROUNDDOWN(B5/12,0",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=ROUNDUP(B5/12,0)",
+            "rule": "func-rounddown",
+            "why": "ROUNDUP counts the part crate and answers 40, which claims a crate that is not full"
+          },
+          {
+            "formula": "=ROUND(B5/12,0)",
+            "rule": "func-rounddown",
+            "why": "ROUND answers 40 here, and rounding to the nearest never promises to stay low"
+          },
+          {
+            "formula": "=ROUNDDOWN(B5/12,2)",
+            "rule": "whole-crates",
+            "why": "39.67 is a decimal, and a full crate is counted in whole numbers"
+          },
+          {
+            "formula": "=ROUNDDOWN(476/12,0)",
+            "rule": "require-ref",
+            "why": "the total typed into the formula, so the count stops following the unit column"
+          },
+          {
+            "formula": "=ROUNDDOWN(B5,0)",
+            "rule": "value",
+            "why": "476 is already a whole number, so nothing is divided into crates"
+          },
+          {
+            "formula": "=ROUNDDOWN(B5/12,0)/0",
+            "rule": "error",
+            "why": "a crate count divided by zero returns #DIV/0!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=ROUNDUP(number, digits) and =ROUNDDOWN(number, digits)",
+    "explain": "The three items add up to 476 units, and a crate holds twelve. 476 divided by 12 is 39.67, which is not a number of crates you can order, so one of the two one-way functions has to decide the answer. ROUNDUP moves away from zero and gives 40: thirty-nine full crates and a part crate, and the part crate still has to ship. ROUNDDOWN moves toward zero and gives 39: the full crates only, with 8 units left on the floor. ROUND would give 40 here, which is why it is the wrong tool — it happens to agree today and would answer 39 the moment the total dropped below 474, so the count would change direction without anyone noticing.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The digits argument was text or a range, so the number could not be rounded."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The crate count was divided by zero, usually because the units-per-crate cell it pointed at had not been filled in yet."
+      }
+    ],
+    "atWork": "Ordering packing crates, where a part crate still costs the same as a full one and a short order means units sitting on the floor.",
+    "outcome": "Round a decimal up or down on purpose instead of letting the nearest value decide.",
+    "teaches": "ROUNDUP and ROUNDDOWN",
+    "dataset": "Three items and a crate size",
+    "reference": "=ROUNDUP(B5/12,0)"
+  }
+}

@@ -13,6 +13,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import { readIcons } from "../legacy/src/site/assets.mjs";
+import { esc } from "../legacy/src/site/html.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
 import { loadContent } from "../legacy/src/site/content.mjs";
 import { preparePricingPage } from "../legacy/src/site/pricing-page.mjs";
@@ -168,7 +169,9 @@ describe("the offer page", () => {
 
   it("names the paid drills without linking into a wall", () => {
     for (const candidate of paid) {
-      assert.ok(body.includes(candidate.exercise.title), candidate.exercise.title);
+      // The page escapes titles on the way in, so an apostrophe lands as `&#39;`: compare against
+      // what the renderer emits rather than against the raw title.
+      assert.ok(body.includes(esc(candidate.exercise.title)), candidate.exercise.title);
       assert.equal(body.includes(`href="${candidate.path}"`), false, `${candidate.path} links into a gated drill`);
     }
   });

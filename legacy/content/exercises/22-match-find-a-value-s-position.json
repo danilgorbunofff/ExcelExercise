@@ -1,0 +1,101 @@
+{
+  "id": "22-match-find-a-value-s-position",
+  "slug": "match-find-a-value-s-position",
+  "level": 2,
+  "title": "MATCH: find a value's position",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, find the position of the month in B6 within A2:A5, counting the first row as 1.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Month", "Units"],
+          ["Jan", 120],
+          ["Feb", 180],
+          ["Mar", 150],
+          ["Apr", 210],
+          ["Which month?", "Mar"],
+          ["Position", null]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": { "value": 3 },
+      "require": [{ "id": "func-match", "func": "MATCH", "minArgs": 3 }],
+      "forbid": [],
+      "requireRef": "B6",
+      "rules": [{ "id": "match-exact", "type": "matchType", "func": "MATCH", "arg": 3, "values": [0] }],
+      "hints": {
+        "syntax": "MATCH takes the value, the list to search, and the match type: =MATCH(B6,A2:A5,0).",
+        "func-match": "MATCH returns a position inside the list you give it, not the value in the next column; that is what INDEX does with the number.",
+        "match-exact": "The month list is not sorted, so the third argument has to be 0 for an exact match. Leaving it out searches an unsorted list and gives an answer you cannot trust.",
+        "require-ref": "Take the month from B6 instead of typing Mar, so asking about April is a one-cell edit.",
+        "value": "Counting from Jan as 1, Mar is the third month in the list.",
+        "error": "If the month is not in the searched range at all, MATCH returns #N/A — the position of nothing does not exist."
+      },
+      "fixtures": {
+        "accept": [
+          "=MATCH(B6,A2:A5,0)",
+          "=match(b6,a2:a5,0)",
+          "=MATCH($B$6,$A$2:$A$5,0)",
+          "=MATCH(B6,A2:A5,0)+0",
+          "=MATCH(B6,A2:A5,0)*1",
+          "=MATCH(B6,A2:A5,0)/1"
+        ],
+        "reject": [
+          {
+            "formula": "=MATCH(B6,A2:A5,0",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=MATCH(B6,A2:A5)",
+            "rule": "func-match",
+            "why": "without the third argument MATCH assumes an approximate search on a sorted list, which this column is not"
+          },
+          {
+            "formula": "=MATCH(B6,A2:A5,1)",
+            "rule": "match-exact",
+            "why": "a match type of 1 is approximate even though it happens to answer 3 today, and it would stop agreeing the moment a month was inserted"
+          },
+          {
+            "formula": "=MATCH(B6,A2:A5,0)+1",
+            "rule": "value",
+            "why": "MATCH already counts the first row as 1, so adding one reports position four"
+          },
+          {
+            "formula": "=MATCH(\"Mar\",A2:A5,0)",
+            "rule": "require-ref",
+            "why": "the month typed into the formula, so the question can no longer be changed from the sheet"
+          },
+          {
+            "formula": "=MATCH(B6,A2:A3,0)",
+            "rule": "error",
+            "why": "the searched range stops at Feb, so Mar is not in it and MATCH returns #N/A"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=MATCH(lookup_value, lookup_array, [match_type])",
+    "explain": "MATCH answers a question about position: given a value, where does it sit in this list, counting from 1? The list runs Jan, Feb, Mar, Apr in A2:A5 and B6 asks about Mar, so MATCH reports 3. The third argument decides how hard MATCH looks: 0 demands an exact match, 1 accepts the largest value less than or equal to the target and needs the list sorted ascending, and -1 does the mirror image on a descending list. This list is alphabetical rather than sorted by any rule MATCH can use, so 1 is a coin flip that happens to land on 3 today. Once MATCH has the number, INDEX turns it back into a value from another column — which is the pair the next lesson uses.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The value is not in the searched range, so there is no position to report."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The match type was text, or the searched range was given as a single value instead of a row or column."
+      }
+    ],
+    "atWork": "Building the row number that INDEX needs for a two-way lookup, without hard-coding row 3 into the formula.",
+    "outcome": "Find where a value sits in a list, ready to feed INDEX.",
+    "teaches": "MATCH",
+    "dataset": "Four months and their units",
+    "reference": "=MATCH(B6,A2:A5,0)"
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "id": "19-counta-count-the-non-empty-cells",
+  "slug": "counta-count-the-non-empty-cells",
+  "level": 1,
+  "title": "COUNTA: count the non-empty cells",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, count how many of the five steps have a date in B2:B6.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Step", "Done on"],
+          ["Draft", "2026-03-02"],
+          ["Review", null],
+          ["Publish", "2026-03-09"],
+          ["Announce", null],
+          ["Archive", "2026-04-01"],
+          ["Steps done", null]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": { "value": 3 },
+      "require": [{ "id": "func-counta", "func": "COUNTA", "minArgs": 1 }],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "Start with = and close the bracket: =COUNTA(B2:B6).",
+        "func-counta": "The dates sit in a text column, so counting numbers finds none of them; COUNTA counts anything that is not blank.",
+        "require-ref": "Point COUNTA at B2:B6 rather than pasting the three dates in — the sheet has to stay the source of the answer.",
+        "value": "That is not how many steps are dated. Three of the five cells in B2:B6 hold a date and two are empty.",
+        "error": "COUNTA of a range never fails on text; dividing its answer by zero returns #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTA(B2:B6)",
+          "=counta(b2:b6)",
+          "=COUNTA($B$2:$B$6)",
+          "=COUNTA(B2,B3,B4,B5,B6)",
+          "=COUNTA(B2:B6)+0",
+          "=COUNTA(B2:B6)-0"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTA(B2:B6",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=COUNT(B2:B6)",
+            "rule": "func-counta",
+            "why": "COUNT looks for numbers and the dates are text, so it answers zero"
+          },
+          {
+            "formula": "=SUM(B2:B6)",
+            "rule": "func-counta",
+            "why": "there is nothing to add up, and adding is not counting"
+          },
+          {
+            "formula": "=COUNTA(B2:B6)/0",
+            "rule": "error",
+            "why": "a count divided by zero returns #DIV/0!"
+          },
+          {
+            "formula": "=COUNTA(\"2026-03-02\",\"2026-03-09\",\"2026-04-01\")",
+            "rule": "require-ref",
+            "why": "the dates typed into the formula, so the count stops following the sheet"
+          },
+          {
+            "formula": "=COUNTA(B2:B4)",
+            "rule": "value",
+            "why": "the range stops before Publish and Archive, so two dated steps are left out"
+          },
+          {
+            "formula": "=COUNTA(B2:B6)+1",
+            "rule": "value",
+            "why": "the count is three; adding one to it reports four"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=COUNTA(value1, [value2], ...)",
+    "explain": "Column B holds three dates and two empty cells. COUNT would look for numbers, find none, and answer 0 — the dates are text, not a date type. COUNTA answers the different question of how many cells hold something, anything, so it returns 3. On a checklist like this one the difference is the whole point: an empty cell means the step has not happened yet, and counting the filled ones is how you report progress. If a step gets a space typed into it, COUNTA counts that space as progress while COUNT still says 0, so a progress bar that reads high should send you looking for stray spaces.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The count was divided by zero, usually because the sharing formula ran on an empty progress column."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "COUNTA was called with no argument at all. It needs at least one range or value to inspect."
+      }
+    ],
+    "atWork": "A launch checklist where the empty cells are the steps still to do, and the count of dated ones is what the status deck reports.",
+    "outcome": "Count filled cells, dates and labels included, so a checklist reports real progress.",
+    "teaches": "COUNTA",
+    "dataset": "A five-step checklist",
+    "reference": "=COUNTA(B2:B6)"
+  }
+}

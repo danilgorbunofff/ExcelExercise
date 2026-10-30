@@ -503,7 +503,14 @@ describe("content-lint: the catalog", () => {
   }
 
   it("fails once when groups that hold published lessons lose their intro", () => {
+    // Which groups owe copy follows from the catalog: a group owes an intro once one of its slots
+    // holds a published lesson. Derive it so shipping a lesson in a new group cannot go stale here.
+    let owing;
     const { report } = sandbox(({ content }) => {
+      const track = readJson(join(content, "track.json"));
+      owing = track.groups
+        .filter((group) => track.lessons.some((entry) => entry.group === group.id && entry.id))
+        .map((group) => group.id);
       editTrack(content, (track) => ({
         ...track,
         groups: track.groups.map(({ id, title }) => ({ id, title })),
@@ -511,14 +518,17 @@ describe("content-lint: the catalog", () => {
     });
     const intros = report.errors.filter(({ message }) => message.includes("no intro"));
     assert.equal(intros.length, 1);
-    assert.match(intros[0].message, /^9 groups with published lessons and no intro: sum, count, statistical, logical, rounding, lookup, index-match, text-search, capstone$/);
+    assert.equal(intros[0].message, `${owing.length} groups with published lessons and no intro: ${owing.join(", ")}`);
   });
 
   it("asks for no copy from a group whose lessons are all still planned", () => {
+    let plannedGroup;
     const { report } = sandbox(({ content }) => {
+      const track = readJson(join(content, "track.json"));
+      plannedGroup = track.groups.find((group) => !track.lessons.some((entry) => entry.group === group.id && entry.id)).id;
       editTrack(content, (track) => ({
         ...track,
-        groups: track.groups.map((group) => (group.id === "text-change" ? { id: group.id, title: group.title } : group)),
+        groups: track.groups.map((group) => (group.id === plannedGroup ? { id: group.id, title: group.title } : group)),
       }));
     });
     assert.deepEqual(report.errors, []);

@@ -204,4 +204,85 @@ export const AUDIT = {
       },
     ],
   },
+  "18-count-numbers-only-and-what-it-skips": {
+    // 12.5, 8.2 and 15 are the only cells Excel holds as numbers; n/a, the blank in B5 and
+    // the text 7 are all skipped, so the count is 3.
+    expected: 3,
+    reference: "=COUNT(B2:B7)",
+    wrong: ["=COUNTA(B2:B7)", "=COUNT(B2:B5)", "=SUM(B2:B7)", "=COUNT(B2:B7)-1"],
+  },
+  "19-counta-count-the-non-empty-cells": {
+    // Three of the five steps hold a date. COUNT would answer 0 because the dates are text.
+    expected: 3,
+    reference: "=COUNTA(B2:B6)",
+    wrong: ["=COUNT(B2:B6)", "=COUNTA(B2:B4)", "=COUNTA(B2:B6)+1"],
+  },
+  "20-roundup-and-rounddown-one-direction-only": {
+    screens: [
+      {
+        // 476 / 12 = 39.67, and a part crate still ships, so ROUNDUP answers 40.
+        expected: 40,
+        reference: "=ROUNDUP(B5/12,0)",
+        wrong: ["=ROUNDDOWN(B5/12,0)", "=ROUNDUP(B4/12,0)", "=ROUNDUP(B5,0)"],
+      },
+      {
+        // The same 39.67 read the other way: 39 full crates and 8 units left over.
+        expected: 39,
+        reference: "=ROUNDDOWN(B5/12,0)",
+        wrong: ["=ROUNDUP(B5/12,0)", "=ROUNDDOWN(B4/12,0)", "=ROUNDDOWN(B5,0)"],
+      },
+    ],
+  },
+  "21-xlookup-with-a-fallback-when-nothing-matches": {
+    // TX-104 is not in A2:A4, so the fourth argument is what the cell shows.
+    expected: "not stocked",
+    reference: '=XLOOKUP(B5,A2:A4,B2:B4,"not stocked")',
+    wrong: ["=XLOOKUP(B5,A2:A4,B2:B4)", '=XLOOKUP(B5,A2:A4,B2:B4,"Not stocked")', "=VLOOKUP(B5,A2:B4,2,FALSE)"],
+  },
+  "22-match-find-a-value-s-position": {
+    // Jan 1, Feb 2, Mar 3: B6 asks about Mar, so MATCH reports 3.
+    expected: 3,
+    reference: "=MATCH(B6,A2:A5,0)",
+    wrong: ["=MATCH(B6,A2:A5,0)+1", "=MATCH(B5,A2:A5,0)", "=MATCH(B6,A2:A3,0)"],
+  },
+  "23-index-a-value-at-a-row-and-column": {
+    // Row 3 is Gizmo, column 2 of B2:D4 is Q2, so the cell is 160.
+    expected: 160,
+    reference: "=INDEX(B2:D4,B5,B6)",
+    wrong: ["=INDEX(B2:D4,B5,B5)", "=INDEX(B2:D4,B6,B5)", "=INDEX(B2:D3,B5,B6)"],
+  },
+  "24-len-left-and-right-count-and-cut": {
+    screens: [
+      {
+        // "Invoice" is seven characters, the space is one, "2026-03" is seven: 15.
+        expected: 15,
+        reference: "=LEN(A2)",
+        wrong: ["=LEN(A2)-1", "=LEFT(A2,15)", "=LEN(A1)"],
+      },
+      {
+        // The first three characters of Invoice 2026-03.
+        expected: "Inv",
+        reference: "=LEFT(A2,3)",
+        wrong: ["=RIGHT(A2,3)", "=LEFT(A2,2)", "=LEFT(A2,4)"],
+      },
+      {
+        // The last four characters: 6, -, 0, 3.
+        expected: "6-03",
+        reference: "=RIGHT(A2,4)",
+        wrong: ["=LEFT(A2,4)", "=RIGHT(A2,3)", "=RIGHT(A2,5)"],
+      },
+    ],
+  },
+  "25-concat-and-the-operator": {
+    // A2 is Ada, B2 is Lovelace, and the space between them is passed in.
+    expected: "Ada Lovelace",
+    reference: '=CONCAT(A2," ",B2)',
+    wrong: ['=CONCAT(B2," ",A2)', "=CONCAT(A2,B2)", '=A2&" "&B3'],
+  },
+  "26-iferror-catch-the-error-show-your-text": {
+    // TX-109 is not in A2:B3, so the lookup fails and the fallback is what shows.
+    expected: "no price",
+    reference: '=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),"no price")',
+    wrong: ["=VLOOKUP(A4,A2:B3,2,FALSE)", '=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),"missing")', '=IFERROR(A4,"no price")'],
+  },
 };

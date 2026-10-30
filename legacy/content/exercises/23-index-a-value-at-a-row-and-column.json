@@ -1,0 +1,100 @@
+{
+  "id": "23-index-a-value-at-a-row-and-column",
+  "slug": "index-a-value-at-a-row-and-column",
+  "level": 2,
+  "title": "INDEX: a value at a row and column",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, read the units at the row in B5 and the column in B6, counting from the first product and from Q1.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          ["Product", "Q1", "Q2", "Q3"],
+          ["Widget", 100, 120, 130],
+          ["Gadget", 90, 110, 125],
+          ["Gizmo", 140, 160, 150],
+          ["Row to read", 3, null, null],
+          ["Column to read", 2, null, null],
+          ["Units", null, null, null]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": { "value": 160 },
+      "require": [{ "id": "func-index", "func": "INDEX", "minArgs": 3 }],
+      "forbid": [],
+      "requireRef": "B5",
+      "rules": [],
+      "hints": {
+        "syntax": "INDEX takes the block, then a row and a column inside it: =INDEX(B2:D4,B5,B6).",
+        "func-index": "INDEX reads one cell out of a block by counting rows down and columns across; VLOOKUP would need the answer to sit to the right of a search column, and here it does not.",
+        "require-ref": "Take the row and column from B5 and B6 rather than typing 3 and 2, so the reader asks for a different cell by editing two cells.",
+        "value": "Count down to row 3 (Gizmo) and across to column 2 (Q2): that is 160.",
+        "error": "Asking for column 9 of a three-column block is outside it, and INDEX returns #REF!."
+      },
+      "fixtures": {
+        "accept": [
+          "=INDEX(B2:D4,B5,B6)",
+          "=index(b2:d4,b5,b6)",
+          "=INDEX($B$2:$D$4,$B$5,$B$6)",
+          "=INDEX(B2:D4,B5,B6)+0",
+          "=INDEX(B2:D4,B5,B6)*1",
+          "=INDEX(B2:D4,B5,B6)/1"
+        ],
+        "reject": [
+          {
+            "formula": "=INDEX(B2:D4,B5,B6",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=INDEX(B2:D4,B5)",
+            "rule": "func-index",
+            "why": "two arguments read along the first column only, so the column in B6 is ignored"
+          },
+          {
+            "formula": "=VLOOKUP(B5,A2:D4,B6+1,FALSE)",
+            "rule": "func-index",
+            "why": "the row number is not a product name, so there is nothing for VLOOKUP to search"
+          },
+          {
+            "formula": "=INDEX(B2:D4,B5,B5)",
+            "rule": "value",
+            "why": "that reads row 3, column 3, which is Gizmo's Q3 figure of 150"
+          },
+          {
+            "formula": "=INDEX(B2:D4,3,2)",
+            "rule": "require-ref",
+            "why": "the row and column typed into the formula, so the reader cannot ask for a different cell"
+          },
+          {
+            "formula": "=INDEX(B2:D4,B5,9)",
+            "rule": "error",
+            "why": "column 9 is outside a block that is only three columns wide, so INDEX returns #REF!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=INDEX(array, row_num, [column_num])",
+    "explain": "INDEX treats a block of cells as a grid and counts inside it: row 1 is Widget, row 2 is Gadget, row 3 is Gizmo, and column 1 is Q1, column 2 is Q2. B5 says 3 and B6 says 2, so the answer is row 3 column 2, which is 160. The counting restarts at the top-left corner of the block you hand it, not at row 1 of the sheet — that is why the block starts at B2 and Widget's Q1 is position (1,1). Feed the two numbers from cells and the same formula answers 130 if someone changes the column to 3, or 90 if they change the row to 2. That is the whole reason INDEX pairs with MATCH: MATCH works out the row, INDEX reads the cell.",
+    "errors": [
+      {
+        "code": "#REF!",
+        "text": "The row or column asked for is outside the block, as when a column number exceeds the block's width."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The row or column argument was text that cannot be read as a number."
+      }
+    ],
+    "atWork": "Reading one quarter of one product out of a sales grid, with the quarter chosen from a drop-down rather than hard-coded.",
+    "outcome": "Read any single cell of a grid from a row and a column number.",
+    "teaches": "INDEX",
+    "dataset": "Three products across three quarters",
+    "reference": "=INDEX(B2:D4,B5,B6)"
+  }
+}

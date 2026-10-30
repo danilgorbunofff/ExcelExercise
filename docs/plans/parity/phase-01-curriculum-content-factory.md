@@ -204,7 +204,7 @@ window in which two shapes are both live.
       silently creating it would hide the day a lesson loses its fixtures.
 
 - [ ] **8. Cohorts.** Ten lessons per batch, each green in `content:check` and through a human
-      accuracy review before it merges. **Cohort two is 5 of 10 in.** Lesson 11 is VLOOKUP approximate
+      accuracy review before it merges. **Cohort two shipped through lesson 16, and cohort three shipped as ten lessons, 17–26.** Lesson 11 is VLOOKUP approximate
       match (`11-vlookup-approximate-match-needs-a-sorted-column`), catalog slot 37, published as
       lesson 8 of 12 — the first file whose number disagrees with where the page sits, because the
       slot decides the reading order and the file name only records the order lessons were written.
@@ -272,6 +272,80 @@ window in which two shapes are both live.
       already worked. The scaffold now writes the objects, `content:check` refuses a bare string or a
       short `why` at the same threshold the test uses, and a test pins the scaffold's own output so the
       two cannot drift again.
+
+      Lesson 16 closed cohort two. Cohort three then shipped as one batch of ten, lessons 17–26, on
+      the same vertical slice: `content:new` scaffold, full rewrite, every fixture replayed through the
+      real `grade()` before the gate, one `AUDIT` row per screen, then the three gate commands. The ten
+      files, their catalog slots and where the catalog now publishes each one:
+
+      | File | Slot | Published | Teaches |
+      |---|---|---|---|
+      | `17-min-and-max-fastest-and-slowest` | 13 | 3 | MIN and MAX over one column |
+      | `18-count-numbers-only-and-what-it-skips` | 20 | 5 | COUNT, and the three things it skips |
+      | `19-counta-count-the-non-empty-cells` | 21 | 6 | COUNTA on a checklist of blanks |
+      | `20-roundup-and-rounddown-one-direction-only` | 34 | 10 | the two one-way rounds, 476 / 12 |
+      | `21-xlookup-with-a-fallback-when-nothing-matches` | 43 | 18 | XLOOKUP's fourth argument |
+      | `22-match-find-a-value-s-position` | 47 | 20 | MATCH's third argument, on unsorted data |
+      | `23-index-a-value-at-a-row-and-column` | 48 | 21 | INDEX with a row and a column |
+      | `24-len-left-and-right-count-and-cut` | 53 | 23 | LEN, LEFT, RIGHT on a 15-character code |
+      | `25-concat-and-the-operator` | 65 | 25 | CONCAT, and why the space is an argument |
+      | `26-iferror-catch-the-error-show-your-text` | 69 | 26 | IFERROR around a failed lookup |
+
+      Five of the ten are drills whose rule is arithmetic rather than syntax: lesson 18's grid holds
+      `n/a`, a blank and the text `7` so that a count of 3 is the whole lesson; lesson 20 plays 39.67
+      both ways so that `ROUNDUP` → 40 and `ROUNDDOWN` → 39 are two screens of one sheet, with a
+      `matchType` on the digits argument so `,2)` is rejected with a plausible number in it; lesson 24
+      measures `Invoice 2026-03` at 15 characters before cutting `Inv` and `6-03` off it. The rest are
+      argument-shape drills and reuse rules that already existed: `func-count`, `func-counta`,
+      `func-roundup`, `func-xlookup` (min 4 args, which is what forces the fallback), `func-match` with
+      `match-exact` on argument 3, `func-index` (min 3, so the column cannot be dropped),
+      `func-concat` (min 2, so the space has to be passed), `func-iferror` (min 2). No grader function
+      was added for this batch, and no rule type was either.
+
+      Four traps, all recorded because they will recur in the next batch:
+
+      **The published number moves, and money follows it.** Slots decide the reading order, so
+      publishing slot 20 at position 5 pushed `03-countif-open-tickets` from #3 to #4 — past
+      `freeLessonCount: 3`. The drill at the boundary now shows the `#grace-pass` button, not the
+      `#paywall-email` form that later lessons show, so the Playwright helper `passGate(page)` races
+      `#paywall` against `#formula` and falls back to whichever control is actually on screen. Two
+      specs asserted the old free/paid handover and one asserted `"1 of 16"`; all three now derive
+      their numbers from `loadSite().index.length` and the gate helper.
+
+      **Three corpus-wide assumptions were in the suite, and all three now derive.** `content:new`
+      shifting the catalog turned `tests/content.test.js`'s advertised task count red, and the two
+      catalog lint tests picked a literal group (`text-change`) that had no published lessons and
+      asserted a literal list of nine intro-less groups. They now compute the owed-intro set from
+      `track.json` (`entry.group === group.id && entry.id`) and pick the first group whose lessons are
+      all still planned, so shipping a lesson into a new group cannot go stale again. The published
+      task count in `track.json`'s `promise` is content, not a test assumption, and was bumped to 26.
+
+      **Titles now need escaping to be found on a page.** `paywall.test.js` asserted
+      `body.includes(candidate.exercise.title)`, which held until the first title with an apostrophe
+      (`MATCH: find a value's position`) arrived and the page emitted `&#39;`. The assertion now
+      compares against `esc(title)` — what the renderer actually emits — rather than the raw title.
+
+      **The evaluator diverges from Excel in three places content has to work around.** `COUNT(B2,B3,B4)`
+      coerces numeric text passed as a scalar argument and counts it, so a multi-argument count is not
+      the same answer as a range count and cannot be used as a second accepted form. A trailing comma
+      (`,)`) leaves an argument slot empty, which a `matchType` rule reads as *absent* rather than as
+      the default, so `=ROUNDUP(B5/12,)` is rejected on `whole-crates` — Excel would accept it. And a
+      grid must be rectangular: `["Row to read", 3]` under a four-column header is refused with
+      `rows[4] has 2 cells, expected 4`, so the label rows in an INDEX grid are padded with `null`.
+
+      Gate output for the batch, verbatim: `tests 884`, `suites 144`, `pass 884`, `fail 0`;
+      `content: 26 of 88 catalogued lessons, 16 groups, 36 screens, 444 fixtures replayed`;
+      `✓ content passes — 195 accepted and 249 rejected formulas agree with the grader`;
+      `built 42 pages (1505.3 kB of HTML+CSS)`; `next routes: 42 prerendered pages match the shared
+      templates`; `verified 26 lesson pages, the index, the dashboard, the pricing page and 11 group
+      pages — 1382 checks passed`; `82 passed (14.0s)` from `npx playwright test`; `vendor: 25 files
+      match manifest.json`; `pass 129` from `db:check`. `tests/golden/snapshot.json` grew by 271 lines
+      and lost none — additive only is what a new lesson has to look like in a record of every verdict.
+
+      One gap this batch walked up to and did not cross: `require` must hold at least one function, so a
+      lesson whose whole point is a comparison — slot 26, "TRUE and FALSE" — cannot be authored with
+      today's rule types. It stays `planned` until a rule type exists for it; authoring it as a
+      function drill would teach something else.
 
 ## Acceptance criteria
 

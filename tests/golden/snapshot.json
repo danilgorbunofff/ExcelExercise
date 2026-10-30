@@ -517,6 +517,277 @@
         {"input":"=MIN(B2:B5)","ok":true,"rule":"correct","code":null,"position":null,"value":58.4,"expected":58.4,"message":"Correct.","hint":""},
         {"input":"=MIN(B2:B5)","ok":false,"rule":"func-max","code":null,"position":null,"value":null,"expected":63.9,"message":"This lesson is about MAX. Your formula does not use MAX.","hint":"The slowest lap is the largest number in the column. MAX finds it; MIN answers the other end of the same four laps."}
       ]
+    },
+    "18-count-numbers-only-and-what-it-skips": {
+      "accepted": [
+        {"input":"=COUNT($B$2:$B$7)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNT(B2:B7)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNT(B2:B7)*1","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNT(B2:B7)+0","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNT(B2:B7)/1","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=count(b2:b7)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=COUNT()","ok":false,"rule":"func-count","code":null,"position":null,"value":null,"expected":3,"message":"COUNT needs at least 1 argument here; yours has 0.","hint":"COUNT answers how many numbers there are; SUM answers how much they add up to, which is a different question."},
+        {"input":"=COUNT(12.5,8.2,15)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":3,"message":"Your formula does not refer to B2. The lesson checks that you point at the data rather than typing the number.","hint":"Point COUNT at B2:B7. Numbers typed into the formula stop matching the sheet the moment a sample is re-measured."},
+        {"input":"=COUNT(B2:B5)","ok":false,"rule":"value","code":null,"position":null,"value":2,"expected":3,"message":"Your formula returns 2, but this lesson expects 3.","hint":"That is not how many numbers the column holds. Read down B2:B7 and ask of each cell whether it is a number."},
+        {"input":"=COUNT(B2:B7","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":3,"message":"COUNT is missing its closing \")\".","hint":"Start with = and close the bracket: =COUNT(B2:B7)."},
+        {"input":"=COUNT(B2:B7)/0","ok":false,"rule":"error","code":"#DIV/0!","position":14,"value":null,"expected":3,"message":"#DIV/0! Dividing by zero. A cell in the divisor is empty or holds 0.","hint":"COUNT of a range never fails on text, but dividing its answer by zero returns #DIV/0!, and a call with no argument at all returns #VALUE!."},
+        {"input":"=COUNTA(B2:B7)","ok":false,"rule":"func-count","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about COUNT. Your formula does not use COUNT.","hint":"COUNT answers how many numbers there are; SUM answers how much they add up to, which is a different question."},
+        {"input":"=SUM(B2:B7)","ok":false,"rule":"func-count","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about COUNT. Your formula does not use COUNT.","hint":"COUNT answers how many numbers there are; SUM answers how much they add up to, which is a different question."}
+      ],
+      "audit": [
+        {"input":"=COUNT(B2:B5)","ok":false,"rule":"value","code":null,"position":null,"value":2,"expected":3,"message":"Your formula returns 2, but this lesson expects 3.","hint":"That is not how many numbers the column holds. Read down B2:B7 and ask of each cell whether it is a number."},
+        {"input":"=COUNT(B2:B7)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNT(B2:B7)-1","ok":false,"rule":"value","code":null,"position":null,"value":2,"expected":3,"message":"Your formula returns 2, but this lesson expects 3.","hint":"That is not how many numbers the column holds. Read down B2:B7 and ask of each cell whether it is a number."},
+        {"input":"=COUNTA(B2:B7)","ok":false,"rule":"func-count","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about COUNT. Your formula does not use COUNT.","hint":"COUNT answers how many numbers there are; SUM answers how much they add up to, which is a different question."},
+        {"input":"=SUM(B2:B7)","ok":false,"rule":"func-count","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about COUNT. Your formula does not use COUNT.","hint":"COUNT answers how many numbers there are; SUM answers how much they add up to, which is a different question."}
+      ]
+    },
+    "19-counta-count-the-non-empty-cells": {
+      "accepted": [
+        {"input":"=COUNTA($B$2:$B$6)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(B2,B3,B4,B5,B6)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(B2:B6)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(B2:B6)+0","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(B2:B6)-0","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=counta(b2:b6)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=COUNT(B2:B6)","ok":false,"rule":"func-counta","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about COUNTA. Your formula does not use COUNTA.","hint":"The dates sit in a text column, so counting numbers finds none of them; COUNTA counts anything that is not blank."},
+        {"input":"=COUNTA(\"2026-03-02\",\"2026-03-09\",\"2026-04-01\")","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":3,"message":"Your formula does not refer to B2. The lesson checks that you point at the data rather than typing the number.","hint":"Point COUNTA at B2:B6 rather than pasting the three dates in — the sheet has to stay the source of the answer."},
+        {"input":"=COUNTA(B2:B4)","ok":false,"rule":"value","code":null,"position":null,"value":2,"expected":3,"message":"Your formula returns 2, but this lesson expects 3.","hint":"That is not how many steps are dated. Three of the five cells in B2:B6 hold a date and two are empty."},
+        {"input":"=COUNTA(B2:B6","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":3,"message":"COUNTA is missing its closing \")\".","hint":"Start with = and close the bracket: =COUNTA(B2:B6)."},
+        {"input":"=COUNTA(B2:B6)+1","ok":false,"rule":"value","code":null,"position":null,"value":4,"expected":3,"message":"Your formula returns 4, but this lesson expects 3.","hint":"That is not how many steps are dated. Three of the five cells in B2:B6 hold a date and two are empty."},
+        {"input":"=COUNTA(B2:B6)/0","ok":false,"rule":"error","code":"#DIV/0!","position":15,"value":null,"expected":3,"message":"#DIV/0! Dividing by zero. A cell in the divisor is empty or holds 0.","hint":"COUNTA of a range never fails on text; dividing its answer by zero returns #DIV/0!."},
+        {"input":"=SUM(B2:B6)","ok":false,"rule":"func-counta","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about COUNTA. Your formula does not use COUNTA.","hint":"The dates sit in a text column, so counting numbers finds none of them; COUNTA counts anything that is not blank."}
+      ],
+      "audit": [
+        {"input":"=COUNT(B2:B6)","ok":false,"rule":"func-counta","code":null,"position":null,"value":null,"expected":3,"message":"This lesson is about COUNTA. Your formula does not use COUNTA.","hint":"The dates sit in a text column, so counting numbers finds none of them; COUNTA counts anything that is not blank."},
+        {"input":"=COUNTA(B2:B4)","ok":false,"rule":"value","code":null,"position":null,"value":2,"expected":3,"message":"Your formula returns 2, but this lesson expects 3.","hint":"That is not how many steps are dated. Three of the five cells in B2:B6 hold a date and two are empty."},
+        {"input":"=COUNTA(B2:B6)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=COUNTA(B2:B6)+1","ok":false,"rule":"value","code":null,"position":null,"value":4,"expected":3,"message":"Your formula returns 4, but this lesson expects 3.","hint":"That is not how many steps are dated. Three of the five cells in B2:B6 hold a date and two are empty."}
+      ]
+    },
+    "20-roundup-and-rounddown-one-direction-only": {
+      "accepted": [
+        {"input":"=ROUNDDOWN($B$5/12,0)","ok":true,"rule":"correct","code":null,"position":null,"value":39,"expected":39,"message":"Correct.","hint":""},
+        {"input":"=ROUNDDOWN(B5/12,0)","ok":true,"rule":"correct","code":null,"position":null,"value":39,"expected":39,"message":"Correct.","hint":""},
+        {"input":"=ROUNDDOWN(B5/12,0)+0","ok":true,"rule":"correct","code":null,"position":null,"value":39,"expected":39,"message":"Correct.","hint":""},
+        {"input":"=ROUNDDOWN(B5/12,0)-0","ok":true,"rule":"correct","code":null,"position":null,"value":39,"expected":39,"message":"Correct.","hint":""},
+        {"input":"=ROUNDDOWN(B5/12,0)/1","ok":true,"rule":"correct","code":null,"position":null,"value":39,"expected":39,"message":"Correct.","hint":""},
+        {"input":"=ROUNDUP($B$5/12,0)","ok":true,"rule":"correct","code":null,"position":null,"value":40,"expected":40,"message":"Correct.","hint":""},
+        {"input":"=ROUNDUP(B5/12,0)","ok":true,"rule":"correct","code":null,"position":null,"value":40,"expected":40,"message":"Correct.","hint":""},
+        {"input":"=ROUNDUP(B5/12,0)*1","ok":true,"rule":"correct","code":null,"position":null,"value":40,"expected":40,"message":"Correct.","hint":""},
+        {"input":"=ROUNDUP(B5/12,0)+0","ok":true,"rule":"correct","code":null,"position":null,"value":40,"expected":40,"message":"Correct.","hint":""},
+        {"input":"=ROUNDUP(B5/12,0)/1","ok":true,"rule":"correct","code":null,"position":null,"value":40,"expected":40,"message":"Correct.","hint":""},
+        {"input":"=rounddown(b5/12,0)","ok":true,"rule":"correct","code":null,"position":null,"value":39,"expected":39,"message":"Correct.","hint":""},
+        {"input":"=roundup(b5/12,0)","ok":true,"rule":"correct","code":null,"position":null,"value":40,"expected":40,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=ROUND(B5/12,0)","ok":false,"rule":"func-roundup","code":null,"position":null,"value":null,"expected":40,"message":"This lesson is about ROUNDUP. Your formula does not use ROUNDUP.","hint":"ROUNDUP is the one that moves away from zero, and a part crate still has to be ordered."},
+        {"input":"=ROUND(B5/12,0)","ok":false,"rule":"func-rounddown","code":null,"position":null,"value":null,"expected":39,"message":"This lesson is about ROUNDDOWN. Your formula does not use ROUNDDOWN.","hint":"A full crate is the part crate thrown away, so this is the direction that moves toward zero."},
+        {"input":"=ROUNDDOWN(476/12,0)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":39,"message":"Your formula does not refer to B5. The lesson checks that you point at the data rather than typing the number.","hint":"Divide the total in B5 rather than the 476 typed in, so the answer follows the sheet."},
+        {"input":"=ROUNDDOWN(B5,0)","ok":false,"rule":"value","code":null,"position":null,"value":476,"expected":39,"message":"Your formula returns 476, but this lesson expects 39.","hint":"476 units is 39 full crates with 8 units left over, so the count of completely full crates is 39."},
+        {"input":"=ROUNDDOWN(B5/12,0","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":39,"message":"ROUNDDOWN is missing its closing \")\".","hint":"=ROUNDDOWN(B5/12,0) takes the number and the decimals to keep."},
+        {"input":"=ROUNDDOWN(B5/12,0)","ok":false,"rule":"func-roundup","code":null,"position":null,"value":null,"expected":40,"message":"This lesson is about ROUNDUP. Your formula does not use ROUNDUP.","hint":"ROUNDUP is the one that moves away from zero, and a part crate still has to be ordered."},
+        {"input":"=ROUNDDOWN(B5/12,0)/0","ok":false,"rule":"error","code":"#DIV/0!","position":20,"value":null,"expected":39,"message":"#DIV/0! Dividing by zero. A cell in the divisor is empty or holds 0.","hint":"Dividing the answer by zero returns #DIV/0!; ROUNDDOWN itself only fails when the digits argument is not a number."},
+        {"input":"=ROUNDDOWN(B5/12,2)","ok":false,"rule":"whole-crates","code":null,"position":null,"value":null,"expected":39,"message":"ROUNDDOWN's 2nd argument is 2; this lesson needs 0.","hint":"Crates are counted in whole numbers, so the second argument is 0."},
+        {"input":"=ROUNDUP(476/12,0)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":40,"message":"Your formula does not refer to B5. The lesson checks that you point at the data rather than typing the number.","hint":"Take the total from B5 instead of typing 476, so the crate count follows the unit counts."},
+        {"input":"=ROUNDUP(B5,0)","ok":false,"rule":"value","code":null,"position":null,"value":476,"expected":40,"message":"Your formula returns 476, but this lesson expects 40.","hint":"476 units is a bit under 40 crates of twelve. A part crate still ships, so the answer is the next whole crate up."},
+        {"input":"=ROUNDUP(B5/12,0","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":40,"message":"ROUNDUP is missing its closing \")\".","hint":"ROUNDUP takes the number and how many decimals to keep: =ROUNDUP(B5/12,0)."},
+        {"input":"=ROUNDUP(B5/12,0)","ok":false,"rule":"func-rounddown","code":null,"position":null,"value":null,"expected":39,"message":"This lesson is about ROUNDDOWN. Your formula does not use ROUNDDOWN.","hint":"A full crate is the part crate thrown away, so this is the direction that moves toward zero."},
+        {"input":"=ROUNDUP(B5/12,0)/0","ok":false,"rule":"error","code":"#DIV/0!","position":18,"value":null,"expected":40,"message":"#DIV/0! Dividing by zero. A cell in the divisor is empty or holds 0.","hint":"A part crate rounded with ROUNDDOWN leaves 476 units short of a crate and the order with no crates at all once the shortfall passes a full crate."},
+        {"input":"=ROUNDUP(B5/12,2)","ok":false,"rule":"whole-crates","code":null,"position":null,"value":null,"expected":40,"message":"ROUNDUP's 2nd argument is 2; this lesson needs 0.","hint":"Crates are whole things, so the second argument is 0 decimals."}
+      ],
+      "audit": [
+        {"input":"=ROUNDDOWN(B4/12,0)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":39,"message":"Your formula does not refer to B5. The lesson checks that you point at the data rather than typing the number.","hint":"Divide the total in B5 rather than the 476 typed in, so the answer follows the sheet."},
+        {"input":"=ROUNDDOWN(B5,0)","ok":false,"rule":"value","code":null,"position":null,"value":476,"expected":39,"message":"Your formula returns 476, but this lesson expects 39.","hint":"476 units is 39 full crates with 8 units left over, so the count of completely full crates is 39."},
+        {"input":"=ROUNDDOWN(B5/12,0)","ok":false,"rule":"func-roundup","code":null,"position":null,"value":null,"expected":40,"message":"This lesson is about ROUNDUP. Your formula does not use ROUNDUP.","hint":"ROUNDUP is the one that moves away from zero, and a part crate still has to be ordered."},
+        {"input":"=ROUNDDOWN(B5/12,0)","ok":true,"rule":"correct","code":null,"position":null,"value":39,"expected":39,"message":"Correct.","hint":""},
+        {"input":"=ROUNDUP(B4/12,0)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":40,"message":"Your formula does not refer to B5. The lesson checks that you point at the data rather than typing the number.","hint":"Take the total from B5 instead of typing 476, so the crate count follows the unit counts."},
+        {"input":"=ROUNDUP(B5,0)","ok":false,"rule":"value","code":null,"position":null,"value":476,"expected":40,"message":"Your formula returns 476, but this lesson expects 40.","hint":"476 units is a bit under 40 crates of twelve. A part crate still ships, so the answer is the next whole crate up."},
+        {"input":"=ROUNDUP(B5/12,0)","ok":true,"rule":"correct","code":null,"position":null,"value":40,"expected":40,"message":"Correct.","hint":""},
+        {"input":"=ROUNDUP(B5/12,0)","ok":false,"rule":"func-rounddown","code":null,"position":null,"value":null,"expected":39,"message":"This lesson is about ROUNDDOWN. Your formula does not use ROUNDDOWN.","hint":"A full crate is the part crate thrown away, so this is the direction that moves toward zero."}
+      ]
+    },
+    "21-xlookup-with-a-fallback-when-nothing-matches": {
+      "accepted": [
+        {"input":"=XLOOKUP($B$5,$A$2:$A$4,$B$2:$B$4,\"not stocked\")","ok":true,"rule":"correct","code":null,"position":null,"value":"not stocked","expected":"not stocked","message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\")","ok":true,"rule":"correct","code":null,"position":null,"value":"not stocked","expected":"not stocked","message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\")&\"\"","ok":true,"rule":"correct","code":null,"position":null,"value":"not stocked","expected":"not stocked","message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\",0)","ok":true,"rule":"correct","code":null,"position":null,"value":"not stocked","expected":"not stocked","message":"Correct.","hint":""},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\",0,1)","ok":true,"rule":"correct","code":null,"position":null,"value":"not stocked","expected":"not stocked","message":"Correct.","hint":""},
+        {"input":"=xlookup(b5,a2:a4,b2:b4,\"not stocked\")","ok":true,"rule":"correct","code":null,"position":null,"value":"not stocked","expected":"not stocked","message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=VLOOKUP(B5,A2:B4,2,FALSE)","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":"not stocked","message":"This lesson is about XLOOKUP. Your formula does not use XLOOKUP.","hint":"XLOOKUP answers this with four arguments; the fourth is only there for the miss, and the three-argument form would show #N/A instead."},
+        {"input":"=XLOOKUP(\"TX-104\",A2:A4,B2:B4,\"not stocked\")","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":"not stocked","message":"Your formula does not refer to B5. The lesson checks that you point at the data rather than typing the number.","hint":"Search for the SKU in B5 rather than typing TX-104 into the formula, so a different SKU is one edit away."},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4)","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":"not stocked","message":"XLOOKUP needs at least 4 arguments here; yours has 3.","hint":"XLOOKUP answers this with four arguments; the fourth is only there for the miss, and the three-argument form would show #N/A instead."},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4,\"Not stocked\")","ok":false,"rule":"value","code":null,"position":null,"value":"Not stocked","expected":"not stocked","message":"Your formula returns \"Not stocked\", but this lesson expects \"not stocked\".","hint":"TX-104 is not in the list, so the answer is the fallback text exactly as the prompt spells it, lower case and all."},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\"","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":"not stocked","message":"XLOOKUP is missing its closing \")\".","hint":"XLOOKUP takes the lookup value, the column to search, the column to return, and then the text to show when nothing matches."},
+        {"input":"=XLOOKUP(B5,A2:A5,B2:B4,\"not stocked\")","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":"not stocked","message":"#VALUE! XLOOKUP: the lookup and return ranges must be the same size.","hint":"The search column and the return column must be the same size: TX-101 to TX-103 against three prices, or XLOOKUP returns #VALUE!."}
+      ],
+      "audit": [
+        {"input":"=VLOOKUP(B5,A2:B4,2,FALSE)","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":"not stocked","message":"This lesson is about XLOOKUP. Your formula does not use XLOOKUP.","hint":"XLOOKUP answers this with four arguments; the fourth is only there for the miss, and the three-argument form would show #N/A instead."},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4)","ok":false,"rule":"func-xlookup","code":null,"position":null,"value":null,"expected":"not stocked","message":"XLOOKUP needs at least 4 arguments here; yours has 3.","hint":"XLOOKUP answers this with four arguments; the fourth is only there for the miss, and the three-argument form would show #N/A instead."},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4,\"Not stocked\")","ok":false,"rule":"value","code":null,"position":null,"value":"Not stocked","expected":"not stocked","message":"Your formula returns \"Not stocked\", but this lesson expects \"not stocked\".","hint":"TX-104 is not in the list, so the answer is the fallback text exactly as the prompt spells it, lower case and all."},
+        {"input":"=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\")","ok":true,"rule":"correct","code":null,"position":null,"value":"not stocked","expected":"not stocked","message":"Correct.","hint":""}
+      ]
+    },
+    "22-match-find-a-value-s-position": {
+      "accepted": [
+        {"input":"=MATCH($B$6,$A$2:$A$5,0)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=MATCH(B6,A2:A5,0)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=MATCH(B6,A2:A5,0)*1","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=MATCH(B6,A2:A5,0)+0","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=MATCH(B6,A2:A5,0)/1","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=match(b6,a2:a5,0)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=MATCH(\"Mar\",A2:A5,0)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":3,"message":"Your formula does not refer to B6. The lesson checks that you point at the data rather than typing the number.","hint":"Take the month from B6 instead of typing Mar, so asking about April is a one-cell edit."},
+        {"input":"=MATCH(B6,A2:A3,0)","ok":false,"rule":"error","code":"#N/A","position":null,"value":null,"expected":3,"message":"#N/A MATCH found no exact match for \"Mar\".","hint":"If the month is not in the searched range at all, MATCH returns #N/A — the position of nothing does not exist."},
+        {"input":"=MATCH(B6,A2:A5)","ok":false,"rule":"func-match","code":null,"position":null,"value":null,"expected":3,"message":"MATCH needs at least 3 arguments here; yours has 2.","hint":"MATCH returns a position inside the list you give it, not the value in the next column; that is what INDEX does with the number."},
+        {"input":"=MATCH(B6,A2:A5,0","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":3,"message":"MATCH is missing its closing \")\".","hint":"MATCH takes the value, the list to search, and the match type: =MATCH(B6,A2:A5,0)."},
+        {"input":"=MATCH(B6,A2:A5,0)+1","ok":false,"rule":"value","code":null,"position":null,"value":4,"expected":3,"message":"Your formula returns 4, but this lesson expects 3.","hint":"Counting from Jan as 1, Mar is the third month in the list."},
+        {"input":"=MATCH(B6,A2:A5,1)","ok":false,"rule":"match-exact","code":null,"position":null,"value":null,"expected":3,"message":"MATCH's 3rd argument is 1; this lesson needs 0.","hint":"The month list is not sorted, so the third argument has to be 0 for an exact match. Leaving it out searches an unsorted list and gives an answer you cannot trust."}
+      ],
+      "audit": [
+        {"input":"=MATCH(B5,A2:A5,0)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":3,"message":"Your formula does not refer to B6. The lesson checks that you point at the data rather than typing the number.","hint":"Take the month from B6 instead of typing Mar, so asking about April is a one-cell edit."},
+        {"input":"=MATCH(B6,A2:A3,0)","ok":false,"rule":"error","code":"#N/A","position":null,"value":null,"expected":3,"message":"#N/A MATCH found no exact match for \"Mar\".","hint":"If the month is not in the searched range at all, MATCH returns #N/A — the position of nothing does not exist."},
+        {"input":"=MATCH(B6,A2:A5,0)","ok":true,"rule":"correct","code":null,"position":null,"value":3,"expected":3,"message":"Correct.","hint":""},
+        {"input":"=MATCH(B6,A2:A5,0)+1","ok":false,"rule":"value","code":null,"position":null,"value":4,"expected":3,"message":"Your formula returns 4, but this lesson expects 3.","hint":"Counting from Jan as 1, Mar is the third month in the list."}
+      ]
+    },
+    "23-index-a-value-at-a-row-and-column": {
+      "accepted": [
+        {"input":"=INDEX($B$2:$D$4,$B$5,$B$6)","ok":true,"rule":"correct","code":null,"position":null,"value":160,"expected":160,"message":"Correct.","hint":""},
+        {"input":"=INDEX(B2:D4,B5,B6)","ok":true,"rule":"correct","code":null,"position":null,"value":160,"expected":160,"message":"Correct.","hint":""},
+        {"input":"=INDEX(B2:D4,B5,B6)*1","ok":true,"rule":"correct","code":null,"position":null,"value":160,"expected":160,"message":"Correct.","hint":""},
+        {"input":"=INDEX(B2:D4,B5,B6)+0","ok":true,"rule":"correct","code":null,"position":null,"value":160,"expected":160,"message":"Correct.","hint":""},
+        {"input":"=INDEX(B2:D4,B5,B6)/1","ok":true,"rule":"correct","code":null,"position":null,"value":160,"expected":160,"message":"Correct.","hint":""},
+        {"input":"=index(b2:d4,b5,b6)","ok":true,"rule":"correct","code":null,"position":null,"value":160,"expected":160,"message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=INDEX(B2:D4,3,2)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":160,"message":"Your formula does not refer to B5. The lesson checks that you point at the data rather than typing the number.","hint":"Take the row and column from B5 and B6 rather than typing 3 and 2, so the reader asks for a different cell by editing two cells."},
+        {"input":"=INDEX(B2:D4,B5)","ok":false,"rule":"func-index","code":null,"position":null,"value":null,"expected":160,"message":"INDEX needs at least 3 arguments here; yours has 2.","hint":"INDEX reads one cell out of a block by counting rows down and columns across; VLOOKUP would need the answer to sit to the right of a search column, and here it does not."},
+        {"input":"=INDEX(B2:D4,B5,9)","ok":false,"rule":"error","code":"#REF!","position":null,"value":null,"expected":160,"message":"#REF! INDEX is outside the range: the range is 3×3 cells.","hint":"Asking for column 9 of a three-column block is outside it, and INDEX returns #REF!."},
+        {"input":"=INDEX(B2:D4,B5,B5)","ok":false,"rule":"value","code":null,"position":null,"value":150,"expected":160,"message":"Your formula returns 150, but this lesson expects 160.","hint":"Count down to row 3 (Gizmo) and across to column 2 (Q2): that is 160."},
+        {"input":"=INDEX(B2:D4,B5,B6","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":160,"message":"INDEX is missing its closing \")\".","hint":"INDEX takes the block, then a row and a column inside it: =INDEX(B2:D4,B5,B6)."},
+        {"input":"=VLOOKUP(B5,A2:D4,B6+1,FALSE)","ok":false,"rule":"func-index","code":null,"position":null,"value":null,"expected":160,"message":"This lesson is about INDEX. Your formula does not use INDEX.","hint":"INDEX reads one cell out of a block by counting rows down and columns across; VLOOKUP would need the answer to sit to the right of a search column, and here it does not."}
+      ],
+      "audit": [
+        {"input":"=INDEX(B2:D3,B5,B6)","ok":false,"rule":"error","code":"#REF!","position":null,"value":null,"expected":160,"message":"#REF! INDEX is outside the range: the range is 2×3 cells.","hint":"Asking for column 9 of a three-column block is outside it, and INDEX returns #REF!."},
+        {"input":"=INDEX(B2:D4,B5,B5)","ok":false,"rule":"value","code":null,"position":null,"value":150,"expected":160,"message":"Your formula returns 150, but this lesson expects 160.","hint":"Count down to row 3 (Gizmo) and across to column 2 (Q2): that is 160."},
+        {"input":"=INDEX(B2:D4,B5,B6)","ok":true,"rule":"correct","code":null,"position":null,"value":160,"expected":160,"message":"Correct.","hint":""},
+        {"input":"=INDEX(B2:D4,B6,B5)","ok":false,"rule":"value","code":null,"position":null,"value":125,"expected":160,"message":"Your formula returns 125, but this lesson expects 160.","hint":"Count down to row 3 (Gizmo) and across to column 2 (Q2): that is 160."}
+      ]
+    },
+    "24-len-left-and-right-count-and-cut": {
+      "accepted": [
+        {"input":"=LEFT($A$2,3)","ok":true,"rule":"correct","code":null,"position":null,"value":"Inv","expected":"Inv","message":"Correct.","hint":""},
+        {"input":"=LEFT(A2,3)","ok":true,"rule":"correct","code":null,"position":null,"value":"Inv","expected":"Inv","message":"Correct.","hint":""},
+        {"input":"=LEFT(A2,3)&\"\"","ok":true,"rule":"correct","code":null,"position":null,"value":"Inv","expected":"Inv","message":"Correct.","hint":""},
+        {"input":"=LEN($A$2)","ok":true,"rule":"correct","code":null,"position":null,"value":15,"expected":15,"message":"Correct.","hint":""},
+        {"input":"=LEN(A2)","ok":true,"rule":"correct","code":null,"position":null,"value":15,"expected":15,"message":"Correct.","hint":""},
+        {"input":"=LEN(A2)*1","ok":true,"rule":"correct","code":null,"position":null,"value":15,"expected":15,"message":"Correct.","hint":""},
+        {"input":"=LEN(A2)+0","ok":true,"rule":"correct","code":null,"position":null,"value":15,"expected":15,"message":"Correct.","hint":""},
+        {"input":"=LEN(TRIM(A2))","ok":true,"rule":"correct","code":null,"position":null,"value":15,"expected":15,"message":"Correct.","hint":""},
+        {"input":"=PROPER(LEFT(A2,3))","ok":true,"rule":"correct","code":null,"position":null,"value":"Inv","expected":"Inv","message":"Correct.","hint":""},
+        {"input":"=RIGHT($A$2,4)","ok":true,"rule":"correct","code":null,"position":null,"value":"6-03","expected":"6-03","message":"Correct.","hint":""},
+        {"input":"=RIGHT(A2,4)","ok":true,"rule":"correct","code":null,"position":null,"value":"6-03","expected":"6-03","message":"Correct.","hint":""},
+        {"input":"=RIGHT(A2,4)&\"\"","ok":true,"rule":"correct","code":null,"position":null,"value":"6-03","expected":"6-03","message":"Correct.","hint":""},
+        {"input":"=TRIM(LEFT(A2,3))","ok":true,"rule":"correct","code":null,"position":null,"value":"Inv","expected":"Inv","message":"Correct.","hint":""},
+        {"input":"=TRIM(RIGHT(A2,4))","ok":true,"rule":"correct","code":null,"position":null,"value":"6-03","expected":"6-03","message":"Correct.","hint":""},
+        {"input":"=UPPER(RIGHT(A2,4))","ok":true,"rule":"correct","code":null,"position":null,"value":"6-03","expected":"6-03","message":"Correct.","hint":""},
+        {"input":"=left(a2,3)","ok":true,"rule":"correct","code":null,"position":null,"value":"Inv","expected":"Inv","message":"Correct.","hint":""},
+        {"input":"=len(a2)","ok":true,"rule":"correct","code":null,"position":null,"value":15,"expected":15,"message":"Correct.","hint":""},
+        {"input":"=right(a2,4)","ok":true,"rule":"correct","code":null,"position":null,"value":"6-03","expected":"6-03","message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=LEFT(\"Invoice 2026-03\",3)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":"Inv","message":"Your formula does not refer to A2. The lesson checks that you point at the data rather than typing the number.","hint":"Cut from A2 instead of typing the code, so the prefix follows the cell."},
+        {"input":"=LEFT(A2)","ok":false,"rule":"func-left","code":null,"position":null,"value":null,"expected":"Inv","message":"LEFT needs at least 2 arguments here; yours has 1.","hint":"LEFT cuts from the beginning of the text; RIGHT cuts from the end, which is the other end of this code."},
+        {"input":"=LEFT(A2,-1)","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":"Inv","message":"#VALUE! LEFT needs a character count of 0 or more.","hint":"A negative character count is not a cut LEFT can make, so it returns #VALUE!."},
+        {"input":"=LEFT(A2,15)","ok":false,"rule":"func-len","code":null,"position":null,"value":null,"expected":15,"message":"This lesson is about LEN. Your formula does not use LEN.","hint":"LEN counts characters, so it answers how long the code is, not what it says."},
+        {"input":"=LEFT(A2,2)","ok":false,"rule":"value","code":null,"position":null,"value":"In","expected":"Inv","message":"Your formula returns \"In\", but this lesson expects \"Inv\".","hint":"Three characters from the left of Invoice 2026-03 are I, n and v."},
+        {"input":"=LEFT(A2,3","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":"Inv","message":"LEFT is missing its closing \")\".","hint":"LEFT takes the text and how many characters to keep: =LEFT(A2,3)."},
+        {"input":"=LEFT(A2,4)","ok":false,"rule":"func-right","code":null,"position":null,"value":null,"expected":"6-03","message":"This lesson is about RIGHT. Your formula does not use RIGHT.","hint":"The year and month sit at the end of the code, so this is the end-cutter, not the start-cutter."},
+        {"input":"=LEN(\"Invoice 2026-03\")","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":15,"message":"Your formula does not refer to A2. The lesson checks that you point at the data rather than typing the number.","hint":"Measure A2 rather than typing the code into the formula, so the count follows the cell."},
+        {"input":"=LEN()","ok":false,"rule":"func-len","code":null,"position":null,"value":null,"expected":15,"message":"LEN needs at least 1 argument here; yours has 0.","hint":"LEN counts characters, so it answers how long the code is, not what it says."},
+        {"input":"=LEN(A2","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":15,"message":"LEN is missing its closing \")\".","hint":"LEN takes one thing to measure: =LEN(A2)."},
+        {"input":"=LEN(A2)-1","ok":false,"rule":"value","code":null,"position":null,"value":14,"expected":15,"message":"Your formula returns 14, but this lesson expects 15.","hint":"Count every character of Invoice 2026-03, the space between the word and the year included."},
+        {"input":"=LEN(A2)/0","ok":false,"rule":"error","code":"#DIV/0!","position":9,"value":null,"expected":15,"message":"#DIV/0! Dividing by zero. A cell in the divisor is empty or holds 0.","hint":"LEN is not a number, so dividing it by another LEN returns a number; dividing by zero still returns #DIV/0!."},
+        {"input":"=RIGHT(\"Invoice 2026-03\",4)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":"6-03","message":"Your formula does not refer to A2. The lesson checks that you point at the data rather than typing the number.","hint":"Cut from A2 rather than typing the code, so the answer follows the cell."},
+        {"input":"=RIGHT(A2)","ok":false,"rule":"func-right","code":null,"position":null,"value":null,"expected":"6-03","message":"RIGHT needs at least 2 arguments here; yours has 1.","hint":"The year and month sit at the end of the code, so this is the end-cutter, not the start-cutter."},
+        {"input":"=RIGHT(A2,-4)","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":"6-03","message":"#VALUE! RIGHT needs a character count of 0 or more.","hint":"RIGHT cannot cut a negative number of characters, and it returns #VALUE! when asked."},
+        {"input":"=RIGHT(A2,3)","ok":false,"rule":"func-left","code":null,"position":null,"value":null,"expected":"Inv","message":"This lesson is about LEFT. Your formula does not use LEFT.","hint":"LEFT cuts from the beginning of the text; RIGHT cuts from the end, which is the other end of this code."},
+        {"input":"=RIGHT(A2,3)","ok":false,"rule":"value","code":null,"position":null,"value":"-03","expected":"6-03","message":"Your formula returns \"-03\", but this lesson expects \"6-03\".","hint":"The last four characters of Invoice 2026-03 are 6, -, 0 and 3."},
+        {"input":"=RIGHT(A2,4","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":"6-03","message":"RIGHT is missing its closing \")\".","hint":"RIGHT takes the text and how many characters to keep from the end: =RIGHT(A2,4)."}
+      ],
+      "audit": [
+        {"input":"=LEFT(A2,15)","ok":false,"rule":"func-len","code":null,"position":null,"value":null,"expected":15,"message":"This lesson is about LEN. Your formula does not use LEN.","hint":"LEN counts characters, so it answers how long the code is, not what it says."},
+        {"input":"=LEFT(A2,2)","ok":false,"rule":"value","code":null,"position":null,"value":"In","expected":"Inv","message":"Your formula returns \"In\", but this lesson expects \"Inv\".","hint":"Three characters from the left of Invoice 2026-03 are I, n and v."},
+        {"input":"=LEFT(A2,3)","ok":true,"rule":"correct","code":null,"position":null,"value":"Inv","expected":"Inv","message":"Correct.","hint":""},
+        {"input":"=LEFT(A2,4)","ok":false,"rule":"value","code":null,"position":null,"value":"Invo","expected":"Inv","message":"Your formula returns \"Invo\", but this lesson expects \"Inv\".","hint":"Three characters from the left of Invoice 2026-03 are I, n and v."},
+        {"input":"=LEFT(A2,4)","ok":false,"rule":"func-right","code":null,"position":null,"value":null,"expected":"6-03","message":"This lesson is about RIGHT. Your formula does not use RIGHT.","hint":"The year and month sit at the end of the code, so this is the end-cutter, not the start-cutter."},
+        {"input":"=LEN(A1)","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":15,"message":"Your formula does not refer to A2. The lesson checks that you point at the data rather than typing the number.","hint":"Measure A2 rather than typing the code into the formula, so the count follows the cell."},
+        {"input":"=LEN(A2)","ok":true,"rule":"correct","code":null,"position":null,"value":15,"expected":15,"message":"Correct.","hint":""},
+        {"input":"=LEN(A2)-1","ok":false,"rule":"value","code":null,"position":null,"value":14,"expected":15,"message":"Your formula returns 14, but this lesson expects 15.","hint":"Count every character of Invoice 2026-03, the space between the word and the year included."},
+        {"input":"=RIGHT(A2,3)","ok":false,"rule":"func-left","code":null,"position":null,"value":null,"expected":"Inv","message":"This lesson is about LEFT. Your formula does not use LEFT.","hint":"LEFT cuts from the beginning of the text; RIGHT cuts from the end, which is the other end of this code."},
+        {"input":"=RIGHT(A2,3)","ok":false,"rule":"value","code":null,"position":null,"value":"-03","expected":"6-03","message":"Your formula returns \"-03\", but this lesson expects \"6-03\".","hint":"The last four characters of Invoice 2026-03 are 6, -, 0 and 3."},
+        {"input":"=RIGHT(A2,4)","ok":true,"rule":"correct","code":null,"position":null,"value":"6-03","expected":"6-03","message":"Correct.","hint":""},
+        {"input":"=RIGHT(A2,5)","ok":false,"rule":"value","code":null,"position":null,"value":"26-03","expected":"6-03","message":"Your formula returns \"26-03\", but this lesson expects \"6-03\".","hint":"The last four characters of Invoice 2026-03 are 6, -, 0 and 3."}
+      ]
+    },
+    "25-concat-and-the-operator": {
+      "accepted": [
+        {"input":"=CONCAT($A$2,\" \",$B$2)","ok":true,"rule":"correct","code":null,"position":null,"value":"Ada Lovelace","expected":"Ada Lovelace","message":"Correct.","hint":""},
+        {"input":"=CONCAT(A2,\" \",B2&\"\")","ok":true,"rule":"correct","code":null,"position":null,"value":"Ada Lovelace","expected":"Ada Lovelace","message":"Correct.","hint":""},
+        {"input":"=CONCAT(A2,\" \",B2)","ok":true,"rule":"correct","code":null,"position":null,"value":"Ada Lovelace","expected":"Ada Lovelace","message":"Correct.","hint":""},
+        {"input":"=CONCAT(A2,\" \",B2)&\"\"","ok":true,"rule":"correct","code":null,"position":null,"value":"Ada Lovelace","expected":"Ada Lovelace","message":"Correct.","hint":""},
+        {"input":"=TRIM(CONCAT(A2,\" \",B2))","ok":true,"rule":"correct","code":null,"position":null,"value":"Ada Lovelace","expected":"Ada Lovelace","message":"Correct.","hint":""},
+        {"input":"=concat(a2,\" \",b2)","ok":true,"rule":"correct","code":null,"position":null,"value":"Ada Lovelace","expected":"Ada Lovelace","message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=A2&\" \"&B2","ok":false,"rule":"func-concat","code":null,"position":null,"value":null,"expected":"Ada Lovelace","message":"This lesson is about CONCAT. Your formula does not use CONCAT.","hint":"CONCAT glues its arguments together in order, and the space between the names has to be one of the arguments."},
+        {"input":"=CONCAT(\"Ada\",\" \",\"Lovelace\")","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":"Ada Lovelace","message":"Your formula does not refer to A2. The lesson checks that you point at the data rather than typing the number.","hint":"Use the names in A2 and B2 rather than typing Ada and Lovelace, so the formula follows the row."},
+        {"input":"=CONCAT(A2,\" \",B2","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":"Ada Lovelace","message":"CONCAT is missing its closing \")\".","hint":"CONCAT takes the pieces one after another: =CONCAT(A2,\" \",B2)."},
+        {"input":"=CONCAT(A2,\" \",B2)/0","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":"Ada Lovelace","message":"#VALUE! The left side of the calculation is text (\"Ada Lovelace\"), not a number.","hint":"Concatenated text divided by zero returns #VALUE!, because text cannot be a number."},
+        {"input":"=CONCAT(A2:B2)","ok":false,"rule":"func-concat","code":null,"position":null,"value":null,"expected":"Ada Lovelace","message":"CONCAT needs at least 2 arguments here; yours has 1.","hint":"CONCAT glues its arguments together in order, and the space between the names has to be one of the arguments."},
+        {"input":"=CONCAT(B2,\" \",A2)","ok":false,"rule":"value","code":null,"position":null,"value":"Lovelace Ada","expected":"Ada Lovelace","message":"Your formula returns \"Lovelace Ada\", but this lesson expects \"Ada Lovelace\".","hint":"That is not a first name, a space and a last name in that order. Check which cell comes first."},
+        {"input":"=CONCATENATE(A2,\" \",B2)","ok":false,"rule":"func-concat","code":null,"position":null,"value":null,"expected":"Ada Lovelace","message":"This lesson is about CONCAT. Your formula does not use CONCAT.","hint":"CONCAT glues its arguments together in order, and the space between the names has to be one of the arguments."}
+      ],
+      "audit": [
+        {"input":"=A2&\" \"&B3","ok":false,"rule":"func-concat","code":null,"position":null,"value":null,"expected":"Ada Lovelace","message":"This lesson is about CONCAT. Your formula does not use CONCAT.","hint":"CONCAT glues its arguments together in order, and the space between the names has to be one of the arguments."},
+        {"input":"=CONCAT(A2,\" \",B2)","ok":true,"rule":"correct","code":null,"position":null,"value":"Ada Lovelace","expected":"Ada Lovelace","message":"Correct.","hint":""},
+        {"input":"=CONCAT(A2,B2)","ok":false,"rule":"value","code":null,"position":null,"value":"AdaLovelace","expected":"Ada Lovelace","message":"Your formula returns \"AdaLovelace\", but this lesson expects \"Ada Lovelace\".","hint":"That is not a first name, a space and a last name in that order. Check which cell comes first."},
+        {"input":"=CONCAT(B2,\" \",A2)","ok":false,"rule":"value","code":null,"position":null,"value":"Lovelace Ada","expected":"Ada Lovelace","message":"Your formula returns \"Lovelace Ada\", but this lesson expects \"Ada Lovelace\".","hint":"That is not a first name, a space and a last name in that order. Check which cell comes first."}
+      ]
+    },
+    "26-iferror-catch-the-error-show-your-text": {
+      "accepted": [
+        {"input":"=IFERROR(INDEX(B2:B3,MATCH(A4,A2:A3,0)),\"no price\")","ok":true,"rule":"correct","code":null,"position":null,"value":"no price","expected":"no price","message":"Correct.","hint":""},
+        {"input":"=IFERROR(VLOOKUP($A$4,$A$2:$B$3,2,FALSE),\"no price\")","ok":true,"rule":"correct","code":null,"position":null,"value":"no price","expected":"no price","message":"Correct.","hint":""},
+        {"input":"=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"no price\")","ok":true,"rule":"correct","code":null,"position":null,"value":"no price","expected":"no price","message":"Correct.","hint":""},
+        {"input":"=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"no price\")&\"\"","ok":true,"rule":"correct","code":null,"position":null,"value":"no price","expected":"no price","message":"Correct.","hint":""},
+        {"input":"=IFERROR(XLOOKUP(A4,A2:A3,B2:B3),\"no price\")","ok":true,"rule":"correct","code":null,"position":null,"value":"no price","expected":"no price","message":"Correct.","hint":""},
+        {"input":"=iferror(vlookup(a4,a2:b3,2,false),\"no price\")","ok":true,"rule":"correct","code":null,"position":null,"value":"no price","expected":"no price","message":"Correct.","hint":""}
+      ],
+      "rejected": [
+        {"input":"=IFERROR(A4,\"no price\")","ok":false,"rule":"value","code":null,"position":null,"value":"TX-109","expected":"no price","message":"Your formula returns \"TX-109\", but this lesson expects \"no price\".","hint":"TX-109 is not in the list, so the cell should read the fallback text the prompt asks for."},
+        {"input":"=IFERROR(VLOOKUP(\"TX-109\",A2:B3,2,FALSE),\"no price\")","ok":false,"rule":"require-ref","code":null,"position":null,"value":null,"expected":"no price","message":"Your formula does not refer to A4. The lesson checks that you point at the data rather than typing the number.","hint":"Ask about the SKU in A4 instead of typing TX-109, so the question can be changed in one cell."},
+        {"input":"=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE))","ok":false,"rule":"func-iferror","code":null,"position":null,"value":null,"expected":"no price","message":"IFERROR needs at least 2 arguments here; yours has 1.","hint":"IFERROR wraps the lookup and supplies the words; the lookup on its own returns #N/A and the cell reads as an error."},
+        {"input":"=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"missing\")","ok":false,"rule":"value","code":null,"position":null,"value":"missing","expected":"no price","message":"Your formula returns \"missing\", but this lesson expects \"no price\".","hint":"TX-109 is not in the list, so the cell should read the fallback text the prompt asks for."},
+        {"input":"=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"no price\"","ok":false,"rule":"syntax","code":"#ERROR!","position":1,"value":null,"expected":"no price","message":"IFERROR is missing its closing \")\".","hint":"IFERROR takes the thing that might fail, then what to show instead: =IFERROR(lookup, \"no price\")."},
+        {"input":"=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"no price\")+1","ok":false,"rule":"error","code":"#VALUE!","position":null,"value":null,"expected":"no price","message":"#VALUE! The left side of the calculation is text (\"no price\"), not a number.","hint":"IFERROR catches errors inside it, not errors you make outside it: adding one to the fallback text still returns #VALUE!."},
+        {"input":"=VLOOKUP(A4,A2:B3,2,FALSE)","ok":false,"rule":"func-iferror","code":null,"position":null,"value":null,"expected":"no price","message":"This lesson is about IFERROR. Your formula does not use IFERROR.","hint":"IFERROR wraps the lookup and supplies the words; the lookup on its own returns #N/A and the cell reads as an error."}
+      ],
+      "audit": [
+        {"input":"=IFERROR(A4,\"no price\")","ok":false,"rule":"value","code":null,"position":null,"value":"TX-109","expected":"no price","message":"Your formula returns \"TX-109\", but this lesson expects \"no price\".","hint":"TX-109 is not in the list, so the cell should read the fallback text the prompt asks for."},
+        {"input":"=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"missing\")","ok":false,"rule":"value","code":null,"position":null,"value":"missing","expected":"no price","message":"Your formula returns \"missing\", but this lesson expects \"no price\".","hint":"TX-109 is not in the list, so the cell should read the fallback text the prompt asks for."},
+        {"input":"=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"no price\")","ok":true,"rule":"correct","code":null,"position":null,"value":"no price","expected":"no price","message":"Correct.","hint":""},
+        {"input":"=VLOOKUP(A4,A2:B3,2,FALSE)","ok":false,"rule":"func-iferror","code":null,"position":null,"value":null,"expected":"no price","message":"This lesson is about IFERROR. Your formula does not use IFERROR.","hint":"IFERROR wraps the lookup and supplies the words; the lookup on its own returns #N/A and the cell reads as an error."}
+      ]
     }
   }
 }

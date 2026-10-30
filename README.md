@@ -54,7 +54,7 @@ while the port is in progress.
 | `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run db:start` | Starts the local Supabase stack (schema, RLS, seed) from `supabase/` | `supabase status` reports every service healthy |
-| `npm run db:check` | `supabase db reset`, then the RLS, auth and data-rights suites in `tests/db/` | 99 assertions pass, 0 fail |
+| `npm run db:check` | `supabase db reset`, then the RLS, auth, data-rights and institutional-access suites in `tests/db/` | 112 assertions pass, 0 fail |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
 | `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 30 prerendered pages, exit 0 |
 | `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 30 pages match |
@@ -220,7 +220,7 @@ lesson and the dashboard behave exactly as before. Configure a project and those
 cp .env.example .env.local     # both variables are optional; unset is the supported default
 npm run db:start               # local Supabase on ports 54350–54359 (needs Docker or colima)
 npm run db:reset               # migrations + seed; run this after any migration change
-npm run db:check               # 99 assertions: RLS, sign-in and emailed links, the progress writer, the roll-up import, the profile columns, the export RPCs and the erase
+npm run db:check               # 112 assertions: RLS, sign-in and emailed links, the progress writer, the roll-up import, the profile columns, the export RPCs, the erase and the institution allowlist
 ```
 
 `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read at build time for the browser

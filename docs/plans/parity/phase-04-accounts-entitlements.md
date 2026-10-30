@@ -263,6 +263,9 @@ accuracy and rank — never email or username.
    because billing (item 6) is not wired; see the unit log for why the flag is opt-in.
 9. **Institutional access.** `groups` + `group_invites`; domain allowlist table; on signup, a matching
    domain creates an `institution` entitlement. No UI yet beyond the grant.
+   Delivered in unit 3g — `institution_domains` is the authority, the grant is an `after insert`
+   trigger on `auth.users`, and `is_entitled()` needed no change because the row is an ordinary
+   `institution` entitlement with no period; see the unit log.
 10. **Legal and data rights.** `/privacy`, `/terms`, cookie banner (only if non-essential cookies
     exist — goal is none), `POST /api/account/delete` (soft delete then purge job), export as JSON.
 11. **RLS tests.** `tests/db/rls.spec.js` creates two users and asserts 15 negative cases, including a
@@ -1051,3 +1054,107 @@ The deletion acceptance row names two things that do not exist to delete:
 | A deletion purge running on a schedule (the plan's "purge job") | no scheduler and no cron in this repo; the purge is immediate and the executor is the route |
 | The certificate half of the retention row | phase 6: no certificate is issued, so none can be retained |
 | The referral-code half of the same row | the column never existed; nothing writes it |
+
+### 2026-11-02 — unit 3g: institutional access (item 9)
+
+**Closed:** work item 9 — `supabase/migrations/0007_institution_domains.sql`, the signup grant, the
+seat limit, and `tests/db/institution.spec.js` (13 assertions). No UI, because the item says so: the
+grant is the feature.
+
+```
+$ npm run db:check
+ℹ tests 112
+ℹ suites 29
+ℹ pass 112
+ℹ fail 0
+
+$ npm run check
+ℹ tests 794
+ℹ suites 137
+ℹ pass 794
+ℹ fail 0
+content: 16 of 88 catalogued lessons, 16 groups, 22 screens, 268 fixtures replayed
+✓ content passes — 111 accepted and 157 rejected formulas agree with the grader
+built 30 pages (788.2 kB of HTML+CSS) → /Users/danil/Desktop/excelsupreme/legacy/dist
+next routes: 30 prerendered pages match the shared templates
+verified 16 lesson pages, the index, the dashboard, the pricing page and 9 group pages — 908 checks passed
+
+$ npx playwright test
+  82 passed (11.3s)
+
+$ npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+`db:check` moved 99 → 112 assertions and 25 → 29 suites. Everything else holds exactly: this unit is
+database-only, so no page, route, screen, fixture or count changed — which is itself the check that it
+touched nothing it should not have.
+
+#### What was built
+
+- **`institution_domains`** — `domain citext primary key check (domain = lower(domain) and domain like
+  '%.%')`, `label`, optional `group_id`, `seats`. RLS on and every client grant dropped (table,
+  truncate, references, trigger, maintain), the same shape 0002 uses for the money tables: a table no
+  policy reaches is unreadable, but the missing grant is what makes that true without relying on it.
+- **`grant_institution_access(p_user uuid, p_email text) → citext`** — security definer,
+  `set search_path = public, extensions`, lower-cased exact-domain match (never a suffix match), seat
+  count over `entitlements ⋈ profiles where status = 'active' and deleted_at is null`, insert with
+  `on conflict (user_id, plan) do nothing returning` so a second call is a no-op, and `profiles.group_id`
+  set only when it is still null. Returns the domain granted or null. Execute revoked from `public,
+  anon, authenticated`, granted to `service_role` only.
+- **`handle_new_user_institution()`** — `after insert on auth.users`. The name is not cosmetic:
+  PostgreSQL fires same-event triggers in alphabetical order, and `on_auth_user_created_institution`
+  must run after `on_auth_user_created` so the profile the `entitlements.user_id` foreign key points at
+  exists. The suite proves the ordering by reading `profiles.group_id` afterwards.
+- **`entitlements.institution_domain`** — a citext column referencing the allowlist row. The plan's
+  DDL did not have it and the seat count needs it: a profile has never held an email address, so "how
+  many of this institution's seats are used" is unanswerable from `profiles` alone, and the grant would
+  not be auditable after the fact. `on delete set null`, so retiring a domain does not delete the
+  entitlement it paid for.
+- **`my_entitlements()`** — dropped and recreated with `institution_domain` in the column list, grants
+  reissued. `create or replace` cannot change a return type, and the export document is supposed to say
+  who paid, so the new column has to be in it.
+- **Tests:** `tests/db/institution.spec.js` signs real accounts up through GoTrue against a real
+  Postgres and then asks the questions a learner would ask over HTTP: the grant exists, has no period,
+  and carries the allowlist row's group; a mixed-case address matches a lowercase row; an absent domain
+  signs up normally with no grant; `learner@northgate.example.evil.example` is refused, so the match is
+  a domain and not a suffix; a two-seat institution grants two and refuses the third without revoking
+  anyone; a deletion frees the seat it held; the allowlist answers a learner and the anon role with a
+  permission error rather than an empty list; a learner cannot insert a domain, insert their own grant
+  row, or call the grant function; and the service role can do all three, which is the operator's
+  backfill path.
+
+#### Deviations from this document
+
+- **No bulk sweep, deliberately.** The item does not say whether a domain added today covers accounts
+  that signed up yesterday. Retroactive granting is not implementable as a trigger, and running it is a
+  product decision, not a code one — so an operator backfills one account at a time with
+  `select grant_institution_access('<uuid>', '<email>')` as the service role, which is the same
+  function the trigger calls and is idempotent. The migration header says so out loud rather than
+  leaving the gap for someone to discover.
+- **A `seats` column the plan did not name.** "Institutional access" without a seat count is an
+  unlimited licence; a two-seat institution is the case that proves the limit is real, and the suite
+  uses one. `default 1` keeps a row honest if the operator does not think about it.
+- **`set search_path = public, extensions`, not `public`.** `citext` is installed in `extensions` (0001),
+  and PostgreSQL resolves a function body's types against the function's own `search_path`. The first
+  run of the migration failed on exactly this (`type "citext" does not exist`) — recorded because the
+  next function that returns a citext column will hit it too.
+- **`institution_domains` is not in `harness.mjs`'s `FIXTURE_TABLES`,** so the suite inserts and
+  deletes its own rows. `resetFixtures` clears rows `not.is.null` on tables the seed populates; the
+  allowlist has no seed row to restore, and the suite's `before`/`after` are the only writers.
+
+#### Annotations, not ticks
+
+- **Nothing reads `institution_domains` in the browser, and that is the delivered state.** The item's
+  "No UI yet beyond the grant" is met: `app/account/page.js` learns about the plan only through
+  `is_entitled()`, and the export names the domain because it is part of the money rows.
+- **`group_invites` was already in 0001 and is unchanged here.** The item lists it beside `groups`;
+  the institutional grant reuses `profiles.group_id` rather than issuing invites, because a cohort
+  arriving through a domain does not need an invitation code.
+
+#### Open rows
+
+| Row | Blocked by |
+|---|---|
+| A retroactive sweep for domains added after sign-up | product decision, not code; the per-account backfill path is proved |
+| Group admin UI for an institution owner | out of scope per the item ("No UI yet beyond the grant") |

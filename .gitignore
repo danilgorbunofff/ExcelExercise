@@ -22,3 +22,6 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
+
+# Design-audit scratch output (.impeccable/ hook cache and critique runs)
+.impeccable/

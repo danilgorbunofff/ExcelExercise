@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { loadSite } from "../lib/site.js";
+
 /**
  * Flashcards in a real browser.
  *
@@ -10,6 +12,9 @@ import { expect, test } from "@playwright/test";
  */
 
 const LESSON = "27-what-a-formula-actually-does";
+/** The card says the lesson's title, and the title is copy: reading it from the content means a
+ *  rewrite moves this assertion with it instead of turning a passing page into a failing test. */
+const LESSON_TITLE = loadSite().index.find((entry) => entry.exercise.id === LESSON).exercise.title;
 const SECOND = "03-countif-open-tickets";
 
 /** The shape `legacy/src/client/state.js` reads: `{v, done, tries, unlocked}`. */
@@ -45,7 +50,7 @@ test("a finished lesson becomes a card, space turns it over, an arrow grades it"
   await page.goto("/flashcards");
 
   await expect(page.getByRole("heading", { name: /total the crates delivered this week/i })).toBeVisible();
-  await expect(page.getByText(/Lesson 1 · What a formula actually does/)).toBeVisible();
+  await expect(page.getByText(`Lesson 1 · ${LESSON_TITLE}`)).toBeVisible();
   await expect(page.getByText(/Card 1 of 1/)).toBeVisible();
   // The answer is not on the front of the card.
   await expect(page.getByRole("heading", { name: "Answer" })).toHaveCount(0);

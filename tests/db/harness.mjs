@@ -87,6 +87,7 @@ export async function rest(path, { as, method = 'GET', body, prefer } = {}) {
 
 // Every table the suite writes, with a filter that matches all rows. Children before parents.
 const FIXTURE_TABLES = [
+  ['certificates', 'user_id'],
   ['feedback', 'id'],
   ['payments', 'id'],
   // `id`, not `user_id`: 0006 lets an entitlement outlive the account it was bought by, and an

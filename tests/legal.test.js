@@ -15,7 +15,8 @@ import { describe, it } from "node:test";
 
 import { renderSitemap } from "../legacy/src/site/assets.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
-import { loadContent } from "../legacy/src/site/content.mjs";
+import { loadArticles, loadContent } from "../legacy/src/site/content.mjs";
+import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
 import { legalSections, prepareLegalPage, renderLegalPage, RETENTION } from "../legacy/src/site/legal-page.mjs";
 import { PRICE } from "../legacy/src/site/pricing-page.mjs";
 import {
@@ -31,6 +32,9 @@ const ROOT = join(import.meta.dirname, "..");
 const ENV = { SITE_URL: "https://drills.example", SITE_BUILT_AT: "2026-11-02" };
 const config = siteConfig(ENV);
 const { track, index } = loadContent(join(ROOT, "legacy/content"));
+const articles = loadArticles(join(ROOT, "legacy/content"));
+// The notes, and the `/excel-functions` hub that only exists when there are notes to list.
+const notePages = articles.length + (articles.length > 0 ? 1 : 0);
 const KINDS = ["privacy", "terms"];
 const page = (kind) => prepareLegalPage({ config, track, index, kind });
 const source = (path) => readFileSync(join(ROOT, path), "utf8");
@@ -129,25 +133,36 @@ describe("the legal pages", () => {
 });
 
 describe("the sitemap", () => {
-  it("lists both legal pages, and the count is the catalog plus three", () => {
-    const xml = renderSitemap({ config, track, index });
+  it("lists both legal pages among the pages that are not lessons", () => {
+    const groups = dashboardGroups({ track, index });
+    const xml = renderSitemap({
+      config,
+      track,
+      index,
+      groups,
+      articles: articles.map((article) => ({ path: `/excel-functions/${article.slug}`, updated: article.updated })),
+      extra: articles.length > 0 ? ["exercises", "functions", "about", "privacy", "terms"] : ["exercises", "about", "privacy", "terms"],
+    });
+    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
     for (const path of ["/privacy", "/terms"]) {
-      assert.ok(xml.includes(`<loc>https://drills.example${path}</loc>`), `sitemap is missing ${path}`);
+      assert.ok(locs.includes(`${config.baseUrl}${path}`), `sitemap is missing ${path}`);
     }
-    assert.equal((xml.match(/<loc>/g) ?? []).length, index.length + 3);
-    // The three that are not lessons, named: the home page and the two legal pages.
+    // The sitemap is `indexablePaths()` and nothing else: no dashboard, no pricing, no account, and no
+    // duplicate whether a path arrives as a group or as a lesson.
+    assert.equal(new Set(locs).size, locs.length, "a URL is listed twice");
+    assert.equal(locs.length, 1 + 4 + groups.length + index.length + notePages);
     for (const path of ["/learn", "/pricing", "/account"]) {
-      assert.ok(!xml.includes(`<loc>https://drills.example${path}</loc>`), `sitemap should not list ${path}`);
+      assert.ok(!locs.includes(`${config.baseUrl}${path}`), `sitemap should not list ${path}`);
     }
   });
 
   it("keeps the Next route in step with the static build", async () => {
     const { default: sitemap } = await import("../app/sitemap.js");
-    const entries = sitemap();
-    assert.equal(entries.length, index.length + 3);
-    const urls = entries.map((entry) => entry.url);
-    for (const path of ["/privacy", "/terms"]) {
-      assert.ok(urls.includes(`https://drills.example${path}`) || urls.some((url) => url.endsWith(path)), `next sitemap is missing ${path}`);
+    const groups = dashboardGroups({ track, index });
+    const urls = sitemap().map((entry) => entry.url);
+    assert.equal(urls.length, 1 + 4 + groups.length + index.length + notePages);
+    for (const path of ["/privacy", "/terms", "/about", "/excel-exercises", ...(articles.length > 0 ? ["/excel-functions"] : [])]) {
+      assert.ok(urls.some((url) => url.endsWith(`${path}`) || url.endsWith(`${path}/`)), `next sitemap is missing ${path}`);
     }
   });
 });

@@ -119,7 +119,11 @@ describe("verify", () => {
         failures.some((failure) => new RegExp(`sitemap\\.xml lists ${published - 1} URLs, expected ${published}`).test(failure)),
         failures.join("\n"),
       );
-      assert.ok(failures.some((failure) => /does not list \/excel\/sum-basics/.test(failure)), failures.join("\n"));
+      // The message names the absolute URL, because that is what the sitemap holds.
+      assert.ok(
+        failures.some((failure) => /does not list \S*\/excel\/sum-basics/.test(failure)),
+        failures.join("\n"),
+      );
     } finally {
       rmSync(copy, { recursive: true, force: true });
     }

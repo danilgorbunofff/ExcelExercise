@@ -62,6 +62,7 @@ describe("tokens", () => {
       "--font-mono",
       "--shadow-1",
       "--prose",
+      "--artifact",
       "--shell",
       "--rail",
     ]) {
@@ -70,7 +71,10 @@ describe("tokens", () => {
   });
 
   it("fixes the measure, the shell and the two radii the design system allows", () => {
-    assert.match(tokens, /--prose:\s*68ch;/);
+    // The measure is clamped in pixels as well as `ch`: 68ch is 693.6px here because `ch` is the width
+    // of `0` (10.2px) and not the average glyph (8.49px), which printed 82-94 characters a line.
+    assert.match(tokens, /--prose:\s*min\(68ch,\s*620px\);/);
+    assert.match(tokens, /--artifact:\s*480px;/);
     assert.match(tokens, /--shell:\s*1080px;/);
     assert.match(tokens, /--rail:\s*260px;/);
     assert.match(tokens, /--r-1:\s*3px;/);
@@ -87,13 +91,51 @@ describe("tokens", () => {
     }
   });
 
-  it("carries dark overrides that are ready without being the default", () => {
-    assert.match(tokens, /\.dark\s*\{/);
-    assert.equal(/prefers-color-scheme/.test(tokens), false, "the site ships light-only on purpose");
+  it("flips the whole palette for a reader whose OS asks for dark", () => {
+    // Phase 9A §7. Dark mode is the four Radix scales re-pointed, so the proof is that every step of
+    // every scale the components read has a dark value; a partial scale would leave one surface light.
+    assert.match(tokens, /color-scheme:\s*light dark;/);
+    const dark = /@media \(prefers-color-scheme: dark\) \{([\s\S]*?)\n\}\n/.exec(tokens);
+    assert.ok(dark, "no prefers-color-scheme block in tokens.css");
+    for (const scale of ["sand", "jade", "amber", "red"]) {
+      for (let step = 1; step <= 12; step += 1) {
+        assert.match(dark[1], new RegExp(`--${scale}-${step}:\\s*#`), `--${scale}-${step} has no dark value`);
+      }
+    }
+    assert.match(dark[1], /color-scheme:\s*dark;/);
+    // The vendor scales still answer to a class, so that hook has to survive the media query.
+    assert.match(tokens, /^\.dark\s*\{/m);
+  });
+
+  it("paints the browser bar the same colour as the page in both themes", () => {
+    // `--bg` is `--sand-2`, so the two `theme-color` values are that step in each theme. A `<meta>`
+    // cannot read a custom property, so `config.themeColor` repeats them; this is the drift check.
+    const sand = readFileSync(join(ROOT, "vendor/radix/sand.css"), "utf8");
+    assert.match(sand, /--sand-2:\s*#f9f9f8;/, "the light sand-2 step moved");
+    const darkSand = /--sand-2:\s*(#[0-9a-f]{6});/.exec(
+      /@media \(prefers-color-scheme: dark\) \{([\s\S]*?)\n\}\n/.exec(tokens)[1],
+    );
+    assert.equal(config.themeColor.light, "#f9f9f8");
+    assert.equal(config.themeColor.dark, darkSand[1], "the dark theme colour is not the dark --bg");
+    for (const source of ["legacy/src/site/shell.mjs", "app/layout.js"]) {
+      const text = readFileSync(join(ROOT, "..", source), "utf8");
+      assert.match(text, /themeColor\.(light|dark)/, `${source} does not read config.themeColor`);
+    }
   });
 });
 
 describe("visual constraints", () => {
+  it("takes every max-width from a token or a measure, never a raw pixel", () => {
+    // A container width typed as pixels is how the landing's progress readout ended up 380px wide
+    // while the same readout on the dashboard was 420px. A block's width is a decision the token
+    // layer owns, so it reads `var(--shell)`, `var(--prose)`, `var(--artifact)` or an explicit `ch`.
+    const values = [...components.matchAll(/^\s*max-width:\s*([^;]+);/gm)].map((m) => m[1].trim());
+    assert.ok(values.length > 10, "no max-width declarations were found to check");
+    for (const value of values) {
+      assert.match(value, /^(\d+ch|var\(--[a-z0-9-]+\))$/, `max-width: ${value} is neither a token nor a measure`);
+    }
+  });
+
   it("uses no gradient anywhere in the authored CSS", () => {
     for (const text of [tokens, ...authored]) {
       assert.equal(/gradient/i.test(text), false, "gradients are not part of this design system");
@@ -110,6 +152,22 @@ describe("visual constraints", () => {
     }
     const shadows = declarations(components, "box-shadow").filter((value) => !value.startsWith("inset") && value !== "none");
     for (const value of shadows) assert.equal(value, "var(--shadow-1)", `unexpected shadow: ${value}`);
+  });
+
+  it("keeps one filled button, and makes every other button an outline", () => {
+    // Two buttons with the same black fill cannot be ranked by the eye, so the default `.btn` is an
+    // outline and the fill lives on `.btn-primary` (and `.btn-check`, the formula bar's only action).
+    const rule = (selector) => {
+      const match = new RegExp(`(?:^|\\n)${selector.replace(".", "\\.")} \\{([^}]*)\\}`).exec(components);
+      assert.ok(match, `${selector} has no rule`);
+      return match[1];
+    };
+    assert.match(rule(".btn"), /background: transparent;/, ".btn is a fill, so it equals .btn-primary");
+    assert.match(rule(".btn"), /border: 1px solid var\(--line-strong\);/, ".btn needs a visible outline");
+    for (const filled of [".btn-primary", ".btn-check"]) {
+      assert.match(rule(filled), /background: var\(--btn-bg\);/, `${filled} lost its fill`);
+      assert.match(rule(filled), /color: var\(--btn-text\);/, `${filled} must invert its label`);
+    }
   });
 
   it("keeps uppercase for the grid headers and one eyebrow only", () => {

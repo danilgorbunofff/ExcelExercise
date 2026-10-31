@@ -298,7 +298,8 @@ describe("the pricing page", () => {
 
   it("says checkout is closed when this deployment cannot take money", () => {
     const { body } = preparePricingPage(args);
-    assert.match(body, /Checkout is not open yet in this build/);
+    assert.match(body, /Checkout is not open yet/);
+    assert.doesNotMatch(body, /in this build/, "build vocabulary is not buyer-facing copy");
     assert.doesNotMatch(body, /\/api\/stripe\/checkout/, "no button may point at a disabled route");
   });
 

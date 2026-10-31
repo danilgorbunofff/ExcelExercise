@@ -12,9 +12,25 @@ const PAGES = [
   ["the index", "/"],
   ["the offer page", "/pricing"],
   ["the track list", "/learn"],
+  ["the project shelf", "/projects"],
+  ["a project", "/learn/projects/ufo-dashboard"],
   ["a drill", `/learn/excel/${freeDrill().slug}`],
   ["the dashboard", "/dashboard"],
   ["the sign-in form", "/login"],
+  // The app surfaces below are only reachable from the dashboard's "Your tools" menu, which is exactly
+  // why they had no reflow coverage: `/flashcards` pushed the document 2px wide at 320px because its
+  // header carries a third nowrap item, the badge.
+  ["the flashcard review", "/flashcards"],
+  ["the daily run", "/daily"],
+  ["the leaderboard", "/leaderboard"],
+  ["the certificate page", "/certificate"],
+  ["a certificate that does not exist", "/verify/nope"],
+  ["the account page", "/account"],
+  ["the sign-up form", "/signup"],
+  ["the reset form", "/reset"],
+  ["a group page", "/learn/groups/lookup"],
+  ["the privacy page", "/privacy"],
+  ["the terms page", "/terms"],
 ];
 
 const WIDTHS = [320, 390];
@@ -41,7 +57,7 @@ for (const width of WIDTHS) {
   });
 }
 
-test("the call to action wraps on a phone instead of running off the page", async ({ page }) => {
+test("the call to action fits a phone instead of running off the page", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
@@ -49,16 +65,16 @@ test("the call to action wraps on a phone instead of running off the page", asyn
   const box = await cta.evaluate((element) => {
     const own = element.getBoundingClientRect();
     return {
+      left: Math.round(own.left),
       right: Math.round(own.right),
-      width: Math.round(own.width),
-      height: Math.round(own.height),
-      line: parseFloat(getComputedStyle(element).lineHeight),
+      clipped: element.scrollWidth > element.clientWidth + 1,
       label: element.textContent.trim(),
     };
   });
 
+  // The label itself is allowed to change; the failure this test exists for is a button that pushes
+  // the page sideways or eats its own text on the narrowest screen we support.
+  expect(box.left).toBeGreaterThanOrEqual(0);
   expect(box.right).toBeLessThanOrEqual(390);
-  expect(box.label.startsWith("Do drill 1")).toBe(true);
-  // Two lines, not one long one: the label is longer than the phone is wide.
-  expect(box.height).toBeGreaterThan(box.line * 1.5);
+  expect(box.clipped, `${box.label} is clipped by its own button`).toBe(false);
 });

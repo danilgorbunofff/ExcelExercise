@@ -65,7 +65,9 @@ test("the smallest controls grow to a thumb target on a phone", async ({ page })
       height: Math.round(element.getBoundingClientRect().height),
     })),
   );
-  expect(footer.length).toBeGreaterThan(3);
+  // Three ways out plus the dialog button: the footer is a legal line now, and three is its whole
+  // shape rather than a shortfall of the twelve it used to carry.
+  expect(footer.length).toBeGreaterThanOrEqual(3);
   expect(footer.filter((link) => link.height < 44)).toEqual([]);
 
   // The rail is the exception the phone branch made on purpose: 85 chips cannot each be 44px tall, so

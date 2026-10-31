@@ -7,11 +7,14 @@
  * decorative chrome is a different conversation from a button with no accessible name, and a suite that
  * fails on the first would be switched off rather than fixed.
  */
+import { join } from "node:path";
+
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 import { passGate, seedBefore } from "../lib/seed.js";
 import { freeDrill, loadSite } from "../lib/site.js";
+import { loadProjects } from "../legacy/src/site/projects.mjs";
 
 const SEVERITIES = ["critical", "serious"];
 
@@ -194,6 +197,28 @@ test("the workbook panel of a shipped lesson passes", async ({ page }) => {
   await scan(page, "a lesson's workbook screen with the preview collapsed");
 });
 
+test("the project shelf passes with nothing to fix", async ({ page }) => {
+  // Four cards over one brief each: a card is a link whose whole area has to be the target, and the
+  // gated one carries a Trial chip that must not be the only thing naming the wall.
+  await page.goto("/projects");
+  await scan(page, "the project shelf");
+});
+
+test("a project passes on its first task and after a miss", async ({ page }) => {
+  const { index } = loadProjects(join(process.cwd(), "legacy/content"));
+  const FIRST = index[0];
+  await page.goto(FIRST.path);
+  await expect(page.locator("#formula")).toBeVisible();
+  // A project page is the drill player with a brief, a dataset download and a preview above the bar —
+  // the same screen the phase-2 workbook test covers, reached through a different template.
+  await scan(page, "a project's first task");
+
+  await page.fill("#formula", "=SUM(A1:A2)");
+  await page.click("#check");
+  await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
+  await scan(page, "a project after a miss");
+});
+
 test("the offer page passes with nothing to fix", async ({ page }) => {
   // Three sections of prose and a price: the page a walled reader lands on is the last place a label
   // should point at nothing.
@@ -305,6 +330,8 @@ test("every page's skip link names the landmark it jumps to", async ({ page }) =
     ["/", "drills"],
     ["/learn", "dashboard"],
     ["/learn/groups/sum", "group"],
+    ["/excel-exercises", "exercises"],
+    ["/about", "page"],
     [freeDrill().path, "drill"],
     ["/pricing", "pricing"],
     ["/privacy", "privacy policy"],
@@ -375,5 +402,136 @@ test.describe("motion", () => {
         }),
       ).toBe("skeleton-breathe");
     });
+  });
+});
+
+// Phase 9A §7 — dark mode is a palette swap and nothing else, so the proof is not a theme test: it is
+// the same scan and the same contrast arithmetic the light palette already answers to, run on the same
+// pages with the OS preference flipped. A component that hard-coded a colour passes light and fails
+// here, which is exactly the failure a token layer is supposed to make impossible.
+test.describe("with the OS asking for dark", () => {
+  test.use({ colorScheme: "dark" });
+
+  const channel = (value) => {
+    const n = Number(value) / 255;
+    return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+  };
+  // A custom property read off `:root` is still a hex triple; a resolved `color` is `rgb(...)`.
+  const channels = (colour) => {
+    const hex = /^#([\da-f]{6})$/i.exec(colour.trim());
+    if (hex) return [0, 2, 4].map((at) => parseInt(hex[1].slice(at, at + 2), 16));
+    return colour.match(/[\d.]+/g).slice(0, 3).map(Number);
+  };
+  const luminance = (colour) => {
+    const [r, g, b] = channels(colour).map(channel);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (one, other) => {
+    const [light, dark] = [luminance(one), luminance(other)].sort((a, b) => b - a);
+    return (light + 0.05) / (dark + 0.05);
+  };
+
+  test("the page paints the dark palette instead of the light one", async ({ page }) => {
+    await page.goto("/");
+    const read = await page.evaluate(() => {
+      let node = document.body;
+      let background = "rgba(0, 0, 0, 0)";
+      while (node && background === "rgba(0, 0, 0, 0)") {
+        background = getComputedStyle(node).backgroundColor;
+        node = node.parentElement;
+      }
+      return {
+        media: matchMedia("(prefers-color-scheme: dark)").matches,
+        meta: document.querySelector('meta[name="color-scheme"]')?.content,
+        background,
+        text: getComputedStyle(document.body).color,
+      };
+    });
+
+    expect(read.media, "the harness is emulating dark").toBe(true);
+    // Form controls and scrollbars follow this, not the palette, so it has to name both.
+    expect(read.meta).toBe("light dark");
+    expect(luminance(read.background), `background is still ${read.background}`).toBeLessThan(0.05);
+    expect(luminance(read.text), `text is still ${read.text}`).toBeGreaterThan(0.6);
+  });
+
+  test("the browser bar is painted to match the page, not left white", async ({ page }) => {
+    // Android Chrome keeps its toolbar white without a `theme-color`, which turns a dark page into a
+    // bright band over a dark screen. Both schemes get a value and the dark one is the page itself.
+    await page.goto("/");
+    const read = await page.evaluate(() => {
+      let node = document.body;
+      let background = "rgba(0, 0, 0, 0)";
+      while (node && background === "rgba(0, 0, 0, 0)") {
+        background = getComputedStyle(node).backgroundColor;
+        node = node.parentElement;
+      }
+      const metas = [...document.querySelectorAll('meta[name="theme-color"]')];
+      return {
+        dark: metas.find((meta) => meta.media.includes("dark"))?.content ?? null,
+        light: metas.find((meta) => meta.media.includes("light"))?.content ?? null,
+        background,
+      };
+    });
+
+    expect(read.dark, "a dark reader gets no dark theme colour").toBeTruthy();
+    expect(read.light, "a light reader gets no light theme colour").toBeTruthy();
+    expect(luminance(read.light), `the light bar is ${read.light}`).toBeGreaterThan(0.9);
+    expect(channels(read.dark).map(Math.round), `${read.dark} is not ${read.background}`).toEqual(
+      channels(read.background).map(Math.round),
+    );
+  });
+
+  test("the muted ink still clears 4.5:1 against the page behind it", async ({ page }) => {
+    // The failure this catches is the one a palette swap invites: every quiet label keeps a value
+    // tuned for a light surface and reads as a smudge. Measured off the resolved tokens.
+    await page.goto("/");
+    const pair = await page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement);
+      return { muted: style.getPropertyValue("--text-muted").trim(), bg: style.getPropertyValue("--bg").trim() };
+    });
+    expect(ratio(pair.muted, pair.bg), `${pair.muted} on ${pair.bg}`).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test("the verdict, its hint and the highlighted cell survive the swap", async ({ page }) => {
+    // The tints are the only place where a light palette and a dark one disagree about what "red
+    // enough" means, and they are the state a learner sits in longest.
+    await page.goto(freeDrill().path);
+    await expect(page.locator("#formula")).toBeVisible();
+
+    await page.fill("#formula", "=SUM(B1:B2)");
+    await page.click("#check");
+    await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
+    await page.click("#hint");
+    await expect(page.locator("#hint-text")).toBeVisible();
+    await scan(page, "a miss with its hint open, in dark");
+
+    await page.fill("#formula", "=SUM(B2:B4)");
+    await page.click("#check");
+    await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+    await scan(page, "an accepted formula in dark");
+  });
+
+  test("every page still passes with nothing to fix", async ({ page }) => {
+    const pages = [
+      "/",
+      "/learn",
+      "/learn/groups/sum",
+      "/excel-exercises",
+      "/about",
+      freeDrill().path,
+      "/pricing",
+      "/projects",
+      "/flashcards",
+      "/daily",
+      "/leaderboard",
+      "/privacy",
+      "/terms",
+      "/account",
+    ];
+    for (const path of pages) {
+      await page.goto(path);
+      await scan(page, `${path} in dark`);
+    }
   });
 });

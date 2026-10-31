@@ -47,14 +47,20 @@ describe("prepareDashboardPage", () => {
     assert.equal(page.path, "/learn");
     assert.equal(page.noindex, true);
     for (const group of groups) {
-      assert.match(body, new RegExp(`id="group-${group.id}"`));
+      // A group is a native disclosure: all 88 drills stay in the document, one list is on screen.
+      assert.match(body, new RegExp(`<details class="dash-group" id="group-${group.id}"`));
       assert.match(body, new RegExp(`aria-labelledby="group-${group.id}-heading"`));
-      // The heading opens the group's own page; without it those pages are unreachable by clicking.
-      assert.match(
-        body,
-        new RegExp(`<h2 id="group-${group.id}-heading"><a class="dash-group-link" href="/learn/groups/${group.id}">`),
+      // The title names the row and nothing else: a control inside <summary> is the nested-interactive
+      // failure axe rates serious, so the group's own page is linked from the open panel instead.
+      assert.match(body, new RegExp(`<h2 id="group-${group.id}-heading">${group.title}</h2>`));
+      assert.ok(
+        body.includes(`<a class="dash-group-link" href="/learn/groups/${group.id}">About this group</a>`),
+        `group ${group.id} has no way out to its own page`,
       );
-      assert.match(body, new RegExp(`data-group-count="${group.id}"`));
+      // Sixteen counters read "5 drills" until a drill in that group is finished.
+      assert.match(body, new RegExp(`data-group-count="${group.id}">${group.entries.length} drills?<`));
+      // The prose is written for the group's own page; the index is an index.
+      assert.ok(!body.includes('class="dash-group-intro"'), "the track page repeats the group intro");
     }
     // Group-major on the page, curriculum order in the plan: the same drills either way.
     assert.deepEqual(
@@ -68,8 +74,10 @@ describe("prepareDashboardPage", () => {
       const { body, page } = prepareDashboardPage({ ...args, group: group.id });
 
       assert.equal(page.path, `/learn/groups/${group.id}`);
-      assert.equal(page.title, group.title);
-      assert.equal(page.noindex, true);
+      // The hub says the skill and the tool: "Looking values up" ranks for nothing on its own, and the
+      // title is what a reader sees in the result.
+      assert.equal(page.title, `Excel exercises: ${group.title}`);
+      assert.equal(page.noindex, undefined, "the hub is a landing page, not a private dashboard");
       assert.equal(page.counter, `${group.entries.length} drill${group.entries.length === 1 ? "" : "s"}`);
       assert.ok(page.description.length <= 155, `description is ${page.description.length} characters`);
       assert.ok(!page.description.includes("\n"), "description is one line");
@@ -84,20 +92,32 @@ describe("prepareDashboardPage", () => {
       }
 
       // One section, named for the group rather than by a heading, since the page's <h1> is the title.
-      assert.match(body, new RegExp(`<h1>${group.title}</h1>`));
+      assert.match(body, new RegExp(`<h1>Excel exercises: ${group.title}</h1>`));
       assert.match(body, new RegExp(`id="group-${group.id}" aria-label="${group.title}">`));
       assert.ok(!body.includes(`id="group-${group.id}-heading"`), "repeats the title as a heading");
       assert.ok(!body.includes(`href="/learn/groups/${group.id}"`), "links to itself");
       assert.match(body, new RegExp(`data-group-count="${group.id}">0 of ${group.entries.length}<`));
 
-      // The intro is authored as paragraphs; an HTML <p> would flatten them into one.
+      // The intro is authored as paragraphs; an HTML <p> would flatten them into one. The first one is
+      // the lede under the heading — that is what the hub's meta description is clamped from — and the
+      // rest keep the `.dash-group-intro` paragraph shape.
+      const authored = group.intro.split(/\n{2,}/).filter((line) => line.trim()).length;
+      const ledes = body.match(/<p class="lede">/g) ?? [];
       const paragraphs = body.match(/<p class="dash-group-intro">/g) ?? [];
-      assert.equal(paragraphs.length, group.intro.split(/\n{2,}/).filter((line) => line.trim()).length);
+      assert.equal(ledes.length, 1, "the hub should open with one lede");
+      assert.equal(ledes.length + paragraphs.length, authored);
 
-      // The island's payload and the way back to the track.
+      // The island's payload and the way back out, which is the hub that lists every group rather than
+      // the personal dashboard: a reader who landed here from a search result is not on `/learn`.
       assert.match(body, /<script type="application\/json" id="dashboard-data">/);
       assert.match(body, /<script type="module" src="\/assets\/client\/dashboard\.js"><\/script>/);
-      assert.match(body, /<a class="link-btn" href="\/learn">All groups<\/a>/);
+      assert.match(body, /<a class="link-btn" href="\/excel-exercises">All Excel exercises<\/a>/);
+
+      // Indexable, and structured: the trail up to the group, and the drills as a list. The JSON-LD
+      // lands in the head, so it is asserted on the page rather than on the body.
+      assert.match(body, /class="crumbs"/);
+      assert.ok(page.jsonLd.includes('"@type":"ItemList"'), "the hub does not list its drills as structured data");
+      assert.ok(page.jsonLd.includes('"@type":"BreadcrumbList"'), "the hub has no trail");
     });
   }
 
@@ -110,10 +130,11 @@ describe("prepareDashboardPage", () => {
     assert.throws(() => prepareDashboardPage({ ...args, group: "nope" }), /no group "nope"/);
   });
 
-  it("renders a document with the group's own title and a noindex", () => {
+  it("renders a document with the group's own title and no noindex", () => {
     const html = renderDashboardPage({ ...args, group: groups[0].id });
-    assert.match(html, new RegExp(`<title>${groups[0].title}`));
-    assert.match(html, /<meta name="robots" content="noindex">/);
+    assert.match(html, new RegExp(`<title>Excel exercises: ${groups[0].title}`));
+    assert.ok(!html.includes('content="noindex"'), "the hub is noindex, so it cannot rank");
+    assert.match(html, /<link rel="canonical" href="[^"]*\/learn\/groups\/[^"]+">/);
     assert.match(html, new RegExp(`<body class="light dashboard-page">`));
   });
 });

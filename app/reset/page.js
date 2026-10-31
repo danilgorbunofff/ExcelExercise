@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 
+import { t } from "../../legacy/src/site/messages.mjs";
+
 import { AuthShell } from "../auth/shell.js";
 import { authConfig } from "../../lib/auth/config.js";
 import { AuthCard, Links, Loading, Notice } from "../auth/ui.js";
@@ -7,8 +9,8 @@ import { AuthCard, Links, Loading, Notice } from "../auth/ui.js";
 import { ResetForm } from "./form.js";
 
 export const metadata = {
-  title: "Reset your password",
-  description: "Request a password reset link for your Excel drill account.",
+  title: t("auth.reset.title"),
+  description: t("auth.reset.meta"),
   robots: { index: false, follow: true },
 };
 
@@ -19,16 +21,16 @@ export const instant = false;
 export default function ResetPage() {
   const config = authConfig();
   return (
-    <AuthShell counter="Reset your password">
+    <AuthShell counter={t("auth.reset.title")}>
       <AuthCard
-        title="Reset your password"
-        lede="We email you a link that signs you in once, so you can set a new password."
+        title={t("auth.reset.title")}
+        lede={t("auth.reset.lede")}
       >
         {config.enabled ? null : <Notice>{config.reason}</Notice>}
         <Suspense fallback={<Loading />}>
           <ResetForm disabled={!config.enabled} />
         </Suspense>
-        <Links items={[{ href: "/login", label: "Back to sign in" }]} />
+        <Links items={[{ href: "/login", label: t("auth.reset.back") }]} />
       </AuthCard>
     </AuthShell>
   );

@@ -1,3 +1,4 @@
+import { t } from "../../legacy/src/site/messages.mjs";
 import { authConfig } from "../../lib/auth/config.js";
 import { safeNext } from "../../lib/auth/redirect.js";
 import { friendly } from "../../lib/auth/errors.js";
@@ -15,8 +16,8 @@ export async function LoginScreen({ searchParams }) {
 
   return (
     <AuthCard
-      title="Sign in"
-      lede="An account keeps your progress on every device. The drills themselves stay free."
+      title={t("auth.login.title")}
+      lede={t("auth.login.lede")}
     >
       {config.enabled ? null : <Notice>{config.reason}</Notice>}
       <ErrorText>{failure}</ErrorText>
@@ -24,8 +25,8 @@ export async function LoginScreen({ searchParams }) {
       {config.enabled ? <MagicLinkForm next={next} disabled={!config.enabled} /> : null}
       <Links
         items={[
-          { href: `/signup?next=${encodeURIComponent(next)}`, label: "Create an account" },
-          { href: "/reset", label: "Forgot your password?" },
+          { href: `/signup?next=${encodeURIComponent(next)}`, label: t("auth.login.signup") },
+          { href: "/reset", label: t("auth.login.forgot") },
         ]}
       />
     </AuthCard>

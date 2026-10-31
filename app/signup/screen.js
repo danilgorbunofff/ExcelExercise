@@ -1,3 +1,4 @@
+import { t } from "../../legacy/src/site/messages.mjs";
 import { authConfig } from "../../lib/auth/config.js";
 import { safeNext } from "../../lib/auth/redirect.js";
 import { AuthCard, Links, Notice } from "../auth/ui.js";
@@ -11,12 +12,12 @@ export async function SignupScreen({ searchParams }) {
 
   return (
     <AuthCard
-      title="Create an account"
-      lede="One account, every device. Your unsolved drills stay free either way."
+      title={t("auth.signup.title")}
+      lede={t("auth.signup.lede")}
     >
       {config.enabled ? null : <Notice>{config.reason}</Notice>}
       <SignupForm next={next} disabled={!config.enabled} />
-      <Links items={[{ href: `/login?next=${encodeURIComponent(next)}`, label: "I already have an account" }]} />
+      <Links items={[{ href: `/login?next=${encodeURIComponent(next)}`, label: t("auth.signup.haveAccount") }]} />
     </AuthCard>
   );
 }

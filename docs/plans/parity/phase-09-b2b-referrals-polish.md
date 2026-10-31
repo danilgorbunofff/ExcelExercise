@@ -138,17 +138,134 @@ against the two places `--sand-2` is declared (the vendor light scale and the to
 bar cannot drift from `--bg` without a test failing; `tests/build.test.js` asserts the metas reach the
 emitted HTML.
 
-Where the rest of 9A stands, so this section is not read as "9A shipped": unit 8 (the WCAG audit of
-the five core pages) is already covered continuously by the 30 axe tests in `e2e/a11y.spec.js`, which now run in both themes;
-unit 9 (print) is **blocked** — its acceptance is "the certificate prints on one page in A4 and Letter",
-and no certificate can be issued on a deployment with accounts unconfigured, which is every
-configuration this suite is allowed to run in (14 specs assert that state, so a seed that enabled
-accounts would break them). The chrome-stripping half of the print sheet is proven
-(`e2e/certificate.spec.js`); the one-page half needs a real credential and a database. Unit 10 (copy
-extraction) is not started: it touches every user-facing string in every template and earns nothing
-visible until a second language exists.
+### As built — 9A unit 8, WCAG 2.2 (2026-12-03)
 
-Two things this unit did **not** do, deliberately: no theme toggle (the plan asks for
+Two halves. The half axe decides has been running since 5B: 30 tests over twelve surfaces in both
+themes, failing on critical and serious findings, which is where contrast, names, roles, labels and
+error identification land. The half axe cannot decide is the WCAG 2.2 addition, because deciding it
+needs a laid-out page and a form a password manager could fill: where a control ends up once the
+browser has scrolled to it, whether the same help sits in the same place on every page, and whether the
+fields a visitor types into declare their purpose. That half is `e2e/wcag22.spec.js`: eight tests, no
+account, no database.
+
+| Criterion | Where it is proven |
+|---|---|
+| 2.4.11 Focus Not Obscured (Minimum) | `e2e/wcag22.spec.js` — 130 tab presses across the front door, a drill and the offer page |
+| 2.5.8 Target Size (Minimum) | `e2e/targets.spec.js` — 24 px on desktop, 44 px on a phone, one documented rail exception |
+| 3.2.6 Consistent Help | `e2e/wcag22.spec.js` — six pages, the same three items in the same order |
+| 3.3.7 Redundant Entry | built, not tested: `app/signup/form.js` asks for the name once and never again |
+| 3.3.8 Accessible Authentication | `e2e/wcag22.spec.js` — three forms, declared purposes, no transcription test |
+| 4.1.3 Status Messages | `e2e/wcag22.spec.js` — the drill's verdict is `role="status" aria-live="polite"` |
+
+| Gate | Output |
+|---|---|
+| `npm run check` | `tests 1688`, `fail 0`; `120 prerendered pages`, `4869 checks passed` |
+| `npx playwright test` | `153 passed` (145 before this unit) |
+
+**2.4.11.** The test tabs forward and asks `document.elementFromPoint` at the centre of whatever has
+focus whether the thing painted on top is the thing focused. A sticky bar, a floating panel or an
+overlay answers no, and that is the failure the criterion describes. Three pages rather than one,
+because the sticky elements differ: a desktop rail on the front door, a sticky header row in a drill,
+neither on the offer page. Two details it had to get right to be honest: smooth scrolling is authored
+behind `prefers-reduced-motion: no-preference`, so a measurement taken mid-scroll reads a focused
+control as off-screen — the spec asks for reduced motion, which is also the page a visitor who asked
+for reduced motion gets; and a closed `<dialog>`'s controls are focusable but not painted, so they are
+skipped rather than reported as obscured. Each of the three tests also asserts a floor on how many
+controls it counted (20 on the front door and in a drill, 10 on the offer page), so a page that stops
+rendering controls fails instead of passing vacuously.
+
+**3.2.6.** The footer's support line is Privacy, Terms, Send feedback, in that order, on the front
+door, the offer page, the dashboard, the exercises hub, privacy and the functions hub. The feedback
+`<dialog>` lives inside `<footer>`, so its own Send, Cancel and Close are excluded with
+`closest("dialog")`; without that the comparison would be of a page against itself.
+
+**3.3.8 and 3.3.7.** The sign-in form's fields are `email` and `current-password`; the sign-up form's
+is `new-password`; and none of `/login`, `/signup`, `/reset` carries `autocomplete="off"`, a captcha
+class or a captcha iframe. The sign-in page also carries the footer's feedback form, which has no
+password field, hence the `main form` scope. Redundant Entry is deliberately a build fact rather than a
+test: the sign-up form has one name field and there is no second visit on which it could be asked
+again, and a test that asserts an absence on one page would not notice a new page that forgot.
+
+### As built — 9A unit 9, print (2026-12-03)
+
+What exists: the `@media print` block in `app/certificate/certificate.css`, and `app/certificate/print.js`
+as the button. The certificate has no server-rendered PDF — `window.print()` is the renderer — so the
+stylesheet is the artifact, and it is worth asserting on its own.
+
+What is proven. `e2e/certificate.spec.js` emulates print media on `/verify/[id]` and asserts the header,
+the footer and the skip link are hidden while the page's own words stay visible. `tests/certificate.test.js`
+now also reads the stylesheet and asserts the four things that browser test cannot reach on a deployment
+with no accounts: the chrome is hidden and the sheet and the revocation notice are not; the sheet prints
+in ink rather than inheriting the dark-capable screen palette, which is what makes a printed page
+readable when the palette changes; `@page` states a 16 mm margin and pins no paper size, so A4 and Letter
+both work and neither clips; and the sheet carries `break-inside: avoid` while the verification URL is
+revealed in print, so the paper outlives the browser tab it came from.
+
+What is not proven, stated plainly: "one page in both sizes". That needs the sheet rendered in its held
+state, which needs a credential, which needs accounts configured, and 14 specs assert that accounts are
+not. The half that can be asserted without a database is asserted; the half that cannot is left
+unchecked below rather than claimed.
+
+### As built — 9A unit 10, copy extraction, first slice (2026-12-03)
+
+Unit 10 as the plan writes it is every user-facing string in every template. That is a mechanical
+refactor of roughly a thousand strings, and its payoff is a language that does not exist yet, so it was
+cut down to one honest slice: **the chrome, the auth screens and the certificate**, behind a `t()`
+helper with an English catalogue, with the rendered bytes held identical.
+
+Why those three. The chrome is on every page, so it is where a second language would show first and
+where a mistake would show 120 times. The auth screens and the certificate are the surfaces with the
+most conditional copy — errors, disabled states, held states — so they are the ones whose strings are
+least likely to be right by accident. The front-door marketing prose, the lesson bodies and the legal
+pages are deliberately out of scope and stay as literal text: the lessons already carry their copy in
+`packages/`, and rewriting the prose for translation before anyone translates it would be churn.
+
+**`legacy/src/site/messages.mjs`** is the catalogue. It lives in `legacy/src/site/` and not in
+`packages/` because `tests/build.test.js` proves the static build still works when `legacy/` is copied
+without `packages/`, and not in `lib/` because `lib/` is Next-only. It has **zero imports** on purpose,
+so both builds can load it, and it states three rules at the top that `tests/messages.test.js` enforces:
+
+| Rule | Why | Enforced by |
+| --- | --- | --- |
+| Keys name positions, not wordings: `chrome.ways.flashcards`, never `flashcardsButton` | A wording change must not rename a key, or every key churns on every copy edit | dotted lowerCamelCase test |
+| Values are plain text: no markup, no entities, no surrounding space | `esc()` is applied by the template, not the catalogue, so an entity in a value renders as `&amp;` | plain-text test |
+| `{word}` is the only hole, and a missing key or value **throws** | A silent miss prints `chrome.footer.te` to a page; a throw fails the first render instead | holes and throw tests |
+
+`t(key, vars)` takes no locale argument yet. With one language there is nothing to choose, and a second
+language adds a second parameter without moving a single call site.
+
+The catalogue is not trusted just because it is new. The same two functions the lessons answer to,
+`findBanned` and `findTypography` from `packages/content-lint/copy.js`, run over every value, so the
+chrome cannot acquire a banned word, an em dash, a curly quote or an emoji. One tolerance is documented
+in the test by key: `chrome.loading.form` keeps its ellipsis because that is what a loading label
+counts with.
+
+The structural test is the one that earns the file: it walks `app`, `legacy/src`, `lib`, `packages` and
+`scripts`, collects every `t("...")` call site, and asserts **in both directions** — every key in the
+catalogue is asked for, and every key asked for exists. A key that is added and never wired, or wired
+and never added, fails here rather than in a browser. That test found one real gap on the first run: the
+skip link had been written as a template literal and never routed, so `chrome.skip` was in the catalogue
+and unused. It is wired now.
+
+Byte-identical output is the proof that this was a refactor and not a rewrite. `legacy/dist` was copied
+to `/tmp/dist-baseline` before a line changed, and after the wiring `diff -r legacy/dist /tmp/dist-baseline`
+returns nothing: 120 pages, 11 549.8 kB, not one byte different.
+
+| Gate | Result |
+| --- | --- |
+| `npm run check` | `tests 1696` (1688 before this unit), `fail 0`, 120 prerendered pages, 4869 checks |
+| `diff -r legacy/dist /tmp/dist-baseline` | no differences |
+| `npx playwright test` | 153 passed, unchanged |
+
+### Where the rest of 9A stands
+
+9A is done: units 1-9 are built and proven above, and unit 10 landed as its first slice — chrome, auth
+and the certificate behind `t()`, with the static build byte-identical. What is still open in 9A is
+scope, not work: the rest of unit 10 needs the same treatment for `app/account`, `app/daily`,
+`app/leaderboard`, `app/flashcards` and `app/verify`, and that is worth doing when a second language is
+real rather than in advance of one.
+
+Two things 9A did **not** do, deliberately: no theme toggle (the plan asks for
 `prefers-color-scheme`, and a toggle needs persistence and a first-paint script that this site has no
 infrastructure for), and no chart or image treatment — the only raster on a page is the workbook
 screenshot, which is a picture of Excel and stays light in both themes on purpose.
@@ -164,7 +281,9 @@ screenshot, which is a picture of Excel and stays light in both themes on purpos
       not exist: the only raster is the workbook screenshot.
 - [x] axe: zero critical/serious on the five core pages in both themes. — proven for all five (player,
       dashboard, pricing, certificate state, verify) plus seven more, in light and in dark.
-- [ ] Certificate prints on one page in both A4 and Letter.
+- [ ] Certificate prints on one page in both A4 and Letter. — the chrome, ink, margin, paper-size and
+      break-inside half is asserted in `tests/certificate.test.js` and `e2e/certificate.spec.js`; the
+      one-page half needs a credential and a database (see 9A unit 9).
 - [ ] No hard-coded user-facing string remains outside the catalogue.
 
 **9B — institutional portal and referrals**

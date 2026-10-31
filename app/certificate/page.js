@@ -15,6 +15,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { t } from "../../legacy/src/site/messages.mjs";
 import { authConfig } from "../../lib/auth/config.js";
 import { currentUser } from "../../lib/auth/server.js";
 import {
@@ -77,7 +78,7 @@ function Held({ row, site }) {
         ]}
       />
       <p className="certificate-print-url">Check this credential at {certificateUrl(site, row.credential_id)}</p>
-      <PrintButton label="Print the certificate" />
+      <PrintButton label={t("certificate.print")} />
       <p className="certificate-help">
         <a href={linkedInUrl({ credential: row.credential_id, issuedAt: row.issued_at, origin: site })} rel="noreferrer noopener" target="_blank">
           Add it to your LinkedIn profile

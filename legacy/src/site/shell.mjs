@@ -5,6 +5,7 @@
  */
 
 import { attrs, esc, humanDate, inlineIcon } from "./html.mjs";
+import { t } from "./messages.mjs";
 
 function renderHead({ config, page }) {
   const canonical = `${config.baseUrl}${page.path}`;
@@ -44,7 +45,7 @@ function renderSiteHeader({ config, page }) {
         config.name,
       )}</span></a>
       <p class="drill-count">${esc(page.counter)}</p>
-      <p class="badge">${esc(page.badge ?? "Free · no signup")}</p>
+      <p class="badge">${esc(page.badge ?? t("chrome.badge.free"))}</p>
     </header>`;
 }
 
@@ -99,26 +100,26 @@ export function renderByline({ config, index, extra = null, noun = "drills", upd
 function renderFeedbackDialog() {
   return `      <dialog class="feedback-dialog" id="feedback-dialog" aria-labelledby="feedback-heading">
         <form class="feedback-form" id="feedback-form" novalidate>
-          <h2 class="feedback-title" id="feedback-heading">How is this going?</h2>
+          <h2 class="feedback-title" id="feedback-heading">${t("chrome.feedback.title")}</h2>
           <fieldset class="feedback-set">
-            <legend class="feedback-legend">Pick the one that fits</legend>
-            <label class="feedback-choice"><input type="radio" name="mood" value="stuck"> I am stuck</label>
-            <label class="feedback-choice"><input type="radio" name="mood" value="progress"> Getting there</label>
-            <label class="feedback-choice"><input type="radio" name="mood" value="clicked"> It clicked</label>
+            <legend class="feedback-legend">${t("chrome.feedback.legend")}</legend>
+            <label class="feedback-choice"><input type="radio" name="mood" value="stuck"> ${t("chrome.feedback.stuck")}</label>
+            <label class="feedback-choice"><input type="radio" name="mood" value="progress"> ${t("chrome.feedback.progress")}</label>
+            <label class="feedback-choice"><input type="radio" name="mood" value="clicked"> ${t("chrome.feedback.clicked")}</label>
           </fieldset>
-          <label class="feedback-label" for="feedback-text">Anything to add? Optional.</label>
+          <label class="feedback-label" for="feedback-text">${t("chrome.feedback.text")}</label>
           <textarea class="feedback-text" id="feedback-text" name="text" rows="3" maxlength="500" aria-describedby="feedback-count"></textarea>
           <p class="feedback-count" id="feedback-count">0 of 500 characters</p>
-          <p class="feedback-note">Nothing is sent yet: your note is kept in this browser, and that is all.</p>
+          <p class="feedback-note">${t("chrome.feedback.note")}</p>
           <p class="feedback-error" id="feedback-error" role="alert"></p>
           <div class="feedback-actions">
-            <button class="btn btn-primary" type="submit">Send</button>
-            <button class="btn" type="button" id="feedback-cancel">Cancel</button>
+            <button class="btn btn-primary" type="submit">${t("chrome.feedback.send")}</button>
+            <button class="btn" type="button" id="feedback-cancel">${t("chrome.feedback.cancel")}</button>
           </div>
         </form>
         <div class="feedback-done" id="feedback-done" hidden>
           <p class="feedback-note" id="feedback-done-note"></p>
-          <div class="feedback-actions"><button class="btn" type="button" id="feedback-close">Close</button></div>
+          <div class="feedback-actions"><button class="btn" type="button" id="feedback-close">${t("chrome.feedback.close")}</button></div>
         </div>
       </dialog>`;
 }
@@ -131,8 +132,8 @@ function renderFeedbackDialog() {
  */
 function renderFooter({ config }) {
   return `<footer class="foot">
-      <p>${esc(config.name)} grades formulas in the browser. Nothing you type is sent anywhere.</p>
-      <p><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <button class="foot-feedback" id="feedback-open" type="button" aria-haspopup="dialog">Send feedback</button></p>
+      <p>${t("chrome.footer.claim", { name: esc(config.name) })}</p>
+      <p><a href="/privacy">${t("chrome.footer.privacy")}</a> · <a href="/terms">${t("chrome.footer.terms")}</a> · <button class="foot-feedback" id="feedback-open" type="button" aria-haspopup="dialog">${t("chrome.footer.feedback")}</button></p>
 ${renderFeedbackDialog()}
     </footer>`;
 }
@@ -158,24 +159,24 @@ export function renderWaysOut({
   projectsAvailable = false,
   appPagesAvailable = false,
 }) {
-  const projects = projectsAvailable ? `\n        <li><a href="/projects">Guided projects</a></li>` : "";
+  const projects = projectsAvailable ? `\n        <li><a href="/projects">${t("chrome.ways.projects")}</a></li>` : "";
   const items =
     variant === "dashboard"
       ? appPagesAvailable
         ? `
-        <li><a href="/flashcards">Flashcards</a></li>
-        <li><a href="/daily">Daily challenge</a></li>
-        <li><a href="/leaderboard">Today's board</a></li>
-        <li><a href="/certificate">Certificate</a></li>
-        <li><a href="/account">Your account</a></li>`
+        <li><a href="/flashcards">${t("chrome.ways.flashcards")}</a></li>
+        <li><a href="/daily">${t("chrome.ways.daily")}</a></li>
+        <li><a href="/leaderboard">${t("chrome.ways.board")}</a></li>
+        <li><a href="/certificate">${t("chrome.ways.certificate")}</a></li>
+        <li><a href="/account">${t("chrome.ways.account")}</a></li>`
         : `
         <li><a href="/pricing">Pricing</a></li>`
       : `${projects}${
-          appPagesAvailable ? `\n        <li><a href="/daily">Daily challenge</a></li>` : ""
+          appPagesAvailable ? `\n        <li><a href="/daily">${t("chrome.ways.daily")}</a></li>` : ""
         }
-        <li><a href="/excel-exercises">All Excel exercises</a></li>
-        <li><a href="/pricing">Pricing</a></li>`;
-  const title = variant === "dashboard" && appPagesAvailable ? "Your tools" : "More ways in";
+        <li><a href="/excel-exercises">${t("chrome.ways.exercises")}</a></li>
+        <li><a href="/pricing">${t("chrome.ways.pricing")}</a></li>`;
+  const title = variant === "dashboard" && appPagesAvailable ? t("chrome.ways.tools") : t("chrome.ways.home");
   return `<nav class="ways" aria-labelledby="ways-heading">
       <h2 class="ways-title" id="ways-heading">${title}</h2>
       <ul class="ways-list">${items}
@@ -191,7 +192,7 @@ export function renderChrome({ config, page }) {
   return {
     // `skipLabel` is the noun only — "Skip to the " is written once, here, so a page cannot end up
     // saying it twice.
-    skip: `<a class="skip" href="#main">Skip to the ${page.skipLabel ?? (page.isHome ? "drills" : "drill")}</a>`,
+    skip: `<a class="skip" href="#main">${t("chrome.skip", { what: page.skipLabel ?? (page.isHome ? "drills" : "drill") })}</a>`,
     header: renderSiteHeader({ config, page }),
     footer: renderFooter({ config }),
   };

@@ -11,7 +11,10 @@
  * drawing thousands and looking at the alphabet rather than by asserting on one fixed output.
  */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import {
   ALPHABET,
@@ -283,5 +286,55 @@ describe("the module's own constants", () => {
   it("state the length the database check constraint states", () => {
     assert.equal(CREDENTIAL_LENGTH, 16);
     assert.equal(ALPHABET.length, 32);
+  });
+});
+
+describe("the certificate's print stylesheet", () => {
+  const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "app/certificate/certificate.css"), "utf8");
+
+  /** The `@media print` block, brace-matched, since a regex over nested rules reads the first `}`. */
+  function printBlock(source) {
+    const start = source.indexOf("@media print");
+    assert.ok(start >= 0, "certificate.css has no @media print block");
+    let depth = 0;
+    for (let index = source.indexOf("{", start); index < source.length; index += 1) {
+      if (source[index] === "{") depth += 1;
+      if (source[index] === "}") {
+        depth -= 1;
+        if (depth === 0) return source.slice(start, index + 1);
+      }
+    }
+    throw new Error("unterminated @media print block");
+  }
+
+  const block = printBlock(css);
+
+  it("hides the site's furniture and keeps the record", () => {
+    // A printed certificate that still carries the header, the footer and a button to print again is
+    // a web page on paper. These four are the page around the record; the notice and the sheet are
+    // the record, and neither may be hidden.
+    for (const selector of [".skip", "header.site", "footer.foot", ".certificate-print"]) {
+      assert.match(block, new RegExp(`${selector.replace(/\./g, "\\.")}[^{]*\\{[^}]*display: none`), `${selector} is not hidden in print`);
+    }
+    assert.doesNotMatch(block, /\.auth-notice[^{]*\{[^}]*display: none/, "the revoked notice must survive printing");
+    assert.doesNotMatch(block, /\.certificate-sheet[^{]*\{[^}]*display: none/, "the sheet itself must survive printing");
+  });
+
+  it("prints in ink rather than in the screen palette", () => {
+    // The screen palette is a dark-capable one; a print stylesheet that inherits it can print white
+    // text on white paper the day the palette changes. Colours are stated, not inherited.
+    assert.match(block, /background: #fff !important/);
+    assert.match(block, /color: #000 !important/);
+  });
+
+  it("keeps the sheet on one page and leaves the paper size to the printer", () => {
+    assert.match(block, /@page\s*\{[^}]*margin:/, "no @page margin, so the record prints edge to edge");
+    assert.match(block, /break-inside: avoid/, "the sheet may split across two pages");
+    // A4 and Letter are both correct answers; pinning one gives the other a clipped sheet.
+    assert.doesNotMatch(block, /@page\s*\{[^}]*size:/, "@page pins a paper size");
+  });
+
+  it("prints the URL a reader needs to check the credential later", () => {
+    assert.match(block, /\.certificate-print-url[^{]*\{[^}]*display: block/);
   });
 });

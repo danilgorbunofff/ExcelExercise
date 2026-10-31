@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { t } from "../../legacy/src/site/messages.mjs";
+
 // Presentational only: no directives, no request APIs, so both the server pages and the client forms
 // can render these. Anything that needs the session belongs in `./shell.js`.
 
@@ -39,7 +41,7 @@ export function Skeleton({ label, rows = 3 }) {
  * otherwise find "Loading…" sitting where an explanation is expected.
  */
 export function Loading() {
-  return <Skeleton label="Loading the form…" rows={2} />;
+  return <Skeleton label={t("chrome.loading.form")} rows={2} />;
 }
 
 export function ErrorText({ children }) {

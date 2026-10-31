@@ -1,5 +1,7 @@
 "use client";
 
+import { t } from "../../legacy/src/site/messages.mjs";
+
 /**
  * Print the record in front of you, using the browser's own print dialog.
  *
@@ -8,7 +10,7 @@
  * "pending" state that can fail silently. What the sheet prints is decided by `@media print` in
  * `certificate.css`; the button itself is hidden there, so a printed page never offers to print again.
  */
-export function PrintButton({ label = "Print this record" }) {
+export function PrintButton({ label = t("certificate.printRecord") }) {
   return (
     <p className="certificate-print">
       <button className="btn" type="button" onClick={() => window.print()}>

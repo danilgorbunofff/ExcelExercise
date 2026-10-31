@@ -21,9 +21,9 @@ records only what the gates did on this machine, at this commit.
 | origin | no canonical on the fallback origin | pass | 0s |
 | secrets | no secret in either build | pass | 0s |
 | static | the static site crawls clean | pass | 0s |
-| browser | the browser suite | pass | 43s |
-| db | the database suite (the layer no other gate reaches) | pass | 50s |
-| accounts | the accounts browser suite | pass | 33s |
+| browser | the browser suite | pass | 48s |
+| db | the database suite (the layer no other gate reaches) | pass | 49s |
+| accounts | the accounts browser suite | pass | 27s |
 
 ## The db gate's own list
 

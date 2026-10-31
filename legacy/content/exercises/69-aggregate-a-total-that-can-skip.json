@@ -5,7 +5,7 @@
   "title": "AGGREGATE: a total that says what to ignore",
   "docs": {
     "syntax": "=AGGREGATE(function-number, options, range) — nine is SUM, one is AVERAGE, six ignores error values",
-    "explain": "AGGREGATE is SUBTOTAL's more careful cousin. It takes three arguments instead of two: the function number, which works the same way, then an options number that says what the answer should skip, and only then the range. The options number is the point. Six means ignore error values, seven means ignore hidden rows and error values as well, and there are settings for nested subtotals and for ignoring nothing at all. That matters because a plain SUM refuses to answer when one cell in its range holds an error: one broken reference and the total is #VALUE! for the whole column, which is the opposite of helpful when you are trying to see the rest of the numbers. AGGREGATE with six keeps adding the cells that work. The cost of that convenience is that a real mistake can disappear into a total that looks reasonable, so the options number is a decision, not a default. On this drill nothing in the range is an error, so the aggregate agrees with the plain sum, and that is the useful lesson: the shape of the formula, and where the number you choose sits inside it.",
+    "explain": "AGGREGATE is SUBTOTAL's more careful cousin. It takes three arguments instead of two. First the function number, which works the same way. Then an options number that says what the answer should skip, and only then the range. The options number is the point. Six means ignore error values, seven means ignore hidden rows and error values as well, and there are settings for nested subtotals and for ignoring nothing at all. That matters because a plain SUM refuses to answer when one cell in its range holds an error. One broken reference and the total is #VALUE! for the whole column, which is the opposite of helpful when you are trying to see the rest of the numbers. AGGREGATE with six keeps adding the cells that work. The cost of that convenience is that a real mistake can disappear into a total that looks reasonable, so the options number is a decision, not a default. On this drill nothing in the range is an error, so the aggregate agrees with the plain sum. That is the useful lesson: the shape of the formula, and where the number you choose sits inside it.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -78,7 +78,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=AGGREGATE(9,6,B2:B4) — function number, options number, range.",
+        "syntax": "=AGGREGATE(9,6,B2:B4): function number, options number, range.",
         "func-aggregate": "The total that can skip a broken cell is AGGREGATE.",
         "require-ref": "The range is the price column of the table.",
         "value": "Ten plus five plus twenty is 35.",
@@ -182,7 +182,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=ROUND(AGGREGATE(1,6,B2:B4),1) — the aggregate sits inside the ROUND.",
+        "syntax": "=ROUND(AGGREGATE(1,6,B2:B4),1): the aggregate sits inside the ROUND.",
         "func-aggregate": "The average has to survive a broken cell, so it is an AGGREGATE rather than an AVERAGE.",
         "require-ref": "The prices live in B2:B4.",
         "value": "35 divided by 3 is 11.666..., which rounds to 11.7.",
@@ -232,5 +232,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "AGGREGATE in Excel: skip errors in a total",
+    "description": "AGGREGATE takes a function number, an options number, then the range. Option 6 ignores error values, so one broken cell no longer kills the whole total."
+  },
+  "updated": "2026-10-31"
 }

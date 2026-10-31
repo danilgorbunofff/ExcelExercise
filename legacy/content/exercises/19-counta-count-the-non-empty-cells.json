@@ -12,25 +12,54 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Step", "Done on"],
-          ["Draft", "2026-03-02"],
-          ["Review", null],
-          ["Publish", "2026-03-09"],
-          ["Announce", null],
-          ["Archive", "2026-04-01"],
-          ["Steps done", null]
+          [
+            "Step",
+            "Done on"
+          ],
+          [
+            "Draft",
+            "2026-03-02"
+          ],
+          [
+            "Review",
+            null
+          ],
+          [
+            "Publish",
+            "2026-03-09"
+          ],
+          [
+            "Announce",
+            null
+          ],
+          [
+            "Archive",
+            "2026-04-01"
+          ],
+          [
+            "Steps done",
+            null
+          ]
         ]
       },
       "answerCell": "B7",
-      "expect": { "value": 3 },
-      "require": [{ "id": "func-counta", "func": "COUNTA", "minArgs": 1 }],
+      "expect": {
+        "value": 3
+      },
+      "require": [
+        {
+          "id": "func-counta",
+          "func": "COUNTA",
+          "minArgs": 1
+        }
+      ],
       "forbid": [],
       "requireRef": "B2",
       "rules": [],
       "hints": {
         "syntax": "Start with = and close the bracket: =COUNTA(B2:B6).",
         "func-counta": "The dates sit in a text column, so counting numbers finds none of them; COUNTA counts anything that is not blank.",
-        "require-ref": "Point COUNTA at B2:B6 rather than pasting the three dates in — the sheet has to stay the source of the answer.",
+        "require-ref": "Point COUNTA at B2:B6 rather than pasting the three dates in: the sheet has to stay the source of the answer.",
         "value": "That is not how many steps are dated. Three of the five cells in B2:B6 hold a date and two are empty.",
         "error": "COUNTA of a range never fails on text; dividing its answer by zero returns #DIV/0!."
       },
@@ -85,7 +114,7 @@
   ],
   "docs": {
     "syntax": "=COUNTA(value1, [value2], ...)",
-    "explain": "Column B holds three dates and two empty cells. COUNT would look for numbers, find none, and answer 0 — the dates are text, not a date type. COUNTA answers the different question of how many cells hold something, anything, so it returns 3. On a checklist like this one the difference is the whole point: an empty cell means the step has not happened yet, and counting the filled ones is how you report progress. If a step gets a space typed into it, COUNTA counts that space as progress while COUNT still says 0, so a progress bar that reads high should send you looking for stray spaces.",
+    "explain": "Column B holds three dates and two empty cells. COUNT would look for numbers, find none and answer 0, because these entries arrived as text rather than as dates. COUNTA answers a different question: how many cells hold something, anything. It returns 3. On a checklist the difference is the whole point. An empty cell means the step has not happened yet, so counting the filled ones is how you report progress. If a step gets a space typed into it, COUNTA counts that space as progress while COUNT still says 0. A progress bar that reads high sends you looking for stray spaces.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -101,5 +130,10 @@
     "teaches": "COUNTA",
     "dataset": "A five-step checklist",
     "reference": "=COUNTA(B2:B6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "COUNTA in Excel: count non-empty cells",
+    "description": "Three dates and two blanks. COUNTA answers 3 because it counts anything filled, while COUNT answers 0 since these entries arrived as text."
   }
 }

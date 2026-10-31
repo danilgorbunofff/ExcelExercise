@@ -83,7 +83,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=MID(A2,FIND(\"-\",A2)+1,4) — FIND locates the hyphen, MID reads from just after it.",
+        "syntax": "=MID(A2,FIND(\"-\",A2)+1,4): FIND locates the hyphen, MID reads from just after it.",
         "func-mid": "The digits are a slice of the code, so MID reads them.",
         "func-find": "The hyphen moves between rows, so FIND works out where it sits.",
         "require-ref": "The code is in A2.",
@@ -194,7 +194,7 @@
       ],
       "requireRef": "C2",
       "hints": {
-        "syntax": "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"N*\"),1) — the averages first, the pattern last.",
+        "syntax": "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"N*\"),1): the averages first, the pattern last.",
         "func-averageifs": "A conditional average is AVERAGEIFS' job.",
         "require-ref": "The amounts are in C2:C5.",
         "value": "380 across three rows is 126.66..., which rounds to 126.7.",
@@ -250,5 +250,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Slice text with FIND and MID in Excel",
+    "description": "FIND says where the separator sits and MID reads from there. A wildcard criterion on the same screen shows why a pattern answers a different question."
+  },
+  "updated": "2026-10-31"
 }

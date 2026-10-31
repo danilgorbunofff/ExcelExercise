@@ -221,8 +221,8 @@
     }
   ],
   "docs": {
-    "syntax": "=UPPER(text) \u00b7 =LOWER(text) \u00b7 =PROPER(text)",
-    "explain": "Three functions change case and nothing else. UPPER makes every letter a capital, LOWER drops them all, and PROPER capitalises the first letter of each word, which is what a name typed in capitals on a phone needs to read normally. PROPER decides where a word starts from punctuation, so it also capitalises after a dash, which is why the shipping label uses UPPER. None of them trims spaces or fixes spelling, so a name with two spaces between the words still reads oddly after PROPER. The conversion only goes one way: UPPER cannot tell you what the original was, so run these on a copy when the source spelling might matter later, such as a customer's name.",
+    "syntax": "=UPPER(text) · =LOWER(text) · =PROPER(text)",
+    "explain": "Three functions change case and nothing else. UPPER makes every letter a capital, LOWER drops them all, and PROPER capitalises the first letter of each word. That last one is what a name typed in capitals on a phone needs to read normally. PROPER decides where a word starts from punctuation, so it also capitalises after a hyphen, which is why the shipping label uses UPPER. None of them trims spaces or fixes spelling, so a name with two spaces between the words still reads oddly after PROPER. The conversion only goes one way. UPPER cannot tell you what the original was, so run these on a copy when the source spelling might matter later, such as a customer's name.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -238,5 +238,10 @@
     "teaches": "UPPER, LOWER and PROPER",
     "dataset": "References and names in mixed case",
     "reference": "=UPPER(A2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "UPPER, LOWER and PROPER in Excel",
+    "description": "Three functions change case and nothing else. PROPER starts a new word after any punctuation, which is why the shipping label needs UPPER instead."
   }
 }

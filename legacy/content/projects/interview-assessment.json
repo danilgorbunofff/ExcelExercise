@@ -1,0 +1,142 @@
+{
+  "id": "interview-assessment",
+  "slug": "interview-assessment",
+  "level": 3,
+  "title": "Interview assessment",
+  "schemaVersion": 2,
+  "brief": [
+    {
+      "heading": "The file",
+      "body": "interview-assessment.xlsx holds one sheet, Orders, with twelve orders booked in the first quarter. Columns A to F are the order number, the date, the rep, the region, the units and the unit price; column G is the discount as a fraction, and column H is Net, a formula that multiplies units by price, takes the discount off and rounds to two decimals."
+    },
+    {
+      "heading": "The work",
+      "body": "You are doing the take-home half of an interview: a workbook lands, and you have twenty minutes to say what the quarter was worth and who produced it. Rows 15 to 18 are a report block — revenue, order count, mean order and the largest order. Everything below them is a question an interviewer would ask out loud, and the sheet has to answer each one without a new helper column."
+    },
+    {
+      "heading": "What the interviewer checks",
+      "body": "Not whether you can sum a column, but whether you notice that Net is already net. Summing the discount column tells you nothing about revenue; the money given away is what the gross would have been minus what was actually booked. Two of the eight tasks need exactly that distinction."
+    }
+  ],
+  "dataset": {
+    "file": "interview-assessment.xlsx",
+    "description": "Twelve Q1 orders with a formula-driven net column",
+    "sheet": {
+      "name": "Orders",
+      "startCell": "A1",
+      "rows": [
+        ["Order", "Date", "Rep", "Region", "Units", "Unit price", "Discount", "Net"],
+        [1001, "2024-01-08", "Chen", "North", 40, 30, 0.1, "=ROUND(E2*F2*(1-G2),2)"],
+        [1002, "2024-01-15", "Diaz", "South", 25, 40, 0, "=ROUND(E3*F3*(1-G3),2)"],
+        [1003, "2024-01-22", "Diaz", "North", 30, 82, 0, "=ROUND(E4*F4*(1-G4),2)"],
+        [1004, "2024-02-05", "Okonkwo", "East", 12, 55, 0.05, "=ROUND(E5*F5*(1-G5),2)"],
+        [1005, "2024-02-12", "Chen", "North", 50, 22, 0.15, "=ROUND(E6*F6*(1-G6),2)"],
+        [1006, "2024-02-19", "Reyes", "South", 18, 90, 0.02, "=ROUND(E7*F7*(1-G7),2)"],
+        [1007, "2024-02-26", "Okonkwo", "West", 60, 15, 0, "=ROUND(E8*F8*(1-G8),2)"],
+        [1008, "2024-03-04", "Diaz", "North", 20, 70, 0.08, "=ROUND(E9*F9*(1-G9),2)"],
+        [1009, "2024-03-11", "Chen", "East", 35, 26, 0, "=ROUND(E10*F10*(1-G10),2)"],
+        [1010, "2024-03-18", "Chen", "North", 28, 37.5, 0.2, "=ROUND(E11*F11*(1-G11),2)"],
+        [1011, "2024-03-25", "Reyes", "South", 16, 45, 0.1, "=ROUND(E12*F12*(1-G12),2)"],
+        [1012, "2024-04-01", "Chen", "West", 45, 32, 0, "=ROUND(E13*F13*(1-G13),2)"],
+        [null, null, null, null, null, null, null, null],
+        ["Revenue", "=ROUND(SUM(H2:H13),2)", null, null, null, null, null, null],
+        ["Orders", "=COUNTA(B2:B13)", null, null, null, null, null, null],
+        ["Mean order", "=ROUND(AVERAGE(H2:H13),2)", null, null, null, null, null, null],
+        ["Largest", "=MAX(H2:H13)", null, null, null, null, null, null]
+      ]
+    }
+  },
+  "docs": {
+    "syntax": "=ROUND(SUM(H2:H13),2), =ROUND(SUMPRODUCT(E2:E13,F2:F13),2)-B15",
+    "explain": "The Net column already has the discount applied, so revenue is SUM of H and nothing else. Gross revenue is the units times price column multiplied row by row, which is SUMPRODUCT, and the money given away is that gross minus the net you just summed — which is why the formula starts with SUMPRODUCT and ends by subtracting B15. COUNTA over the date column counts orders, AVERAGE divided by twelve gives the mean order, and MAX names the single best one. Every other task is a subset of those columns: filter by region or by rep, then add.",
+    "atWork": "A take-home assessment and a real quarterly review ask the same thing: what came in, from whom, and what did we give up to get it. Gross, net and discount are three different numbers and confusing any two of them is the most common spreadsheet error in commercial reporting.",
+    "outcome": "Report a quarter's revenue, its gross, and the money the discounts cost.",
+    "teaches": "Gross versus net, and grouped totals",
+    "reference": "=ROUND(SUMPRODUCT(E2:E13,F2:F13),2)-B15",
+    "dataset": "interview-assessment.xlsx · Orders",
+    "errors": [
+      {
+        "code": "Summing the discount column",
+        "text": "G holds fractions, not money. Adding 0.1, 0.05 and 0.15 gives 0.73, which is not the 744.40 the discounts cost."
+      },
+      {
+        "code": "Adding gross to net",
+        "text": "SUMPRODUCT of units and price is revenue before discounts. It is 14460, not the 13715.60 that was booked."
+      }
+    ]
+  },
+  "screens": [
+    {
+      "id": "interview-revenue",
+      "type": "workbook",
+      "prompt": "What net revenue did the quarter book? B15 holds it.",
+      "answers": ["13715.6", "13,715.6", "13715.60"],
+      "hints": {
+        "value": "B15 is ROUND(SUM(H2:H13),2). Column H is already net of discount — do not take anything off again."
+      }
+    },
+    {
+      "id": "interview-orders",
+      "type": "workbook",
+      "prompt": "How many orders are in the sheet? B16 counts them.",
+      "answers": ["12", "twelve"],
+      "hints": {
+        "value": "B16 is COUNTA of the date column. Rows 2 to 13 are the twelve orders; row 14 is blank and row 15 starts the block."
+      }
+    },
+    {
+      "id": "interview-mean",
+      "type": "workbook",
+      "prompt": "What is the mean order value, rounded to two decimals?",
+      "answers": ["1142.97", "1,142.97"],
+      "hints": {
+        "value": "B17 is ROUND(AVERAGE(H2:H13),2). Dividing 13715.60 by twelve gives a long decimal that only survives two places."
+      }
+    },
+    {
+      "id": "interview-region",
+      "type": "workbook",
+      "prompt": "Which region booked the most net revenue?",
+      "answers": ["North"],
+      "hints": {
+        "value": "North is five orders: 1080, 2460, 935, 1288 and 840. Compare that with South on three and West on two."
+      }
+    },
+    {
+      "id": "interview-largest-rep",
+      "type": "workbook",
+      "prompt": "Which rep closed the largest single order? B18 is that order's value.",
+      "answers": ["Diaz"],
+      "hints": {
+        "value": "B18 is MAX of H. Find that value in column H and read the rep in column C — not the rep with the highest total."
+      }
+    },
+    {
+      "id": "interview-discount-cost",
+      "type": "workbook",
+      "prompt": "How much money did the discounts give away in total, rounded to two decimals?",
+      "answers": ["744.4", "744.40"],
+      "hints": {
+        "value": "That is ROUND(SUMPRODUCT(E2:E13,F2:F13),2) minus B15: gross 14460 less the 13715.60 that was booked."
+      }
+    },
+    {
+      "id": "interview-chen",
+      "type": "workbook",
+      "prompt": "What is Chen's total net revenue?",
+      "answers": ["5205", "5,205"],
+      "hints": {
+        "value": "Five rows belong to Chen: 1080 in the North, 935 in the North, 910 in the East, 840 in the North and 1440 in the West."
+      }
+    },
+    {
+      "id": "interview-discounted-orders",
+      "type": "workbook",
+      "prompt": "How many orders were booked with a discount at all?",
+      "answers": ["7", "seven"],
+      "hints": {
+        "value": "Look down column G for anything that is not zero. Three rows say 0.1, and the smallest is 0.02."
+      }
+    }
+  ]
+}

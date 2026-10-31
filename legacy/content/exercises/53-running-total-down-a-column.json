@@ -55,7 +55,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B$2:B2) — the start is pinned, the end moves as the formula fills down.",
+        "syntax": "=SUM(B$2:B2): the start is pinned, the end moves as the formula fills down.",
         "func-sum": "A running total is a SUM whose range grows; this drill wants the function.",
         "require-ref": "Point at the units column so the range grows with the rows.",
         "value": "Monday alone is 12; nothing has been added to it yet.",
@@ -107,7 +107,7 @@
     {
       "id": "formula-2",
       "type": "formula",
-      "prompt": "In C4, give Wednesday's running total — the same formula, filled down two rows.",
+      "prompt": "In C4, give Wednesday's running total: the same formula, filled down two rows.",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -154,7 +154,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B$2:B4) — the same formula as C2, one row longer at the bottom.",
+        "syntax": "=SUM(B$2:B4): the same formula as C2, one row longer at the bottom.",
         "func-sum": "The running total is a SUM over a growing range.",
         "require-ref": "The range starts at B2, where the week's units begin.",
         "value": "12 + 8 + 15 is 35; Thursday is not counted yet.",
@@ -206,7 +206,7 @@
   ],
   "docs": {
     "syntax": "=SUM(B$2:B2) filled down a column",
-    "explain": "A running total is one formula copied down a column, and the whole trick is which half of the range is pinned. Writing SUM(B$2:B2) locks the row of the start cell and leaves the column free, so filling down turns the second half into B3, B4 and so on while the start stays at row 2. The row 2 figure is 12, row 3 is 20, row 4 is 35, and each one is the sum of everything above it rather than a fresh total. If both halves are pinned the formula stops growing and every row repeats the first total; if neither is pinned the start walks down with the fill and each row reports only itself. That is why a running total is worth teaching as a reference problem rather than a function problem: SUM is trivial here and the dollars are in the dollar signs. The same shape works for a running balance, a cumulative percentage or a year-to-date column, and it survives rows being inserted because the range is built from cells rather than typed numbers.",
+    "explain": "A running total is one formula copied down a column, and the whole trick is which half of the range is pinned. SUM(B$2:B2) locks the row of the start cell and leaves the column free. Filling down turns the second half into B3, B4 and so on while the start stays at row 2. The row 2 figure is 12, row 3 is 20, row 4 is 35, and each one is the sum of everything above it rather than a fresh total. If both halves are pinned the formula stops growing and every row repeats the first total. If neither is pinned the start walks down with the fill and each row reports only itself. That is why a running total is worth teaching as a reference problem rather than a function problem. SUM is trivial here, and the money is in the dollar signs. The same shape works for a running balance, a cumulative percentage or a year-to-date column. It survives rows being inserted, because the range is built from cells rather than typed numbers.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -226,5 +226,10 @@
     "teaches": "SUM with a mixed reference that grows as the formula is filled down",
     "dataset": "Daily units and a week of activity",
     "reference": "=SUM(B$2:B2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Excel running total down a column",
+    "description": "A running total is one SUM filled down, with the start pinned at row 2 and the end left free. Pin both ends and every row repeats the same total."
   }
 }

@@ -66,7 +66,7 @@
       ],
       "hints": {
         "syntax": "Start with = and close every bracket: =VLOOKUP(A6,A2:B5,2,TRUE).",
-        "func-vlookup": "Use VLOOKUP itself — this drill is about how its match mode behaves, not about finding another way in.",
+        "func-vlookup": "Use VLOOKUP itself: this drill is about how its match mode behaves, not about finding another way in.",
         "match-type": "Write TRUE as the fourth argument. That is the approximate match this band table needs, and 1 means the same thing to Excel.",
         "require-ref": "Point the first argument at A6 so the rate follows the revenue. Typing 4200 in returns a number that never updates.",
         "value": "The rate for 4200 is the band that starts at 1000, so the third argument has to be 2: column 1 would hand back 1000.",
@@ -136,7 +136,7 @@
   ],
   "docs": {
     "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
-    "explain": "VLOOKUP walks down the first column of A2:B5 and stops at the last revenue that does not overshoot the lookup value, which is why the bands are sorted ascending: 4200 sits above the 1000 band and below the 5000 one, so the answer is the rate on the 1000 row, 0.05. The fourth argument chooses that behaviour. TRUE asks for the approximate match a band table needs; FALSE demands an exact match and returns #N/A, because no band starts at 4200; and leaving the argument out is TRUE again, which is why the drill also accepts 1, Excel's other spelling of TRUE. The third argument is 2 because the rate is the second column of the table — a 1 would hand back the band, 1000, and look right at a glance.",
+    "explain": "VLOOKUP walks down the first column of A2:B5 and stops at the last band that does not overshoot the lookup value. That is why the bands are sorted ascending: 4200 sits above the 1000 band and below the 5000 one, so the answer is the rate on the 1000 row, 0.05. The fourth argument chooses this behaviour. TRUE asks for the approximate match a band table needs. FALSE demands an exact match and returns #N/A, because no band starts at 4200. Leaving the argument out is TRUE again, which is why the drill also accepts 1. The third argument is 2 because the rate is the second column: a 1 would hand back the band, 1000, and look right at a glance.",
     "errors": [
       {
         "code": "#N/A",
@@ -156,5 +156,10 @@
     "teaches": "VLOOKUP approximate match",
     "dataset": "Commission bands by revenue",
     "reference": "=VLOOKUP(A6,A2:B5,2,TRUE)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "VLOOKUP approximate match in Excel: bands",
+    "description": "Approximate match reads the band below the value, so a sorted first column is the whole contract. 4200 falls in the 1000 band, and the rate is 0.05."
   }
 }

@@ -5,7 +5,7 @@
   "title": "MID: characters from the middle",
   "docs": {
     "syntax": "=MID(text,start,num_chars) counts positions from 1 and reads num_chars characters",
-    "explain": "Codes hide their parts in fixed places. A product code like AN-1042 is a region letter pair, a hyphen, then a four-digit number, and every one of those parts is one column away from being usable. MID is the function that reads a fixed position, and it is the one learners reach for last because LEFT and RIGHT are easier to picture. The trick that makes it worth learning is that MID counts from the left, always, so the start position is a number you work out rather than a number you can see. On a code where the hyphen sits at position three, the digits start at four, and the same MID call keeps working on every row because the shape does not change. The second half of MID is the length, and length is the argument people get wrong: too short truncates the answer, too long is harmless because MID stops at the end of the text. Both screens here read a fixed slice of the same code column, so the only thing that changes is which slice the question asks for.",
+    "explain": "Codes hide their parts in fixed places. A product code like AN-1042 is a region letter pair, a hyphen, then a four-digit number, and each of those parts is one column away from being usable. MID is the function that reads a fixed position, and it is the one learners reach for last because LEFT and RIGHT are easier to picture. The trick that makes it worth learning is that MID counts from the left, always. The start position is a number you work out rather than a number you can see. On a code where the hyphen sits at position three, the digits start at four, and the same MID call keeps working on every row because the shape does not change. The second half of MID is the length, and length is the argument people get wrong. Too short truncates the answer, and too long is harmless because MID stops at the end of the text. Both screens here read a fixed slice of the same code column, so the only thing that changes is which slice the question asks for.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -68,7 +68,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=MID(B2,4,4) — the text, the position to start at, then how many characters.",
+        "syntax": "=MID(B2,4,4): the text, the position to start at, then how many characters.",
         "func-mid": "The digits sit inside the code, so LEFT and RIGHT are the wrong end of it.",
         "require-ref": "The code is in B2.",
         "value": "The hyphen is the third character, so the digits start at four.",
@@ -178,7 +178,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=MID(B2,1,2) — starting at the first character, reading two.",
+        "syntax": "=MID(B2,1,2): starting at the first character, reading two.",
         "func-mid": "The prefix is a slice of the code, which is what MID reads.",
         "require-ref": "The code is in B2.",
         "value": "The first two characters of AN-1042 are AN.",
@@ -239,5 +239,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "MID in Excel: read characters from the middle",
+    "description": "MID counts from the left, so the start number is one you work out, not one you can see. Too long a length is harmless; too short truncates the answer."
+  },
+  "updated": "2026-10-31"
 }

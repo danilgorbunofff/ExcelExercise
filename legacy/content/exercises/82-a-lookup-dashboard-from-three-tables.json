@@ -5,7 +5,7 @@
   "title": "Lookup dashboard from three tables",
   "docs": {
     "syntax": "=INDEX(answer,MATCH(name,names,0)) looks up anything; nest the inner INDEX for three tables",
-    "explain": "A dashboard is a cell you type a name into and a set of cells that follow. The mechanism that makes it follow is INDEX and MATCH, which the earlier group introduced as a pair and which this lesson uses twice. The first use is the ordinary one: find the row where the name matches, then read the value at that position in another column. That gets you the figure the dashboard shows. The second use is why dashboards need three tables rather than two. A rep is in a list, the rep belongs to a region, and the region has a target, and the target is not reachable from the rep's row without going through the region first. Writing the inner INDEX and MATCH inside the outer one is the whole technique: the inner pair answers which region, the outer pair answers what that region's target is. Once the shape is in place the dashboard is just more of the same, and the manual alternative, a helper column of regions and a VLOOKUP on top of it, becomes unnecessary rather than wrong.",
+    "explain": "A dashboard is a cell you type a name into and a set of cells that follow. The mechanism that makes it follow is INDEX and MATCH, which the earlier group introduced as a pair and which this lesson uses twice. The first use is the ordinary one: find the row where the name matches, then read the value at that position in another column. That gets you the figure the dashboard shows. The second use is why dashboards need three tables rather than two. A rep is in a list, the rep belongs to a region, and the region has a target. The target is not reachable from the rep's row without going through the region first. Writing the inner INDEX and MATCH inside the outer one is the whole technique. The inner pair answers which region, and the outer pair answers what that region's target is. Once the shape is in place the dashboard is just more of the same. The manual alternative, a helper column of regions plus a VLOOKUP on top of it, becomes unnecessary rather than wrong.",
     "errors": [
       {
         "code": "#N/A",
@@ -98,7 +98,7 @@
       ],
       "requireRef": "F2",
       "hints": {
-        "syntax": "=INDEX(C2:C5,MATCH(F2,A2:A5,0)) — the sales column, then the position of the typed name.",
+        "syntax": "=INDEX(C2:C5,MATCH(F2,A2:A5,0)): the sales column, then the position of the typed name.",
         "func-index": "The answer is read from the sales column at a position.",
         "func-match": "The position comes from finding the typed name in the rep column.",
         "require-ref": "The typed name is in F2.",
@@ -246,7 +246,7 @@
       ],
       "requireRef": "F7",
       "hints": {
-        "syntax": "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0)) — the inner pair finds the region, the outer pair finds its target.",
+        "syntax": "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0)): the inner pair finds the region, the outer pair finds its target.",
         "func-index": "Two columns are read by position: the region, then the target.",
         "func-match": "Two positions are found: the rep's row, then the region's row.",
         "require-ref": "The typed name is in F7.",
@@ -307,5 +307,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Lookup dashboard from three tables",
+    "description": "INDEX and MATCH find a rep. A second nested pair then reaches the target for the region that rep belongs to, which is why a dashboard needs a third table."
+  },
+  "updated": "2026-10-31"
 }

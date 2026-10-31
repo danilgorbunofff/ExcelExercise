@@ -68,7 +68,7 @@
       "rules": [],
       "hints": {
         "syntax": "=INDEX(SORT(A2:B7,2,-1),1,1): SORT builds the ranked block, INDEX picks one cell from it.",
-        "func-sort": "Sorting is the point of this lesson. Reading the answer off the screen does not survive next month’s update.",
+        "func-sort": "Sorting is the point of this lesson. Reading the answer off the screen does not survive next month's update.",
         "func-index": "SORT returns a whole block of rows. INDEX is how you ask that block for its first row and first column.",
         "require-ref": "Point SORT at the table starting at row 2 so the check can see the scores column.",
         "value": "The cell you picked is not the top of the ranking. Check the sort order and which row of the sorted block you asked for.",
@@ -135,7 +135,7 @@
   ],
   "docs": {
     "syntax": "=SORT(array, [sort_index], [sort_order], [by_col])",
-    "explain": "SORT returns a new block of rows in the order you ask for without touching the source table. The second argument names the column to sort on, so 2 means the score column, and the third argument takes 1 for ascending or -1 for descending. Six reps sit in rows 2 to 7 with scores of 88, 95, 72, 91, 61 and 80; sorting on column 2 descending puts Mia’s 95 on the first row, Ivy’s 91 on the second and Sam’s 61 last. SORT on its own spills that whole ranked block, and a block is not a single answer, so INDEX pulls one cell out of it: row 1, column 1 is the name at the top. That two-step shape is the reusable pattern, because changing row 1 to row 2 gives the runner-up without a second formula. Two limits bite in practice: the sort index counts columns inside the array, not columns on the sheet, so 3 on a two-column table returns #VALUE!, and the spill needs empty cells below it or Excel reports #SPILL!.",
+    "explain": "SORT returns a new block of rows in the order you ask for without touching the source table. The second argument names the column to sort on, so 2 means the score column, and the third argument takes 1 for ascending or -1 for descending. Six reps sit in rows 2 to 7 with scores of 88, 95, 72, 91, 61 and 80. Sorting on column 2 descending puts Mia's 95 on the first row, Ivy's 91 on the second and Sam's 61 last. SORT on its own spills that whole ranked block, and a block is not a single answer. INDEX pulls one cell out of it: row 1, column 1 is the name at the top. That two-step shape is the reusable pattern, because changing row 1 to row 2 gives the runner-up without a second formula. Two limits bite in practice. The sort index counts columns inside the array, not columns on the sheet, so 3 on a two-column table returns #VALUE!. The spill also needs empty cells below it, or Excel reports #SPILL!.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -159,5 +159,10 @@
     "teaches": "SORT",
     "dataset": "Sales rep scoreboard",
     "reference": "=INDEX(SORT(A2:B7,2,-1),1,1)"
-  }
+  },
+  "seo": {
+    "title": "SORT in Excel, then INDEX one cell out",
+    "description": "SORT ranks a block in the order you ask for without touching the source. INDEX then pulls one cell, so row 1 is the top and row 2 the runner-up."
+  },
+  "updated": "2026-10-31"
 }

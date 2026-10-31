@@ -61,7 +61,7 @@
       "rules": [],
       "hints": {
         "syntax": "RANK takes the value, then the whole column: =RANK(B2,B2:B6).",
-        "func-rank": "Counting how many times are faster is a formula of its own — RANK does exactly that.",
+        "func-rank": "Counting how many times are faster is a formula of its own: RANK does exactly that.",
         "require-ref": "The second argument should be the range B2:B6, not a hand-typed list.",
         "value": "Only Ben's 61 is faster than 58, so Ada is second.",
         "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
@@ -112,7 +112,7 @@
     {
       "id": "formula-2",
       "type": "formula",
-      "prompt": "The slowest swimmer gets the place number 1, so put Ada's place on that scale into C2.",
+      "prompt": "The slowest swimmer gets place 1, so number Ada in C2 the same way.",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -167,7 +167,7 @@
         "syntax": "The third argument is the order, and any nonzero value means ascending: =RANK(B2,B2:B6,1).",
         "func-rank": "This is the same ranking read from the other end, and RANK takes an order argument.",
         "require-ref": "Rank against the whole column B2:B6, so every swimmer is in the comparison.",
-        "value": "Ascending, the places run 50, 55, 57, 58, 61 — Ada's 58 is fourth from the bottom, so place 4.",
+        "value": "Ascending, the places run 50, 55, 57, 58, 61: Ada's 58 is fourth from the bottom, so place 4.",
         "error": "Dividing by zero leaves #DIV/0! instead of a place."
       },
       "fixtures": {
@@ -221,7 +221,7 @@
   ],
   "docs": {
     "syntax": "=RANK(number, ref, [order])",
-    "explain": "RANK answers a question sorting cannot: as you read each row, where does this one sit among all of them. Sorting the sheet answers it once and then loses the original order, and a saved sort is a change to the data rather than a calculation about it. RANK compares the value against a fixed range and counts how many are greater. The range must be anchored — `$B$2:$B$6` or at least the column locked — because the moment the formula is filled down, an unanchored reference slides with it and every row ends up ranking against a different slice. The optional third argument flips the direction: 0 or omitted ranks largest-first, any nonzero value ranks smallest-first. Equal values share a rank and then the next rank is skipped, so two swimmers tied at the top are both 1 and nobody is 2 — positions and ranks are not the same thing, and a report that pretends otherwise will not add up. RANK.EQ behaves the same way; RANK.AVG is the variant that shares the average of the tied places.",
+    "explain": "RANK answers a question sorting cannot. As you read each row, where does this one sit among all of them? Sorting the sheet answers it once, then loses the original order, and a saved sort is a change to the data rather than a calculation about it. RANK compares the value against a fixed range and counts how many are greater. The range must be anchored, as `$B$2:$B$6` or at least with the column locked. The moment the formula is filled down, an unanchored reference slides with it and every row ranks against a different slice. The optional third argument flips the direction. 0 or omitted ranks largest-first, and any nonzero value ranks smallest-first. Equal values share a rank and the next rank is then skipped, so two swimmers tied at the top are both 1 and nobody is 2. Positions and ranks are not the same thing, and a report that pretends otherwise will not add up. RANK.EQ behaves the same way, and RANK.AVG shares the average of the tied places.",
     "errors": [
       {
         "code": "#N/A",
@@ -241,5 +241,10 @@
     "teaches": "RANK, and anchoring the range it compares against",
     "dataset": "A team of swim times ranked both ways",
     "reference": "=RANK(B2,B2:B6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "RANK in Excel: place a list without sorting",
+    "description": "RANK compares each row against one anchored range. Leave the range unanchored and it slides as you fill down, so every row ranks against a different slice."
   }
 }

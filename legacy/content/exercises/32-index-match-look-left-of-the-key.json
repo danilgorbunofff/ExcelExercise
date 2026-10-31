@@ -131,7 +131,7 @@
   ],
   "docs": {
     "syntax": "=INDEX(range, MATCH(value, list, 0))",
-    "explain": "MATCH answers a question about position: 3.25 is the second price down. INDEX answers a question about content: the second cell of A2:A5. Nested, they find the row by looking at the prices and read the names, which is how a lookup goes left. VLOOKUP cannot do this, because its third argument counts columns forward from the key and there is no column before the first one. The zero in MATCH is not optional here: the price column is in the order things were priced, so an approximate match would return whichever price happened to sit just below 3.25. Reading it out loud is the test: 'in this column, at the position where that value sits' \u2014 the outer function owns the answer, the inner one owns the position.",
+    "explain": "MATCH answers a question about position: 3.25 is the second price down. INDEX answers a question about content: the second cell of A2:A5. Nested, they find the row by looking at the prices, then read the names, which is how a lookup goes left. VLOOKUP cannot do this, because its third argument counts columns forward from the key and there is no column before the first one. The zero in MATCH is not optional here. The price column is in the order things were priced, so an approximate match would return whichever price happened to sit just below 3.25. Reading it out loud is the test: 'in this column, at the position where that value sits'. The outer function owns the answer, the inner one owns the position.",
     "errors": [
       {
         "code": "#N/A",
@@ -147,5 +147,10 @@
     "teaches": "INDEX with MATCH",
     "dataset": "Four priced products",
     "reference": "=INDEX(A2:A5,MATCH(B6,B2:B5,0))"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "INDEX MATCH: look left of the key",
+    "description": "MATCH finds the row by its price, INDEX reads the name from that row, and a lookup goes left. VLOOKUP cannot do this, because it only counts forward."
   }
 }

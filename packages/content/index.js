@@ -14,6 +14,8 @@ import {
 } from "./schema.js";
 
 export { LEVELS, SCHEMA_VERSION, SCREEN_TYPES, normalizeLesson, normalizeTrack, referenceOf, revealOf, screenAt };
+export { headingId, parseMarkdown, sectionIds, wordCount } from "./markdown.js";
+export { REQUIRED_SECTIONS, articleProblems, loadArticles, parseArticle } from "./articles.js";
 
 /** Kept as the public name of the lesson gate: everything that read it before still does. */
 export const validateLesson = normalizeLesson;

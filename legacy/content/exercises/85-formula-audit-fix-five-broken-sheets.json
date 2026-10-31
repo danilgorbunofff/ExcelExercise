@@ -5,7 +5,7 @@
   "title": "Formula audit: fix five broken sheets",
   "docs": {
     "syntax": "each error code names one break: a zero divisor, a missing key, text in arithmetic, a wrong range, a misspelling",
-    "explain": "This capstone is the reverse of everything before it. The other lessons hand you a question and ask for a formula; here the formula exists, it is broken, and the sheet shows you the error code it broke with. Reading that code is the skill. A division error means the denominator can be zero, and the fix is a guard rather than a different function. A not-available error means a lookup found nothing, and the fix is to test for the row before asking for it. A value error means one of the operands is text and the arithmetic has no number to work with, which is caught with a type test. A reference error means a range points outside the data, and the fix is to read the range against the table rather than to trust the mouse. A name error means the function was mistyped, and the repair is spelling. The five screens here are one of each, in that order, and each one takes a different function to repair, which is why the audit is the last lesson in the track rather than an early one.",
+    "explain": "This capstone is the reverse of everything before it. The other lessons hand you a question and ask for a formula. Here the formula exists, it is broken, and the sheet shows you the error code it broke with. Reading that code is the skill. A division error means the denominator can be zero, and the fix is a guard rather than a different function. A not-available error means a lookup found nothing, and the fix is to test for the row before asking for it. A value error means one of the operands is text and the arithmetic has no number to work with, which is caught with a type test. A reference error means a range points outside the data, and the fix is to read the range against the table rather than to trust the mouse. A name error means the function was mistyped, and the repair is spelling. The five screens here are one of each, in that order. Each one takes a different function to repair, which is why the audit is the last lesson in the track rather than an early one.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -90,7 +90,7 @@
       ],
       "requireRef": "B3",
       "hints": {
-        "syntax": "=IF(B3=0,\"n/a\",C3/B3) — test the denominator, then divide.",
+        "syntax": "=IF(B3=0,\"n/a\",C3/B3): test the denominator, then divide.",
         "func-if": "The cell has to choose between a word and a division.",
         "require-ref": "The visits figure for that rep is in B3.",
         "value": "With no visits the answer is the word n/a, not a number.",
@@ -214,7 +214,7 @@
       ],
       "requireRef": "E2",
       "hints": {
-        "syntax": "=IF(COUNTIF(A2:A5,E2)=0,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE)) — count the key first, then look it up.",
+        "syntax": "=IF(COUNTIF(A2:A5,E2)=0,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE)): count the key first, then look it up.",
         "func-countif": "The key is tested for before the lookup asks for its row.",
         "func-vlookup": "The orders figure is read from the third column of the rep table.",
         "require-ref": "The typed name is in E2.",
@@ -334,7 +334,7 @@
       ],
       "requireRef": "B3",
       "hints": {
-        "syntax": "=IF(ISNUMBER(B3),B3*C3,0) — test the operand's type, then multiply.",
+        "syntax": "=IF(ISNUMBER(B3),B3*C3,0): test the operand's type, then multiply.",
         "func-isnumber": "The quantity is text on that row, so the fix starts with a type test.",
         "require-ref": "The quantity is in B3.",
         "value": "A line with no usable quantity is worth nothing, so it contributes zero.",
@@ -443,7 +443,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=SUMIF(A2:A5,\"North\",B2:B5) — the labels, the criterion, then the amounts.",
+        "syntax": "=SUMIF(A2:A5,\"North\",B2:B5): the labels, the criterion, then the amounts.",
         "func-sumif": "Only the North rows count, so the total needs a criterion.",
         "require-ref": "The amount column is B2:B5.",
         "value": "A hundred and a hundred and fifty are the two North rows, so 250.",
@@ -542,7 +542,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=AVERAGE(B2:B5) — the function name, then the score column.",
+        "syntax": "=AVERAGE(B2:B5): the function name, then the score column.",
         "func-average": "The repaired cell reports the mean of the scores.",
         "require-ref": "The score column is B2:B5.",
         "value": "339 across four names is 84.75.",
@@ -592,5 +592,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Formula audit: fix five broken sheets",
+    "description": "Each Excel error code names one kind of break. A division error needs a guard, a name error needs spelling, and the code tells you which one you have."
+  },
+  "updated": "2026-10-31"
 }

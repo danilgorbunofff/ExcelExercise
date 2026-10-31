@@ -232,7 +232,7 @@
   ],
   "docs": {
     "syntax": "=RANK(MEDIAN(range), range) and =(LARGE(range,1)+LARGE(range,2))/2",
-    "explain": "A summary statistic answers a question, and most real questions need two of them joined together. The average of the best two times is not a function Excel has; it is LARGE asked twice and divided by two, and reading it as a sentence is the skill this lesson is really teaching. The second screen nests MEDIAN inside RANK so the answer is a place rather than a value: the middle time is 57, and the place that time earns is 3. Nesting works because every function returns a value that another function can consume, and the trace is read inside-out — MEDIAN finishes, then RANK uses what it returned. The trap is that a mean of a subset can produce a number that exists nowhere in the data, so it has no place, no row and no format to inherit; averaging the top two gives 59.5, which is not a swim time at all. Watch the ranges: two LARGE calls that point at different ranges silently average two different groups, which is the most common way a hand-built summary goes quietly wrong.",
+    "explain": "A summary statistic answers a question, and most real questions need two of them joined together. The average of the best two times is not a function Excel has. It is LARGE asked twice and divided by two, and reading it as a sentence is the skill this lesson teaches. The second screen nests MEDIAN inside RANK, so the answer is a place rather than a value. The middle time is 57, and the place that time earns is 3. Nesting works because every function returns a value another function can consume, and the trace is read inside-out. MEDIAN finishes, then RANK uses what it returned. The trap is that a mean of a subset can produce a number that exists nowhere in the data, so it has no place, no row and no format to inherit. Averaging the top two gives 59.5, which is not a swim time at all. Watch the ranges. Two LARGE calls pointing at different ranges silently average two different groups, which is the most common way a hand-built summary goes quietly wrong.",
     "errors": [
       {
         "code": "#NUM!",
@@ -252,5 +252,10 @@
     "teaches": "MEDIAN, LARGE and RANK combined",
     "dataset": "One team's swim times summarised two ways",
     "reference": "=(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Combine Excel summary functions",
+    "description": "LARGE asked twice and halved gives the average of the best two times. Nest MEDIAN inside RANK and the answer is a place. Read the trace inside-out."
   }
 }

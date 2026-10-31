@@ -5,7 +5,7 @@
   "title": "TEXTBEFORE and TEXTAFTER: split on a delimiter",
   "docs": {
     "syntax": "=TEXTBEFORE(text,\"-\") keeps what precedes the delimiter; =TEXTAFTER keeps what follows",
-    "explain": "Splitting a cell on a separator used to be a LEFT and a FIND glued together. TEXTBEFORE and TEXTAFTER do that job in one call each, and they name the two halves explicitly so the formula reads like the sentence that asked for it. The delimiter is a piece of text, not a position, which is the change that matters: the formula keeps working when the prefix grows from three letters to five, and it keeps working on the next row where the code is a different length. Each function answers the half on its side of the delimiter and drops the delimiter itself. Where the text holds no delimiter at all, both raise #N/A rather than guessing, and that is a feature: a code that does not fit the pattern is a row you want to see fail rather than a row that quietly returns an empty answer. The two screens split the same order codes in opposite directions, so the learner writes both halves and sees that neither needs a position number anywhere.",
+    "explain": "Splitting a cell on a separator used to be a LEFT and a FIND glued together. TEXTBEFORE and TEXTAFTER do that job in one call each, and they name the two halves explicitly so the formula reads like the sentence that asked for it. The delimiter is a piece of text, not a position. That is the change that matters: the formula keeps working when the prefix grows from three letters to five, and on rows where the code is a different length. Each function answers the half on its side of the delimiter and drops the delimiter itself. Where the text holds no delimiter at all, both raise #N/A rather than guessing. That is a feature: a code that does not fit the pattern is a row you want to see fail, not a row that quietly returns an empty answer. The two screens split the same order codes in opposite directions, so the learner writes both halves and sees that neither needs a position number anywhere.",
     "errors": [
       {
         "code": "#N/A",
@@ -64,7 +64,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=TEXTBEFORE(A2,\"-\") — the code, then the delimiter in quotes.",
+        "syntax": "=TEXTBEFORE(A2,\"-\"): the code, then the delimiter in quotes.",
         "func-textbefore": "The prefix is everything before the hyphen, which is exactly what TEXTBEFORE answers.",
         "require-ref": "The order code is in A2.",
         "value": "Everything before the hyphen is ORD.",
@@ -170,7 +170,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=TEXTAFTER(A2,\"-\") — the code, then the delimiter in quotes.",
+        "syntax": "=TEXTAFTER(A2,\"-\"): the code, then the delimiter in quotes.",
         "func-textafter": "The number is everything after the hyphen, which is exactly what TEXTAFTER answers.",
         "require-ref": "The order code is in A2.",
         "value": "Everything after the hyphen is 4471.",
@@ -226,5 +226,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "TEXTBEFORE and TEXTAFTER in Excel",
+    "description": "Name the delimiter and Excel keeps the half on your side of it, with no position to work out. No delimiter in the cell means #N/A, not a silent blank."
+  },
+  "updated": "2026-10-31"
 }

@@ -12,17 +12,43 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["SKU", "Price"],
-          ["TX-101", 19.99],
-          ["TX-102", 14],
-          ["TX-103", 9.5],
-          ["Lookup", "TX-104"],
-          ["Price", null]
+          [
+            "SKU",
+            "Price"
+          ],
+          [
+            "TX-101",
+            19.99
+          ],
+          [
+            "TX-102",
+            14
+          ],
+          [
+            "TX-103",
+            9.5
+          ],
+          [
+            "Lookup",
+            "TX-104"
+          ],
+          [
+            "Price",
+            null
+          ]
         ]
       },
       "answerCell": "B6",
-      "expect": { "value": "not stocked" },
-      "require": [{ "id": "func-xlookup", "func": "XLOOKUP", "minArgs": 4 }],
+      "expect": {
+        "value": "not stocked"
+      },
+      "require": [
+        {
+          "id": "func-xlookup",
+          "func": "XLOOKUP",
+          "minArgs": 4
+        }
+      ],
       "forbid": [],
       "requireRef": "B5",
       "rules": [],
@@ -79,7 +105,7 @@
   ],
   "docs": {
     "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found])",
-    "explain": "The list holds TX-101, TX-102 and TX-103, and cell B5 asks about TX-104, which is not there. Without a fourth argument XLOOKUP returns #N/A, and a page of #N/A is what sends a reader to the formula bar to find out what went wrong. The fourth argument is the text to show instead, so the lookup answers \"not stocked\" and the cell reads as a sentence. The fallback belongs in the fourth slot and nowhere else; put it in the third slot and XLOOKUP tries to return it as a column, which returns #VALUE!. Because the fallback is shown exactly as typed, the capitalisation in the prompt is part of the answer.",
+    "explain": "The list holds TX-101, TX-102 and TX-103, and cell B5 asks about TX-104, which is not there. Without a fourth argument XLOOKUP returns #N/A, and a page of #N/A sends a reader to the formula bar to find out what went wrong. The fourth argument is the text to show instead, so the lookup answers \"not stocked\" and the cell reads as a sentence. The fallback belongs in the fourth slot and nowhere else. Put it in the third slot and XLOOKUP tries to return it as a column, which returns #VALUE!. The fallback shows exactly as typed, so the capitalisation in the prompt is part of the answer.",
     "errors": [
       {
         "code": "#N/A",
@@ -95,5 +121,10 @@
     "teaches": "XLOOKUP fallback",
     "dataset": "A three-SKU price list",
     "reference": "=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "XLOOKUP fallback in Excel: no #N/A",
+    "description": "The fourth argument replaces #N/A with text a reader can follow. B5 asks for TX-104, so the cell says not stocked while listed SKUs still return prices."
   }
 }

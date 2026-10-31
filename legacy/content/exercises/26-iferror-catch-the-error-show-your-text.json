@@ -12,16 +12,39 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["SKU", "Price"],
-          ["TX-101", 19.99],
-          ["TX-102", 14],
-          ["TX-109", null],
-          ["Price", null]
+          [
+            "SKU",
+            "Price"
+          ],
+          [
+            "TX-101",
+            19.99
+          ],
+          [
+            "TX-102",
+            14
+          ],
+          [
+            "TX-109",
+            null
+          ],
+          [
+            "Price",
+            null
+          ]
         ]
       },
       "answerCell": "B5",
-      "expect": { "value": "no price" },
-      "require": [{ "id": "func-iferror", "func": "IFERROR", "minArgs": 2 }],
+      "expect": {
+        "value": "no price"
+      },
+      "require": [
+        {
+          "id": "func-iferror",
+          "func": "IFERROR",
+          "minArgs": 2
+        }
+      ],
       "forbid": [],
       "requireRef": "A4",
       "rules": [],
@@ -83,7 +106,7 @@
   ],
   "docs": {
     "syntax": "=IFERROR(value, value_if_error)",
-    "explain": "The list holds TX-101 and TX-102, and A4 asks about TX-109, so the lookup finds nothing and returns #N/A. IFERROR takes two arguments: the calculation that might fail, and what to show when it does. Wrapped around the lookup, the cell reads no price, which is a sentence someone can act on, and the sheet stays presentable. IFERROR catches every error type, not just a missed lookup — #REF!, #VALUE! and #DIV/0! all get the same fallback, which is convenient and can also hide a real mistake: a broken reference now looks like a missing price. It only protects what is inside it, so arithmetic done outside the wrapper can still return an error.",
+    "explain": "The list holds TX-101 and TX-102, and A4 asks about TX-109, so the lookup finds nothing and returns #N/A. IFERROR takes two arguments: the calculation that might fail, and what to show when it does. Wrapped around the lookup, the cell reads no price, which is a sentence someone can act on. IFERROR catches every error type, not only a missed lookup. #REF!, #VALUE! and #DIV/0! all get the same fallback, which is convenient and can hide a real mistake: a broken reference now looks like a missing price. It only protects what is inside it, so arithmetic done outside the wrapper can still return an error.",
     "errors": [
       {
         "code": "#N/A",
@@ -99,5 +122,10 @@
     "teaches": "IFERROR",
     "dataset": "Two prices and a missing SKU",
     "reference": "=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"no price\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "IFERROR in Excel: replace an error with text",
+    "description": "A lookup for TX-109 finds nothing and returns #N/A. IFERROR shows text you choose instead, which reads better and can also hide a real mistake."
   }
 }

@@ -154,7 +154,7 @@
   ],
   "docs": {
     "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
-    "explain": "VLOOKUP compares the text Northwind followed by anything — written A7&\"*\" — against the first column of A1:C6, so the pattern matches the first supplier whose name starts with Northwind: Air, in row 4 of the grid, and column 3 of that row is 7 days. Without the wildcard the lookup value is the bare word Northwind, which is not in the list, so exact match stops at #N/A instead of guessing. Three suppliers begin with Northwind — Air, Rail and Sea — and VLOOKUP returns the first one it meets in table order, which is why 7 comes back rather than Rail's 19 or Sea's 26; a longer prefix such as Northwind R would pick out one row and take the ordering question away. The fourth argument has to be FALSE, because approximate match on text compares the names in sort order and never reads the pattern, so Excel would be free to land on a neighbouring supplier. The pattern is built from A7 rather than typed into the formula, so changing the partial name changes which supplier the lookup finds.",
+    "explain": "VLOOKUP compares the pattern Northwind followed by anything, written A7&\"*\", against the first column of A1:C6. So it matches the first supplier whose name starts with Northwind, which is Air in row 4, and column 3 of that row is 7 days. Without the wildcard the lookup value is the bare word Northwind, which is not in the list, so exact match stops at #N/A. Three suppliers begin with Northwind, Air, Rail and Sea, and VLOOKUP returns the first in table order. That is why 7 comes back rather than Rail's 19. A longer prefix such as Northwind R would pick out one row and settle it. The fourth argument must be FALSE, because approximate match compares text in sort order and never reads the pattern. The pattern is built from A7, so changing that cell changes which supplier is found.",
     "errors": [
       {
         "code": "#N/A",
@@ -174,5 +174,10 @@
     "teaches": "VLOOKUP wildcard",
     "dataset": "Supplier lead times",
     "reference": "=VLOOKUP(A7&\"*\",A1:C6,3,FALSE)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "VLOOKUP wildcard in Excel: match a partial name",
+    "description": "A7&\"*\" turns a partial name into a pattern, and VLOOKUP returns the first supplier that starts with it: Northwind Air at 7 days, not Rail at 19."
   }
 }

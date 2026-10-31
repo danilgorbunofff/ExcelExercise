@@ -85,7 +85,7 @@
         }
       ],
       "hints": {
-        "syntax": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE) — MATCH turns the quarter into the column number.",
+        "syntax": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE): MATCH turns the quarter into the column number.",
         "func-vlookup": "VLOOKUP is the half that fetches the number. It needs the product, the table, and the column number MATCH hands it.",
         "func-match": "MATCH needs three arguments: the quarter, the header row A1:C1, and 0. Given two it reads nothing and reports a missing argument.",
         "require-ref": "Point MATCH at B6. Typing \"Q2\" into the formula works until the cell changes, which is the one thing this drill is about.",
@@ -172,7 +172,7 @@
   ],
   "docs": {
     "syntax": "=VLOOKUP(product, table, MATCH(quarter, header_row, 0), FALSE)",
-    "explain": "MATCH reads the header A1:C1 for the quarter in B6 and returns 3, because Q2 is the third column of the table. VLOOKUP then finds Widget on row 3 of A1:C5 and takes that row's 3rd value: 110. No digit in the formula names a column, so changing B6 to Q1 returns 90 without editing the formula. The two ranges have to start on the same column for this to work: MATCH counts inside the range it was given, and VLOOKUP counts from the first column of its table, so a MATCH over B1:C1 returns 2 and lands on Q1.",
+    "explain": "MATCH reads the header A1:C1 for the quarter in B6 and returns 3, because Q2 is the third column of the table. VLOOKUP then finds Widget on row 3 of A1:C5 and takes that row's third value, 110. No digit in the formula names a column, so changing B6 to Q1 returns 90 without editing anything. The two ranges have to start on the same column for this to work. MATCH counts inside the range it was given and VLOOKUP counts from the first column of its table, so a MATCH over B1:C1 returns 2 and lands on Q1.",
     "errors": [
       {
         "code": "#N/A",
@@ -192,5 +192,10 @@
     "teaches": "VLOOKUP and MATCH",
     "dataset": "Quarterly units by product",
     "reference": "=VLOOKUP(A6,A1:C5,MATCH(B6,A1:C1,0),FALSE)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Two-way lookup with VLOOKUP and MATCH",
+    "description": "MATCH turns the quarter into a column number, so no digit in the formula describes the table. Move B6 from Q2 to Q1 and the answer moves from 110 to 90."
   }
 }

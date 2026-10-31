@@ -157,7 +157,7 @@
   ],
   "docs": {
     "syntax": "=COUNTIF(range, criteria)",
-    "explain": "COUNTIF walks the range and counts the cells that satisfy one condition. Eight tickets sit in B2:B9 with five different statuses, and exactly four of them read \"Open\", so COUNTIF(B2:B9,\"Open\") returns 4. Text conditions need quotation marks because the criteria is a string, while a numeric condition does not: COUNTIF(B2:B9,4) would count cells equal to the number four. The criteria also accepts comparisons and wildcards as text, so \">=5\", \"<>Closed\" and \"T-10*\" are all legal conditions. COUNTIF is not case-sensitive for text, which surprises people who expect \"open\" and \"Open\" to count separately.",
+    "explain": "COUNTIF walks a range and counts the cells that meet one condition. Eight tickets sit in B2:B9 with five statuses, and exactly four of them read \"Open\", so COUNTIF(B2:B9,\"Open\") returns 4. Text conditions need quotation marks because the criteria is a string. A number does not: COUNTIF(B2:B9,4) counts cells equal to four. Criteria also accept comparisons and wildcards written as text, so \">=5\", \"<>Closed\" and \"T-10*\" all work. COUNTIF ignores case, which surprises anyone expecting \"open\" and \"Open\" to count separately.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -165,7 +165,7 @@
       },
       {
         "code": "#NAME?",
-        "text": "COUNTIFF or COUNITF — a doubled letter is enough to lose the function."
+        "text": "COUNTIFF or COUNITF: a doubled letter is enough to lose the function."
       },
       {
         "code": "Off-by-one",
@@ -177,5 +177,10 @@
     "teaches": "COUNTIF",
     "dataset": "Support ticket log",
     "reference": "=COUNTIF(B2:B9,\"Open\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "COUNTIF in Excel: count rows that match",
+    "description": "COUNTIF counts the rows that meet one condition. Four of these eight tickets read Open, so the formula returns 4, and the criteria syntax is the lesson."
   }
 }

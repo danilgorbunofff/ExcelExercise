@@ -116,7 +116,7 @@
   ],
   "docs": {
     "syntax": "=SUM(number1, [number2], ...)",
-    "explain": "SUM adds up every number you point it at. Here the Q1 column holds 1200, 1450 and 930, and SUM(B2:B4) returns 3580 because 1200 + 1450 + 930 = 3580. Nothing has to be typed twice: change the South figure to 1500 and the total follows, which is the entire reason a spreadsheet exists. SUM ignores text and empty cells inside a range, so a stray label in the middle of a column will not break the answer — the trap is the other way around, a number stored as text, which SUM silently skips. If a region is missing from the total, look for a left-aligned number in the column.",
+    "explain": "SUM adds every number in the range you give it. The Q1 column holds 1200, 1450 and 930, so SUM(B2:B4) returns 3580. Change the South figure to 1500 and the total follows without retyping anything, which is the reason a spreadsheet exists. SUM skips text and empty cells inside a range, so a stray label will not break the answer. The trap runs the other way: a number stored as text is skipped silently. If a region is missing from the total, look for the left-aligned number in the column.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -136,5 +136,10 @@
     "teaches": "SUM",
     "dataset": "Q1 revenue by region",
     "reference": "=SUM(B2:B4)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SUM in Excel: total a column in one cell",
+    "description": "SUM adds a whole range in one cell. This drill totals 3580 from three rows, then shows why a number stored as text never reaches the total."
   }
 }

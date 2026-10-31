@@ -5,7 +5,7 @@
   "title": "FIND and SEARCH: case-sensitive or not",
   "docs": {
     "syntax": "=FIND(needle,text) matches case; =SEARCH(needle,text) ignores it; both answer a position",
-    "explain": "FIND and SEARCH do the same job and disagree about only one thing: capital letters. That difference is the whole reason both exist, and it decides which one you write. When the text is a code, case is part of the meaning, so a hyphen has to be found as a hyphen and a lower-case letter has to be found as a lower-case letter. FIND does that, and it fails loudly when the character it was sent to look for is not there. When the text is a label somebody typed, case is noise, so SEARCH is the right tool: it finds north, North and NORTH wherever they sit in the cell. Both functions answer with a position number counted from the left, not with the text they found, which is what makes them useful inside MID. This lesson pins the difference down with one screen each, so the learner types the same shape twice and only the function name changes.",
+    "explain": "FIND and SEARCH do the same job and disagree about only one thing: capital letters. That difference is the whole reason both exist, and it decides which one you write. When the text is a code, case is part of the meaning, so a hyphen has to be found as a hyphen and a lower-case letter as a lower-case letter. FIND does that, and it fails loudly when the character it was sent to look for is not there. When the text is a label somebody typed, case is noise, so SEARCH is the right tool. It finds north, North and NORTH wherever they sit in the cell. Both functions answer with a position number counted from the left, not with the text they found, which is what makes them useful inside MID. This lesson pins the difference down with one screen each, so the learner types the same shape twice and only the function name changes.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -64,7 +64,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=FIND(\"-\",A2) — the character to look for first, then the text.",
+        "syntax": "=FIND(\"-\",A2): the character to look for first, then the text.",
         "func-find": "Codes are case-sensitive text, so the position comes from FIND.",
         "require-ref": "The code is in A2.",
         "value": "A, N, then the hyphen: it sits in third place.",
@@ -160,7 +160,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=SEARCH(\"N\",A2) — the character, then the text, with case ignored.",
+        "syntax": "=SEARCH(\"N\",A2): the character, then the text, with case ignored.",
         "func-search": "The label is typed text, so the position comes from SEARCH.",
         "require-ref": "The label is in A2.",
         "value": "b, a, n: the first N is in third place.",
@@ -226,5 +226,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "FIND and SEARCH in Excel: case or no case",
+    "description": "FIND matches capital letters exactly and SEARCH ignores them. Both answer a position counted from the left, which is what makes them useful inside MID."
+  },
+  "updated": "2026-10-31"
 }

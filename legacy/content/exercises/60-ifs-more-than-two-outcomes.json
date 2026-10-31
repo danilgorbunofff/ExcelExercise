@@ -53,7 +53,7 @@
       "requireRef": "B3",
       "rules": [],
       "hints": {
-        "syntax": "=IFS(test 1, result 1, test 2, result 2, ...) — tests and results alternate.",
+        "syntax": "=IFS(test 1, result 1, test 2, result 2, ...): tests and results alternate.",
         "func-ifs": "Nested IFs work too, but this lesson wants the function built for several outcomes.",
         "require-ref": "Band the score in the grid rather than typing 78 into the formula.",
         "value": "78 is under 80 but at least 70, so the third test wins and the answer is C.",
@@ -151,7 +151,7 @@
       "requireRef": "B4",
       "rules": [],
       "hints": {
-        "syntax": "=IFS(test 1, result 1, test 2, result 2, TRUE, fallback) — TRUE catches everything else.",
+        "syntax": "=IFS(test 1, result 1, test 2, result 2, TRUE, fallback): TRUE catches everything else.",
         "func-ifs": "Three outcomes are two tests plus a fallback, which is what IFS reads best as.",
         "require-ref": "Point at Cleo's score so the label follows the grid.",
         "value": "85 is under 90 but at least 80, so the answer is Pass.",
@@ -203,7 +203,7 @@
   ],
   "docs": {
     "syntax": "=IFS(test1, result1, test2, result2, ..., TRUE, fallback)",
-    "explain": "IF handles two outcomes, and the moment a question has three the nested IFs start multiplying parentheses until nobody can read them. IFS takes tests and results in pairs and returns the result of the first test that is TRUE, which is why the order of the pairs is the whole logic: put the loosest test first and nothing else can ever be reached. A final pair of TRUE and a fallback is how a range that might be empty still returns something instead of #N/A, and leaving it out is the most common error with the function. In this drill Ben's 78 is tested against 90, then 80, then 70, and lands on C; Cleo's 85 in the second screen is labelled Pass because Merit needs 90. Every test is a comparison on a cell in the grid, so changing a score re-bands the row without touching the formula. IFS is not available in very old versions of Excel, where nested IFs are the only route, so it is worth being able to read both forms.",
+    "explain": "IF handles two outcomes, and the moment a question has three the nested IFs start multiplying parentheses until nobody can read them. IFS takes tests and results in pairs and returns the result of the first test that is TRUE. That is why the order of the pairs is the whole logic. Put the loosest test first and nothing else can ever be reached. A final pair of TRUE and a fallback is how a range that might be empty still returns something instead of #N/A. Leaving it out is the most common error with the function. In this drill Ben's 78 is tested against 90, then 80, then 70, and lands on C. Cleo's 85 in the second screen is labelled Pass, because Merit needs 90. Every test is a comparison on a cell in the grid, so changing a score re-bands the row without touching the formula. IFS is not available in very old versions of Excel, where nested IFs are the only route, so it is worth being able to read both forms.",
     "errors": [
       {
         "code": "#N/A",
@@ -224,5 +224,10 @@
     "dataset": "Four-name score sheet with bands to decide",
     "reference": "=IFS(B3>=90,\"A\",B3>=80,\"B\",B3>=70,\"C\",TRUE,\"D\")"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "IFS in Excel: more than two outcomes",
+    "description": "IFS takes tests and results in pairs and returns the first true one, so order carries the logic. Leave out the TRUE fallback and a missed band gives #N/A."
+  }
 }

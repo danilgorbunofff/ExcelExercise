@@ -138,7 +138,7 @@
   ],
   "docs": {
     "syntax": "=FILTER(array, include, [if_empty])",
-    "explain": "FILTER takes a block of values and a block of TRUE/FALSE tests of the same height, and returns only the rows where the test came back TRUE. Six orders sit in rows 2 to 7 with units of 40, 90, 70, 25, 60 and 12. The include argument B2:B7=\"Open\" is TRUE for the three open orders, so FILTER hands back 40, 70 and 60, and SUM turns that spill into 170. The shipped orders total 127 and every order together totals 297, which is why the rejections matter: a formula that adds the wrong set still looks like a working formula. The optional third argument is the value to return when nothing matches; leave it out and a condition that matches no rows reports #N/A, which Excel treats as an error rather than an empty total. The comparison inside the include argument lives in the formula, not the cell, so changing the word \"Open\" to \"Shipped\" re-answers the question without touching the data.",
+    "explain": "FILTER takes a block of values and a block of TRUE/FALSE tests of the same height, and returns only the rows where the test came back TRUE. Six orders sit in rows 2 to 7 with units of 40, 90, 70, 25, 60 and 12. The include argument B2:B7=\"Open\" is TRUE for the three open orders, so FILTER hands back 40, 70 and 60, and SUM turns that spill into 170. The shipped orders total 127 and every order together totals 297. That is why the rejections matter: a formula that adds the wrong set still looks like a working formula. The optional third argument is the value to return when nothing matches. Leave it out and a condition that matches no rows reports #N/A, which Excel treats as an error rather than an empty total. The comparison inside the include argument lives in the formula, not the cell, so changing the word \"Open\" to \"Shipped\" re-answers the question without touching the data.",
     "errors": [
       {
         "code": "#N/A",
@@ -162,5 +162,10 @@
     "teaches": "FILTER",
     "dataset": "Order status board",
     "reference": "=SUM(FILTER(C2:C7,B2:B7=\"Open\"))"
-  }
+  },
+  "seo": {
+    "title": "FILTER in Excel: the rows that meet a condition",
+    "description": "FILTER keeps only rows where the test is TRUE, and SUM turns the spill into a total. The third argument replaces the #N/A when nothing matches."
+  },
+  "updated": "2026-10-31"
 }

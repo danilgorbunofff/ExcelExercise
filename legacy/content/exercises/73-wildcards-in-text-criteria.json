@@ -5,7 +5,7 @@
   "title": "Wildcards in text criteria",
   "docs": {
     "syntax": "In a criterion, ? matches one character and * matches any run of them",
-    "explain": "A criterion is a piece of text that says which rows count, and criteria understand two marks that plain text does not. A question mark stands in for exactly one character; a star stands in for any number of them, including none. That turns a criterion into a pattern, and a pattern is what you want whenever the column is a code rather than a category. The region column here holds whole words, so Nor* and N* and North all select the same three rows, which is the part learners find surprising: the wildcard is not fuzzy matching, it is a pattern with rules. The code column is where the patterns earn their keep. Every code is two letters, a hyphen and four digits, so ??-* selects the whole table while *-1* selects only the rows whose digits contain a one. COUNTIF and SUMIF both read criteria the same way, and the second screen swaps the count for a sum, so the learner writes the pattern once and reuses it. Wildcards are also the fastest way to spot rows that do not fit the pattern at all, which is why they appear on almost every cleanup sheet.",
+    "explain": "A criterion is a piece of text that says which rows count, and criteria understand two marks that plain text does not. A question mark stands in for exactly one character; a star stands in for any number of them, including none. That turns a criterion into a pattern, and a pattern is what you want whenever the column is a code rather than a category. The region column here holds whole words, so Nor* and N* and North all select the same three rows. That is the surprising part: the wildcard is not fuzzy matching, it is a pattern with rules. The code column is where the patterns earn their keep. Every code is two letters, a hyphen and four digits, so ??-* selects the whole table while *-1* selects only the rows whose digits contain a one. COUNTIF and SUMIF both read criteria the same way, and the second screen swaps the count for a sum, so the learner writes the pattern once and reuses it. Wildcards are also the fastest way to spot rows that do not fit the pattern at all, which is why they appear on almost every cleanup sheet.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -78,7 +78,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=COUNTIF(B2:B5,\"Nor*\") — the region column, then the pattern in quotes.",
+        "syntax": "=COUNTIF(B2:B5,\"Nor*\"): the region column, then the pattern in quotes.",
         "func-countif": "Counting rows that match a pattern is COUNTIF's own job.",
         "require-ref": "The region column is B2:B5.",
         "value": "Three of the four regions start with Nor.",
@@ -194,7 +194,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=SUMIF(A2:A5,\"??-*\",C2:C5) — the code column, the pattern, then the amounts.",
+        "syntax": "=SUMIF(A2:A5,\"??-*\",C2:C5): the code column, the pattern, then the amounts.",
         "func-sumif": "A conditional total is SUMIF's job.",
         "require-ref": "The code column is A2:A5.",
         "value": "All four codes fit, so the four amounts add up to 460.",
@@ -256,5 +256,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Wildcards in Excel criteria",
+    "description": "A question mark stands in for one character, a star for any run of them. Nor*, N* and North all select the same rows, because a criterion is a pattern."
+  },
+  "updated": "2026-10-31"
 }

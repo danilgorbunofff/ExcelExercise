@@ -63,7 +63,7 @@
         "syntax": "MEDIAN takes the whole range: =MEDIAN(B2:B6).",
         "func-median": "A mean moves when one reading moves; the middle of the list does not, and that is a different function.",
         "require-ref": "Read the readings from B2:B6 rather than listing them in the formula.",
-        "value": "Sorted, the five readings are 12, 14, 15, 18, 19 — the middle one is 15.",
+        "value": "Sorted, the five readings are 12, 14, 15, 18, 19: the middle one is 15.",
         "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
       },
       "fixtures": {
@@ -221,7 +221,7 @@
   ],
   "docs": {
     "syntax": "=MEDIAN(range)",
-    "explain": "AVERAGE adds everything and divides by the count, which means one extreme value moves the answer as far as its own size deserves. MEDIAN sorts the values in its head and returns the one in the middle, so half the data is above it and half below, and a single wild reading cannot shift it at all. That robustness is the whole reason the function exists: salaries, house prices and response times are all published as medians because the mean of a skewed list describes almost nobody. With an odd count the answer is a real member of the list. With an even count there is no middle element, so MEDIAN returns the average of the two that straddle the middle — 15 and 18 give 16.5, a number that may not appear in the data at all. Blanks and text are ignored rather than counted as zero, which is what makes MEDIAN safe over a column that is still being filled. If every value is text or the range is empty, there is nothing to sit in the middle and the result is `#NUM!`.",
+    "explain": "AVERAGE adds everything and divides by the count, so one extreme value moves the answer as far as its own size deserves. MEDIAN sorts the values in its head and returns the one in the middle. Half the data sits above it and half below, so a single wild reading cannot shift it at all. That is the whole reason the function exists. Salaries, house prices and response times are all published as medians, because the mean of a skewed list describes almost nobody. With an odd count the answer is a real member of the list. With an even count there is no middle element, so MEDIAN returns the average of the two that straddle the middle. 15 and 18 give 16.5, a number that may not appear in the data at all. Blanks and text are ignored rather than counted as zero, which makes MEDIAN safe over a column that is still being filled. If every value is text or the range is empty, the result is `#NUM!`.",
     "errors": [
       {
         "code": "#NUM!",
@@ -241,5 +241,10 @@
     "teaches": "MEDIAN, and why it differs from AVERAGE",
     "dataset": "Five and six audit readings with one outlier",
     "reference": "=MEDIAN(B2:B6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "MEDIAN in Excel: the middle value",
+    "description": "AVERAGE moves with one wild reading; MEDIAN does not, because it returns the middle value. With an even count you get the half-way number, like 16.5."
   }
 }

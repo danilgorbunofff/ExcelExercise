@@ -65,7 +65,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B2:B7)>100 — the comparison wraps the total, not the other way round.",
+        "syntax": "=SUM(B2:B7)>100: the comparison wraps the total, not the other way round.",
         "func-sum": "The question is about the total, so the units have to be added up inside the formula.",
         "require-ref": "Add the units column in the grid rather than typing the total.",
         "value": "The six items add to 150, which is over 100, so the answer is TRUE.",
@@ -175,7 +175,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=AVERAGE(B2:B7)>=20 — the comparison wraps the whole calculation.",
+        "syntax": "=AVERAGE(B2:B7)>=20: the comparison wraps the whole calculation.",
         "func-average": "The question is about the average, so a total cannot answer it.",
         "require-ref": "Take the average over the units column of the grid.",
         "value": "The six items average 25 units, which is at least 20, so the answer is TRUE.",
@@ -227,7 +227,7 @@
   ],
   "docs": {
     "syntax": "=SUM(B2:B7)>100 returns TRUE or FALSE; it is the comparison, not a word",
-    "explain": "Every comparison in Excel is itself a formula, and it hands back one of two logical values rather than the words TRUE and FALSE. Type =SUM(B2:B7)>100 and the cell holds TRUE, formatted in capitals, and the same value can be used by IF, by AND, or by a conditional format without ever being written as text. Because the logical values are not text, a formula that returns the string \"TRUE\" looks right and behaves differently: it will not drive IF, it will not count as a match for TRUE, and sorting puts it in with the words. In this drill the units add to 150, so =SUM(B2:B7)>100 answers TRUE, while the second screen wraps an average in the same comparison and answers TRUE because the six items average 25 units. Both screens are drills in reading the question: the comparison operator carries the whole meaning, and putting an IF around it only wraps a value that was already Boolean. The common failure is writing the words in quotes, which is the one form that grades as a wrong answer here.",
+    "explain": "Every comparison in Excel is itself a formula, and it hands back one of two logical values rather than the words TRUE and FALSE. Type =SUM(B2:B7)>100 and the cell holds TRUE, formatted in capitals. The same value can be used by IF, by AND, or by a conditional format without ever being written as text. Because the logical values are not text, a formula that returns the string \"TRUE\" looks right and behaves differently. It will not drive IF, it will not count as a match for TRUE, and sorting puts it in with the words. In this drill the units add to 150, so =SUM(B2:B7)>100 answers TRUE. The second screen wraps an average in the same comparison and answers TRUE because the six items average 25 units. Both screens are drills in reading the question. The comparison operator carries the whole meaning, and an IF around it only wraps a value that was already Boolean. The common failure is writing the words in quotes, which is the one form that grades as a wrong answer here.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -248,5 +248,10 @@
     "dataset": "Stock list with a total row to compare against",
     "reference": "=SUM(B2:B7)>100"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "TRUE and FALSE in Excel: logical values",
+    "description": "A comparison hands back a logical value, not the word TRUE. Type the word in quotes and IF will not take it, and a sort files it with your text."
+  }
 }

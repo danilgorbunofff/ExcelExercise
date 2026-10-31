@@ -248,7 +248,7 @@
     {
       "id": "picture-1",
       "type": "picture",
-      "prompt": "The bar's third argument points at an empty column — which range should it read the price from?",
+      "prompt": "The bar's third argument points at an empty column, so give it the range that holds the price.",
       "image": "images/xlookup-third-argument.svg",
       "alt": "The lesson's sheet: SKU in column A and price in column B for rows 2 to 6, and row 7 asking for TX-101. The formula bar reads =XLOOKUP(A7,A2:A6,C2:C6,,0,-1) with C2:C6 underlined in red as the third argument, and column C is empty.",
       "answers": [
@@ -261,7 +261,7 @@
   ],
   "docs": {
     "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
-    "explain": "The log is append-only, so the newest price for a SKU is the last row that names it, and search mode -1 walks the key column from the bottom up until the first match. TX-101 appears in rows 2 and 4 and the answer is row 4's 21.5; with the default search mode the same formula answers 19.99, which is a real price from a real row and wrong only because it is the wrong day's price. The fourth and fifth arguments are skipped with empty commas because there is no missing-value text and the match stays exact, so the search direction is the sixth argument and cannot be moved. A sorted log searched with VLOOKUP's approximate match, or a MAXIFS over the date column, can reach the same number, but both depend on an order the sheet has to keep; this one reads the order the sheet already has.",
+    "explain": "The log is append-only, so the newest price for a SKU is the last row that names it. Search mode -1 walks the key column from the bottom up until the first match. TX-101 appears in rows 2 and 4, and the answer is row 4's 21.5. With the default search mode the same formula answers 19.99, a real price from a real row, wrong only because it is the wrong day's price. The fourth and fifth arguments are skipped with empty commas, because there is no missing-value text and the match stays exact. So the search direction is the sixth argument and cannot be moved. A sorted log with VLOOKUP approximate match, or a MAXIFS over the date column, reaches the same number, but both depend on an order the sheet has to keep. This one reads the order the sheet already has.",
     "errors": [
       {
         "code": "#N/A",
@@ -277,5 +277,10 @@
     "teaches": "XLOOKUP",
     "dataset": "Activity log with repeat SKUs",
     "reference": "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "XLOOKUP search mode in Excel: newest row",
+    "description": "Search mode -1 walks an append-only log from the bottom, so a repeated SKU returns its latest price: 21.5 instead of the 19.99 logged first."
   }
 }

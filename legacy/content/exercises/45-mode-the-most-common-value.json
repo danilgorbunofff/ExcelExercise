@@ -66,7 +66,7 @@
       "rules": [],
       "hints": {
         "syntax": "MODE takes the whole list: =MODE(B2:B7).",
-        "func-mode": "Neither the middle nor the biggest value is the frequent one — this is a function about repeats.",
+        "func-mode": "Neither the middle nor the biggest value is the frequent one: this is a function about repeats.",
         "require-ref": "Read the tickets from B2:B7 so a new ticket joins the answer on its own.",
         "value": "Three tickets are size 3, so 3 is the most common value.",
         "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
@@ -182,7 +182,7 @@
         "syntax": "MODE wants one range and nothing else: =MODE(B2:B8).",
         "func-mode": "Boxes of 2 appear three times, more often than any other count.",
         "require-ref": "Read the stores from B2:B8 rather than listing the counts.",
-        "value": "The median is 4 and the mode is 2 — the most common value is not the middle one.",
+        "value": "The median is 4 and the mode is 2: the most common value is not the middle one.",
         "error": "Dividing by zero leaves #DIV/0! instead of a size."
       },
       "fixtures": {
@@ -231,7 +231,7 @@
   ],
   "docs": {
     "syntax": "=MODE(range)",
-    "explain": "Mean and median both answer what is typical by size. MODE answers what is typical by frequency, which is a different question and the right one whenever the values are categories wearing numbers: shoe sizes, ticket sizes, pack counts, the number of boxes a shop orders. The answer is a value that actually occurs, which is why a mode is easy to explain to a room and a mean often is not. Two limits matter. A list where every value occurs once has no mode at all, and Excel says `#N/A` rather than inventing one. A list with two equally frequent values is also ambiguous: classic MODE returns the one that appears first in the data, while the newer MODE.MULT returns all of them, so a tie is a decision you should make explicitly rather than inherit. MODE ignores blanks and text, counts only numbers, and will not tell you how often the mode occurs — pair it with COUNTIF when the frequency itself belongs in the report.",
+    "explain": "Mean and median both answer what is typical by size. MODE answers what is typical by frequency, which is a different question. It is the right one whenever the values are categories wearing numbers: shoe sizes, ticket sizes, pack counts, the number of boxes a shop orders. The answer is a value that occurs in the list, which is why a mode is easy to explain to a room and a mean often is not. Two limits matter. A list where every value occurs once has no mode at all, and Excel says `#N/A` rather than inventing one. A list with two equally frequent values is also ambiguous. Classic MODE returns the one that appears first in the data. The newer MODE.MULT returns all of them, so a tie is a decision you should make explicitly rather than inherit. MODE ignores blanks and text, counts only numbers, and will not tell you how often the mode occurs. Pair it with COUNTIF when the frequency itself belongs in the report.",
     "errors": [
       {
         "code": "#N/A",
@@ -251,5 +251,10 @@
     "teaches": "MODE, and how it differs from MEDIAN",
     "dataset": "Support ticket sizes and box counts per store",
     "reference": "=MODE(B2:B7)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "MODE in Excel: the most common value",
+    "description": "Mean and median sort by size, MODE by frequency, which suits shoe sizes and pack counts. A list where every value occurs once has no mode at all."
   }
 }

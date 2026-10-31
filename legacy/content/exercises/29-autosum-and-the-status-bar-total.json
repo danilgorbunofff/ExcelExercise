@@ -126,7 +126,7 @@
   ],
   "docs": {
     "syntax": "=SUM(range)",
-    "explain": "The AutoSum button guesses a range from the numbers above or beside the active cell and inserts =SUM( with that range already selected. Here the run of numbers stops at B8, because B9 holds a figure somebody typed by hand months ago. Selecting the whole column instead of the seven amounts is the classic way to double a total: 476 becomes 896. The status bar is the check \u2014 highlight B2:B8 and it shows Sum 476 before you write anything. AutoSum is a guess, not a proof: it looks for the nearest run of numbers and stops where the run stops, so the honest habit is to press it, look at which cells got highlighted, and fix the range before pressing Enter again on the total.",
+    "explain": "The AutoSum button guesses a range from the numbers above or beside the active cell, then inserts =SUM( with that range already selected. Here the run of numbers stops at B8, because B9 holds a figure somebody typed by hand months ago. Selecting the whole column instead of the seven amounts is the classic way to double a total: 476 becomes 896. The status bar is the check. Highlight B2:B8 and it shows Sum 476 before you write anything. AutoSum is a guess, not a proof: it looks for the nearest run of numbers and stops where the run stops. The honest habit is to press it, look at which cells got highlighted, and fix the range before pressing Enter on the total.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -142,5 +142,10 @@
     "teaches": "SUM and reading the status bar",
     "dataset": "Seven expenses and a stale total",
     "reference": "=SUM(B2:B8)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "AutoSum in Excel and the status bar total",
+    "description": "AutoSum guesses the nearest run of numbers, and one stale figure below the run doubles the total. The status bar shows the real sum first."
   }
 }

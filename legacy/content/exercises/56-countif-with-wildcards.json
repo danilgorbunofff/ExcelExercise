@@ -65,10 +65,10 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNTIF(A2:A8,\"Widget*\") \u2014 the pattern travels inside the quotes.",
+        "syntax": "=COUNTIF(A2:A8,\"Widget*\"): the pattern travels inside the quotes.",
         "func-countif": "The list is text, so it needs a function that counts matches rather than numbers.",
         "require-ref": "Point at the product column so the pattern is matched against the grid.",
-        "value": "The star stands for the rest of the text, so all four Widget rows count \u2014 4.",
+        "value": "The star stands for the rest of the text, so all four Widget rows count: 4.",
         "error": "A division by zero in the formula returns #DIV/0! instead of a count."
       },
       "fixtures": {
@@ -114,7 +114,7 @@
           {
             "formula": "=COUNTA(A2:A8)",
             "rule": "func-countif",
-            "why": "every name counts, including the two Gadgets and the Gizmo \u2014 7"
+            "why": "every name counts, including the two Gadgets and the Gizmo — 7"
           }
         ]
       }
@@ -180,7 +180,7 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNTIF(A2:A8,\"*B\") \u2014 the star sits before the letter to stand for everything ahead of it.",
+        "syntax": "=COUNTIF(A2:A8,\"*B\"): the star sits before the letter to stand for everything ahead of it.",
         "func-countif": "Matching part of a name is a counting question, not a lookup.",
         "require-ref": "Match the pattern against the product column of the grid.",
         "value": "\"Widget B\", \"Gizmo B\" and \"Gadget B\" end in B, so the count is 3.",
@@ -236,8 +236,8 @@
     }
   ],
   "docs": {
-    "syntax": "=COUNTIF(range, \"pattern*\") \u2014 * stands for any run of characters, ? for exactly one",
-    "explain": "Text criteria accept two wildcards, and they turn a counting question into a pattern question. The star stands for any number of characters, including none, so Widget* matches Widget A, Widget B, Widget C and Widget D but never a Gadget; the question mark stands for exactly one character, so SO-100? matches any order number one digit longer in that position. A pattern with no wildcard is an exact match, which is why COUNTIF on Widget alone answers zero rather than four: the cells hold Widget A, not Widget. Patterns are case-insensitive, so widget* and Widget* are the same test, and the whole pattern must be inside the quotes or the function sees a range and a piece of text with no comma between them. In this drill the first screen counts four names starting with Widget and the second counts two names ending in B, where the star moves in front of the letter. The usual mistake is putting the star on the wrong end, which silently counts a different set of rows rather than failing loudly.",
+    "syntax": "=COUNTIF(range, \"pattern*\") — * stands for any run of characters, ? for exactly one",
+    "explain": "Text criteria accept two wildcards, and they turn a counting question into a pattern question. The star stands for any number of characters, including none, so Widget* matches Widget A, Widget B, Widget C and Widget D but never a Gadget. The question mark stands for exactly one character, so SO-100? matches any order number one digit longer in that position. A pattern with no wildcard is an exact match, which is why COUNTIF on Widget alone answers zero rather than four. The cells hold Widget A, not Widget. Patterns are case-insensitive, so widget* and Widget* are the same test. The whole pattern must sit inside the quotes, or the function sees a range and a piece of text with no comma between them. In this drill the first screen counts four names starting with Widget and the second counts two names ending in B, where the star moves in front of the letter. The usual mistake is putting the star on the wrong end, which silently counts a different set of rows rather than failing loudly.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -258,5 +258,10 @@
     "dataset": "Product list with mixed names and unit quantities",
     "reference": "=COUNTIF(A2:A8,\"Widget*\")"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "COUNTIF with wildcards in Excel",
+    "description": "The star matches any run of characters and the question mark matches one. A star on the wrong end of the pattern silently counts a different set of rows."
+  }
 }

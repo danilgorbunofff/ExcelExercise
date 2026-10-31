@@ -108,6 +108,28 @@ export function requireText(value, label, where, { max = Infinity, multiline = f
   return value.trim();
 }
 
+/**
+ * Search metadata a lesson overrides. The site computes a fallback title and description from the
+ * lesson's own copy, so a half-written `seo` block is worse than none: it would ship a title that
+ * names no function. Both fields are therefore validated here, not at render time.
+ */
+function requireSeo(value, where) {
+  if (!isPlainObject(value)) failAt(where, "seo must be an object with title and description");
+  const title = requireText(value.title, "seo.title", where, { max: 60 });
+  const description = value.description === undefined
+    ? null
+    : requireText(value.description, "seo.description", where, { max: 160 });
+  return { title, description };
+}
+
+/** A lesson's `updated` date feeds `dateModified`, so a typo would publish a false claim. */
+function requireDate(value, label, where) {
+  const text = requireText(value, label, where, { max: 10 });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) failAt(where, `${label} "${text}" must be written YYYY-MM-DD`);
+  if (Number.isNaN(Date.parse(`${text}T00:00:00Z`))) failAt(where, `${label} "${text}" is not a real date`);
+  return text;
+}
+
 function requireCell(value, label, where) {
   const text = requireText(value, label, where);
   const address = parseRef(text);
@@ -726,7 +748,17 @@ export function normalizeLesson(raw, file) {
     }
   }
 
-  return { id, slug, level: raw.level, title: raw.title.trim(), docs: raw.docs, schemaVersion: version, screens };
+  return {
+    id,
+    slug,
+    level: raw.level,
+    title: raw.title.trim(),
+    docs: raw.docs,
+    seo: raw.seo === undefined ? null : requireSeo(raw.seo, where),
+    updated: raw.updated === undefined ? null : requireDate(raw.updated, "updated", where),
+    schemaVersion: version,
+    screens,
+  };
 }
 
 /** The screen a single-screen surface renders. Phase 2's player passes an index. */

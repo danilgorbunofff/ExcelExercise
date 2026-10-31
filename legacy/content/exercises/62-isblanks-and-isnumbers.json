@@ -61,7 +61,7 @@
       "requireRef": "A3",
       "rules": [],
       "hints": {
-        "syntax": "=ISBLANK(A3) — one cell in the parentheses, no comparison needed.",
+        "syntax": "=ISBLANK(A3): one cell in the parentheses, no comparison needed.",
         "func-isblank": "A test that asks what kind of value is in a cell is what the IS functions are for.",
         "require-ref": "Point at the cell the question names rather than a different row of the list.",
         "value": "A3 holds the word text, so ISBLANK answers FALSE.",
@@ -167,7 +167,7 @@
       "requireRef": "A7",
       "rules": [],
       "hints": {
-        "syntax": "=ISNUMBER(A7) — the result is a logical value, not the value itself.",
+        "syntax": "=ISNUMBER(A7): the result is a logical value, not the value itself.",
         "func-isnumber": "Asking whether a cell holds a number is the job of ISNUMBER, not of a comparison.",
         "require-ref": "Test the cell that holds n/a instead of the list as a whole.",
         "value": "A7 holds the text n/a, so ISNUMBER answers FALSE.",
@@ -219,7 +219,7 @@
   ],
   "docs": {
     "syntax": "=ISBLANK(cell), =ISNUMBER(cell), =ISTEXT(cell) return a logical value",
-    "explain": "The IS functions answer a different kind of question from a comparison: not whether a value is large enough, but what kind of value it is. ISBLANK is TRUE only for a cell with nothing in it, which is not the same as a cell holding an empty string left behind by a formula — that one is text of length zero and ISBLANK says FALSE. ISNUMBER is TRUE for dates and times as well as for ordinary numbers, because Excel stores both as serial numbers, and FALSE for anything typed with letters. ISTEXT is its mirror. All of them return true logical values, so they plug straight into IF, AND and conditional formatting, and none of them needs a comparison around it: writing =ISBLANK(A4)=TRUE works but adds a second comparison to a value that was already Boolean. In this drill A3 holds the word text, so ISBLANK answers FALSE and so does ISNUMBER, which is a reminder that two different questions can share an answer without being interchangeable; the second screen tests a cell holding the text n/a, where ISNUMBER answers FALSE and ISTEXT answers TRUE. Counting blanks is the everyday use: COUNTIF with an empty criterion counts empty strings differently from truly blank cells, and the IS functions are how you tell the two apart.",
+    "explain": "The IS functions answer a different kind of question from a comparison. They ask not whether a value is large enough, but what kind of value it is. ISBLANK is TRUE only for a cell with nothing in it. That is not the same as a cell holding an empty string left behind by a formula: that one is text of length zero, and ISBLANK says FALSE. ISNUMBER is TRUE for dates and times as well as ordinary numbers, because Excel stores both as serial numbers, and FALSE for anything typed with letters. ISTEXT is its mirror. All of them return true logical values, so they plug straight into IF, AND and conditional formatting. None of them needs a comparison around it. Writing =ISBLANK(A4)=TRUE works, but adds a second comparison to a value that was already Boolean. In this drill A3 holds the word text, so ISBLANK answers FALSE and so does ISNUMBER. Two different questions can share an answer without being interchangeable. The second screen tests a cell holding the text n/a, where ISNUMBER answers FALSE and ISTEXT answers TRUE. Counting blanks is the everyday use. COUNTIF with an empty criterion counts empty strings differently from cells that were never filled, and the IS functions are how you tell the two apart.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -240,5 +240,10 @@
     "dataset": "One column mixing numbers, text, a logical value and a blank",
     "reference": "=ISBLANK(A3)"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "ISBLANK, ISNUMBER and ISTEXT in Excel",
+    "description": "The IS functions ask what kind of value a cell holds, not how big it is. ISBLANK is FALSE for a formula returning an empty string, since that is text."
+  }
 }

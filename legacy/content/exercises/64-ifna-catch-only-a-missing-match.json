@@ -70,7 +70,7 @@
       "requireRef": "A8",
       "rules": [],
       "hints": {
-        "syntax": "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE),\"not on the list\") — the fallback is the second argument.",
+        "syntax": "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE),\"not on the list\"): the fallback is the second argument.",
         "func-ifna": "A lookup that finds nothing needs a replacement for #N/A, and only #N/A.",
         "func-vlookup": "The price sits in the second column of the table, so a lookup is the shortest route.",
         "require-ref": "Look the code up from the cell instead of typing Q-9 into the formula.",
@@ -191,7 +191,7 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=IFNA(VLOOKUP(A2,A2:B7,2,FALSE),\"not on the list\") — the fallback stays even when the lookup works.",
+        "syntax": "=IFNA(VLOOKUP(A2,A2:B7,2,FALSE),\"not on the list\"): the fallback stays even when the lookup works.",
         "func-ifna": "The guard belongs in the formula even on a row that happens to be found.",
         "func-vlookup": "The price is the second column of the table.",
         "require-ref": "Read the code from the grid so the answer follows the row.",
@@ -249,7 +249,7 @@
   ],
   "docs": {
     "syntax": "=IFNA(value, value_if_na) replaces #N/A and nothing else",
-    "explain": "IFNA is IFERROR with a narrower net. It evaluates its first argument and, if that argument fails with #N/A — the error a lookup raises when it finds no match — returns the second argument instead. Any other error, and there are several, passes straight through: a #REF! from a column number that does not exist, a #VALUE! from text in arithmetic, a #DIV/0! from an empty divisor all survive IFNA and land in the cell. That narrowness is the point. Wrapping a lookup in IFERROR hides a broken range or a misspelled column behind the same friendly word that hides an ordinary miss, and the sheet then reports no match for a formula that has a bug. IFNA keeps the two apart: missing data says so, broken formulas still shout. In this drill Q-9 is not in the code column, so the first screen returns the fallback while the second looks up A-1, finds 10, and never reaches its fallback at all. Both screens keep the guard in place, because the point of a guard is the row that has not been typed yet. Nothing about IFNA changes the value when the lookup succeeds: it returns exactly what it was handed.",
+    "explain": "IFNA is IFERROR with a narrower net. It evaluates its first argument and, if that argument fails with #N/A, returns the second argument instead. #N/A is the error a lookup raises when it finds no match. Any other error passes straight through, and there are several. A #REF! from a column number that does not exist, a #VALUE! from text in arithmetic, a #DIV/0! from an empty divisor all survive IFNA and land in the cell. That narrowness is the point. Wrapping a lookup in IFERROR hides a broken range or a misspelled column behind the same friendly word that hides an ordinary miss. The sheet then reports no match for a formula that has a bug. IFNA keeps the two apart: missing data says so, and broken formulas still shout. In this drill Q-9 is not in the code column, so the first screen returns the fallback. The second looks up A-1, finds 10, and never reaches its fallback at all. Both screens keep the guard in place, because the point of a guard is the row that has not been typed yet. Nothing about IFNA changes the value when the lookup succeeds: it returns exactly what it was handed.",
     "errors": [
       {
         "code": "#N/A",
@@ -270,5 +270,10 @@
     "dataset": "Code and price table with one code the table does not hold",
     "reference": "=IFNA(VLOOKUP(A8,A2:B7,2,FALSE),\"not on the list\")"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "IFNA in Excel: catch only a missing match",
+    "description": "IFNA replaces #N/A and leaves every other error in place, so a broken range still shouts. IFERROR hides both behind the same friendly word."
+  }
 }

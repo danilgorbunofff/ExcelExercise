@@ -83,7 +83,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNTIFS(range 1, condition 1, range 2, condition 2) — both conditions must hold.",
+        "syntax": "=COUNTIFS(range 1, condition 1, range 2, condition 2): both conditions must hold.",
         "func-countifs": "COUNTIF takes one condition and COUNTIFS takes as many as the question needs.",
         "require-ref": "Point at the region column in the grid rather than typing the regions into the formula.",
         "value": "Rows 2, 6 and 8 are North and open, so the count is 3.",
@@ -216,7 +216,7 @@
       "requireRef": "D2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\") — the comparison goes in quotes.",
+        "syntax": "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\"): the comparison goes in quotes.",
         "func-countifs": "Two conditions on the same table is exactly what COUNTIFS is for.",
         "require-ref": "Compare the threshold against the units column of the grid, not a typed list of numbers.",
         "value": "Rows 6 and 8 are open and above 5 units, so the count is 2.",
@@ -268,7 +268,7 @@
   ],
   "docs": {
     "syntax": "=COUNTIFS(criteria_range1, criteria1, [criteria_range2, criteria2], ...)",
-    "explain": "COUNTIF counts the cells that meet one condition; COUNTIFS counts the rows where every condition is true at the same time, and the two are not interchangeable. The arguments alternate range, condition, range, condition, and each range has to be the same size and shape, or the ranges slide against each other and the count drifts. In this drill the region column must say North and the status column must say Open, which leaves rows 2, 6 and 8 and answers 3 — the closed North order in row 3 is the one people lose by using COUNTIF and only asking for North, which would answer 4. The second screen moves one condition from text to a comparison: the order must be open and the units must be over 5, so row 2 at exactly 5 is excluded and the answer is 2. Conditions stay as typed text or comparisons in quotes, they are case-insensitive on text, and every extra condition narrows the count rather than widening it. When you need OR instead of AND, that is two COUNTIFS calls added together, not one call with two conditions.",
+    "explain": "COUNTIF counts the cells that meet one condition. COUNTIFS counts the rows where every condition is true at the same time, and the two are not interchangeable. The arguments alternate range, condition, range, condition, and each range has to be the same size and shape. Otherwise the ranges slide against each other and the count drifts. In this drill the region column must say North and the status column must say Open, which leaves rows 2, 6 and 8 and answers 3. The closed North order in row 3 is the one people lose by using COUNTIF and only asking for North, which would answer 4. The second screen moves one condition from text to a comparison: the order must be open and the units must be over 5. Row 2 at exactly 5 is excluded, so the answer is 2. Conditions stay as typed text or comparisons in quotes, they are case-insensitive on text, and every extra condition narrows the count rather than widening it. When you need OR instead of AND, that is two COUNTIFS calls added together, not one call with two conditions.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -289,5 +289,10 @@
     "dataset": "Ticket list by region, status and unit count",
     "reference": "=COUNTIFS(B2:B8,\"North\",C2:C8,\"Open\")"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "COUNTIFS in Excel: several conditions",
+    "description": "COUNTIF counts cells that match one condition, COUNTIFS counts rows where every condition holds. Each extra range must match in size, or the count drifts."
+  }
 }

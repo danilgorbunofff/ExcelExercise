@@ -5,7 +5,7 @@
   "title": "SUBSTITUTE: replace one piece of text",
   "docs": {
     "syntax": "=SUBSTITUTE(text,old,new,[instance]) swaps old for new everywhere, or at one instance",
-    "explain": "SUBSTITUTE is the function that changes text without touching anything else. It takes the text, the piece to look for, and the piece to put in its place, and it does that everywhere in the string by default. The reason it deserves its own lesson rather than a footnote is that the obvious alternative, replacing a fixed position, breaks the moment the text changes length. A reference like WH-12-03 has two hyphens in the same places today and, on the next import, may have three. SUBSTITUTE names the piece rather than the position, so the formula survives that. The optional fourth argument is the part people miss. Give it a number and only that occurrence changes: one keeps the first hyphen, two keeps every hyphen before it and swaps the second. That turns one function into two: a global replace when the argument is absent, and a surgical replace when it is present. Both screens here work on the same reference column so the learner writes the three-argument form and then the four-argument form and sees the difference in the answer rather than in the explanation.",
+    "explain": "SUBSTITUTE is the function that changes text without touching anything else. It takes the text, the piece to look for, and the piece to put in its place, and it does that everywhere in the string by default. The reason it deserves its own lesson rather than a footnote is that the obvious alternative, replacing a fixed position, breaks the moment the text changes length. A reference like WH-12-03 has two hyphens in the same places today and, on the next import, may have three. SUBSTITUTE names the piece rather than the position, so the formula survives that. The optional fourth argument is the part people miss. Give it a number and only that occurrence changes: one keeps the first hyphen, two keeps every hyphen before it and swaps the second. That turns one function into two: a global replace when the argument is absent, and a surgical replace when it is present. Both screens here work on the same reference column. The learner writes the three-argument form and then the four-argument form, and sees the difference in the answer rather than in the explanation.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -64,7 +64,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\") — the text, what to look for, then what to put there.",
+        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\"): the text, what to look for, then what to put there.",
         "func-substitute": "The separator is being swapped for another character, which is SUBSTITUTE's job.",
         "require-ref": "The reference is in A2.",
         "value": "Both hyphens become slashes, giving WH/12/03.",
@@ -159,7 +159,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\",2) — the fourth argument names which occurrence changes.",
+        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\",2): the fourth argument names which occurrence changes.",
         "func-substitute": "One separator is being swapped, which is the instance form of SUBSTITUTE.",
         "require-ref": "The reference is in A2.",
         "value": "Only the second hyphen turns into a slash, giving WH-12/03.",
@@ -214,5 +214,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "SUBSTITUTE in Excel: replace one piece of text",
+    "description": "SUBSTITUTE swaps a named piece of text everywhere. Add the instance argument and only the second occurrence changes, which a fixed position cannot do."
+  },
+  "updated": "2026-10-31"
 }

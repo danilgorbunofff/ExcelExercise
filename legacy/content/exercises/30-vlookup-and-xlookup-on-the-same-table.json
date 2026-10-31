@@ -247,8 +247,8 @@
     }
   ],
   "docs": {
-    "syntax": "=VLOOKUP(value, table, column, FALSE) \u00b7 =XLOOKUP(value, search, return)",
-    "explain": "Both functions walk a column until they find the SKU and then return something from that row. VLOOKUP takes the whole table and a column number, so the price is 3 because the table starts at A and prices are in C; change the table's start and the number silently means something else. XLOOKUP takes the searched column and the returned column separately, so the third argument names C2:C5 and there is no number to miscount. Two things VLOOKUP still needs spelling out are the FALSE for an exact match. The FALSE is worth noticing because it is the one argument that is not about addresses: it says whether a near miss counts as a match, and on a SKU column a near miss is a different product.",
+    "syntax": "=VLOOKUP(value, table, column, FALSE) · =XLOOKUP(value, search, return)",
+    "explain": "Both functions walk a column until they find the SKU, then return something from that row. VLOOKUP takes the whole table and a column number, so the price is 3 because the table starts at A and prices are in C. Change the table's start and the number silently means something else. XLOOKUP takes the searched column and the returned column separately, so the third argument names C2:C5 and there is no number to miscount. One thing VLOOKUP still needs spelling out is the FALSE for an exact match. That argument is not about addresses. It says whether a near miss counts as a match, and on a SKU column a near miss is a different product.",
     "errors": [
       {
         "code": "#N/A",
@@ -264,5 +264,10 @@
     "teaches": "VLOOKUP and XLOOKUP side by side",
     "dataset": "Four products, one price column",
     "reference": "=VLOOKUP(B6,A2:C5,3,FALSE)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "VLOOKUP vs XLOOKUP on the same table",
+    "description": "VLOOKUP counts columns from the table left edge. XLOOKUP names the searched and returned columns, so nothing is miscounted. Both want an exact match."
   }
 }

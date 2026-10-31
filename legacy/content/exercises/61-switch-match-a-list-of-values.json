@@ -59,7 +59,7 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=SWITCH(value, match 1, result 1, match 2, result 2, ..., fallback) — one value, then pairs.",
+        "syntax": "=SWITCH(value, match 1, result 1, match 2, result 2, ..., fallback): one value, then pairs.",
         "func-switch": "There is nothing to count or compare here: the code is matched against a short list.",
         "require-ref": "Read the code from the column instead of typing W-01 into the formula.",
         "value": "A2 holds W-01, so the first pair matches and the answer is Widget.",
@@ -163,7 +163,7 @@
       "requireRef": "B3",
       "rules": [],
       "hints": {
-        "syntax": "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\") — numbers and text results mix freely.",
+        "syntax": "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\"): numbers and text results mix freely.",
         "func-switch": "A short list of equal-value matches is what SWITCH is for; a lookup table would need a range.",
         "require-ref": "Match the tier cell in the grid rather than a typed 3.",
         "value": "B3 holds 3, so the third pair matches and the answer is Gold.",
@@ -215,7 +215,7 @@
   ],
   "docs": {
     "syntax": "=SWITCH(expression, value1, result1, value2, result2, ..., default)",
-    "explain": "SWITCH is an equality machine: it takes one value, then a list of values with the result each should produce, and returns the result of the first exact match. It is the clean way to translate short codes — states, tiers, currencies, department letters — where a lookup table would be more scaffolding than the question deserves, and the final argument doubles as the default when nothing matches. Unlike IFS the tests are not comparisons but plain values, so a text \"3\" never matches the number 3, which is the single most common way the function quietly returns its fallback. Order matters only in that the first match wins, so duplicate values are legal but only the first result can ever appear. In this drill A2 holds W-01 and the first pair names it Widget; the second screen matches a numeric tier of 3 to Gold, where the numeric-versus-text trap is on the reject list rather than in the hint text alone.",
+    "explain": "SWITCH is an equality machine. It takes one value, then a list of values with the result each should produce, and returns the result of the first exact match. It is the clean way to translate short codes such as states, tiers, currencies or department letters. For those, a lookup table is more scaffolding than the question deserves, and the final argument doubles as the default when nothing matches. Unlike IFS the tests are not comparisons but plain values, so a text \"3\" never matches the number 3. That is the single most common way the function quietly returns its fallback. Order matters only in that the first match wins, so duplicate values are legal but only the first result can ever appear. In this drill A2 holds W-01 and the first pair names it Widget. The second screen matches a numeric tier of 3 to Gold, where the number-versus-text trap is on the reject list rather than in the hint text alone.",
     "errors": [
       {
         "code": "#N/A",
@@ -236,5 +236,10 @@
     "dataset": "Item codes with a numeric tier column",
     "reference": "=SWITCH(A2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SWITCH in Excel: match a list of values",
+    "description": "SWITCH takes one value, then value and result pairs, and returns the first exact match. A text \"3\" never matches the number 3, so it quietly falls back."
+  }
 }

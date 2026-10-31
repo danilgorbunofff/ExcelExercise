@@ -68,10 +68,10 @@
         }
       ],
       "hints": {
-        "syntax": "=INDEX(B2:B4,MATCH(B5,A2:A4,1)) \u2014 the range to read, then the row MATCH finds.",
+        "syntax": "=INDEX(B2:B4,MATCH(B5,A2:A4,1)): the range to read, then the row MATCH finds.",
         "func-index": "INDEX turns the row number into the rate on that row.",
         "func-match": "MATCH finds which band 150 falls in: the last starting point that is not above it.",
-        "match-band": "The band table is sorted from small to large on purpose, so this MATCH wants 1 \u2014 approximate on a sorted column.",
+        "match-band": "The band table is sorted from small to large on purpose, so this MATCH wants 1: approximate on a sorted column.",
         "require-ref": "Take the units from B5 so a new total is a one-cell edit.",
         "value": "150 is at or above 100 but below 200, so the second band applies and its rate is 0.04.",
         "error": "A units figure below the first band start leaves MATCH with #N/A."
@@ -127,7 +127,7 @@
   ],
   "docs": {
     "syntax": "=INDEX(rates, MATCH(units, bands, 1))",
-    "explain": "This is the pair doing a job neither function could do alone: MATCH says 150 belongs to the band that starts at 100, and INDEX reads the rate on that row, 0.04. The third argument is 1 rather than 0 because a band table is sorted and read as ranges \u2014 you want the last starting point at or below the value, not an exact hit. That is the opposite of the price list in the last lesson, and knowing which of the two you are holding is the whole skill. A wrong third argument here does not error; it returns a plausible rate from a neighbouring band. Band tables are always written smallest first, so a rate pulled from a neighbouring row is a data-ordering bug wearing a formula costume.",
+    "explain": "This is the pair doing a job neither function could do alone. MATCH says 150 belongs to the band that starts at 100, and INDEX reads the rate on that row, 0.04. The third argument is 1 rather than 0 because a band table is sorted and read as ranges. You want the last starting point at or below the value, not an exact hit. That is the opposite of the price list in the last lesson, and knowing which of the two you are holding is the whole skill. A wrong third argument here does not error. It returns a plausible rate from a neighbouring band. Band tables are always written smallest first, so a rate pulled from a neighbouring row is a data-ordering bug wearing a formula costume.",
     "errors": [
       {
         "code": "#N/A",
@@ -143,5 +143,10 @@
     "teaches": "INDEX and MATCH with bands",
     "dataset": "Three commission bands",
     "reference": "=INDEX(B2:B4,MATCH(B5,A2:A4,1))"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "INDEX MATCH with bands: read a rate",
+    "description": "MATCH with 1 finds the last band that starts at or below 150, and INDEX reads the 0.04 rate. A wrong mode returns a plausible rate from the wrong row."
   }
 }

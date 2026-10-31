@@ -58,7 +58,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B2:B6) — the whole column above the answer.",
+        "syntax": "=SUM(B2:B6): the whole column above the answer.",
         "func-sum": "Every number in the column, added by one function.",
         "require-ref": "Point at the amount column rather than typing the five numbers.",
         "value": "320 + 250 + 180 + 300 + 400 is 1450.",
@@ -172,7 +172,7 @@
       "requireRef": "C2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(C2:C6)-SUMIF(A2:A6,\"North\",C2:C6) — everything, minus the North rows.",
+        "syntax": "=SUM(C2:C6)-SUMIF(A2:A6,\"North\",C2:C6): everything, minus the North rows.",
         "func-sum": "The total of the column is a SUM; the part to remove is not.",
         "func-sumif": "Removing the North rows needs SUMIF on the region column.",
         "require-ref": "Read both the regions and the amounts from the grid.",
@@ -230,7 +230,7 @@
   ],
   "docs": {
     "syntax": "=SUM(range) and =SUMIF(criteria_range, condition, sum_range), combined by subtraction",
-    "explain": "The sum group is really three questions about the same column: what does the lot come to, what do the rows I care about come to, and what is left when those two are compared. SUM answers the first, SUMIF the second with one condition, and SUMIFS the second with two or more. The second screen adds them to answer the third by subtraction: 1450 in the column minus 900 of North sales leaves 550 outside the region. That is not the only way to write it — SUMIF with a not-equal condition does it in one call — but the subtraction is the shape that generalises, because each half can be swapped for a different filter without rewriting the other. Two habits are worth taking away: the sum range and the condition range have to line up row for row, and a condition is text in quotes even when it looks like a number. Every drill in this group is the same three arguments in a different order, which is exactly why they are worth practising together.",
+    "explain": "The sum group is really three questions about the same column. What does the lot come to, what do the rows I care about come to, and what is left when those two are compared? SUM answers the first, SUMIF the second with one condition, and SUMIFS the second with two or more. The second screen answers the third by subtraction: 1450 in the column minus 900 of North sales leaves 550 outside the region. SUMIF with a not-equal condition does it in one call, but the subtraction is the shape that generalises. Each half can be swapped for a different filter without rewriting the other. Two habits are worth taking away. The sum range and the condition range have to line up row for row, and a condition is text in quotes even when it looks like a number. Every drill in this group is the same three arguments in a different order, which is exactly why they are worth practising together.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -250,5 +250,10 @@
     "teaches": "SUM and SUMIF together, and subtracting one total from another",
     "dataset": "Regional sales with two reps",
     "reference": "=SUM(B2:B6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Combine SUM and SUMIF in one sheet",
+    "description": "SUM, SUMIF and SUMIFS answer three questions about one column. Subtract one total from another to leave the remainder, and either half can be swapped."
   }
 }

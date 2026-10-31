@@ -114,7 +114,7 @@
   ],
   "docs": {
     "syntax": "=TEXTJOIN(delimiter, ignore_empty, range)",
-    "explain": "Two of the five rows have no department, and a list with ', ,' in the middle reads like a mistake. TEXTJOIN's second argument is the blank rule: TRUE skips empty cells, FALSE keeps them and leaves the separator behind. The first argument is the separator itself, typed as text in quotes \u2014\", \" means a comma and a space. CONCAT has neither argument, which is why it produces one long unreadable word and cannot be adjusted afterwards. Because the separator is an argument, changing a comma list into a semicolon list, or a space-separated line into something a database can read, is one character in one cell rather than an afternoon of retyping.",
+    "explain": "Two of the five rows have no department, and a list with '\", \"' in the middle reads like a mistake. TEXTJOIN's second argument is the blank rule. TRUE skips empty cells, and FALSE keeps them and leaves the separator behind. The first argument is the separator itself, typed as text in quotes, so '\", \"' means a comma and a space. CONCAT has neither argument, which is why it produces one long unreadable word and cannot be adjusted afterwards. Because the separator is an argument, turning a comma list into a semicolon list is one character in one cell rather than an afternoon of retyping.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -130,5 +130,10 @@
     "teaches": "TEXTJOIN",
     "dataset": "Five people, three departments",
     "reference": "=TEXTJOIN(\", \",TRUE,B2:B6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "TEXTJOIN in Excel: join and skip blanks",
+    "description": "Two of the five rows have no department, so TRUE in the second argument drops them instead of leaving \", ,\" behind. The separator is your choice."
   }
 }

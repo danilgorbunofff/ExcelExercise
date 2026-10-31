@@ -54,7 +54,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B2:B3,D2:D3) — a comma between blocks adds both.",
+        "syntax": "=SUM(B2:B3,D2:D3): a comma between blocks adds both.",
         "func-sum": "One function should take both blocks; adding them separately hides a mistake.",
         "require-ref": "Point at the two blocks in the grid rather than typing the eight numbers in.",
         "value": "320 + 250 + 300 + 260 is 1130.",
@@ -163,7 +163,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B2:D4) — one rectangle covering three teams and three months.",
+        "syntax": "=SUM(B2:D4): one rectangle covering three teams and three months.",
         "func-sum": "This is a single SUM over a rectangle, not an addition of columns.",
         "require-ref": "Read the block from the grid; a typed list cannot hold the text cells at all.",
         "value": "The numbers are 320, 180, 300, 250, 260, 400 and 150, which total 1860.",
@@ -220,7 +220,7 @@
   ],
   "docs": {
     "syntax": "=SUM(range1, range2, ...) across separate blocks, or =SUM(B2:D4) across one rectangle",
-    "explain": "SUM takes as many arguments as you like, and each one can be its own block, so two quarters that sit in columns B and D are one call with a comma between them: SUM(B2:B3,D2:D3). The comma is doing the work — with no comma the two blocks become a single broken reference and the formula refuses to read. The alternative, when the blocks form a rectangle, is one range across the lot: SUM(B2:D4) counts every number inside it and ignores the text in the middle and the empty cell in the corner. That is the reason a block total is safer than a column of subtotals: text and blanks cannot poison it, while a chain of plus signs hits the text and returns an error. Watch for a block that includes a total row of its own, because a rectangle is only too big when the extra cells are numbers, and a total row always is.",
+    "explain": "SUM takes as many arguments as you like, and each one can be its own block. Two quarters that sit in columns B and D are one call with a comma between them: SUM(B2:B3,D2:D3). The comma is doing the work. With no comma the two blocks become a single broken reference and the formula refuses to read. When the blocks form a rectangle, the alternative is one range across the lot. SUM(B2:D4) counts every number inside it and ignores the text in the middle and the empty cell in the corner. That is why a block total is safer than a column of subtotals. Text and blanks cannot poison it, while a chain of plus signs hits the text and returns an error. Watch for a block that includes a total row of its own. A rectangle is only too big when the extra cells are numbers, and a total row always is.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -240,5 +240,10 @@
     "teaches": "SUM with multiple block arguments and a rectangular range with text in it",
     "dataset": "Split quarters and a three-team block with gaps",
     "reference": "=SUM(B2:B3,D2:D3)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SUM across several Excel blocks",
+    "description": "SUM takes as many arguments as you like, so two blocks become one call with a comma between them. A rectangle with text inside it is added just as safely."
   }
 }

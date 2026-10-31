@@ -58,8 +58,8 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "DATE takes three numbers in a fixed order — year, month, day: =DATE(B2,C2,D2).",
-        "func-date": "All three parts go in one call — passing two year/month pairs to one DATE is a different date entirely.",
+        "syntax": "DATE takes three numbers in a fixed order: year, month, day: =DATE(B2,C2,D2).",
+        "func-date": "All three parts go in one call: passing two year/month pairs to one DATE is a different date entirely.",
         "require-ref": "Read the three parts from the row rather than typing 2024, 3 and 1 into the formula.",
         "value": "45352 is 1 March 2024: the three parts have to come from the same row, and E2 wants INV-2001's.",
         "error": "A date built out of a formula that divides by zero comes back as #DIV/0!, not as a date."
@@ -115,7 +115,7 @@
     {
       "id": "formula-2",
       "type": "formula",
-      "prompt": "In B3, build the first day of the month after the statement month in B2 — March means April.",
+      "prompt": "In B3, build the first day of the month after the statement month in B2: March means April.",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -206,7 +206,7 @@
   ],
   "docs": {
     "syntax": "=DATE(year, month, day)",
-    "explain": "A date in Excel is a number: the count of days since the end of 1899, with 1 January 1900 as day 1. That is why a date typed into a cell shows as 45352 in this grid — the serial is what the sheet stores and the formatted date is only what it draws. DATE builds that serial out of three ordinary numbers, so a year in one column, a month in another and a day in a third can become one real date that sorts, subtracts and formats like every other date. The parts do not have to be tidy: Excel rolls them over instead of complaining, so month 13 is January of the next year, day 0 is the day before the first, and month 0 is December of the year before. That roll-over is the most useful thing DATE does, because it means 'the first of next month' is written as the current month plus one rather than as a lookup table of which months have thirty-one days, and 'the last day of this month' is day zero of the next. The parts can also be expressions, which is why the month argument may hold `B2+1`, and a year below 1900 is read as 1900 plus that number, a leftover of Excel's early decision to accept two-digit years.",
+    "explain": "A date in Excel is a number: the count of days since the end of 1899, with 1 January 1900 as day 1. That is why a date typed into a cell shows as 45352 in this grid. The serial is what the sheet stores, and the formatted date is only what it draws. DATE builds that serial out of three ordinary numbers. A year in one column, a month in another and a day in a third become one real date, one that sorts, subtracts and formats like every other date. The parts do not have to be tidy. Excel rolls them over instead of complaining. Month 13 is January of the next year, day 0 is the day before the first, and month 0 is December of the year before. That roll-over is the most useful thing DATE does. 'The first of next month' is the current month plus one rather than a lookup table of month lengths, and the last day of this month is day zero of the next. The parts can also be expressions, which is why the month argument may hold `B2+1`.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -221,10 +221,15 @@
         "text": "DATE was called with fewer than three arguments, which this drill reports as a missing part rather than a wrong date."
       }
     ],
-    "atWork": "Turning the year, month and day that a finance export puts in three separate columns into one real date column, so the ledger can be sorted and aged by month instead of by substring.",
+    "atWork": "Turning the year, month and day that a finance export puts in three separate columns into one real date column. The ledger can then be sorted and aged by month instead of by substring.",
     "outcome": "Build a real date from three numbers, and let Excel roll the overflow instead of guarding every month length.",
     "teaches": "DATE, and how a date is stored as a number",
     "dataset": "Invoice dates split into year, month and day columns",
     "reference": "=DATE(B2,C2,D2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "DATE in Excel: build a date from parts",
+    "description": "A date is a serial number counting days since 1899. DATE turns a year, a month and a day into one, and rolls month 13 over to January of the next year."
   }
 }

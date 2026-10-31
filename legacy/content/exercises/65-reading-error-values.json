@@ -70,7 +70,7 @@
       "requireRef": "A8",
       "rules": [],
       "hints": {
-        "syntax": "=IF(ISNA(test),\"missing\",\"found\") — the IS function goes inside the IF test.",
+        "syntax": "=IF(ISNA(test),\"missing\",\"found\"): the IS function goes inside the IF test.",
         "func-if": "Two words come out of the formula, so it needs an IF to choose between them.",
         "func-isna": "A match that fails raises #N/A, and ISNA is the test that recognises exactly that error.",
         "require-ref": "Search for the code in the grid rather than typing Q-9.",
@@ -186,7 +186,7 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=IF(ISERROR(INDEX(A2:B7,1,3)),\"out of range\",\"fine\") — the test wraps the whole call.",
+        "syntax": "=IF(ISERROR(INDEX(A2:B7,1,3)),\"out of range\",\"fine\"): the test wraps the whole call.",
         "func-if": "The formula has to choose between two words, so an IF carries the test.",
         "func-iserror": "Any error at all is what this question asks about, and that is ISERROR.",
         "require-ref": "Point at the table itself rather than typing the range by hand.",
@@ -244,7 +244,7 @@
   ],
   "docs": {
     "syntax": "=IF(ISNA(x),\"missing\",\"found\"); =IF(ISERROR(x),\"bad\",\"ok\")",
-    "explain": "An error in Excel is a value, not a crash: #N/A, #REF!, #VALUE!, #DIV/0!, #NAME? and #NUM! each sit in a cell and can be tested like anything else. Three tests matter here. ISNA answers TRUE only for #N/A, the error a lookup or a match raises when nothing matched, which is usually a data question rather than a formula question. ISERROR answers TRUE for any error at all, which is what you want when the question is simply whether the calculation worked. ISERR is the same test minus #N/A, for the rarer case where a missing match is expected and any other error is not. Reading the difference matters because the three errors come from three different problems: #N/A is a value that is not in the list, #REF! is a reference that no longer points at anything, and #VALUE! is the wrong kind of value in an arithmetic operation. In this drill the code Q-9 is missing, so ISNA says TRUE and the formula prints missing; the second screen asks the table for a third column, which raises #REF!, and ISERROR turns that into the words out of range. Both screens leave the error visible in the logic rather than deleting it.",
+    "explain": "An error in Excel is a value, not a crash. #N/A, #REF!, #VALUE!, #DIV/0!, #NAME? and #NUM! each sit in a cell and can be tested like anything else. Three tests matter here. ISNA answers TRUE only for #N/A, the error a lookup or a match raises when nothing matched, which is usually a data question rather than a formula question. ISERROR answers TRUE for any error at all, which is what you want when the question is simply whether the calculation worked. ISERR is the same test minus #N/A, for the rarer case where a missing match is expected and any other error is not. Reading the difference matters, because the three errors come from three different problems. #N/A is a value that is not in the list, #REF! is a reference that no longer points at anything, and #VALUE! is the wrong kind of value in an arithmetic operation. In this drill the code Q-9 is missing, so ISNA says TRUE and the formula prints missing. The second screen asks the table for a third column, which raises #REF!, and ISERROR turns that into the words out of range. Both screens leave the error visible in the logic rather than deleting it.",
     "errors": [
       {
         "code": "#N/A",
@@ -265,5 +265,10 @@
     "dataset": "Code and price table with one code the table does not hold",
     "reference": "=IF(ISNA(MATCH(A8,A2:A7,0)),\"missing\",\"found\")"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Read #N/A, #VALUE! and #REF! in Excel",
+    "description": "#N/A means a value is not in the list, #REF! a reference points at nothing, #VALUE! the wrong type met arithmetic. ISNA and ISERROR tell them apart."
+  },
+  "updated": "2026-10-31"
 }

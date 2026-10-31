@@ -5,7 +5,7 @@
   "title": "A commission sheet that updates itself",
   "docs": {
     "syntax": "=sales*VLOOKUP(sales,tiers,2,TRUE) reads the rate the sales figure has reached",
-    "explain": "A commission sheet is the smallest real model in the workbook: an input column, a lookup table that someone else owns, and an answer that has to follow both. The lookup here is deliberately the approximate kind. Its fourth argument is TRUE, which tells VLOOKUP to stop at the largest tier that is not bigger than the sales figure, so 4200 lands on the 4000 tier and the rate comes back as five per cent. That is the behaviour a banded rate table needs, and it is the reason the table is sorted by the tier floor rather than by anything else. Writing the rate as a number inside the formula works today and breaks the first time finance moves a tier, which is why the reject list carries it: the point of the lesson is that the rate is read, not remembered. The second screen asks for the rate alone, so the learner separates the lookup from the multiplication and sees that the formula has two independent halves, one reading a table and one doing arithmetic on the result.",
+    "explain": "A commission sheet is the smallest real model in the workbook: an input column, a lookup table that someone else owns, and an answer that has to follow both. The lookup here is deliberately the approximate kind. Its fourth argument is TRUE, which tells VLOOKUP to stop at the largest tier that is not bigger than the sales figure. So 4200 lands on the 4000 tier and the rate comes back as five per cent. That is the behaviour a banded rate table needs, and it is the reason the table is sorted by the tier floor rather than by anything else. Writing the rate as a number inside the formula works today and breaks the first time finance moves a tier, which is why the reject list carries it. The rate is read, not remembered. The second screen asks for the rate alone, so the learner separates the lookup from the multiplication. That shows the formula has two independent halves, one reading a table and one doing arithmetic on the result.",
     "errors": [
       {
         "code": "#N/A",
@@ -93,7 +93,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2) — the sales figure, the table, column two, approximate.",
+        "syntax": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2): the sales figure, the table, column two, approximate.",
         "func-vlookup": "The rate lives in the table below the data, so it has to be looked up.",
         "require-ref": "The sales figure is in B2.",
         "value": "4200 reaches the five per cent band, and five per cent of 4200 is 210.",
@@ -212,7 +212,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=VLOOKUP(B2,$A$7:$B$9,2,TRUE) — the sales figure, the table, the rate column, approximate.",
+        "syntax": "=VLOOKUP(B2,$A$7:$B$9,2,TRUE): the sales figure, the table, the rate column, approximate.",
         "func-vlookup": "The band comes from the table, so the answer is a lookup.",
         "require-ref": "The sales figure is in B2.",
         "value": "4200 has passed the 4000 floor, so the five per cent band applies.",
@@ -262,5 +262,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Commission tiers with approximate VLOOKUP",
+    "description": "TRUE in the fourth argument stops at the largest tier the sales figure has reached, so 4200 pays the 4000 rate and a moved tier needs no edit."
+  },
+  "updated": "2026-10-31"
 }

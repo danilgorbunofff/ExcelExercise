@@ -5,7 +5,7 @@
   "title": "Budget versus actual with a variance flag",
   "docs": {
     "syntax": "=ROUND((actual-budget)/budget,3) sizes the variance; ABS lets one threshold catch both directions",
-    "explain": "A budget report is only useful when it says which lines need attention, and the arithmetic that makes the decision is a division rather than a subtraction. Dividing by the budget turns a variance into a share of what was planned, which is what makes one threshold apply to every line: twenty pounds over is nothing on a five thousand pound line and everything on a fifty pound one. The first screen writes that share and rounds it, because an unrounded ratio is a long tail of digits that nobody reads and that no comparison against a threshold can be written to match. The second screen adds the flag, and the interesting part is the ABS call. A flag written without it catches overspends and silently lets underspends through, so a line that came in thirty per cent under budget never gets reviewed. Wrapping the difference in ABS makes one threshold cover both directions, which is what a review flag is for. Together the two screens are the shape of every variance table: a share of plan, then a word that says whether the share is worth a conversation.",
+    "explain": "A budget report is only useful when it says which lines need attention, and the arithmetic that makes the decision is a division rather than a subtraction. Dividing by the budget turns a variance into a share of what was planned. That is what makes one threshold apply to every line: twenty pounds over is nothing on a five thousand pound line and everything on a fifty pound one. The first screen writes that share and rounds it. An unrounded ratio is a long tail of digits that nobody reads, and no comparison against a threshold can be written to match it. The second screen adds the flag, and the interesting part is the ABS call. A flag written without it catches overspends and silently lets underspends through, so a line thirty per cent under budget never gets reviewed. Wrapping the difference in ABS makes one threshold cover both directions, which is what a review flag is for. Together the two screens are the shape of every variance table: a share of plan, then a word that says whether that share is worth a conversation.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -78,7 +78,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=ROUND((C2-B2)/B2,3) — the difference over the budget, to three places.",
+        "syntax": "=ROUND((C2-B2)/B2,3): the difference over the budget, to three places.",
         "func-round": "The raw ratio is a long tail of digits, so it is rounded for reporting.",
         "require-ref": "The budget figure is in B2.",
         "value": "A hundred over two thousand is five per cent, or 0.05.",
@@ -192,7 +192,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=IF(ABS(C2-B2)/B2>0.1,\"review\",\"ok\") — the absolute share against the threshold, then two words.",
+        "syntax": "=IF(ABS(C2-B2)/B2>0.1,\"review\",\"ok\"): the absolute share against the threshold, then two words.",
         "func-if": "The cell has to choose between two words.",
         "func-abs": "An overspend and an underspend both count, so the difference is taken without its sign.",
         "require-ref": "The budget figure is in B2.",
@@ -248,5 +248,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Budget versus actual with a variance flag",
+    "description": "A variance divided by its budget lets one threshold fit every line. ABS around the difference catches underspends too, so nothing slips past review."
+  },
+  "updated": "2026-10-31"
 }

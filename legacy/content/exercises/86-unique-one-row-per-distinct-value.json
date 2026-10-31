@@ -124,7 +124,7 @@
   ],
   "docs": {
     "syntax": "=UNIQUE(array, [by_col], [exactly_once])",
-    "explain": "UNIQUE reads a range and returns a block of cells holding one copy of each distinct value, in the order it first met them. Six deliveries sit in A2:A7, Swift appears three times, Nordic twice and Crane once, so UNIQUE(A2:A7) spills three rows: Swift, Nordic, Crane. That spill is the catch, because a block of cells is not a number; wrapping it in COUNTA counts the rows the block occupies, which is why the finished formula is =COUNTA(UNIQUE(A2:A7)) and not =UNIQUE(A2:A7). The third argument, exactly_once, flips the meaning: set it to TRUE and only the values that appear exactly once come back, which here would leave Crane alone. The answer sits in B8, below the range on purpose, because a spill that tries to grow into an occupied cell returns #SPILL! instead of pushing the neighbouring data aside.",
+    "explain": "UNIQUE reads a range and returns a block of cells holding one copy of each distinct value, in the order it first met them. Six deliveries sit in A2:A7, Swift appears three times, Nordic twice and Crane once, so UNIQUE(A2:A7) spills three rows: Swift, Nordic, Crane. That spill is the catch, because a block of cells is not a number. Wrapping it in COUNTA counts the rows the block occupies, which is why the finished formula is =COUNTA(UNIQUE(A2:A7)) and not =UNIQUE(A2:A7). The third argument, exactly_once, flips the meaning. Set it to TRUE and only the values that appear exactly once come back, which here would leave Crane alone. The answer sits in B8, below the range on purpose. A spill that tries to grow into an occupied cell returns #SPILL! instead of pushing the neighbouring data aside.",
     "errors": [
       {
         "code": "#SPILL!",
@@ -148,5 +148,10 @@
     "teaches": "UNIQUE",
     "dataset": "Courier delivery log",
     "reference": "=COUNTA(UNIQUE(A2:A7))"
-  }
+  },
+  "seo": {
+    "title": "UNIQUE in Excel: one row per distinct value",
+    "description": "UNIQUE spills one row per distinct value in the order it met them, and COUNTA counts that block. The third argument returns only values that appear once."
+  },
+  "updated": "2026-10-31"
 }

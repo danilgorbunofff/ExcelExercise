@@ -60,11 +60,11 @@
       "rules": [],
       "hints": {
         "syntax": "TODAY takes no arguments, but it still needs the brackets: =TODAY()-B2.",
-        "func-today": "Ask Excel for the current date rather than typing one in — the column has to be right tomorrow as well.",
+        "func-today": "Ask Excel for the current date rather than typing one in: the column has to be right tomorrow as well.",
         "require-ref": "Subtract the date in B2 so the next invoice is one copy away.",
         "no-now": "NOW carries the time of day as well, which leaves a fraction of a day on the answer. TODAY is the whole number this column wants.",
-        "value": "45366 minus 45352 is 14 — check that you subtracted B2, the date raised, and not a neighbouring row.",
-        "error": "Dividing by zero comes back as #DIV/0! rather than a number of days — drop that part of the formula."
+        "value": "45366 minus 45352 is 14: check that you subtracted B2, the date raised, and not a neighbouring row.",
+        "error": "Dividing by zero comes back as #DIV/0! rather than a number of days: drop that part of the formula."
       },
       "fixtures": {
         "accept": [
@@ -210,11 +210,11 @@
   ],
   "docs": {
     "syntax": "=TODAY()   =NOW()   =HOUR(date number)",
-    "explain": "TODAY and NOW are the only functions in Excel that change without a cell changing: they read the clock of the machine the workbook is open on, so a sheet recalculated this morning and again tonight holds two different answers, and a workbook emailed to a colleague in another timezone can disagree with itself. TODAY answers with the day as a whole number — 45366 on 15 March 2024 — and NOW answers with the day plus everything that has happened since midnight, carried in the fraction after the decimal point, so 14:30 on that day is 45366.604166667. Neither one takes an argument, and neither can be told which day or moment you mean, which is why they are hard to test and hard to agree on. Excel calls them volatile: they recalculate on every edit, even when nothing they depend on has moved, so a workbook full of them is slower than one that writes the date into a cell once and points at it. The everyday pattern is a subtraction — TODAY minus a date raised is the number of days a job has been open — and the everyday trap is using NOW for it, which leaves a fraction of a day on an answer that should be whole. The second screen pulls the fraction back apart: HOUR, MINUTE and SECOND read out of a date number the same way they read out of a time typed into a cell, because Excel stores both as one number.",
+    "explain": "TODAY and NOW are the only functions in Excel that change without a cell changing. They read the clock of the machine the workbook is open on. A sheet recalculated tonight holds a different answer from this morning, and a copy emailed to another timezone can disagree with itself. TODAY answers with the day as a whole number, 45366 on 15 March 2024. NOW answers with the day plus everything since midnight, carried in the fraction after the decimal point, so 14:30 that day is 45366.604166667. Excel calls them volatile: they recalculate on every edit, even when nothing they read has moved. A workbook full of them is slower than one that writes the date into a cell once and points at it. The everyday pattern is a subtraction, where TODAY minus a raised date gives the days a job has been open. The trap is using NOW for it, which leaves a fraction of a day on an answer that should be whole. The second screen pulls that fraction apart. HOUR, MINUTE and SECOND read out of a date number the same way they read out of a typed time, because Excel stores both as one number.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A date function was handed text that is not a date number — HOUR over a label, or a subtraction with a text date in it."
+        "text": "A date function was handed text that is not a date number: HOUR over a label, or a subtraction with a text date in it."
       },
       {
         "code": "#NUM!",
@@ -225,10 +225,15 @@
         "text": "TODAY or NOW typed without the brackets, so Excel reads the word rather than running the function."
       }
     ],
-    "atWork": "An ageing report that says how many days each invoice has been open, refreshed by opening the file rather than by someone typing today's date into a cell — and a log row stamped with NOW so the time of day survives alongside the date.",
+    "atWork": "An ageing report that says how many days each invoice has been open, refreshed by opening the file rather than by someone typing today's date into a cell. Plus a log row stamped with NOW, so the time of day survives alongside the date.",
     "outcome": "Tell the difference between today's date and this moment, and read the time of day out of a date number.",
     "teaches": "TODAY, NOW and HOUR",
     "dataset": "Invoices dated by day, and one log stamp timed to the minute",
     "reference": "=TODAY()-B2"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "TODAY and NOW in Excel: the clock functions",
+    "description": "TODAY gives the day as 45366, and NOW adds the fraction since midnight, so 14:30 reads 45366.604. Both recalculate on every edit, even with no change."
   }
 }

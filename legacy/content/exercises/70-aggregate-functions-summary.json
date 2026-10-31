@@ -78,7 +78,7 @@
       "requireRef": "D2",
       "rules": [],
       "hints": {
-        "syntax": "=SUBTOTAL(9,D2:D4) — the number comes first, then the value column.",
+        "syntax": "=SUBTOTAL(9,D2:D4): the number comes first, then the value column.",
         "func-subtotal": "The total under a table is the subtotal, not a plain sum.",
         "require-ref": "The value column is D2:D4.",
         "value": "Twenty plus twenty plus sixty is 100.",
@@ -187,7 +187,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4),1) — the ratio sits inside the ROUND.",
+        "syntax": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4),1): the ratio sits inside the ROUND.",
         "func-sumproduct": "The numerator is price times quantity, which is what SUMPRODUCT is for.",
         "func-subtotal": "The denominator is the total under the value column, which is a SUBTOTAL.",
         "require-ref": "Both routes read the table rows rather than numbers typed by hand.",
@@ -243,5 +243,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Reconcile a stock sheet in Excel",
+    "description": "Total the value column with SUBTOTAL, then rebuild it from prices and quantities with SUMPRODUCT. A ratio of exactly one means both routes agree."
+  },
+  "updated": "2026-10-31"
 }

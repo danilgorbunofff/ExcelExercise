@@ -58,7 +58,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUMIF(B2:B6,\">0\") — the condition is a comparison, written in quotes.",
+        "syntax": "=SUMIF(B2:B6,\">0\"): the condition is a comparison, written in quotes.",
         "func-sumif": "SUM takes everything; you only want the positive changes.",
         "require-ref": "Test the changes from the grid, not from numbers typed into the formula.",
         "value": "The gains are 12, 15 and 20, which total 47.",
@@ -160,7 +160,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=-SUMIF(B2:B6,\"<0\") — the minus sign flips a negative total to positive.",
+        "syntax": "=-SUMIF(B2:B6,\"<0\"): the minus sign flips a negative total to positive.",
         "func-sumif": "Add only the negative weeks, and this drill wants a SUMIF doing it.",
         "require-ref": "Read the variances from the grid so the filter applies to real cells.",
         "value": "The losses add to -15, so the size of them is 15.",
@@ -212,7 +212,7 @@
   ],
   "docs": {
     "syntax": "=SUMIF(range, \">0\") and =-SUMIF(range, \"<0\")",
-    "explain": "A plain SUM of a profit-and-loss column tells you the net, which is usually the least useful number in it. Splitting the column by sign with SUMIF gives the two numbers a report actually wants: how much was gained, and how much was lost. The condition is a comparison in quotes, so \">0\" keeps the positives and \"<0\" keeps the negatives, and zero falls in neither bucket — worth remembering, because a zero month disappears from both totals and the two will not add back to the net. The second screen flips the sign of the losses so they read as a size rather than a negative. A leading minus in front of the function does that; it does not change which rows matched, so a mistake in the condition still shows up as the wrong size. If a column can hold text, SUMIF ignores it, but a single SUM over the same range would too — the difference is that SUMIF never adds a row you did not mean to keep.",
+    "explain": "A plain SUM of a profit-and-loss column tells you the net, which is usually the least useful number in it. Splitting the column by sign with SUMIF gives the two numbers a report wants: how much was gained, and how much was lost. The condition is a comparison in quotes, so \">0\" keeps the positives and \"<0\" keeps the negatives. Zero falls in neither bucket, which is worth remembering, because a zero month disappears from both totals and the two will not add back to the net. The second screen flips the sign of the losses so they read as a size rather than a negative. A leading minus in front of the function does that. It does not change which rows matched, so a mistake in the condition still shows up as the wrong size. If a column can hold text, SUMIF ignores it, and so would a single SUM over the same range. The difference is that SUMIF never adds a row you did not mean to keep.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -232,5 +232,10 @@
     "teaches": "SUMIF with a sign comparison, and flipping a negative total",
     "dataset": "Monthly changes and weekly variances",
     "reference": "=SUMIF(B2:B6,\">0\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Add only the positive or negative rows",
+    "description": "Splitting a profit column by sign with SUMIF gives the two numbers a report wants: what was gained and what was lost. A zero month counts in neither."
   }
 }

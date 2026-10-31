@@ -69,7 +69,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNT(B2:B9) \u2014 one range, and the function decides what counts.",
+        "syntax": "=COUNT(B2:B9): one range, and the function decides what counts.",
         "func-count": "COUNT counts numbers; COUNTA counts anything that is not empty.",
         "require-ref": "Pass the units column of the grid rather than a typed list of quantities.",
         "value": "Six rows hold a number: two blank-ish cells are not numbers, and n/a is text.",
@@ -88,7 +88,7 @@
           {
             "formula": "=COUNTA(B2:B9)",
             "rule": "func-count",
-            "why": "everything that is not empty counts, including the n/a text \u2014 7"
+            "why": "everything that is not empty counts, including the n/a text — 7"
           },
           {
             "formula": "=COUNTA(A2:A9)",
@@ -193,7 +193,7 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNTA(A2:A9)-COUNT(B2:B9) \u2014 all the rows minus the numeric ones.",
+        "syntax": "=COUNTA(A2:A9)-COUNT(B2:B9): all the rows minus the numeric ones.",
         "func-counta": "COUNTA counts everything that is not empty; it is how you count rows rather than values.",
         "func-count": "COUNT is the half that counts the numbers, and the difference is what is left.",
         "require-ref": "Start both ranges on row 2 so the header row never enters the count.",
@@ -213,7 +213,7 @@
           {
             "formula": "=COUNT(B2:B9)",
             "rule": "func-counta",
-            "why": "the count of numbers alone \u2014 six \u2014 says nothing about the missing ones"
+            "why": "the count of numbers alone — six — says nothing about the missing ones"
           },
           {
             "formula": "=COUNTA(A2:A9)",
@@ -251,7 +251,7 @@
   ],
   "docs": {
     "syntax": "=COUNT(range) counts numbers; =COUNTA(range) counts anything not empty",
-    "explain": "The count family answers three different questions that look alike. COUNT counts numbers, and it quietly skips text, blanks and logical values, so a column with six quantities and one n/a answers six. COUNTA counts every cell that is not empty, whatever it holds, so the same column answers seven because the text is still something. COUNTIF and COUNTIFS count the cells that match conditions, which is the only way to answer a question about what the values are rather than what type they are. In this drill the units column holds six numbers, one blank and one n/a, so COUNT answers six while COUNTA would answer seven; the second screen subtracts one from the other and reports the two rows where the item exists but the quantity is missing. Choosing the wrong member of the family is the classic mistake: COUNTA on a numeric column looks correct until the first text value slips into the sheet, and COUNT on a text column answers zero without warning.",
+    "explain": "The count family answers three different questions that look alike. COUNT counts numbers, and it quietly skips text, blanks and logical values. A column with six quantities and one n/a answers six. COUNTA counts every cell that is not empty, whatever it holds, so the same column answers seven because the text is still something. COUNTIF and COUNTIFS count the cells that match conditions, which is the only way to ask what the values are rather than what type they are. In this drill the units column holds six numbers, one blank and one n/a, so COUNT answers six and COUNTA answers seven. The second screen subtracts one from the other and reports the two rows where the item exists but the quantity is missing. Choosing the wrong member of the family is the classic mistake. COUNTA on a numeric column looks correct until the first text value slips into the sheet, and COUNT on a text column answers zero without warning.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -272,5 +272,10 @@
     "dataset": "Parts list with a quantity column holding two gaps",
     "reference": "=COUNT(B2:B9)"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "COUNT and COUNTA in Excel: the difference",
+    "description": "COUNT counts numbers and skips text; COUNTA counts every cell that is not empty. Subtract one from the other and you have the number of rows with a gap."
+  }
 }

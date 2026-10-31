@@ -12,18 +12,50 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Swimmer", "Seconds", "Second best"],
-          ["Ada", 58, null],
-          ["Ben", 61, null],
-          ["Cleo", 55, null],
-          ["Dev", 57, null],
-          ["Eli", 50, null]
+          [
+            "Swimmer",
+            "Seconds",
+            "Second best"
+          ],
+          [
+            "Ada",
+            58,
+            null
+          ],
+          [
+            "Ben",
+            61,
+            null
+          ],
+          [
+            "Cleo",
+            55,
+            null
+          ],
+          [
+            "Dev",
+            57,
+            null
+          ],
+          [
+            "Eli",
+            50,
+            null
+          ]
         ]
       },
       "answerCell": "C2",
-      "expect": { "value": 58 },
+      "expect": {
+        "value": 58
+      },
       "reference": "=LARGE(B2:B6,2)",
-      "require": [{ "id": "func-large", "func": "LARGE", "minArgs": 2 }],
+      "require": [
+        {
+          "id": "func-large",
+          "func": "LARGE",
+          "minArgs": 2
+        }
+      ],
       "forbid": [],
       "requireRef": "B2",
       "rules": [],
@@ -31,7 +63,7 @@
         "syntax": "LARGE takes the range and which one you want: =LARGE(B2:B6,2).",
         "func-large": "MAX gives only the best time; the second best needs a function that counts in from the top.",
         "require-ref": "Point at the column of times rather than listing them inside the formula.",
-        "value": "2 means the second highest number, not the number in row 2 — the answer is 58, not 61.",
+        "value": "2 means the second highest number, not the number in row 2: the answer is 58, not 61.",
         "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
       },
       "fixtures": {
@@ -89,18 +121,50 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Quote", "Cost", "Second cheapest"],
-          ["Q-1", 40, null],
-          ["Q-2", 35, null],
-          ["Q-3", 52, null],
-          ["Q-4", 38, null],
-          ["Q-5", 47, null]
+          [
+            "Quote",
+            "Cost",
+            "Second cheapest"
+          ],
+          [
+            "Q-1",
+            40,
+            null
+          ],
+          [
+            "Q-2",
+            35,
+            null
+          ],
+          [
+            "Q-3",
+            52,
+            null
+          ],
+          [
+            "Q-4",
+            38,
+            null
+          ],
+          [
+            "Q-5",
+            47,
+            null
+          ]
         ]
       },
       "answerCell": "C2",
-      "expect": { "value": 38 },
+      "expect": {
+        "value": 38
+      },
       "reference": "=SMALL(B2:B6,2)",
-      "require": [{ "id": "func-small", "func": "SMALL", "minArgs": 2 }],
+      "require": [
+        {
+          "id": "func-small",
+          "func": "SMALL",
+          "minArgs": 2
+        }
+      ],
       "forbid": [],
       "requireRef": "B2",
       "rules": [],
@@ -162,7 +226,7 @@
   ],
   "docs": {
     "syntax": "=LARGE(range, n) and =SMALL(range, n)",
-    "explain": "MAX and MIN answer only the first question anybody asks. The moment you ask for the runner-up, the third-worst month or the second-cheapest quote, you need a function that counts in from one end of the sorted order without actually sorting anything. LARGE does that from the top and SMALL from the bottom; the second argument is a position, not a row number, which is why 2 usually surprises people. The list stays exactly where it is: no helper column, no sort, no copy. Ranks that tie are counted separately, so two swimmers on 61 give LARGE 61 for both 1 and 2, and the third place goes to the next distinct time — that is how Excel behaves and it is worth knowing before a ranking report is published. Asking for a position beyond the size of the range returns #NUM!, not a blank, so a chart title built on `=LARGE(...)` needs error handling if the list can shrink. And the range should be a range: LARGE over a hand-typed list freezes the answer and defeats the point.",
+    "explain": "MAX and MIN answer only the first question anybody asks. The moment you want the runner-up, the third-worst month or the second-cheapest quote, you need a function that counts in from one end of the sorted order without sorting anything. LARGE does that from the top and SMALL from the bottom. The second argument is a position, not a row number, which is why 2 usually surprises people. The list stays exactly where it is: no helper column, no sort, no copy. Ranks that tie are counted separately, so two swimmers on 61 give LARGE 61 for both 1 and 2, and third place goes to the next distinct time. That is how Excel behaves, and it is worth knowing before a ranking report is published. A position beyond the size of the range returns #NUM! rather than a blank, so a chart title built on `=LARGE(...)` needs error handling if the list can shrink. The range should also be a range. LARGE over a hand-typed list freezes the answer and defeats the point.",
     "errors": [
       {
         "code": "#NUM!",
@@ -182,5 +246,10 @@
     "teaches": "LARGE and SMALL with a position argument",
     "dataset": "Swim times and five supplier quotes",
     "reference": "=LARGE(B2:B6,2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "LARGE and SMALL in Excel: the nth value",
+    "description": "LARGE counts in from the top of an unsorted list and SMALL from the bottom, so the second argument is a position, not a row number. No sort needed."
   }
 }

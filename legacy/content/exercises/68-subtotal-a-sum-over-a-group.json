@@ -5,7 +5,7 @@
   "title": "SUBTOTAL: one function number, six answers",
   "docs": {
     "syntax": "=SUBTOTAL(function-number, range) with 9 (or 109) for SUM, 4 for MAX, 5 for MIN, 2 for COUNT",
-    "explain": "SUBTOTAL looks like a strange function the first time you meet it, because the first argument is a number rather than a range. That number chooses which of eleven ordinary functions to run over the range that follows: nine is SUM, one is AVERAGE, two is COUNT, four is MAX, five is MIN, and the hundreds versions do the same thing while also skipping rows that have been hidden by hand. The reason it exists is lists that get filtered: a plain SUM keeps adding the rows the filter has hidden, while a subtotal is built to be recalculated against whatever is visible, which is why the total row of a filtered table is a SUBTOTAL. In this drill nothing is hidden, so nine and one hundred and nine give the same answer, and that is worth knowing: the difference only shows up once rows disappear. The two screens use the same range and different function numbers, so the only thing that changes the answer is the number in the first position. That is the habit to build: read the number before the range, because it says what the answer is going to be.",
+    "explain": "SUBTOTAL looks like a strange function the first time you meet it, because the first argument is a number rather than a range. That number chooses which of eleven ordinary functions to run over the range that follows. Nine is SUM, one is AVERAGE, two is COUNT, four is MAX, five is MIN. The hundreds versions do the same thing and also skip rows hidden by hand. The reason it exists is lists that get filtered. A plain SUM keeps adding the rows the filter has hidden. A subtotal is built to be recalculated against whatever is visible, which is why the total row of a filtered table is a SUBTOTAL. In this drill nothing is hidden, so nine and one hundred and nine give the same answer. That is worth knowing: the difference only shows up once rows disappear. The two screens use the same range and different function numbers, so the only thing that changes the answer is the number in the first position. That is the habit to build. Read the number before the range, because it says what the answer is going to be.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -78,7 +78,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUBTOTAL(9,B2:B4) — the number comes first, then the range.",
+        "syntax": "=SUBTOTAL(9,B2:B4): the number comes first, then the range.",
         "func-subtotal": "The question asks for the total that survives a filter, and that is SUBTOTAL.",
         "require-ref": "The range is the price column of the table.",
         "value": "Ten plus five plus twenty is 35.",
@@ -182,7 +182,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUBTOTAL(4,B2:B4) — four is MAX, and the range follows it.",
+        "syntax": "=SUBTOTAL(4,B2:B4): four is MAX, and the range follows it.",
         "func-subtotal": "The largest value comes from the number the function is given, not from MAX.",
         "require-ref": "The prices live in B2:B4.",
         "value": "The largest of ten, five and twenty is 20.",
@@ -237,5 +237,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "SUBTOTAL in Excel: one function, six answers",
+    "description": "The first argument of SUBTOTAL is a number, and that number picks the function: 9 for SUM, 1 for AVERAGE, 2 for COUNT, 4 for MAX. Read it before the range."
+  },
+  "updated": "2026-10-31"
 }

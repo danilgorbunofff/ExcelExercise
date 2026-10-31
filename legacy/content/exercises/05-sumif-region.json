@@ -57,11 +57,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUMIF(A2:A6,\"North\",B2:B6) — condition range, condition, then the numbers to add.",
+        "syntax": "=SUMIF(A2:A6,\"North\",B2:B6): condition range, condition, then the numbers to add.",
         "func-sumif": "SUMIF adds only the rows that match. SUM would give you the total of every region, which is a different question.",
         "require-ref": "The sum range has to be the amount column, not the region column.",
         "value": "That is not the North total. Check the third argument: with only two arguments SUMIF adds the region names, which is zero.",
-        "error": "#VALUE! means the criteria range and the sum range are different shapes — A2:A6 and B2:B6 have to line up row for row. If the region column is in the sum slot, expect zero rather than an error."
+        "error": "#VALUE! means the criteria range and the sum range are different shapes: A2:A6 and B2:B6 have to line up row for row. If the region column is in the sum slot, expect zero rather than an error."
       },
       "fixtures": {
         "accept": [
@@ -124,7 +124,7 @@
   ],
   "docs": {
     "syntax": "=SUMIF(range, criteria, [sum_range])",
-    "explain": "SUMIF asks two questions at once: which rows match, and which column should be added. The region column is A2:A6, the condition is \"North\", and the amounts live in B2:B6. Three rows match — 320, 180 and 400 — and 320 + 180 + 400 = 900, so =SUMIF(A2:A6,\"North\",B2:B6) returns 900 while the whole table holds 1450. The third argument is optional and that is the trap: leave it out and SUMIF adds the cells in the condition range, which are words, so the answer collapses to 0. The condition works like COUNTIF, so \">=200\" or \"N*\" are legal, and the two ranges are matched by position rather than by address, which means both should be the same shape.",
+    "explain": "SUMIF asks two questions at once: which rows match, and which column gets added. The region column is A2:A6, the condition is \"North\", and the amounts sit in B2:B6. Three rows match, 320, 180 and 400, so =SUMIF(A2:A6,\"North\",B2:B6) returns 900 while the table holds 1450. The third argument is optional, and that is the trap. Leave it out and SUMIF adds the cells in the condition range, which are words, so the answer collapses to 0. Conditions work like COUNTIF, so \">=200\" and \"N*\" are legal. The two ranges are matched by position, so both should be the same shape.",
     "errors": [
       {
         "code": "0",
@@ -144,5 +144,10 @@
     "teaches": "SUMIF",
     "dataset": "Regional sales",
     "reference": "=SUMIF(A2:A6,\"North\",B2:B6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SUMIF in Excel: total one category",
+    "description": "SUMIF adds only the rows that match, which is why the third argument matters. Three North rows add to 900 while the whole table holds 1450."
   }
 }

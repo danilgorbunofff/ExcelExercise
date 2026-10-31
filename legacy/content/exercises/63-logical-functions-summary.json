@@ -70,7 +70,7 @@
       "requireRef": "B8",
       "rules": [],
       "hints": {
-        "syntax": "=IF(AND(test 1, test 2),\"PASS\",\"FAIL\") — the tests go inside the IF.",
+        "syntax": "=IF(AND(test 1, test 2),\"PASS\",\"FAIL\"): the tests go inside the IF.",
         "func-if": "Two words have to come out of one formula, so the test needs an IF around it.",
         "func-and": "Both conditions have to hold at the same time, which is what AND is for.",
         "require-ref": "Read the total and the units column rather than typing the numbers.",
@@ -209,7 +209,7 @@
       "requireRef": "C2",
       "rules": [],
       "hints": {
-        "syntax": "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\") — the guard comes first.",
+        "syntax": "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\"): the guard comes first.",
         "func-if": "The formula has two outcomes, a number and the word none, so it needs an IF.",
         "func-isnumber": "Asking whether the average produced a number is how an empty range is caught.",
         "func-round": "One decimal place comes from ROUND, not from the cell format.",
@@ -268,7 +268,7 @@
   ],
   "docs": {
     "syntax": "=IF(AND(test 1, test 2),\"PASS\",\"FAIL\"); =IF(ISNUMBER(AVERAGE(range)),ROUND(...,1),\"none\")",
-    "explain": "A summary lesson is where the pieces have to work together, because each of these formulas reads a test, decides something, and returns one of two kinds of value. The first screen nests AND inside IF: both conditions are checked, and the cell answers the word PASS or FAIL rather than TRUE or FALSE, which is what a reader of the sheet actually wants. The second wraps the average in ISNUMBER before rounding it, so an empty or text-only price column returns none instead of #DIV/0!; the guard is not decoration, it is the difference between a report that prints and one that shows an error in a client meeting. Both formulas keep every number inside the grid: the total row, the units column and the price column are read, never typed, so editing a price moves the answer without touching a formula. Two habits are worth carrying away. The first is that ROUND changes the value while cell formatting only changes the display, so a rounded number can be summed safely and a formatted one cannot. The second is that an IF with a guard is easier to read than IFERROR wrapped around a calculation, because it names the condition that could fail instead of catching every error that did.",
+    "explain": "A summary lesson is where the pieces have to work together. Each of these formulas reads a test, decides something, and returns one of two kinds of value. The first screen nests AND inside IF. Both conditions are checked, and the cell answers the word PASS or FAIL rather than TRUE or FALSE, which is what a reader of the sheet wants to see. The second wraps the average in ISNUMBER before rounding it, so an empty or text-only price column returns none instead of #DIV/0!. The guard is not decoration. It is the difference between a report that prints and one that shows an error in a client meeting. Both formulas keep every number inside the grid. The total row, the units column and the price column are read, never typed, so editing a price moves the answer without touching a formula. Two habits are worth carrying away. The first is that ROUND changes the value while cell formatting only changes the display, so a rounded number can be summed safely and a formatted one cannot. The second is that an IF with a guard is easier to read than IFERROR around a calculation. It names the condition that could fail instead of catching every error that did.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -289,5 +289,10 @@
     "dataset": "Stock list with a total row, and a price column to average",
     "reference": "=IF(AND(B8>100,MIN(B2:B7)>=15),\"PASS\",\"FAIL\")"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Combine IF, AND and ROUND in Excel",
+    "description": "Nest AND inside IF and the cell answers PASS or FAIL instead of TRUE. Guard the average with ISNUMBER so a text-only column says none instead of #DIV/0!."
+  }
 }

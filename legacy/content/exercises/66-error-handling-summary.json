@@ -70,7 +70,7 @@
       "requireRef": "A8",
       "rules": [],
       "hints": {
-        "syntax": "=IFERROR(value, value_if_error) — two arguments, the second is the net.",
+        "syntax": "=IFERROR(value, value_if_error): two arguments, the second is the net.",
         "func-iferror": "Any failure at all has to become the word no match, which is the wider net.",
         "func-vlookup": "The price is in the second column of the table.",
         "require-ref": "Read the code from the grid instead of typing it.",
@@ -198,7 +198,7 @@
       "requireRef": "B4",
       "rules": [],
       "hints": {
-        "syntax": "=IFERROR(B3/C3,\"no units\") — the division sits inside the net.",
+        "syntax": "=IFERROR(B3/C3,\"no units\"): the division sits inside the net.",
         "func-iferror": "A blank divisor raises #DIV/0!, and the net is what turns it into a word.",
         "require-ref": "Divide the price in the grid by the units in the same row.",
         "value": "The units cell on row 4 is empty, so the division fails and the answer is no units.",
@@ -250,7 +250,7 @@
   ],
   "docs": {
     "syntax": "=IFERROR(value, fallback) catches everything; =IFNA(value, fallback) catches only #N/A",
-    "explain": "Two nets, two jobs. IFERROR evaluates its first argument and returns the second if any error at all comes back, which makes it the right choice when the question is whether a calculation worked at all — a division by an empty cell, a lookup into a range that is not there, text handed to arithmetic. IFNA is the narrower net: it returns the second argument only for #N/A, the error raised when a lookup or a match finds nothing, and lets every other error through. Choosing between them is a decision about what the sheet is going to say. A wide net makes the output tidy, and it also hides the bugs: a #REF! that should have been fixed at the source becomes a friendly word that looks like ordinary missing data. A narrow net keeps that distinction, at the cost of showing the rarer errors while the sheet is being built. In this drill the first screen prices Q-9, which is not on the list, so the wide net answers no match; the second divides a price by an empty units cell, where #DIV/0! is the error and IFNA would not have helped. Both screens put the net around the whole calculation rather than around one lookup, which is the shape that keeps working when the formula grows.",
+    "explain": "Two nets, two jobs. IFERROR evaluates its first argument and returns the second if any error at all comes back. That makes it the right choice when the question is whether a calculation worked. The failure might be a division by an empty cell, a lookup into a range that is not there, or text handed to arithmetic. IFNA is the narrower net. It returns the second argument only for #N/A, the error raised when a lookup or a match finds nothing, and lets every other error through. Choosing between them is a decision about what the sheet is going to say. A wide net makes the output tidy, and it also hides the bugs. A #REF! that should have been fixed at the source becomes a friendly word that looks like ordinary missing data. A narrow net keeps that distinction, at the cost of showing the rarer errors while the sheet is being built. In this drill the first screen prices Q-9, which is not on the list, so the wide net answers no match. The second divides a price by an empty units cell, where #DIV/0! is the error and IFNA would not have helped. Both screens put the net around the whole calculation rather than around one lookup, which is the shape that keeps working when the formula grows.",
     "errors": [
       {
         "code": "#N/A",
@@ -271,5 +271,10 @@
     "dataset": "Code, price and units table with one blank units cell",
     "reference": "=IFERROR(VLOOKUP(A8,A2:B7,2,FALSE),\"no match\")"
   },
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "IFERROR or IFNA: which net to use",
+    "description": "IFERROR catches any error, IFNA only catches #N/A. The wide net tidies the output and hides bugs; the narrow one keeps a broken reference shouting."
+  },
+  "updated": "2026-10-31"
 }

@@ -5,7 +5,7 @@
   "title": "A monthly close checklist in formulas",
   "docs": {
     "syntax": "=IF(variance=0,\"ready\",\"check\") flags one check; =COUNTIF(range,\"<>0\") counts the rest",
-    "explain": "A close checklist is a list of reconciliations, and every line of it ends in the same question: does this variance come to zero. Reading four variances by eye is fine and reading forty is not, so the sheet should answer the question rather than display the number and let a person decide. IF is the tool for one row: compare the variance to zero and return a word rather than a number, because words are what a checklist is read for. The second screen counts the rows that still have a variance, and the criterion to use is the not-equal one, written as a string. That detail is worth its own screen because it is the criterion people get wrong: a comparison has to be quoted, and the value inside it stays a number. Together the two screens are the shape every close sheet converges on, one column that says whether a line is ready and one cell that says how many lines are not, and neither of them asks the reader to look at the variance column again.",
+    "explain": "A close checklist is a list of reconciliations, and every line of it ends in the same question: does this variance come to zero. Reading four variances by eye is fine and reading forty is not. So the sheet should answer the question rather than display the number and let a person decide. IF is the tool for one row. Compare the variance to zero and return a word rather than a number, because words are what a checklist is read for. The second screen counts the rows that still have a variance, and the criterion to use is the not-equal one, written as a string. That detail is worth its own screen because it is the criterion people get wrong. A comparison has to be quoted, and the value inside it stays a number. Together the two screens are the shape every close sheet converges on: one column that says whether a line is ready and one cell that says how many lines are not. Neither of them asks the reader to look at the variance column again.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -73,7 +73,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=IF(B2=0,\"ready\",\"check\") — the test, the answer when it holds, the answer when it does not.",
+        "syntax": "=IF(B2=0,\"ready\",\"check\"): the test, the answer when it holds, the answer when it does not.",
         "func-if": "The cell has to choose between two words, which is what IF does.",
         "require-ref": "The variance is in B2.",
         "value": "The bank variance is zero, so the status is ready.",
@@ -177,7 +177,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=COUNTIF(B2:B5,\"<>0\") — the variance column, then the not-equal criterion in quotes.",
+        "syntax": "=COUNTIF(B2:B5,\"<>0\"): the variance column, then the not-equal criterion in quotes.",
         "func-countif": "Counting rows that meet a criterion is COUNTIF's job.",
         "require-ref": "The variance column is B2:B5.",
         "value": "Accruals and prepaids are out, so two rows have a variance.",
@@ -232,5 +232,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "A close checklist built from IF and COUNTIF",
+    "description": "IF returns ready or check for one variance, and COUNTIF with a quoted not-equal criterion counts the rows still out. No line needs reading by eye."
+  },
+  "updated": "2026-10-31"
 }

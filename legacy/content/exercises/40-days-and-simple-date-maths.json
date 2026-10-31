@@ -49,7 +49,7 @@
       "rules": [],
       "hints": {
         "syntax": "DAYS reads end date first, then start date: =DAYS(C2,B2).",
-        "func-days": "Name the function rather than relying on plain subtraction — DAYS says which date is the end.",
+        "func-days": "Name the function rather than relying on plain subtraction: DAYS says which date is the end.",
         "require-ref": "Pass C2 and B2 rather than the two serials, so the row can be filled down.",
         "value": "45366 minus 45352 is 14, and the arguments are the right way round: end first, start second.",
         "error": "Dividing by zero anywhere in the formula leaves #DIV/0! instead of a count of days."
@@ -197,7 +197,7 @@
   ],
   "docs": {
     "syntax": "=DAYS(end, start)",
-    "explain": "DAYS and a plain subtraction answer the same question, and they answer it differently enough to matter: DAYS takes the end date first, so the answer is positive and the formula says which end is which, while `C2-B2` is a difference that reads backwards the moment somebody fills it down a column the wrong way. The unit is days and only days — turning that into weeks is ordinary arithmetic on the result, because a date is a number and everything you know about numbers applies to it. That is also why date maths works at all: adding thirty to a date gives the date thirty days later, subtracting one date from another gives the gap in days, and dividing the gap by seven gives weeks. Excel will even format the answer of a date plus a number as a date, which is the fastest way to build a due date from a term length. The trap is that a serial means nothing on its own: 45352 is only 1 March 2024 because somebody agreed on 1899 as the epoch, so a cell containing a day count must never be formatted as a date, or it will claim to be a Tuesday in 1900.",
+    "explain": "DAYS and a plain subtraction answer the same question, and they answer it differently enough to matter. DAYS takes the end date first, so the answer is positive and the formula says which end is which. `C2-B2` is a difference that reads backwards the moment somebody fills it down a column the wrong way. The unit is days and only days. Turning that into weeks is ordinary arithmetic on the result, because a date is a number and everything you know about numbers applies to it. That is why date maths works at all. Adding thirty to a date gives the date thirty days later, subtracting one date from another gives the gap in days, and dividing the gap by seven gives weeks. Excel will even format the answer of a date plus a number as a date, which is the fastest way to build a due date from a term length. The trap is that a serial means nothing on its own. 45352 is only 1 March 2024 because somebody agreed on 1899 as the epoch. A cell holding a day count must never be formatted as a date, or it will claim to be a Tuesday in 1900.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -209,7 +209,7 @@
       },
       {
         "code": "#DIV/0!",
-        "text": "The weeks were divided by zero — a count of days survives that, a division does not."
+        "text": "The weeks were divided by zero: a count of days survives that, a division does not."
       }
     ],
     "atWork": "A service-level report that measures how long each ticket stayed open, and then reports the same figure in weeks for the management summary without recomputing anything.",
@@ -217,5 +217,10 @@
     "teaches": "DAYS, and arithmetic on date serials",
     "dataset": "Two projects with a start and an end date",
     "reference": "=DAYS(C2,B2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "DAYS in Excel: date maths in days",
+    "description": "DAYS takes the end date first, so the answer is positive and the formula says which end is which. A date is a number, so weeks are that answer over seven."
   }
 }

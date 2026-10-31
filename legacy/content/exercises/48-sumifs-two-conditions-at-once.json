@@ -65,7 +65,7 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=SUMIFS(sum range, range 1, condition 1, range 2, condition 2) — note the sum range comes first.",
+        "syntax": "=SUMIFS(sum range, range 1, condition 1, range 2, condition 2): note the sum range comes first.",
         "func-sumifs": "SUMIF only takes one condition; two of them need SUMIFS.",
         "require-ref": "Point at the region column in the grid rather than typing the rep names into the formula.",
         "value": "Ada's North sales are 320 in row 2 and 400 in row 6, so the total is 720.",
@@ -179,7 +179,7 @@
       "requireRef": "C2",
       "rules": [],
       "hints": {
-        "syntax": "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\">200\") — the comparison goes in quotes.",
+        "syntax": "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\">200\"): the comparison goes in quotes.",
         "func-sumifs": "Two conditions on the same table is exactly what SUMIFS is for.",
         "require-ref": "Point at the amount column so the threshold is compared against the grid, not a typed list.",
         "value": "Only two shipped orders clear 200: 320 and 300, which total 620.",
@@ -236,7 +236,7 @@
   ],
   "docs": {
     "syntax": "=SUMIFS(sum_range, criteria_range1, criteria1, [criteria_range2, criteria2], ...)",
-    "explain": "SUMIF answers one question; most real totals ask two. SUMIFS takes the range to add first — which is the opposite order to SUMIF, and the reason people who know SUMIF get it wrong — then any number of range/condition pairs. In this drill the sum range is C2:C6, the region column must say North, and the rep column must say Ada, which leaves rows 2 and 6 and answers 720. The second screen swaps one pair for a comparison: the status must be Shipped and the amount must be over 200, so the 180 order is shipped but excluded and the answer is 620. Conditions are text or comparisons in quotes, and the wildcard characters work inside them. All the criteria ranges must be the same shape as the sum range, or rows start drifting against each other and the total is quietly wrong. When a condition needs an OR rather than an AND, SUMIFS cannot express it in one call: add two SUMIFS calls together instead of trying to bend one.",
+    "explain": "SUMIF answers one question. Most real totals ask two. SUMIFS takes the range to add first, then any number of range and condition pairs. That first argument is the opposite order to SUMIF, which is why people who know SUMIF get it wrong. In this drill the sum range is C2:C6, the region column must say North, and the rep column must say Ada. That leaves rows 2 and 6 and answers 720. The second screen swaps one pair for a comparison: the status must be Shipped and the amount must be over 200. The 180 order is shipped but excluded, so the answer is 620. Conditions are text or comparisons in quotes, and the wildcard characters work inside them. All the criteria ranges must be the same shape as the sum range, or rows start drifting against each other and the total is quietly wrong. When a condition needs an OR rather than an AND, SUMIFS cannot express it in one call. Add two SUMIFS calls together instead of trying to bend one.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -256,5 +256,10 @@
     "teaches": "SUMIFS with two condition pairs, text and comparison criteria",
     "dataset": "Repo sales by region and shipped orders by value",
     "reference": "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6,\"Ada\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SUMIFS in Excel: two conditions at once",
+    "description": "Most real totals ask two questions. SUMIFS takes the range to add first, then a range and a condition for each. Get that order wrong and the total drifts."
   }
 }

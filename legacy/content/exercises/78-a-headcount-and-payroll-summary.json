@@ -5,7 +5,7 @@
   "title": "A headcount and payroll summary",
   "docs": {
     "syntax": "=SUMPRODUCT(heads,salaries) totals a payroll; divide by SUM(heads) for the cost per head",
-    "explain": "A payroll summary is two columns that only mean something together. Headcount on its own says how many people a team has; salary on its own says what one seat costs. Multiply them row by row and you have the payroll that team represents, and that row-by-row multiplication is exactly what SUMPRODUCT does in one call. The alternative, a helper column of headcount times salary and a SUM underneath, is what most sheets do, and it works until someone sorts half the helper column. Doing it in one formula removes that failure. The second half of the lesson is the cost per head, which is the payroll divided by the total headcount rather than the average of the salary column. That distinction is the whole point: averaging salaries treats a team of one and a team of three as equally important, while dividing by the headcount weighs them the way the money does. Two screens, the payroll and then the cost per head, put the two figures side by side on one table.",
+    "explain": "A payroll summary is two columns that only mean something together. Headcount on its own says how many people a team has; salary on its own says what one seat costs. Multiply them row by row and you have the payroll that team represents, and that row-by-row multiplication is exactly what SUMPRODUCT does in one call. The alternative, a helper column of headcount times salary and a SUM underneath, is what most sheets do. It works until someone sorts half the helper column, and doing it in one formula removes that failure. The second half of the lesson is the cost per head, which is the payroll divided by the total headcount rather than the average of the salary column. That distinction is the whole point. Averaging salaries treats a team of one and a team of three as equally important, while dividing by the headcount weighs them the way the money does. Two screens, the payroll and then the cost per head, put the two figures side by side on one table.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -78,7 +78,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=SUMPRODUCT(B2:B5,C2:C5) — the headcount column, then the salary column.",
+        "syntax": "=SUMPRODUCT(B2:B5,C2:C5): the headcount column, then the salary column.",
         "func-sumproduct": "Each row is headcount times salary, and the rows are then added.",
         "require-ref": "The headcount column is B2:B5.",
         "value": "135000 + 76000 + 82000 + 52000 is 345000.",
@@ -192,7 +192,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),0) — the payroll over the headcount, rounded.",
+        "syntax": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),0): the payroll over the headcount, rounded.",
         "func-sumproduct": "The numerator is headcount times salary, added across rows.",
         "func-sum": "The denominator is the total headcount, which is a plain sum of the column.",
         "require-ref": "The headcount column is B2:B5.",
@@ -248,5 +248,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Payroll total and cost per head in Excel",
+    "description": "SUMPRODUCT multiplies headcount by salary row by row in one call, and dividing that payroll by the headcount weighs teams the way the money does."
+  },
+  "updated": "2026-10-31"
 }

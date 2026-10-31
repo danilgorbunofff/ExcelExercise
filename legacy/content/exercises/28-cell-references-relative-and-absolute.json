@@ -126,7 +126,7 @@
   ],
   "docs": {
     "syntax": "=ROUND(number, digits)",
-    "explain": "B6 holds 110 crates and C7 holds the rate per crate, 1.15. The cost of Friday is B6 times C7, rounded to two places so the column does not carry fractions of a penny. The dollar signs are the point of the drill: a plain C7 filled down becomes C8, then C9, and the cost column quietly multiplies by blank cells. $C$7 locks both the column and the row, so a copy down keeps pointing at the rate. C$7 would also survive a fill down, which is why it is accepted here, but it would break across columns. The dollar signs are the whole lesson: $C$7 names one fixed cell, while a bare C7 means 'the cell one column to the right of me, wherever I end up', so dragging the formula down would walk the rate off its row and quietly change the cost in every row below.",
+    "explain": "B6 holds 110 crates and C7 holds the rate per crate, 1.15. Friday's cost is B6 times C7, rounded to two places so the column carries no fractions of a penny. The dollar signs are the point of the drill. A plain C7 filled down becomes C8, then C9, and the cost column quietly multiplies by blank cells. Writing $C$7 locks the column and the row, so a copy down keeps pointing at the rate. C$7 would also survive a fill down, which is why it is accepted here, but it would break across columns. A bare C7 means 'the cell one column to the right of me, wherever I end up'. Dragging the formula down walks the rate off its row and changes the cost in every row below.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -142,5 +142,10 @@
     "teaches": "Absolute references with ROUND",
     "dataset": "Crates by day at one rate",
     "reference": "=ROUND(B6*$C$7,2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Excel absolute references: lock a cell",
+    "description": "$C$7 keeps the rate fixed when the formula is filled down, while a bare C7 walks off its row and multiplies by blank cells. ROUND trims the pennies."
   }
 }

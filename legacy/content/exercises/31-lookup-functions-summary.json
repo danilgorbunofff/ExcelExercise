@@ -121,7 +121,7 @@
   ],
   "docs": {
     "syntax": "=XLOOKUP(value, search column, return column)",
-    "explain": "Four functions answer 'find this, give me that': VLOOKUP, HLOOKUP, INDEX with MATCH, and XLOOKUP. VLOOKUP and HLOOKUP can only return what sits below or right of the key, because their third argument counts forward from the key column. INDEX with MATCH can go anywhere but needs two functions to say one thing. XLOOKUP names the searched column and the returned column separately, so a key on the right and the answer on the left costs nothing \u2014 which is exactly the table here. Choosing between them is mostly about which column holds the answer: if it sits to the right of the key, the old functions are fine, and if it sits to the left, XLOOKUP says so in one function instead of two.",
+    "explain": "Four functions answer 'find this, give me that': VLOOKUP, HLOOKUP, INDEX with MATCH, and XLOOKUP. VLOOKUP and HLOOKUP can only return what sits below or right of the key, because their third argument counts forward from the key column. INDEX with MATCH can go anywhere but needs two functions to say one thing. XLOOKUP names the searched column and the returned column separately, so a key on the right and the answer on the left costs nothing, which is exactly the table here. Choosing between them is mostly about which column holds the answer. If it sits to the right of the key, the old functions are fine. If it sits to the left, XLOOKUP says so in one function instead of two.",
     "errors": [
       {
         "code": "#N/A",
@@ -137,5 +137,10 @@
     "teaches": "Choosing between the lookup functions",
     "dataset": "Products left of their SKUs",
     "reference": "=XLOOKUP(B6,B2:B5,A2:A5)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Which Excel lookup should you use?",
+    "description": "VLOOKUP and HLOOKUP only return what sits right of its key. INDEX with MATCH goes anywhere in two functions, and XLOOKUP names both columns."
   }
 }

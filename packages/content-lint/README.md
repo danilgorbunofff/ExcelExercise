@@ -9,6 +9,8 @@ schema errors — they are content errors, and they are invisible until a learne
 
 ```bash
 npm run content:check                                  # the gate CI runs
+npm run content:copy                                   # the wording rules, lessons and groups
+npm run content:articles                               # the function notes
 npm run content:fixtures -- --lesson 6                 # one lesson, row per fixture
 npm run content:new -- --lesson 11 --group lookup      # fill the next planned slot
 npm run content:preview -- --lesson 11                 # the drill as its page reads
@@ -112,6 +114,40 @@ Empty hints on a rejection are a warning, not an error: the drill still grades, 
 
 - **Not a renderer.** Anything that would make a page unrenderable is rejected earlier, in
   `packages/content/schema.js`. Duplicating that gate here would let the two drift.
-- **Not a style guide.** It does not measure reading level beyond sentence count, does not check voice,
-  and does not grade explanations. Those are review, not machine checks.
+- **Not a style guide by itself.** The lesson gate counts sentences; wording and reading level live in
+  the copy gate (`copy.js`, `npm run content:copy`) and the note gate, which read the same rule file.
+  Neither can tell whether an explanation is *true* — that is review.
 - **No network.** No link crawler, no spell checker, no dependency. The build stays reproducible.
+
+## The notes: `content:articles`
+
+`lintArticles(dir, { paths })` gates `legacy/content/articles/*.md`, the pages under `/excel-functions`.
+It is a separate command from `check` because a note is not a lesson: it has no screens, no fixtures and
+no grader, so the lesson rules would report every one of them as broken. `--strict` runs both gates,
+and `check --strict` is the single command that refuses to ship either surface.
+
+What it refuses:
+
+- **A note that is not a note** — missing frontmatter key, `title` without the function name,
+  `description` outside 70 to 155 characters, `updated` not `YYYY-MM-DD`, `function` not unique.
+- **A note that does not parse** — reported per file, collected, so one bad note does not hide the rest.
+- **A note missing a section** — the five required headings, 2 to 4 `### Example N`, at least one
+  table, and 700 to 1400 words.
+- **A drill that leads nowhere** — `exercise` has to name a lesson that exists, by slug. A note with a
+  wrong slug still renders; it just loses its drill, which is why the rendered-page test in
+  `tests/articles.test.js` checks the shipped pages too and not only the parser.
+- **A link to a page the site does not emit** — `servedPaths(lessons, notes)` is derived from the
+  content, so a link to `/excel/<slug>` that was renamed, or to `/account`, fails here.
+- **A note that repeats another** — the same 5-word shingles rule the lessons use, compared across
+  notes; plus the wording rules: banned phrases, em dashes, curly quotes, sentences over 30 words.
+
+```js
+import { lintArticles, servedPaths } from "@excelsupreme/content-lint";
+
+const report = lintArticles("legacy/content", { paths: servedPaths(lessons, articles) });
+// { articles, findings, stats: { articles, words, meanWords, findings, errors, byRule } }
+```
+
+Findings carry `severity`: `error` fails the run, `warn` is printed and exits `0`. A long sentence is a
+warning because a person can deliberately write one; a banned phrase or a decorative dash is an error
+because there is never a reason to ship one.

@@ -62,7 +62,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B2:B7) — the whole block in one reference.",
+        "syntax": "=SUM(B2:B7): the whole block in one reference.",
         "func-sum": "Adding the cells one by one is what a broken total looks like; use SUM.",
         "require-ref": "Point at the column, or the range stops where somebody typed a row number by hand.",
         "value": "The numbers are 320, 250, 300, 400 and 180, which total 1450; the text is skipped.",
@@ -164,7 +164,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B2:B5) — the four months, stopping above the subtotal.",
+        "syntax": "=SUM(B2:B5): the four months, stopping above the subtotal.",
         "func-sum": "Add the months with SUM rather than by naming the cells one at a time.",
         "require-ref": "Read the amount column from the grid so the range covers every month.",
         "value": "320 + 250 + 180 + 140 is 890; pulling the 750 subtotal in as well gives 1640.",
@@ -221,7 +221,7 @@
   ],
   "docs": {
     "syntax": "=SUM(first_cell:last_cell)",
-    "explain": "A total that skips a row is almost never a broken SUM; it is a range that stops one row early, starts one row late, or swallows a row it should have stopped above. The two screens are the two common shapes. In the first, a cell in the middle holds text, which SUM ignores without complaint, so the correct range simply covers the whole block and the number comes out at 1450 — the trap is that a range written by hand around the text stops short of the stores below it. In the second, the row above the answer is a Q1 subtotal of 750, and a range that reaches it counts the first quarter twice: 890 becomes 1640. Both are read by comparing the total against a quick manual addition, then looking at which rows the range actually covers. Clicking the answer cell and dragging the range handles is the fast check, because the highlighted block on screen is exactly what the formula sees.",
+    "explain": "A total that skips a row is almost never a broken SUM. It is a range that stops one short, starts one late, or swallows a row it should have stopped above. The two screens are the two common shapes. In the first, a cell in the middle holds text, which SUM ignores without complaint. The correct range simply covers the whole block and the number comes out at 1450. The trap is that a range written by hand around the text stops short of the stores below it. In the second, the row above the answer is a Q1 subtotal of 750, and a range that reaches it counts the first quarter twice. 890 becomes 1640. Read both by comparing the total against a quick manual addition, then check which rows the range covers. Click the answer cell and drag the range handles. The highlighted block on screen is exactly what the formula sees.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -241,5 +241,10 @@
     "teaches": "SUM over a block with text in it, and stopping a range above a subtotal",
     "dataset": "City sales with a gap, and four months plus a subtotal",
     "reference": "=SUM(B2:B7)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Debug an Excel total that skips a row",
+    "description": "A total that misses a row is usually a range that stops early or swallows the subtotal above it. Drag the range handles to see what the formula covers."
   }
 }

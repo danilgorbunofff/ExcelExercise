@@ -5,7 +5,7 @@
   "title": "Clean up an imported list",
   "docs": {
     "syntax": "=PROPER(TRIM(text)) tidies spacing and case; nest SUBSTITUTE and LOWER for a key",
-    "explain": "An imported list arrives with the problems of wherever it came from: padding spaces, doubled spaces inside names, and inconsistent capitalisation. None of those are visible in a wide column, and all of them break a lookup later, because MATCH does not ignore a trailing space and would rather return an error than a near miss. Cleaning is therefore not cosmetic work, it is the step that makes the rest of the workbook correct. The order matters more than the functions do. TRIM first, because it removes the padding and collapses the runs of spaces inside a string to one; then the case function, because the words are now the right shape to capitalise. Swapping that order mostly works and teaches the wrong lesson, so the reject list carries it. The second screen builds a key, which is the same cleaning followed by replacing the space with a separator, and it nests all three: trim, substitute, lower. Once a key column exists, two lists that spell a name differently join on it, and that is what the whole exercise is for.",
+    "explain": "An imported list arrives with the problems of wherever it came from: padding spaces, doubled spaces inside names, and inconsistent capitalisation. None of those are visible in a wide column, and all of them break a lookup later. MATCH does not ignore a trailing space, and it would rather return an error than a near miss. Cleaning is therefore not cosmetic work. It is the step that makes the rest of the workbook correct. The order matters more than the functions do. TRIM first, because it removes the padding and collapses the runs of spaces inside a string to one. Then the case function, because the words are now the right shape to capitalise. Swapping that order mostly works and teaches the wrong lesson, so the reject list carries it. The second screen builds a key, which is the same cleaning followed by replacing the space with a separator. It nests all three: trim, substitute, lower. Once a key column exists, two lists that spell a name differently join on it, and that is what the whole exercise is for.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -73,7 +73,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=PROPER(TRIM(A2)) — trim the spacing, then capitalise the words.",
+        "syntax": "=PROPER(TRIM(A2)): trim the spacing, then capitalise the words.",
         "func-trim": "The cell is padded and doubled up, so the spaces have to go first.",
         "func-proper": "Each word has to be capitalised rather than shouted.",
         "require-ref": "The imported name is in A2.",
@@ -183,7 +183,7 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\".\")) — trim, replace the space, then lower-case.",
+        "syntax": "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\".\")): trim, replace the space, then lower-case.",
         "func-trim": "The doubled spaces would otherwise become doubled dots.",
         "func-substitute": "The remaining single space is swapped for a dot.",
         "func-lower": "The name is shouted, so the key has to be lower-cased.",
@@ -240,5 +240,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Clean up an imported list in Excel",
+    "description": "TRIM removes padding and collapses doubled spaces, then PROPER fixes the case. That order matters, and the tidied name is what lets a later lookup match."
+  },
+  "updated": "2026-10-31"
 }

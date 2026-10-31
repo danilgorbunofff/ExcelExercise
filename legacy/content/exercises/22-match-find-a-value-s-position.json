@@ -12,28 +12,67 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Month", "Units"],
-          ["Jan", 120],
-          ["Feb", 180],
-          ["Mar", 150],
-          ["Apr", 210],
-          ["Which month?", "Mar"],
-          ["Position", null]
+          [
+            "Month",
+            "Units"
+          ],
+          [
+            "Jan",
+            120
+          ],
+          [
+            "Feb",
+            180
+          ],
+          [
+            "Mar",
+            150
+          ],
+          [
+            "Apr",
+            210
+          ],
+          [
+            "Which month?",
+            "Mar"
+          ],
+          [
+            "Position",
+            null
+          ]
         ]
       },
       "answerCell": "B7",
-      "expect": { "value": 3 },
-      "require": [{ "id": "func-match", "func": "MATCH", "minArgs": 3 }],
+      "expect": {
+        "value": 3
+      },
+      "require": [
+        {
+          "id": "func-match",
+          "func": "MATCH",
+          "minArgs": 3
+        }
+      ],
       "forbid": [],
       "requireRef": "B6",
-      "rules": [{ "id": "match-exact", "type": "matchType", "func": "MATCH", "arg": 3, "values": [0] }],
+      "rules": [
+        {
+          "id": "match-exact",
+          "type": "matchType",
+          "func": "MATCH",
+          "arg": 3,
+          "values": [
+            0
+          ]
+        }
+      ],
       "hints": {
         "syntax": "MATCH takes the value, the list to search, and the match type: =MATCH(B6,A2:A5,0).",
         "func-match": "MATCH returns a position inside the list you give it, not the value in the next column; that is what INDEX does with the number.",
         "match-exact": "The month list is not sorted, so the third argument has to be 0 for an exact match. Leaving it out searches an unsorted list and gives an answer you cannot trust.",
         "require-ref": "Take the month from B6 instead of typing Mar, so asking about April is a one-cell edit.",
         "value": "Counting from Jan as 1, Mar is the third month in the list.",
-        "error": "If the month is not in the searched range at all, MATCH returns #N/A — the position of nothing does not exist."
+        "error": "If the month is not in the searched range at all, MATCH returns #N/A: the position of nothing does not exist."
       },
       "fixtures": {
         "accept": [
@@ -81,7 +120,7 @@
   ],
   "docs": {
     "syntax": "=MATCH(lookup_value, lookup_array, [match_type])",
-    "explain": "MATCH answers a question about position: given a value, where does it sit in this list, counting from 1? The list runs Jan, Feb, Mar, Apr in A2:A5 and B6 asks about Mar, so MATCH reports 3. The third argument decides how hard MATCH looks: 0 demands an exact match, 1 accepts the largest value less than or equal to the target and needs the list sorted ascending, and -1 does the mirror image on a descending list. This list is alphabetical rather than sorted by any rule MATCH can use, so 1 is a coin flip that happens to land on 3 today. Once MATCH has the number, INDEX turns it back into a value from another column — which is the pair the next lesson uses.",
+    "explain": "MATCH answers a question about position: given a value, where does it sit in this list, counting from 1? The list runs Jan, Feb, Mar, Apr in A2:A5 and B6 asks about Mar, so MATCH reports 3. The third argument decides how hard MATCH looks. 0 demands an exact match. 1 accepts the largest value less than or equal to the target and needs the list sorted ascending. -1 does the mirror image on a descending list. This list is alphabetical rather than sorted by any rule MATCH can use, so 1 is a coin flip that lands on 3 today. Once MATCH has the number, INDEX turns it back into a value from another column, which is the pair the next lesson uses.",
     "errors": [
       {
         "code": "#N/A",
@@ -97,5 +136,10 @@
     "teaches": "MATCH",
     "dataset": "Four months and their units",
     "reference": "=MATCH(B6,A2:A5,0)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "MATCH in Excel: find a value's position",
+    "description": "Mar is the third entry of Jan, Feb, Mar, Apr, so MATCH answers 3. The third argument 0 demands an exact match, and 1 needs a list sorted ascending."
   }
 }

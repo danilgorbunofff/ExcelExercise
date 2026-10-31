@@ -65,7 +65,7 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=SUMIF(A2:A6,\"North\",C2:C6) — condition range, condition, then the numbers to add.",
+        "syntax": "=SUMIF(A2:A6,\"North\",C2:C6): condition range, condition, then the numbers to add.",
         "func-sumif": "This lesson is a SUMIF drill; the total has to come from one SUMIF call.",
         "require-ref": "Read the regions from the grid rather than typing them into the formula.",
         "value": "The North bonuses are 32, 18 and 40, which come to 90.",
@@ -172,7 +172,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUMIF(B2:B6,\">40\") — two arguments, and the comparison is written in quotes.",
+        "syntax": "=SUMIF(B2:B6,\">40\"): two arguments, and the comparison is written in quotes.",
         "func-sumif": "A plain SUM adds every score; the filter is the whole point here.",
         "require-ref": "Test the scores in the grid rather than a list of numbers typed into the formula.",
         "value": "The scores above 40 are 52 and 47, which total 99.",
@@ -229,7 +229,7 @@
   ],
   "docs": {
     "syntax": "=SUMIF(criteria_range, condition, [sum_range])",
-    "explain": "The third argument is the part people leave out. When SUMIF is given only a criteria range and a condition it adds the cells it just tested, which is right for a column of scores and wrong the moment the numbers you want sit somewhere else. This drill separates them on purpose: column A holds the region, column C holds the bonus, so the condition reads column A and the addition reads column C. Leave the third argument off and the total becomes the sum of the regions, which is not even a number. The ranges only have to line up row for row, not be the same column: A2:A6 tested, C2:C6 added, and row 2 in each are the same sale. That also means a shifted range is silently wrong rather than an error, so check the two ranges start and end on the same rows. Comparison conditions work the same way here as in the second screen, where the sum range is omitted because the scores are both the test and the total.",
+    "explain": "The third argument is the part people leave out. Given only a criteria range and a condition, SUMIF adds the cells it just tested. That is right for a column of scores, and wrong the moment the numbers you want sit somewhere else. This drill separates them on purpose. Column A holds the region and column C holds the bonus, so the condition reads column A and the addition reads column C. Leave the third argument off and the total becomes the sum of the regions, which is not even a number. The ranges only have to line up row for row, not be the same column. A2:A6 is tested, C2:C6 is added, and row 2 in each is the same sale. That also means a shifted range is silently wrong rather than an error, so check that both ranges start and end on the same rows. Comparison conditions work the same way here as in the second screen, where the sum range is omitted because the scores are both the test and the total.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -249,5 +249,10 @@
     "teaches": "SUMIF with a separate sum range, and a comparison condition with no sum range",
     "dataset": "Regional amounts and bonuses, and a list of scores",
     "reference": "=SUMIF(A2:A6,\"North\",C2:C6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SUMIF with a separate sum range",
+    "description": "Given only a range and a condition, SUMIF adds the cells it just tested. Add the third argument and it totals a different column while testing the first."
   }
 }

@@ -5,7 +5,7 @@
   "title": "An inventory reorder report",
   "docs": {
     "syntax": "=MAX(0,reorder_at-on_hand) floors a shortfall at zero; MAX(0,a-b) over totals nets it out",
-    "explain": "An inventory report has one rule that a spreadsheet gets wrong on its own: it must never ask for a negative number of parts. Subtracting what is on hand from the reorder point is the right arithmetic, and on a row that is over-stocked it returns a negative, which is meaningless on a purchase order. MAX wrapped around the subtraction is the whole fix. It does nothing on the rows that are short and floors the rest at zero, so the column reads as an order quantity rather than as a difference. The second screen works the same idea over the whole sheet instead of one row. Adding the reorder points and adding the stock, then taking the difference, gives the net shortfall, and MAX keeps that at zero for a month where the warehouse is ahead. Both screens use the same two columns, so the learner sees a row-level formula and a sheet-level formula that share one guard, and that guard is the reason a formula written this way can be filled down and totalled without ever producing an order for minus four bolts.",
+    "explain": "An inventory report has one rule that a spreadsheet gets wrong on its own: it must never ask for a negative number of parts. Subtracting what is on hand from the reorder point is the right arithmetic. On a row that is over-stocked it returns a negative, which is meaningless on a purchase order. MAX wrapped around the subtraction is the whole fix. It does nothing on the rows that are short and floors the rest at zero, so the column reads as an order quantity rather than as a difference. The second screen works the same idea over the whole sheet instead of one row. Adding the reorder points and adding the stock, then taking the difference, gives the net shortfall. MAX keeps that at zero for a month where the warehouse is ahead. Both screens use the same two columns, so the learner sees a row-level formula and a sheet-level formula that share one guard. That guard is the reason a formula written this way can be filled down and totalled without ever producing an order for minus four bolts.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -78,7 +78,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=MAX(0,C2-B2) — the shortfall, with zero as the floor.",
+        "syntax": "=MAX(0,C2-B2): the shortfall, with zero as the floor.",
         "func-max": "The order quantity never drops below zero, so a floor is needed.",
         "require-ref": "The stock on hand is in B2.",
         "value": "Ten to order less four in stock leaves six.",
@@ -192,7 +192,7 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=MAX(0,SUM(C2:C5)-SUM(B2:B5)) — the two column totals, with zero as the floor.",
+        "syntax": "=MAX(0,SUM(C2:C5)-SUM(B2:B5)): the two column totals, with zero as the floor.",
         "func-max": "The sheet can be ahead of its reorder points, so the net shortfall needs a floor.",
         "func-sum": "Both sides of the subtraction are column totals.",
         "require-ref": "The stock on hand is in B2.",
@@ -253,5 +253,10 @@
       }
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 2,
+  "seo": {
+    "title": "A reorder report that never asks for negative stock",
+    "description": "MAX wrapped around reorder point minus on hand does nothing where stock is short and floors the rest at zero, so the column reads as an order quantity."
+  },
+  "updated": "2026-10-31"
 }

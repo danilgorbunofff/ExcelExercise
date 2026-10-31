@@ -10,7 +10,7 @@ const { page } = prepareLegalPage({ config, track, index, icons, kind: "terms" }
 // Indexable on purpose, and listed in `app/sitemap.js`: the refund guarantee and the limits of a grader are terms a reader is entitled to read before
 // paying, so the page is not a modal and not a footnote.
 export const metadata = {
-  title: { absolute: `${page.title} — ${config.name}` },
+  title: { absolute: `${page.title} · ${config.name}` },
   description: page.description,
   alternates: { canonical: page.path },
   openGraph: {

@@ -14,7 +14,7 @@ const { page } = preparePricingPage({ config, track, index, icons, checkout });
 // The offer the drill's wall links to. Out of the sitemap and `noindex` on purpose: the track index
 // is the page search engines should land on, and a price page must not compete with it.
 export const metadata = {
-  title: { absolute: `${page.title} — ${config.name}` },
+  title: { absolute: `${page.title} · ${config.name}` },
   description: page.description,
   alternates: { canonical: page.path },
   robots: { index: false, follow: true },

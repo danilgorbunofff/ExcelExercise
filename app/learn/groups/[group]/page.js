@@ -18,7 +18,19 @@ export async function generateMetadata({ params }) {
   const { group } = await params;
   if (!groupIds.includes(group)) return {};
   const { page } = prepareDashboardPage({ config, track, index, icons, clientAvailable: dashboardAvailable, group });
-  return { title: page.title, description: page.description, robots: { index: false, follow: true } };
+  return {
+    title: { absolute: `${page.title} · ${config.name}` },
+    description: page.description,
+    alternates: { canonical: page.path },
+    openGraph: {
+      type: "article",
+      siteName: config.name,
+      title: page.title,
+      description: page.description,
+      url: page.path,
+    },
+    twitter: { card: "summary" },
+  };
 }
 
 export default async function Group({ params }) {
@@ -41,6 +53,7 @@ export default async function Group({ params }) {
       <div dangerouslySetInnerHTML={{ __html: header }} />
       <div dangerouslySetInnerHTML={{ __html: body }} />
       <div dangerouslySetInnerHTML={{ __html: footer }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: page.jsonLd }} />
     </>
   );
 }

@@ -18,7 +18,7 @@ export async function generateMetadata({ params }) {
   if (!entry) return {};
   const { page } = prepareExercisePage({ config, track, index, entry, icons, clientAvailable });
   return {
-    title: { absolute: `${page.title} — ${config.name}` },
+    title: { absolute: `${page.title} · ${config.name}` },
     description: page.description,
     alternates: { canonical: page.path },
     openGraph: {

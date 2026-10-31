@@ -52,7 +52,7 @@ async function RunScreen() {
       title="Today's run"
       lede="Ten screens, fifteen minutes, one attempt. The clock is the server's and a screen's first answer is the one that counts."
     >
-      <Suspense fallback={<p className="auth-loading">Starting today&apos;s run…</p>}>
+      <Suspense fallback={<Skeleton label="Starting today's run…" rows={4} />}>
         <Runner />
       </Suspense>
     </AuthCard>

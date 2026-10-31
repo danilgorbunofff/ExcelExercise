@@ -18,7 +18,7 @@ const body = `<main class="shell" id="main">
       <div class="page-head">
         <p class="eyebrow">404</p>
         <h1>That page is not a drill</h1>
-        <p class="lede">The address you followed does not exist. All ten drills are on the track page, and each one grades in your browser: no account, no upload.</p>
+        <p class="lede">The address you followed does not exist. Every drill is on the track page, and each one grades in your browser: no account, no upload.</p>
       </div>
 
       <p class="cta-row"><a class="btn btn-primary" href="/">Back to the track</a></p>

@@ -8,7 +8,8 @@
  *   * `{ batch_id, lessons }` — the roll-up a signed-out browser kept in `es.progress`. It carries no
  *     screen visits, so it writes `lesson_progress` only and never `attempts` (`lib/progress/migrate.js`).
  *
- * Both are idempotent on the same batch id, both check the lesson ids against the catalog, and both
+ * Both are idempotent on the same batch id, both check the lesson ids against the catalog (the drill
+ * track's and the project track's, which is `entryForLesson` below), and both
  * refuse rather than pretend: without accounts configured the answer is 503, and an anonymous request
  * is 401 — the drills keep working locally either way.
  *
@@ -22,8 +23,22 @@ import { currentUser } from "../../../lib/auth/server.js";
 import { parseBatch } from "../../../lib/progress/derive.js";
 import { parseMigration } from "../../../lib/progress/migrate.js";
 import { importProgress, progressClient, writeBatch } from "../../../lib/progress/write.js";
+import { loadProjectTrack } from "../../../lib/projects.js";
 import { creditBatch } from "../../../lib/retention/write.js";
 import { loadSite } from "../../../lib/site.js";
+
+/**
+ * Where a lesson id lives. A project is a lesson in every way the write path cares about — same
+ * screens, same batch, same table — so it resolves through the same lookup; what differs is the track
+ * column, which is how the database says which shelf the completion belongs to. Both values are already
+ * in the schema's check.
+ */
+function entryForLesson(lessonId) {
+  const project = loadProjectTrack().index.find((candidate) => candidate.exercise.id === lessonId);
+  if (project) return { entry: project, track: "project" };
+  const lesson = loadSite().index.find((candidate) => candidate.exercise.id === lessonId);
+  return lesson ? { entry: lesson, track: "excel" } : null;
+}
 
 function json(body, status) {
   return new Response(JSON.stringify(body), {
@@ -37,11 +52,15 @@ async function migrate({ client, user, body }) {
   const parsed = parseMigration(body);
   if (!parsed.ok) return json({ ok: false, error: parsed.error }, 400);
 
-  const known = new Set(loadSite().index.map((candidate) => candidate.exercise.id));
-  const unknown = parsed.lessons.find((lesson) => !known.has(lesson.lesson_id));
-  if (unknown) return json({ ok: false, error: `unknown lesson: ${unknown.lesson_id}` }, 400);
+  const resolved = parsed.lessons.map((lesson) => ({ lesson, entry: entryForLesson(lesson.lesson_id) }));
+  const unknown = resolved.find((item) => !item.entry);
+  if (unknown) return json({ ok: false, error: `unknown lesson: ${unknown.lesson.lesson_id}` }, 400);
 
-  const result = await importProgress(client, { user, batchId: parsed.batchId, lessons: parsed.lessons });
+  const result = await importProgress(client, {
+    user,
+    batchId: parsed.batchId,
+    lessons: resolved.map(({ lesson, entry }) => ({ ...lesson, track: entry.track })),
+  });
   if (!result.ok) {
     return result.conflict
       ? json({ ok: false, error: "batch_id_conflict" }, 409)
@@ -82,13 +101,13 @@ export async function POST(request) {
 
   // The lesson id comes from the events, so it is checked against the catalog before it becomes a
   // primary-key component: an unknown id would otherwise sit in the table forever.
-  const entry = loadSite().index.find((candidate) => candidate.exercise.id === parsed.lessonId);
+  const entry = entryForLesson(parsed.lessonId);
   if (!entry) return json({ ok: false, error: `unknown lesson: ${parsed.lessonId}` }, 400);
 
   const result = await writeBatch(client, {
     user,
     lessonId: parsed.lessonId,
-    track: "excel",
+    track: entry.track,
     batchId: parsed.batchId,
     attempts: parsed.attempts,
     summary: parsed.summary,

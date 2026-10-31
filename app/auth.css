@@ -45,7 +45,7 @@
 
 .auth-field input {
   width: 100%;
-  height: 38px;
+  height: 44px;
   padding: 0 var(--s-3);
   border: 1px solid var(--line-strong);
   border-radius: var(--r-1);
@@ -62,7 +62,7 @@
 
 .auth-submit {
   width: 100%;
-  height: 40px;
+  height: 44px;
   border: 0;
   border-radius: var(--r-1);
   background: var(--btn-bg);
@@ -129,7 +129,7 @@
 .auth-links a {
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
+  min-height: 44px;
   color: var(--text-muted);
   text-underline-offset: 3px;
 }
@@ -249,7 +249,7 @@
 }
 
 .auth-danger input {
-  height: 36px;
+  height: 44px;
   padding: 0 var(--s-2);
   border: 1px solid var(--line);
   border-radius: var(--r-1);
@@ -307,20 +307,12 @@
   fill: var(--text);
 }
 
-/* A form field on a phone is a thumb target before it is a text box: 38px inputs and 40px buttons
-   sit under the 44px minimum, so everything the visitor has to hit grows on small screens. */
+/* A form field on a phone is a thumb target before it is a text box. Inputs, buttons and the links
+   under them are 44px at every width now; this branch only keeps the spacing comfortable for a thumb
+   and stops the labels from sitting flush against the field above. */
 @media (max-width: 767px) {
-  .auth-field input,
-  .auth-danger input {
-    height: 44px;
-  }
-
-  .auth-submit {
-    height: 44px;
-  }
-
-  .auth-links a {
-    min-height: 44px;
+  .auth-links {
+    margin-top: var(--s-4);
   }
 }
 

@@ -15,6 +15,7 @@ import { authConfig } from "./lib/auth/config.js";
 import { loginUrl } from "./lib/auth/redirect.js";
 import { entitledFor, paywallDecision, paywallEnforced } from "./lib/paywall.js";
 import { loadSite } from "./lib/site.js";
+import { admitVerifyRequest, clientAddress, refusalPage } from "./lib/verify/limit.js";
 
 // Everything under `/account`, the board it links to, and the daily challenge need a session. Keep the
 // list here rather than duplicating it in each page: a page that forgets to check would render a
@@ -27,6 +28,12 @@ const GATED = [/^\/account(?:\/|$)/, /^\/leaderboard\/?$/, /^\/daily(?:\/|$)/];
 // The exception, and the only one: `/account/deleted` is where the delete form redirects, and by then
 // the session is gone by design — a gate there would bounce a just-deleted learner to `/login`.
 const PUBLIC = [/^\/account\/deleted\/?$/];
+
+// The public certificate page is the one URL a stranger can guess at, so it is the one URL with a
+// limit on it. It is read signed in or out, and it is answered before the session work below: a
+// crawl must not cost a database round trip per guess, and the guard has to hold on a deployment
+// with accounts unconfigured.
+const VERIFY = /^\/verify\/[^/]+\/?$/;
 
 // The one place a paid drill can be opened. The lesson pages are prerendered HTML, which cannot be
 // refused once it exists, so the refusal has to happen on the request.
@@ -51,6 +58,20 @@ async function paywallFor(pathname, supabase, user) {
 }
 
 export async function proxy(request) {
+  if (VERIFY.test(request.nextUrl.pathname)) {
+    const verdict = admitVerifyRequest({ address: clientAddress(request.headers) });
+    if (!verdict.allowed) {
+      return new NextResponse(refusalPage(verdict.retryAfter), {
+        status: 429,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "no-store",
+          "retry-after": String(verdict.retryAfter),
+        },
+      });
+    }
+  }
+
   const config = authConfig();
   if (!config.enabled) return NextResponse.next();
 

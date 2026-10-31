@@ -13,7 +13,15 @@ export const metadata = {
 };
 
 export default function Learn() {
-  const { body, page } = prepareDashboardPage({ config, track, index, icons, clientAvailable: dashboardAvailable });
+  const { body, page } = prepareDashboardPage({
+    config,
+    track,
+    index,
+    icons,
+    clientAvailable: dashboardAvailable,
+    projectsAvailable: true,
+    appPagesAvailable: true,
+  });
   const { skip, header, footer } = renderChrome({ config, page });
 
   return (

@@ -7,8 +7,9 @@
  * would record a green run over a broken build.
  *
  * Every check is driven here through the exported `runSmoke` against a local server that serves
- * exactly what the case needs, plus one run against the real `legacy/dist` through the same static
- * server the browser suite uses, so the script is proven against shipped files and not only fixtures.
+ * exactly what the case needs, plus one run against a real build of the static edition served through
+ * the same static server the browser suite uses, so the script is proven against rendered files and
+ * not only fixtures.
  */
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -19,6 +20,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, before, describe, it } from "node:test";
 
+import { build } from "../legacy/src/build.mjs";
 import {
   firstGradableScreen,
   firstLessonHref,
@@ -361,10 +363,20 @@ describe("smoke — the ways a deploy goes wrong", () => {
 
 describe("smoke — the shipped static edition", () => {
   let child;
+  let dist;
   let origin;
 
   before(async () => {
-    child = spawn(process.execPath, [join(ROOT, "scripts/serve-static.mjs"), "legacy/dist", "0"], {
+    // Built here, into a temporary directory, rather than read out of `legacy/dist`: `npm test` runs
+    // before any build in `npm run check` and in CI, so depending on the checkout's dist made this
+    // suite green on a machine that had built once and red on a fresh runner.
+    dist = mkdtempSync(join(tmpdir(), "smoke-dist-"));
+    build({
+      out: dist,
+      env: { SITE_URL: "https://excelsupreme.com", SITE_BUILT_AT: "2026-10-31" },
+      quiet: true,
+    });
+    child = spawn(process.execPath, [join(ROOT, "scripts/serve-static.mjs"), dist, "0"], {
       cwd: ROOT,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -383,9 +395,10 @@ describe("smoke — the shipped static edition", () => {
 
   after(() => {
     child.kill();
+    rmSync(dist, { recursive: true, force: true });
   });
 
-  it("passes against the real dist: hub, drill, grading, assets and the build's own 404", async () => {
+  it("passes against a real build: hub, drill, grading, assets and the 404 it renders", async () => {
     const { report, rows } = await smoke([origin]);
     assert.deepEqual(report.failures, []);
     // The two checks a static host cannot answer, named rather than quietly ticked.
@@ -395,8 +408,8 @@ describe("smoke — the shipped static edition", () => {
   });
 
   it("fails against a copy of dist with its lesson page removed", async () => {
-    const copy = mkdtempSync(join(tmpdir(), "smoke-dist-"));
-    cpSync(join(ROOT, "legacy/dist"), copy, { recursive: true });
+    const copy = mkdtempSync(join(tmpdir(), "smoke-broken-"));
+    cpSync(dist, copy, { recursive: true });
     rmSync(join(copy, "learn"), { recursive: true, force: true });
     rmSync(join(copy, "excel/what-a-formula-actually-does.html"), { force: true });
     const broken = spawn(process.execPath, [join(ROOT, "scripts/serve-static.mjs"), copy, "0"], {

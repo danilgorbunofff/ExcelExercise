@@ -1001,17 +1001,28 @@ window in which two shapes are both live.
       The catalog is now **88 of 88**, 0 planned. `tests/audit.js`, `tests/content-lint.test.js` and
       `tests/golden/snapshot.json` moved with it.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [x] `content:new --lesson 11` produces a file that renders, grades and passes `content:check` with
-      no framework knowledge.
-- [x] CI fails when any screen lacks 6 accepted or 6 rejected fixtures.
-- [x] Every fixture verdict matches its declared expectation across all authored lessons.
-- [x] `legacy/content/track.json` contains 88 lessons and 16 groups, 0 planned; counts match the
-      catalog (`content: 88 of 88 catalogued lessons, 16 groups`).
-- [x] 10 migrated lessons keep their existing behaviour (golden snapshots from phase 0 unchanged).
-- [x] Category intros authored for all 16 groups (150–250 words each, enforced by a test).
-- [x] `docs/content-authoring.md` exists and a second person can author a lesson from it unaided.
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p1-41 | Schema v2 owned by `packages/content/schema.js` | Proven | `gate:content:check` (M18) | gate | — |
+| p1-54 | Six accepted + six rejected fixtures per screen | Proven | `tests/content-lint.test.js:116` (M4) | gate | — |
+| p1-62 | `content:check` fails on a bad fixture | Proven | `gate:content:check`, M17 → exit 1 with the rule named | gate | — |
+| p1-73 | Four CLI commands wired as npm scripts | Proven | `gate:content:check`; `artifact:packages/content-lint/cli.js` — `content:copy`, `content:articles`, `content:fixtures` beside it | gate | — |
+| p1-92 | 16 groups, 88 lesson slots | Proven | `gate:content:check` → `88 of 88 catalogued lessons, 16 groups, 152 screens` | gate | — |
+| p1-122 | Every group carries a 150–250-word intro | Proven | `tests/content-lint.test.js:94` ("ships an intro for every one of the sixteen groups") | gate | — |
+| p1-166 | Authoring guide exists | Proven | `artifact:docs/content-authoring.md` | n/a (artifact) | — |
+| p1-183 | All lessons `schemaVersion: 2` | Proven | `gate:content:check` accepts 88/88 | gate | — |
+| p1-206 | Cohorts of ten through a human review pass | Built, unproven | no review record anywhere in the repo; content is green but "human pass" is unrecorded | n/a | Removed: the cohort was 9B; content is carried by fixtures + owner checklist |
+| p1-1006 | `content:new --lesson 11` renders and grades | Proven | `tests/content-lint.test.js:687` (new-lesson fixture path) | gate | — |
+| p1-1008 | CI fails when a screen lacks 6+6 fixtures | Proven | `gate:content:check`, M4 | gate | — |
+| p1-1009 | Every fixture verdict matches expectation | Proven | `gate:content:check`, M17; 1 946 fixtures replayed | gate | — |
+| p1-1010 | `track.json` = 88 lessons, 16 groups, 0 planned | Proven | `gate:content:check` header line | gate | — |
+| p1-1012 | Migrated lessons keep their behaviour | Proven | `gate:test` — the golden suite, unchanged (M1) | gate | — |
+| p1-1013 | Intros 150–250 words, enforced by a test | Proven | `tests/content-lint.test.js:94`; `tests/content-lint.test.js:505` (fails when an intro is missing) | gate | — |
+| p1-1014 | A second person can author a lesson unaided | Built, unproven | guide exists; no second author, no dry-run record | n/a | Removed: single-author repo; mechanics proven by the authoring guide test |
 
 ## Content throughput assumption
 

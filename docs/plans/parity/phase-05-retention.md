@@ -63,16 +63,20 @@ surface.
 7. **Feature flags.** `streaks`, `dailyChallenge`, `flashcards` flags so a slip in one does not block
    launch.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [ ] Points reset at the learner's local midnight and survive a timezone change gracefully.
-- [ ] Two simulated users see the same leaderboard ordering; own rank is correct at rank 1, 3, 50.
-- [ ] A second challenge submission is rejected with a clear message and does not overwrite the first.
-- [ ] Challenge ranking matches the rule (accuracy desc, then time) in a seeded test with 20 rows.
-- [ ] Flashcards never surface a lesson that is not marked complete.
-- [ ] A cheater row is flagged, not displayed.
-- [ ] Dashboard trend renders with 0, 1 and 7 days of data.
-- [ ] All retention queries p95 < 300 ms at 10k users (seeded load test).
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p5-68 | Points reset at local midnight, survive a TZ change | Proven | `tests/retention.test.js:108,115,121` (M7) | unit + DB | — |
+| p5-69 | Two users see the same leaderboard, own rank at 1/3/50 | Built, unproven | `tests/db/leaderboard.spec.js:113,142`; no runtime board (accounts off) | DB only, ungated | Build B1 |
+| p5-70 | Second challenge submission rejected with a clear message | Built, unproven | `tests/db/challenge.spec.js:146`; `tests/retention-challenge.test.js:96` (M28b) | DB + unit, no UI | Build B1 |
+| p5-71 | Challenge ranking: accuracy then time, 20 seeded rows | Built, unproven | `tests/db/challenge.spec.js:183`; `tests/db/leaderboard.spec.js:237` | DB only | Build B1 |
+| p5-72 | Flashcards never surface an incomplete lesson | Proven | `tests/retention-flashcards.test.js:101` (M26) | browser (`e2e/flashcards.spec.js`) | — |
+| p5-73 | A cheater row is flagged, not displayed | Built, unproven | `tests/db/leaderboard.spec.js:180` | DB only | Build B1 |
+| p5-74 | Dashboard trend renders with 0, 1 and 7 days of data | Built, unproven | `tests/retention-trend.test.js:45` (M25) proves the maths; no run renders the 1-day and 7-day states | unit only | Build B1 |
+| p5-75 | Retention queries p95 < 300 ms at 10k users | Absent | no load harness, no fixture generator, no threshold | n/a | Defer: no load profile at launch volume; trigger 1 000 DAU |
 
 ## Test plan
 

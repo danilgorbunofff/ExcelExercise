@@ -174,18 +174,32 @@ identical, but the foundation for accounts, payments and 600 screens is in place
    there is no deploy provider.
 10. **Observability.** Error boundary at `app/error.jsx`; basic `/api/health` returning build SHA.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [x] `npm test` reports **≥280 passing, 0 failing**, including the golden snapshot.
-- [x] `npm run build` produces all 27 pages (16 lessons, the index, the dashboard and 9 group pages); `next start` serves every legacy URL.
-- [x] Golden snapshot diff vs. `packages/grader` is **empty** for every lesson fixture.
-- [x] Playwright suite green locally and in CI. Local: 50/50 (`npm run e2e` — 47 `chromium` on the Next app, 3 `static` on `legacy/dist`); CI: green on `origin/main` ([run 40942379949](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40942379949)) and on `phase-0-port-shell` ([run 40942364882](https://github.com/danilgorbunofff/ExcelExercise/actions/runs/40942364882)), `50 passed (21.1s)`, after the two shortcut screens were added.
-- [ ] Preview deploy serves the 16 lessons; `/api/health` returns the SHA. (No deploy provider is connected; CI builds the artifact and asserts `/api/health` echoes `GIT_SHA`, which is the same claim minus the host.)
-- [x] `legacy/` still builds and deploys independently (it needs `packages/grader` beside it; its `dist/` output is standalone).
-- [x] `/sitemap.xml` and `/robots.txt` list every route the app serves and no address that only
-  redirects; `tests/metadata-routes.test.js` and the URL-contract spec hold them to it.
-- [x] Bundle size for a lesson page documented, labelled by route (baseline for phase 10 budgets) —
-  recorded in the section below, which now travels with the repo on `origin`.
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p0-34 | Next 16.4.3 + React 19.3.0 pinned, App Router, ESM | Built, unproven | `package.json` pins the versions and the gate build installs them, but nothing fails when a pin drifts | n/a (artifact) | B4 adds the pin test |
+| p0-37 | Legacy moved to `legacy/`, not rewritten | Proven | `tests/fragments.test.js:42` | static build | — |
+| p0-41 | Golden recorded before code moved | Proven | `tests/golden.test.js:30` (M1) | n/a | — |
+| p0-43 | Grader extracted with zero logic edits | Proven | `tests/grader.test.js:458` (M2) | n/a | — |
+| p0-50 | Content package extracted | Proven | `gate:content:check` (M17, M18) | gate | — |
+| p0-59 | Routes wired to the same templates | Proven | `e2e/routes.spec.js:67`; `next:check` 120 pages | browser | — |
+| p0-77 | Redirect map for legacy URLs | Proven | `e2e/routes.spec.js:26,31` | browser (301) | — |
+| p0-82 | 404 reuses chrome + config | Proven | `e2e/dashboard.spec.js:225` | browser | — |
+| p0-91 | CI runs three jobs | Proven | `artifact:.github/workflows/ci.yml` (four jobs now: `check`, `e2e`, `static`, `db`) | n/a (artifact) | — |
+| p0-99 | Playwright suite against Next + static | Proven | 153 passed; `e2e-static/static-drill.spec.js:33` | browser | — |
+| p0-110 | Sitemap + robots metadata routes | Proven | `tests/metadata-routes.test.js:31` (M9) | route | — |
+| p0-132 | `.gitignore` covers build + env | Proven | `artifact:.gitignore` | n/a (artifact) | — |
+| p0-179 | `npm test` ≥280 passing | Proven | `gate:test` — 1 724 cases, count obsolete | gate | — |
+| p0-180 | Build produces "all 27 pages" | Obsolete | 120 prerendered / 144 HTML; `tests/build.test.js:56` | the capability is covered by p0-184 | Removed as obsolete: covered by p0-184 (120 prerendered, 144 HTML) |
+| p0-181 | Golden diff empty | Proven | `tests/golden.test.js:30` (M1) | n/a | — |
+| p0-182 | Playwright green locally and in CI | Proven | `gate:e2e` — 160 passed locally; the `e2e` CI job runs the same suite | browser | — |
+| p0-183 | Preview deploy serves lessons; `/api/health` returns SHA | Proven | `tests/smoke.test.js:388` (a real `legacy/dist` served, lessons and assets graded); `tests/metadata-routes.test.js:102` (M8) for the SHA | deploy | B12: exercised against a real `next start` — 14 passed, 0 failed, with `--sha` matching the build. The hosted origin is a host choice, written in `docs/ops/deploy.md` |
+| p0-184 | `legacy/` builds and deploys independently | Proven | `tests/build.test.js:56`; `legacy/dist` = 120 HTML | static build | — |
+| p0-185 | Sitemap/robots list every route, no redirect-only address | Proven | `tests/metadata-routes.test.js:31,48` (M9) | route | — |
+| p0-187 | Bundle size documented by route | Built, unproven | no document in `docs/` carries a per-route budget table; only prose in plans | n/a | Build B2 |
 
 ## Bundle baseline
 

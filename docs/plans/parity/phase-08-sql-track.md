@@ -61,16 +61,20 @@ and compares query text.
 8. **Fixtures.** Same rule as Excel: ≥6 correct and ≥6 incorrect queries per screen, including one
    that is "right answer, wrong technique" (e.g. `SELECT *` then filtering in the client).
 
-## Acceptance criteria
+## Acceptance criteria — out of launch (2026-10-31)
 
-- [ ] A correct query with different aliasing and whitespace grades correct.
-- [ ] A query returning correct values in the wrong column order fails with a column diff.
-- [ ] A query returning the right rows in the wrong order passes unless the screen sets `ordered`.
-- [ ] `DELETE`/`UPDATE` lessons grade the resulting table state and the next screen sees a clean DB.
-- [ ] Destructive statements cannot touch anything outside the lesson database.
-- [ ] 23 lessons complete end-to-end; category counts match the track file.
-- [ ] Engine loads in < 1.5 s on a mid-range laptop; total added JS documented.
-- [ ] Every fixture verdict matches expectation in CI.
+The owner removed the SQL track from this launch on 2026-10-31 ("I do not need that sql part on launch"). These eight criteria are not failures and not deferrals: they are out of scope, and this doc is kept as the post-launch plan. Nothing in phases 0–7, 9A or 10 depends on them.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p8-66 | Aliasing/whitespace-insensitive grading | Absent | no SQL grader | n/a | Out of launch: owner removed the SQL track (2026-10-31) |
+| p8-67 | Wrong column order fails with a column diff | Absent | — | n/a | Out of launch: owner removed the SQL track (2026-10-31) |
+| p8-68 | Right rows, wrong order passes unless `ordered` | Absent | — | n/a | Out of launch: owner removed the SQL track (2026-10-31) |
+| p8-69 | `DELETE`/`UPDATE` grade table state; next screen sees a clean DB | Absent | — | n/a | Out of launch: owner removed the SQL track (2026-10-31) |
+| p8-70 | Destructive statements cannot touch anything outside the lesson DB | Absent | — | n/a | Out of launch: owner removed the SQL track (2026-10-31) |
+| p8-71 | 23 lessons complete end-to-end, category counts match | Absent | — | n/a | Out of launch: owner removed the SQL track (2026-10-31) |
+| p8-72 | Engine loads in < 1.5 s, added JS documented | Absent | — | n/a | Out of launch: owner removed the SQL track (2026-10-31) |
+| p8-73 | Every fixture verdict matches in CI | Absent | — | n/a | Out of launch: owner removed the SQL track (2026-10-31) |
 
 ## Test plan
 

@@ -160,37 +160,28 @@ Reference behaviour being reproduced: completed count, category grid with per-ca
    (phase 4 stores it; until then log + toast).
 9. **SEO meta.** Dashboard is `noindex`; category pages are indexable with intro copy + syllabus.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [x] Signed-out learner sees lessons 1–3 open and every other row as a sign-in prompt that works.
-      **Restated for a site with no accounts, per the deviation recorded on item 5:** the first
-      `track.freeLessonCount` (5) drills are open to everyone and the rest are order-gated, so a fresh
-      visitor's open lessons are the ones the order allows rather than a count of three. A gated row is
-      still a link — it opens a gate page that names the drill to finish and offers the one-click
-      unlock — so "works" holds. `e2e/gate.spec.js` walks a gated lesson to the unlock and back;
-      `tests/progress.test.js` covers `canStart` for first, next and future lessons.
-- [x] Signed-in learner's next lesson updates immediately after a completion. There is no sign-in and no
-      server to wait on: the drill writes the progress record and `/learn` reads it on load, so
-      `e2e/dashboard.spec.js` finishes a drill on its own page and finds it counted here on the next
-      visit, with the recommendation moved on.
-- [x] Badge precedence verified: a stale lesson never shows `COMPLETE`. The eight combinations are
-      `tests/progress.test.js`; `e2e/dashboard.spec.js` seeds a completion old enough to be stale and
-      asserts the row reads "Needs practice" and the page note counts it as going stale.
-- [x] Category counts sum to the track total; no lesson is in two groups.
-- [x] Dashboard renders in < 1 s on a throttled connection (no blocking client fetch for first paint).
-      There is no fetch at all — the HTML is whole, `#dashboard-data` carries the plan inline and the
-      island only fills in counts — so the wait is bytes. `verify.mjs` prices the page plus its one
-      stylesheet at 21.4 kB gzipped against a 40 kB budget, half of what a 50 kB/s link delivers in a
-      second, and fails the build if a change spends it.
-- [x] Empty state (new user) and error state (progress fetch fails) both designed and implemented.
-      **Deviation, since nothing is fetched:** the analogous failure is a browser that refuses
-      `localStorage`, and it is said out loud instead of drawn — "This browser blocks local storage, so
-      nothing is saved…" — with the reset control withdrawn, because erasing nothing is a lie too.
-      `e2e/dashboard.spec.js` denies storage in an init script and asserts that note; the new-learner
-      state ("Nothing started yet…") is asserted by the same spec.
-- [x] Reset progress asks twice and cannot be triggered by a stray keypress. The button arms for six
-      seconds, Escape disarms it, and a second click erases; `e2e/dashboard.spec.js` clicks through the
-      arming and the erasure and then reads the storage back to prove the record is empty.
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p3-19 | Progress read model `summarise` | Proven | `tests/progress.test.js:128` | browser + unit | — |
+| p3-27 | Dashboard layout: count, bar, up-next | Proven | `e2e/dashboard.spec.js:25` | browser | — |
+| p3-34 | Badge precedence stale > needs_practice > complete | Proven | `tests/progress.test.js:71` (M6) | browser | — |
+| p3-40 | Reset progress, two clicks, 6 s, Escape cancels | Proven | `tests/client.test.js:702`; `e2e/dashboard.spec.js:109` | browser | — |
+| p3-43 | `noindex` on `/learn`; sitemap and `next:check` assert it | Proven | `tests/metadata-routes.test.js:93` | route | — |
+| p3-45 | Category pages `/learn/groups/<id>` | Proven | `e2e/dashboard.spec.js:225` | browser | — |
+| p3-53 | `canStart` gating | Proven | `e2e/gate.spec.js:15,38,60` | browser | — |
+| p3-69 | Four recommendation reasons | Proven | `tests/progress.test.js:113,120,138` | browser | — |
+| p3-76 | Feedback modal on every page | Proven | `tests/build.test.js:101`; `e2e/a11y.spec.js:249` | browser | — |
+| p3-165 | Signed-out learner sees 1–3 open, rest as sign-in prompt | Proven | `e2e/gate.spec.js:15,60` | browser, accounts off | — |
+| p3-172 | Signed-in next lesson updates immediately | Built, unproven | no gate ever signs in; `e2e/auth.spec.js` only tests the unconfigured state | no signed-in state | Build B1 |
+| p3-176 | Badge precedence over eight combinations | Proven | `tests/progress.test.js:71,212,239` (M6) | unit | — |
+| p3-179 | Category counts sum to the track total | Proven | `tests/progress.test.js:164` | unit | — |
+| p3-180 | Dashboard renders < 1 s throttled | Built, unproven | no throttled measurement anywhere | n/a | Build B2 |
+| p3-185 | Empty state (new learner) and the storage-denied failure state both implemented and asserted | Proven | `e2e/dashboard.spec.js:175` (denies localStorage, asserts the note at :185) | half the claim unexercised | — |
+| p3-191 | Reset asks twice, cannot fire from a stray keypress | Proven | `tests/client.test.js:702`; `e2e/dashboard.spec.js:109` | browser | — |
 
 ## Test plan
 

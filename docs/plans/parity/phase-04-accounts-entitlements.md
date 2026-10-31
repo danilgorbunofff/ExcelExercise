@@ -284,45 +284,22 @@ accuracy and rank — never email or username.
     Delivered in unit 1, and every later migration that added a table or a function extended it; see
     `tests/db/` for the current count.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [ ] Progress survives a device switch and a browser cache clear.
-- [ ] A test-mode subscription unlocks gated lessons within one webhook tick (<5 s).
-      *Half closed in unit 3h: the unlock itself is proved (`tests/db/stripe.spec.js` applies a real
-      `customer.subscription.created` and `is_entitled()` flips in the same transaction), but "test
-      mode" and "<5 s" need live keys and a running `stripe listen` — see the open rows.*
-- [ ] A refund revokes access on the next request.
-      *Closed in unit 3h at the database: `charge.refunded` marks the payment and revokes the plan, and
-      the very next `is_entitled()` answers false. The route-level round trip through Stripe waits on
-      test-mode keys.*
-- [ ] Revocation holds with a pre-existing access token: sign in and load a gated lesson, refund,
-      then re-request with the same token (no refresh) → blocked. This is the test that proves the
-      gate is the database check, not a JWT claim.
-      *Closed in unit 3h: the suite signs in once, applies the refund, and asks with the same token —
-      `is_entitled()` is the check, so no token refresh is needed for the answer to change. The proxy
-      half of the row was proved in unit 3e.*
-- [ ] A second device signed in before the purchase unlocks on its next request without a re-login.
-      *Closed in unit 3h: two tokens issued before the purchase, one `checkout.session.completed`
-      after it, both answer entitled with no sign-in in between.*
-- [ ] Free user is soft-prompted at lesson 4 and hard-gated at lesson 5; direct URL is blocked
-      server-side. *Half closed in unit 3e: the prompt and the wall are proved in a browser
-      (`e2e/paywall.spec.js`), and the server redirect is implemented and unit-proved
-      (`paywallDecision`, `proxy.js` probes) but only live with `PAYWALL=on`, which waits on item 6 —
-      without checkout it would dead-end thirteen drills.*
-- [ ] Deleting an account removes profile, progress, attempts, points, streaks, and the profile's
-      referral code; `payments`, `entitlements` and the certificate are retained in the documented
-      legal-retention form with the name anonymised — the retention list is written down, not implied.
-      *Half closed in unit 3f: the erase, the anonymisation, the retention list and the unlinked money
-      rows are proved (`tests/db/legal.spec.js`, `e2e/legal.spec.js`); two named things do not exist
-      to erase or retain — no `referral_code` column was ever written, and no `certificates` table
-      exists before phase 6. The plan's "purge job" is an immediate purge because there is no
-      scheduler; both are recorded as annotations in the unit log rather than ticked.*
-- [ ] RLS suite proves user A cannot read or write user B's rows, and cannot insert a completion for
-      themselves through PostgREST with their own JWT (15 assertions covering the policy set above).
-- [ ] Webhook replay of the same event produces no duplicate entitlement.
-      *Closed in unit 3h: the same event id delivers twice, the second answer is
-      `{applied: false, reason: "duplicate"}`, and the row counts do not move.*
-- [ ] No secret is present in the client bundle (`grep` gate in CI).
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p4-289 | Progress survives device switch and cache clear | Built, unproven | `tests/db/progress.spec.js` (server-side rows); no UI path | DB only | Build B1 |
+| p4-290 | Test-mode subscription unlocks within one webhook tick | Built, unproven | `tests/db/stripe.spec.js:100` | DB only | Build B1 |
+| p4-294 | Refund revokes access on the next request | Built, unproven | `tests/db/stripe.spec.js:176` | DB only | Build B1 |
+| p4-298 | Revocation holds with a pre-existing access token | Built, unproven | `tests/db/stripe.spec.js:176` | DB only | Build B1 |
+| p4-304 | Second device signed in before purchase unlocks without re-login | Built, unproven | `tests/db/stripe.spec.js:129` | DB only | Build B1 |
+| p4-307 | Soft prompt at 4, hard gate at 5, direct URL blocked | Built, unproven | `lib/paywall.js` + `tests/paywall.test.js:49`; hard gate needs `PAYWALL=on` **and** accounts, which no run has | no enforced state | Build B1 |
+| p4-312 | Deleting an account removes profile, progress, attempts, points and streaks; payments, entitlements and the certificate are retained in the documented legal form | Built, unproven | `tests/db/institution.spec.js:148` (seat) and `tests/db/legal.spec.js` | DB only | Build B1 |
+| p4-320 | RLS proves A cannot read/write B, cannot insert a completion | Built, unproven | `tests/db/rls.spec.js:161` (M31 goes red) | DB only, ungated | Build B1 |
+| p4-322 | Webhook replay produces no duplicate entitlement | Built, unproven | `tests/db/stripe.spec.js:151` | DB only | Build B1 |
+| p4-325 | No secret in the client bundle (`grep` gate in CI) | Absent | `.github/workflows/ci.yml` has no such step; no script does it | n/a | Build B11 |
 
 ## Test plan
 

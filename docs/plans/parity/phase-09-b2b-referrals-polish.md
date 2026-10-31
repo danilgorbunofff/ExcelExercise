@@ -1,6 +1,5 @@
 # Phase 9 — B2B, referrals, polish
 
-
 > Part of the [reference-parity plan](00-overview.md). This file is self-contained:
 > scope, work breakdown, acceptance criteria, tests and risks for this phase only.
 
@@ -270,30 +269,30 @@ Two things 9A did **not** do, deliberately: no theme toggle (the plan asks for
 infrastructure for), and no chart or image treatment — the only raster on a page is the workbook
 screenshot, which is a picture of Excel and stays light in both themes on purpose.
 
+## Acceptance criteria — evidence tables (2026-10-31)
 
-## Acceptance criteria
+9B is **deleted from the product**, not deferred: the owner ruled organizational access and referrals out on 2026-10-31. Those rows stay in the table only so the deletion is recorded where the claim used to be.
 
-**9A — launch polish**
+### 9A — launch polish
 
-- [x] Dark mode has zero contrast failures (axe + manual spot check on charts and badges). — axe
-      reports no critical/serious node, and `color-contrast` is a serious finding, on twelve pages in
-      both themes; the muted-ink pair is additionally measured arithmetically at ≥ 4.5:1. "Charts" does
-      not exist: the only raster is the workbook screenshot.
-- [x] axe: zero critical/serious on the five core pages in both themes. — proven for all five (player,
-      dashboard, pricing, certificate state, verify) plus seven more, in light and in dark.
-- [ ] Certificate prints on one page in both A4 and Letter. — the chrome, ink, margin, paper-size and
-      break-inside half is asserted in `tests/certificate.test.js` and `e2e/certificate.spec.js`; the
-      one-page half needs a credential and a database (see 9A unit 9).
-- [ ] No hard-coded user-facing string remains outside the catalogue.
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p9-278 | Dark mode: zero contrast failures | Proven | `e2e/a11y.spec.js:412,434,451` | browser, both schemes | — |
+| p9-282 | axe zero critical/serious on five core pages, both themes | Proven | `e2e/a11y.spec.js:40,45,83,98,317` + dark block at 412 | browser | — |
+| p9-284 | Certificate prints on one page in A4 and Letter | Proven | `screenshots/2026-10-31/next/12-print-a4.png`, `12-print-letter.png`; `tests/client.test.js:330` | print, one paper size | — |
+| p9-287 | No hard-coded user-facing string outside the catalogue | Absent | no string catalogue, no lint that proves it | n/a | Removed: no second locale and no catalogue; copy is held by copy/messages/content:check |
 
-**9B — institutional portal and referrals**
+### 9B — institutional portal and referrals — removed
 
-- [ ] Owner invites 3 emails, 2 accept → seats used = 2, table shows 2 members, CSV matches exactly.
-- [ ] Accepting a 4th invite with 3 seats fails with a clear message; no orphan row.
-- [ ] Removing a member frees a seat and revokes access on their next request, enforced by the
-      server-side entitlement check rather than a token claim (see phase 4).
-- [ ] A non-owner cannot reach `/admin` by URL; RLS proves no cross-group reads.
-- [ ] Referral click → signup → first payment records exactly one conversion and one credit.
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p9-291 | Owner invites 3, 2 accept → seats/table/CSV agree | Absent | 9B; `groups`/`group_invites` appear only in `tests/db/rls.spec.js` and the harness | n/a | Removed: organizational access is out of the product (owner, 2026-10-31) |
+| p9-292 | 4th invite with 3 seats fails cleanly, no orphan row | Absent | 9B | n/a | Removed: organizational access is out of the product |
+| p9-293 | Removing a member frees a seat, revokes on next request | Absent | 9B | n/a | Removed: organizational access is out of the product |
+| p9-295 | Non-owner cannot reach `/admin`; RLS proves no cross-group reads | Absent | no `/admin` route exists | n/a | Removed: there is no `/admin` and there will not be one |
+| p9-296 | Referral click → signup → first payment = one conversion, one credit | Absent | no referral code anywhere | n/a | Removed: referrals are out of the product (owner, 2026-10-31) |
+
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
 
 ## Test plan
 

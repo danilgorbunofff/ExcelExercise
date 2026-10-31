@@ -129,19 +129,21 @@ does not exist in this checkout, and the redirect layer only means anything agai
 two deployments behind it. The launch checklist, Search Console submission, monitoring, backups and the
 restore drill are all operator tasks against infrastructure this checkout does not have.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [ ] Every event fires exactly once per action; duplicates dropped by `(session_id, event, ts)` key.
-- [ ] Funnel numbers reconcile with Stripe payment counts within 2%.
-- [ ] Lighthouse CI green on all 5 budgeted routes.
-- [ ] All 201 legacy HTML routes return a single 301 to the correct new path; assets return 200 or
-      404, never 301.
-- [ ] Sitemap count === route count; Search Console accepts it.
-- [ ] Restore drill: production-like backup restored into staging and verified (row counts + one
-      login + one drill).
-- [ ] Error monitoring receives a synthetic error with a readable stack.
-- [ ] Rollback to legacy executed once in staging and timed (< 15 min).
-- [ ] Launch checklist signed off line by line.
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p10-134 | Every event fires once; duplicates dropped by `(session_id, event, ts)` | Absent | event vocabulary exists (`tests/session.test.js:402`) but no sink, no dedupe key, no vendor | n/a | Defer: no analytics vendor at launch (§5.1); trigger vendor choice |
+| p10-135 | Funnel reconciles with Stripe within 2% | Absent | no funnel, no reconciliation | n/a | Defer: no funnel to reconcile; trigger vendor choice |
+| p10-136 | Lighthouse CI green on five budgeted routes | Absent | no Lighthouse | n/a | Build B2 |
+| p10-137 | Every legacy URL resolves to exactly one live page (served or 301), no 404, no duplicate | Proven | `e2e/routes.spec.js:26,31`; static crawl | n/a | — |
+| p10-139 | Sitemap count === route count; Search Console accepts it | Built, unproven | `tests/metadata-routes.test.js:31` proves the equality; Search Console submission is unrecorded | n/a | Defer: needs the live domain; trigger first production deploy |
+| p10-140 | Restore drill: backup restored into staging, row counts verified | Built, unproven | `artifact:docs/ops/backup.md` — the dump/reload rehearsal with per-table counts | rehearse | B12: procedure and numbers are recorded and were run locally (schema dump, `--no-seed` reset, data restore, counts identical, 50 ms); restoring into a *staging project* needs the owner's project |
+| p10-142 | Error monitoring receives a synthetic error | Absent | no monitoring client in any dependency, and no vendor is added at launch (§5.1) | n/a | Defer: no vendor by ruling; stderr plus `app/error.js` is the sink until one is chosen. Trigger: a vendor decision |
+| p10-143 | Rollback to legacy executed in staging and timed | Built, unproven | `tests/smoke.test.js:388` serves a real `legacy/dist` and the smoke passes; `artifact:docs/ops/rollback.md` | deploy | B12: executed and timed locally (serve the previous snapshot, smoke 12 passed in 0.3 s); staging is the same bytes on another host, which is the owner's move |
+| p10-144 | Launch checklist signed line by line | Built, unproven | `artifact:docs/ops/launch-checklist.md` | n/a | B12: the checklist exists with the human cells named rather than ticked; signing it is the owner's act before the first deploy |
 
 ## Test plan
 
@@ -150,7 +152,7 @@ restore drill are all operator tasks against infrastructure this checkout does n
 | Event schema | unit: every event validates; unknown event rejected |
 | Collector | integration: batching, dedupe, retention job, consent mode |
 | Funnel | reconciliation test against seeded Stripe webhook fixtures |
-| Redirects | crawl all 201 legacy HTML routes, assert 301 + destination; 163 asset paths assert 200/404, never 301 |
+| Redirects | crawl every legacy address, assert exactly one live destination (served or 301) and no 404; assets assert 200/404, never 301 |
 | Performance | Lighthouse CI budgets |
 | Backup | restore drill, recorded in `docs/runbooks/restore.md` |
 
@@ -165,6 +167,29 @@ restore drill are all operator tasks against infrastructure this checkout does n
 
 ## Definition of launch
 
-All ten phases' acceptance criteria met except 9B, plus the overview's §10 definition of done (item 7
-belongs to 9B and is confirmed when it ships), and the launch checklist signed. In practice: phases
-0–8, 9A and 10.
+**Amended 2026-10-31 by the owner.** This section is the launch rule; the phase list above, the
+overview's "Launch vs parity" line and its §10 defer to it.
+
+Launch is met when every criterion in phases **0–7, 9A and 10** is Proven or Deferred with a recorded
+reason in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md), and the launch
+checklist below is signed. Concretely:
+
+- **Phase 8, the SQL track, is out of this launch.** Not deferred with a date — removed from the
+  launch set. Its doc stays as the post-launch plan; nothing in 0–7, 9A or 10 depends on it.
+- **9B is deleted from the product.** Referrals and the organizational portal — groups, invitations,
+  seats, `/admin`, institutional domains and university access — are not wanted in this release or as
+  the next one. The `group_invites` schema and its RLS that landed in phase 4 are dead weight to
+  remove, not a launch row.
+- **Accounts and payments are live and configured at launch:** `NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `STRIPE_SECRET_KEY`,
+  `STRIPE_WEBHOOK_SECRET`, `PAYWALL=on`. A launch with the paywall off is not this launch.
+- **Both builds ship.** The Next app and the static build are both the product; a capability that
+  exists on only one of them is a defect.
+- **Analytics: none at launch.** No vendor was chosen, so no third-party script ships and the two
+  analytics rows are deferred with that reason.
+- **Anything else missing that launch needs is built**, not deferred. Deferral is reserved for work
+  blocked outside the repo, and each deferral carries its four fields.
+
+At review time the ledger stands at **78 Proven, 32 Build, 6 Deferred, 9 claims removed, 8 out of
+launch**. Launch is not signed: the 32 Build rows are open work, and the checklist below is not yet
+signed line by line.

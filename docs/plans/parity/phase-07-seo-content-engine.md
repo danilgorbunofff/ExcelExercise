@@ -62,18 +62,19 @@ interactive widget they do not have.
 8. **Measurement hook.** Each article emits `article_view` and `article_drill_start` (phase 10 wires
    transport) so we can see which articles convert.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [x] 8 notes live, each with a unique title and description and a working embedded drill. (The plan
-      says 44; see "As built" — the count moved, the shape did not.)
-- [x] Zero orphan pages; every CTA resolves; link lint green.
-- [ ] Lighthouse SEO ≥ 95 on 3 sample articles; no CLS from the drill island. **Human check, open.**
-- [x] Every note is reachable from the hub within 2 clicks, and from every other note by a sibling link.
-- [x] Sitemap matches the route list exactly (count assertion in CI: 118 URLs over 120 pages).
-- [ ] JSON-LD validates in the Rich Results test. **Human check, open** — and for `Article` only; there
-      is no `FAQPage` to validate.
-- [x] A note page ships one module and no framework: the drill island is `article-drill.js` (3 KB,
-      unbundled), and the prose renders with JavaScript off.
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p7-67 | Eight notes live, unique title/description, working drill | Proven | `e2e/article.spec.js:16,28,53` | browser | — |
+| p7-69 | Zero orphan pages, link lint green | Proven | `tests/build.test.js:441` (M22 → "internal links point at pages that are not built") | build | — |
+| p7-70 | Lighthouse SEO ≥ 95 on three articles | Absent | no Lighthouse config, no CI step | n/a | Build B2 |
+| p7-71 | Every note reachable in two clicks, sibling links between notes | Built, unproven | `e2e/article.spec.js:16` proves hub → note; no sibling-link assertion exists | half the claim unexercised | Build B6 |
+| p7-72 | Sitemap matches the route list exactly (118 over 120) | Proven | `tests/metadata-routes.test.js:31` (M9) | route — counts moved; invariant holds | — |
+| p7-73 | JSON-LD validates in the Rich Results test | Built, unproven | `tests/build.test.js:309` parses it; `e2e/article.spec.js:38` reads it; no external validation recorded | claim admits it | Defer: external validator; one manual run on the launch checklist |
+| p7-75 | Note ships one module, drill island ~3 KB | Proven | `e2e-static/static-drill.spec.js:115`; `tests/articles.test.js:52` | browser | — |
 
 ## Test plan
 

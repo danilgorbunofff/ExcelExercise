@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
 import { AuthShell } from "../../auth/shell.js";
-import { authConfig } from "../../../lib/auth/config.js";
+import { requestAuthConfig } from "../../../lib/auth/request.js";
 import { currentUser } from "../../../lib/auth/server.js";
 import { AuthCard, Links, Notice, Skeleton } from "../../auth/ui.js";
 
@@ -17,7 +17,7 @@ export const instant = false;
 // The recovery link lands on /auth/callback, which exchanges the code for a session and forwards here.
 // The session is what this screen checks: without it there is nothing to change the password of.
 async function NewPasswordScreen() {
-  const config = authConfig();
+  const config = await requestAuthConfig();
   if (!config.enabled) {
     return (
       <AuthCard title="Set a new password">

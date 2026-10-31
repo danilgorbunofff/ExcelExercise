@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { authConfig } from "../../lib/auth/config.js";
+import { requestAuthConfig } from "../../lib/auth/request.js";
 import { currentUser } from "../../lib/auth/server.js";
 import { flagCopy, flagEnabled } from "../../lib/flags.js";
 import { AuthShell } from "../auth/shell.js";
@@ -28,7 +28,8 @@ const MAX_LESSONS = 50;
  * on `es.progress`, which is where the drill records a finished lesson for anyone.
  */
 async function finishedLessons() {
-  if (!authConfig().enabled) return { ids: [], note: "Accounts are off here, so your cards come from this browser only." };
+  const config = await requestAuthConfig();
+  if (!config.enabled) return { ids: [], note: "Accounts are off here, so your cards come from this browser only." };
   const { supabase, user } = await currentUser();
   if (!user) return { ids: [], note: null };
   const { data, error } = await supabase

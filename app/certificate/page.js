@@ -16,7 +16,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { t } from "../../legacy/src/site/messages.mjs";
-import { authConfig } from "../../lib/auth/config.js";
+import { requestAuthConfig } from "../../lib/auth/request.js";
 import { currentUser } from "../../lib/auth/server.js";
 import {
   certificateUrl,
@@ -90,10 +90,11 @@ function Held({ row, site }) {
 }
 
 async function CertificateScreen() {
-  if (!authConfig().enabled) {
+  const config = await requestAuthConfig();
+  if (!config.enabled) {
     return (
       <AuthCard title="Certificate">
-        <Notice>{authConfig().reason}</Notice>
+        <Notice>{config.reason}</Notice>
         <Links items={[{ href: "/learn", label: "Your drills" }]} />
       </AuthCard>
     );

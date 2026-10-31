@@ -1,4 +1,4 @@
-import { authConfig } from "../../../lib/auth/config.js";
+import { requestAuthConfig } from "../../../lib/auth/request.js";
 import { needsOnboarding } from "../../../lib/auth/profile.js";
 import { currentUser } from "../../../lib/auth/server.js";
 import { AuthCard, Links, Notice } from "../../auth/ui.js";
@@ -6,7 +6,7 @@ import { AuthCard, Links, Notice } from "../../auth/ui.js";
 import { ProfileForm } from "./form.js";
 
 export async function ProfileScreen({ searchParams }) {
-  const config = authConfig();
+  const config = await requestAuthConfig();
   const params = await searchParams;
   // `?welcome=1` is set by the post-sign-in redirect and only changes the sentence at the top; the
   // form is the same form, because a learner who lands here later edits the same three fields.

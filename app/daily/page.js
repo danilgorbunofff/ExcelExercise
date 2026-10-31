@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { authConfig } from "../../lib/auth/config.js";
+import { requestAuthConfig } from "../../lib/auth/request.js";
 import { currentUser } from "../../lib/auth/server.js";
 import { flagCopy, flagEnabled } from "../../lib/flags.js";
 import { progressClient } from "../../lib/progress/write.js";
@@ -112,7 +112,7 @@ async function ChallengeScreen() {
     );
   }
 
-  const config = authConfig();
+  const config = await requestAuthConfig();
   if (!config.enabled) {
     return (
       <AuthCard title="Daily challenge">

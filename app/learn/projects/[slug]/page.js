@@ -6,7 +6,7 @@ import { renderChrome } from "../../../../legacy/src/site/shell.mjs";
 import { loadProjectTrack } from "../../../../lib/projects.js";
 import { loadSite } from "../../../../lib/site.js";
 
-const { config, icons, clientAvailable } = loadSite();
+const { config, icons, clientAvailable, articles } = loadSite();
 const { track, index, entryFor } = loadProjectTrack();
 
 // `dynamicParams = false` is unavailable under `cacheComponents`; an unknown slug falls through to
@@ -18,7 +18,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const entry = entryFor((await params).slug);
   if (!entry) return {};
-  const { page } = prepareExercisePage({ config, track, index, entry, icons, clientAvailable });
+  const { page } = prepareExercisePage({ config, track, index, entry, icons, clientAvailable, articles });
   return {
     title: { absolute: `${page.title} · ${config.name}` },
     description: page.description,
@@ -38,7 +38,7 @@ export default async function Project({ params }) {
   const entry = entryFor((await params).slug);
   if (!entry) notFound();
 
-  const { body, page } = prepareExercisePage({ config, track, index, entry, icons, clientAvailable });
+  const { body, page } = prepareExercisePage({ config, track, index, entry, icons, clientAvailable, articles });
   const { skip, header, footer } = renderChrome({ config, page });
 
   return (

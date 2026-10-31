@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { authConfig } from "../../lib/auth/config.js";
+import { requestAuthConfig } from "../../lib/auth/request.js";
 import { needsOnboarding } from "../../lib/auth/profile.js";
 import { currentUser } from "../../lib/auth/server.js";
 import { TREND_DAYS } from "../../lib/retention/trend.js";
@@ -30,7 +30,7 @@ function Row({ label, children }) {
 }
 
 async function AccountScreen() {
-  const config = authConfig();
+  const config = await requestAuthConfig();
   if (!config.enabled) {
     return (
       <AuthCard title="Your account">

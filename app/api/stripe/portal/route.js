@@ -50,8 +50,8 @@ export async function POST(request) {
   }
   const customerId = data?.[0]?.stripe_customer_id;
   if (!customerId) {
-    // Nothing to manage: a lifetime plan, an institutional seat, or a free account that reached
-    // this by hand. Back to the page that offers the button, not a wall of JSON.
+    // Nothing to manage: a lifetime plan, or a free account that reached this by hand. Back to the
+    // page that offers the button, not a wall of JSON.
     if (isForm) {
       return new Response(null, { status: 303, headers: { location: "/account", "cache-control": "no-store" } });
     }

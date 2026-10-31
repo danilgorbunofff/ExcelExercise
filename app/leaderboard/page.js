@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { authConfig } from "../../lib/auth/config.js";
+import { requestAuthConfig } from "../../lib/auth/request.js";
 import { currentUser } from "../../lib/auth/server.js";
 import { retentionFlags } from "../../lib/flags.js";
 import { cachedBoards } from "../../lib/retention/leaderboard.js";
@@ -65,7 +65,7 @@ async function LeaderboardScreen() {
   // Points always; the streak board only while streaks are switched on. `cachedBoards` reads both in
   // one round trip either way — one query saved is not worth a second code path through the cache.
   const flags = retentionFlags();
-  const config = authConfig();
+  const config = await requestAuthConfig();
   if (!config.enabled) {
     return (
       <AuthCard title="Today's board">

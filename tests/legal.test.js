@@ -9,7 +9,8 @@
  * approach `tests/paywall.test.js` uses for `proxy.js`.
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
@@ -317,5 +318,107 @@ describe("the proxy", () => {
     const gate = proxy.indexOf("GATED.some");
     const exemption = proxy.indexOf("PUBLIC.some");
     assert.ok(exemption > gate, "the exemption is not in the gate condition");
+  });
+});
+
+// The lint is the only thing standing between a false promise and a reader who relies on it, so it is
+// tested the way the copy is: plant each claim it is supposed to refuse and watch it refuse, then plant
+// nothing and watch it pass.
+describe("the legal lint", async () => {
+  const { lintDocuments, lintLegal } = await import("../packages/content-lint/legal.js");
+  const documents = () => structuredClone(legalSections({ config, track }));
+  const lint = (mutate, options = {}) => {
+    const copy = documents();
+    mutate?.(copy);
+    return lintDocuments({ documents: copy, root: options.root ?? ROOT });
+  };
+  const messages = (report) => report.findings.map((finding) => `${finding.where} ${finding.field}: ${finding.message}`).join("\n");
+
+  it("passes on the copy both builds print, and counts what it read", () => {
+    const report = lintLegal({ config, track });
+    assert.equal(report.stats.errors, 0, messages(report));
+    assert.deepEqual(report.stats, { documents: 2, sections: 22, retention: 3, errors: 0 });
+    assert.ok(report.ok);
+  });
+
+  it("refuses each of the five things this site does not sell", () => {
+    const claims = [
+      ["organizations", "Ask your organization about a discount."],
+      ["universities", "This track is used by universities in three countries."],
+      ["cohorts", "Your cohort starts on Monday."],
+      ["referrals", "Earn a month free with referrals."],
+      ["institutional seats", "Buy institutional seats for your team."],
+      ["classrooms", "A classroom edition is available."],
+    ];
+    for (const [name, sentence] of claims) {
+      const report = lint((copy) => {
+        copy.terms.sections[0].html = `<p>${sentence}</p>`;
+      });
+      assert.equal(report.ok, false, `"${name}" was not refused`);
+      assert.ok(
+        report.findings.some((finding) => finding.severity === "error" && finding.where === "terms.md"),
+        `"${sentence}" produced no terms finding`,
+      );
+    }
+  });
+
+  it("names the word it refused, and the terms lede is covered too", () => {
+    const report = lint((copy) => {
+      copy.privacy.lede = "A privacy policy for cohorts and their institutions.";
+    });
+    assert.equal(report.ok, false);
+    assert.match(messages(report), /privacy\.md lede: "cohorts"/);
+    assert.match(messages(report), /privacy\.md lede: "institution"/);
+  });
+
+  it("refuses a missing section, because a missing section is a missing promise", () => {
+    const report = lint((copy) => {
+      copy.privacy.sections = copy.privacy.sections.filter((section) => section.id !== "export");
+    });
+    assert.equal(report.ok, false);
+    assert.match(messages(report), /privacy\.md section: the "export" section is missing/);
+  });
+
+  it("refuses decorative punctuation, the same as every other page", () => {
+    const report = lint((copy) => {
+      copy.terms.sections[1].html = "<p>The whole track — one payment.</p>";
+    });
+    assert.equal(report.ok, false);
+    assert.match(messages(report), /en dash|em dash/);
+  });
+
+  it("refuses a retention row the deletion section does not name", () => {
+    const report = lint((copy) => {
+      copy.privacy.sections.find((section) => section.id === "delete").html = "<p>Nothing is kept.</p>";
+    });
+    assert.equal(report.ok, false);
+    assert.match(messages(report), /the deletion section does not mention/);
+  });
+
+  it("refuses a Next route that prints prose of its own instead of the shared document", () => {
+    const root = mkdtempSync(join(tmpdir(), "legal-lint-"));
+    try {
+      for (const route of ["app/privacy/page.js", "app/terms/page.js"]) {
+        mkdirSync(join(root, route, ".."), { recursive: true });
+        writeFileSync(join(root, route), `import { prepareLegalPage } from "x";\nexport default () => prepareLegalPage();\n`);
+      }
+      const clean = lint(undefined, { root });
+      assert.equal(clean.stats.errors, 0, messages(clean));
+
+      writeFileSync(
+        join(root, "app/terms/page.js"),
+        `import { prepareLegalPage } from "x";\nconst lede = "the terms of service for this site, written in plain English and updated";\nexport default () => prepareLegalPage();\n`,
+      );
+      const copied = lint(undefined, { root });
+      assert.equal(copied.ok, false);
+      assert.match(messages(copied), /app\/terms\/page\.js copy: carries \d+ words of its own/);
+
+      writeFileSync(join(root, "app/privacy/page.js"), "export default () => null;\n");
+      const bypass = lint(undefined, { root });
+      assert.equal(bypass.ok, false);
+      assert.match(messages(bypass), /does not print the shared legal document/);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });

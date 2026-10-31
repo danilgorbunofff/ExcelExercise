@@ -8,7 +8,8 @@
  */
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { join } from "node:path";
+import { readFileSync, readdirSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 import { describe, it } from "node:test";
 
 import {
@@ -222,5 +223,49 @@ describe("the command line", () => {
     const { stdout } = run(["check", "--strict"]);
     assert.match(stdout, /^content: 88 of 88/m);
     assert.match(stdout, /^copy: 88 lessons/m);
+  });
+});
+
+describe("the words that sell something we do not sell", () => {
+  // The launch ships individual accounts, three free drills and one price. An institutional seat, a
+  // university licence, a cohort and a referral are not for sale, so no shipped string may imply one:
+  // a comment is where the vocabulary comes back first, and then it turns into a sentence on a page.
+  const WORDS = /\b(institution|institutional|university|universities|cohort|cohorts|referral|referrals|referring|classroom|school|campus)\b/i;
+  const ALLOWED = /#organization|"@type": "Organization"|organizationName/;
+
+  const sources = (dir) =>
+    readdirSync(join(ROOT, dir), { recursive: true, withFileTypes: true })
+      .filter((entry) => entry.isFile() && /\.(js|mjs)$/.test(entry.name))
+      .map((entry) => join(entry.parentPath, entry.name));
+
+  const shipped = [
+    ...sources("app"),
+    ...sources("lib"),
+    ...sources("legacy/src"),
+    // The legal lint is the one place the words must stay: it is the rule that refuses them.
+    ...sources("packages").filter((file) => !file.includes(`${join("packages", "content-lint")}${sep}`)),
+  ];
+
+  it("scans the code that is actually served", () => {
+    assert.ok(shipped.length > 40, `only ${shipped.length} files scanned`);
+  });
+
+  it("finds none of them in the shipped source", () => {
+    const found = [];
+    for (const file of shipped) {
+      readFileSync(file, "utf8").split("\n").forEach((line, index) => {
+        if (ALLOWED.test(line)) return;
+        const match = line.match(WORDS);
+        if (match) found.push(`${relative(ROOT, file)}:${index + 1} — "${match[0]}"`);
+      });
+    }
+    assert.deepEqual(found, [], `the copy claims a product we do not sell:\n${found.join("\n")}`);
+  });
+
+  it("still refuses the words when the legal pages are edited", () => {
+    const banned = readFileSync(join(ROOT, "packages", "content-lint", "legal.js"), "utf8");
+    for (const name of ["institutional seats", "universities", "cohorts", "referrals", "classrooms"]) {
+      assert.ok(banned.includes(`name: "${name}"`), `the legal lint no longer refuses "${name}"`);
+    }
   });
 });

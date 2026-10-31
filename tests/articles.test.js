@@ -16,6 +16,8 @@ import { articleProblems, loadArticles, parseArticle } from "../packages/content
 import { loadContent } from "../packages/content/index.js";
 import { loadContent as loadSiteContent } from "../legacy/src/site/content.mjs";
 import { prepareArticlePage } from "../legacy/src/site/article-page.mjs";
+import { prepareExercisePage } from "../legacy/src/site/exercise-page.mjs";
+import { renderWaysOut } from "../legacy/src/site/shell.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -58,6 +60,24 @@ describe("the notes that ship", () => {
       assert.ok(body.includes('id="article-data"'), `${article.slug}: the drill has no payload to grade against`);
       assert.ok(body.includes('href="/excel/'), `${article.slug}: the note links to no exercise`);
     }
+  });
+
+  it("puts a door to the note on the lesson the note drills", () => {
+    const config = siteConfig({ SITE_URL: "https://drills.example", SITE_BUILT_AT: "2026-11-02" });
+    const lessonsWithNotes = new Set(notes.map((article) => article.exercise));
+    for (const entry of index) {
+      const { body } = prepareExercisePage({ config, track, index, entry, clientAvailable: true, articles: notes });
+      const doors = notes.filter((article) => body.includes(`href="/excel-functions/${article.slug}"`));
+      if (lessonsWithNotes.has(entry.slug)) {
+        assert.equal(doors.length, 1, `${entry.slug}: the note written around this drill has no door on it`);
+      } else {
+        assert.deepEqual(doors, [], `${entry.slug}: a door to a note that is not about this drill`);
+      }
+    }
+  });
+
+  it("lists the notes in the site chrome, so the hub is one click from the front door", () => {
+    assert.ok(renderWaysOut({ variant: "home" }).includes('href="/excel-functions"'), "the notes hub is unlisted");
   });
 });
 

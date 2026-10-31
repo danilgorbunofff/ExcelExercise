@@ -5,7 +5,9 @@
  * the next free slot. `content-lint preview --lesson 11` — the drill as its page will read.
  * `content-lint copy` — how the prose reads: banned phrases, sentence length, readability, duplicate
  * lessons. `content-lint articles` — the same, over the function notes, plus the drill each one
- * borrows. `check --strict` runs both and fails on any blocking hit.
+ * borrows. `content-lint legal` — the promises `/privacy` and `/terms` make: no organisation,
+ * university, cohort, referral or seat is for sale, and every section they owe a reader is there.
+ * `check --strict` runs all three and fails on any blocking hit.
  */
 
 import { join, dirname } from "node:path";
@@ -15,7 +17,9 @@ import { LEVELS, loadContent, screenAt } from "../content/index.js";
 import { addressOf, indexToCol, parseRef } from "../grader/index.js";
 import { lintArticles } from "./articles.js";
 import { lintCopy, loadRules } from "./copy.js";
+import { lintLegal } from "./legal.js";
 import { MIN_FIXTURES, lintContent, replayFixtures } from "./index.js";
+import { siteConfig } from "../../legacy/src/site/config.mjs";
 import { scaffoldLesson } from "./scaffold.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -32,9 +36,15 @@ function parseArgs(argv) {
     else if (arg === "--lesson") options.lesson = rest[++index];
     else if (arg === "--group") options.group = rest[++index];
     else if (arg === "--strict") options.strict = true;
-    else throw new Error(`unknown argument "${arg}" — try check, fixtures, copy, articles, new or preview`);
+    else throw new Error(`unknown argument "${arg}" — try check, fixtures, copy, articles, legal, new or preview`);
   }
   return options;
+}
+
+/** The legal lint reads the same config and track the pages print, so it can never disagree with them. */
+function legalReport(contentDir) {
+  const { track } = loadContent(contentDir);
+  return lintLegal({ config: siteConfig(process.env), track });
 }
 
 /** Matches `--lesson 6` against `06-round-markup` as well as the full id. */
@@ -100,6 +110,25 @@ function printCopy(report, { strict, rules }) {
       : `${strict ? "✖" : "⚠"} ${blocking} blocking finding${blocking === 1 ? "" : "s"} — prose is not shippable yet`,
   );
   return blocking === 0 || !strict ? 0 : 1;
+}
+
+/** The legal report: the promises, then the findings a reader could be misled by. */
+function printLegal(report, { strict }) {
+  const { stats, findings } = report;
+  console.log(
+    `legal: ${stats.documents} documents, ${stats.sections} sections, ${stats.retention} retention rows — ` +
+      `${stats.errors} blocking`,
+  );
+  const shown = findings.filter((finding) => (strict ? finding.severity === "error" : true));
+  for (const finding of shown) {
+    console.log(`  ${finding.severity === "error" ? "✖" : "⚠"} ${finding.where} ${finding.field}: ${finding.message}`);
+  }
+  console.log(
+    stats.errors === 0
+      ? "✓ legal passes — nothing is sold that this site does not sell, and every owed section is there"
+      : `✖ ${stats.errors} blocking finding${stats.errors === 1 ? "" : "s"} — the privacy and terms pages are not shippable`,
+  );
+  return stats.errors === 0 || !strict ? 0 : 1;
 }
 
 /** The notes report: the count, the numbers, then the findings that need a decision. */
@@ -266,7 +295,20 @@ function main(argv) {
     const copyOk = printCopy(copy, { strict: true, rules: loadRules() }) === 0;
     // The notes are part of the prose the site ships, so `--strict` ships them too.
     const notesOk = printArticles(lintArticles(options.content), { strict: true }) === 0;
-    return report.ok && copyOk && notesOk ? 0 : 1;
+    // `/privacy` and `/terms` are prose too, and a false promise there is worse than a clumsy sentence.
+    const legalOk = printLegal(legalReport(options.content), { strict: true }) === 0;
+    return report.ok && copyOk && notesOk && legalOk ? 0 : 1;
+  }
+
+  if (options.command === "legal") {
+    let report;
+    try {
+      report = legalReport(options.content);
+    } catch (error) {
+      console.error(error.message);
+      return 1;
+    }
+    return printLegal(report, { strict: options.strict });
   }
 
   if (options.command === "articles") {
@@ -359,7 +401,7 @@ function main(argv) {
     return 0;
   }
 
-  console.error(`unknown command "${options.command}" — use check, fixtures, copy, new or preview`);
+  console.error(`unknown command "${options.command}" — use check, fixtures, copy, articles, legal, new or preview`);
   return 2;
 }
 

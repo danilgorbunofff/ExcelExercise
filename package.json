@@ -10,8 +10,8 @@
     "build": "node legacy/src/build.mjs",
     "verify": "node legacy/src/build.mjs && node legacy/src/verify.mjs",
     "dev": "node legacy/src/build.mjs && node legacy/src/serve.mjs",
-    "check": "npm test && npm run content:check && npm run next:build && npm run next:check && node legacy/src/verify.mjs",
-    "content:check": "node packages/content-lint/cli.js check",
+    "check": "npm test && npm run content:check && npm run next:build && npm run budget && npm run next:check && npm run origin:check && npm run secret:check && node legacy/src/verify.mjs",
+    "content:check": "node packages/content-lint/cli.js check && node packages/content-lint/cli.js legal",
     "content:copy": "node packages/content-lint/cli.js copy",
     "content:articles": "node packages/content-lint/cli.js articles",
     "content:fixtures": "node packages/content-lint/cli.js fixtures",
@@ -29,7 +29,15 @@
     "next:start": "next start",
     "next:assets": "node scripts/next-assets.mjs",
     "next:check": "node scripts/check-next-pages.mjs",
-    "e2e": "npm run next:build && playwright test"
+    "e2e": "npm run next:build && playwright test",
+    "e2e:accounts": "PW_ACCOUNTS=1 playwright test --project=accounts",
+    "smoke": "node scripts/smoke.mjs",
+    "content:legal": "node packages/content-lint/cli.js legal",
+    "budget": "node scripts/bundle-measure.mjs --assert --from-build",
+    "origin:check": "node scripts/check-origin.mjs",
+    "secret:check": "node scripts/secret-scan.mjs",
+    "lighthouse": "lhci autorun",
+    "review": "node scripts/review.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
@@ -43,6 +51,7 @@
   ],
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "1.64.1"
   }
 }

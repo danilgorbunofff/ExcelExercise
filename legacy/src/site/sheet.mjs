@@ -8,7 +8,7 @@
 import { chordText, gridModel, labelsOf, parseChord, parsePress, referenceOf } from "./packages.mjs";
 import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
 import { previewSheet } from "./preview.mjs";
-import { workbookUrl } from "../xlsx.mjs";
+import { datasetUrl, workbookUrl } from "../xlsx.mjs";
 
 /**
  * The grid itself, shared by the drill and the workbook preview. `targetCell` is the cell the learner
@@ -71,14 +71,23 @@ function renderDataGrid({ id, label, startCell, rows, targetCell = null, interac
 /**
  * The sheet: column letters, row numbers, read-only data, one target cell. `id` is per screen,
  * because a lesson may show several sheets and two elements cannot share an id.
+ *
+ * `interactive` and `targetCell` exist for the landing page's proof sheet: it borrows a real drill's
+ * grid to show what the product looks like, but it is not a drill, so it renders as a plain table
+ * with no focusable answer cell to tab into.
  */
-export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } = {}) {
+export function renderSheet(
+  exercise,
+  screen,
+  { icons = {}, id = "sheet-grid", interactive = true, targetCell = screen.answerCell } = {},
+) {
   return renderDataGrid({
     id,
     label: `${exercise.docs.dataset}, read-only data`,
     startCell: screen.grid.startCell,
     rows: screen.grid.rows,
-    targetCell: screen.answerCell,
+    targetCell,
+    interactive,
   });
 }
 
@@ -124,11 +133,14 @@ export function renderPicture(screen, { position = 0 } = {}) {
  * formula that produced it.
  */
 export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
-  const url = workbookUrl(exercise.slug, screen.id);
+  // A project screen carries the project's one dataset rather than a file of its own: eight tasks over
+  // one spreadsheet is one download, not eight copies of the same rows.
+  const url = screen.file ? datasetUrl(screen.file) : workbookUrl(exercise.slug, screen.id);
+  const noun = screen.file ? "dataset" : "workbook";
   const { rows, formulas } = previewSheet(screen.sheet, { today: screen.today });
   const preview = renderDataGrid({
     id: `workbook-grid-${position}`,
-    label: `${screen.sheet.name}, preview of the workbook`,
+    label: `${screen.sheet.name}, preview of the ${noun}`,
     startCell: screen.sheet.startCell,
     rows,
     interactive: false,
@@ -145,7 +157,7 @@ export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
 
   return `<div class="workbook" id="workbook-${position}">
                   <p class="workbook-file">
-                    <a class="workbook-link" href="${esc(url)}" download>Download the workbook<span class="workbook-ext"> (.xlsx)</span></a>
+                    <a class="workbook-link" href="${esc(url)}" download>Download the ${noun}<span class="workbook-ext"> (.xlsx)</span></a>
                     <span class="workbook-meta">It opens in Excel, Sheets or LibreOffice.</span>
                   </p>
                   <details class="workbook-preview" open>

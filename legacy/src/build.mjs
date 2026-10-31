@@ -16,9 +16,11 @@ import { fileURLToPath } from "node:url";
 
 import { FAVICON_SVG, buildStyles, readIcons, renderRobots, renderSitemap } from "./site/assets.mjs";
 import { siteConfig } from "./site/config.mjs";
-import { loadContent } from "./site/content.mjs";
+import { loadArticles, loadContent } from "./site/content.mjs";
+import { renderArticlePage, renderFunctionsHub } from "./site/article-page.mjs";
 import { renderExercisePage } from "./site/exercise-page.mjs";
 import { renderIndexPage } from "./site/index-page.mjs";
+import { renderAboutPage, renderExercisesHub } from "./site/hub-page.mjs";
 import { renderLegalPage } from "./site/legal-page.mjs";
 import { renderPricingPage } from "./site/pricing-page.mjs";
 import { dashboardGroups, renderDashboardPage } from "./site/dashboard-page.mjs";
@@ -96,6 +98,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   }
 
   const { track, exercises, index } = loadContent(contentDir);
+  const articles = loadArticles(contentDir);
   const icons = readIcons(join(vendorDir, "icons"));
   for (const required of ["check", "arrow-right", "lightbulb", "lock"]) {
     if (!icons[required]) throw new Error(`vendor/icons/${required}.svg is missing — the pages inline it`);
@@ -127,6 +130,17 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   assertSelfContained(pricingHtml, config, "pricing/index.html");
   pages.push({ file: "pricing/index.html", html: pricingHtml });
 
+  // The catalogue page and the page that says how the grading works. Both are indexable, both link to
+  // the group hubs, and both are listed in the sitemap — the crawler's way in to the 88 lessons.
+  for (const [file, render] of [
+    ["excel-exercises/index.html", renderExercisesHub],
+    ["about/index.html", renderAboutPage],
+  ]) {
+    const html = render({ config, track, index, icons, clientAvailable });
+    assertSelfContained(html, config, file);
+    pages.push({ file, html });
+  }
+
   // The two pages a crawler is supposed to find, and the two a reader looks for before trusting a
   // refund term. They carry the footer's own links, so they are not orphaned.
   for (const kind of ["privacy", "terms"]) {
@@ -141,10 +155,25 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     pages.push({ file: `excel/${entry.slug}.html`, html });
   }
 
-  for (const { id } of dashboardGroups({ track, index })) {
-    const html = renderDashboardPage({ config, track, index, icons, clientAvailable, group: id });
-    assertSelfContained(html, config, `learn/groups/${id}.html`);
-    pages.push({ file: `learn/groups/${id}.html`, html });
+  for (const group of dashboardGroups({ track, index })) {
+    const html = renderDashboardPage({ config, track, index, icons, clientAvailable, group: group.id });
+    assertSelfContained(html, config, `learn/groups/${group.id}.html`);
+    pages.push({ file: `learn/groups/${group.id}.html`, html });
+  }
+
+  // The function notes, and the hub that lists them. A note links to one lesson by slug, so the page
+  // gets that lesson's first screen and nothing else: the note is written, the drill is borrowed.
+  if (articles.length > 0) {
+    const hubHtml = renderFunctionsHub({ config, track, index, articles, icons, clientAvailable });
+    assertSelfContained(hubHtml, config, "excel-functions/index.html");
+    pages.push({ file: "excel-functions/index.html", html: hubHtml });
+
+    for (const article of articles) {
+      const entry = index.find((item) => item.slug === article.exercise) ?? null;
+      const html = renderArticlePage({ config, track, index, articles, article, entry, icons, clientAvailable });
+      assertSelfContained(html, config, `excel-functions/${article.slug}.html`);
+      pages.push({ file: `excel-functions/${article.slug}/index.html`, html });
+    }
   }
 
   let bytes = 0;
@@ -153,7 +182,16 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const { css, sources } = buildStyles({ vendorDir, stylesDir: join(root, "src/styles") });
   bytes += writeFile(join(dist, "assets/styles.css"), css);
   bytes += writeFile(join(dist, "assets/favicon.svg"), FAVICON_SVG);
-  bytes += writeFile(join(dist, "sitemap.xml"), renderSitemap({ config, track, index }));
+  bytes += writeFile(
+    join(dist, "sitemap.xml"),
+    renderSitemap({
+      config,
+      index,
+      groups: dashboardGroups({ track, index }),
+      articles: articles.map((article) => ({ path: `/excel-functions/${article.slug}`, updated: article.updated })),
+      extra: articles.length > 0 ? ["exercises", "functions", "about", "privacy", "terms"] : ["exercises", "about", "privacy", "terms"],
+    }),
+  );
   bytes += writeFile(join(dist, "robots.txt"), renderRobots({ config }));
 
   const fonts = copyDir(join(vendorDir, "fonts"), join(dist, "assets/fonts"), { filter: (name) => name.endsWith(".woff2") });

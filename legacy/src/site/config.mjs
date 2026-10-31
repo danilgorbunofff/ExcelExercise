@@ -45,5 +45,8 @@ export function siteConfig(env = process.env) {
     contact: env.SITE_CONTACT?.trim() || null,
     builtAt: today(env),
     inLanguage: "en",
+    // The mobile browser bar: both values are `--bg` (= `--sand-2`) from `tokens.css`, repeated here
+    // because a `<meta>` cannot read a custom property. `tests/styles.test.js` compares the three.
+    themeColor: { light: "#f9f9f8", dark: "#191918" },
   };
 }

@@ -20,7 +20,7 @@ function drillLine(entry, linked) {
   // Free drills are linked from here; paid ones are named but not linked, because a link into a
   // wall is a dead end dressed as navigation.
   const label = linked ? `<a href="${esc(entry.path)}">${title}</a>` : title;
-  return `          <li><strong>${label}</strong> — ${esc(entry.exercise.docs.outcome)}</li>`;
+  return `          <li><strong>${label}</strong>, ${esc(entry.exercise.docs.outcome)}</li>`;
 }
 
 function renderDrills(entries, linked) {
@@ -50,7 +50,7 @@ export function preparePricingPage({ config, track, index, icons = {}, checkout 
         })}</a>
         <a class="btn" href="${esc(first.path)}">Do drill 1 · ${esc(first.exercise.title)}</a>
       </p>
-      <p class="gate-note">Checkout is not open yet in this build. Until it opens, the free drills are open and the paid drills open with the in-browser trial.</p>`;
+      <p class="gate-note">Checkout is not open yet. Until it opens, every paid drill opens free in this browser, no card, no account.</p>`;
 
   const body = `<main class="shell" id="main">
       <div class="page-head">
@@ -67,7 +67,7 @@ export function preparePricingPage({ config, track, index, icons = {}, checkout 
       <section class="how" aria-labelledby="price-heading">
         <h2 id="price-heading">The price, plainly</h2>
         <ol class="how-steps">
-          <li><strong>${esc(PRICE)}</strong> for the whole track — one payment, not one per drill.</li>
+          <li><strong>${esc(PRICE)}</strong> for the whole track, one payment, not one per drill.</li>
 ${TERMS.map((term) => `          <li>${esc(term)}.</li>`).join("\n")}
         </ol>
         <p class="how-note">Your progress lives in this browser whether you pay or not. An account is what carries it to another device.</p>

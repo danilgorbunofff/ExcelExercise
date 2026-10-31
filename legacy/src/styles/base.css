@@ -111,6 +111,25 @@ p {
   text-wrap: pretty;
 }
 
+/* Not every string on the page was written by us: a leaderboard handle, the address in a notice, a
+   project name can arrive as one unbroken 60-character token. `break-word` would leave the intrinsic
+   width alone, so a grid or flex child would still widen the document; `anywhere` breaks the token and
+   lets the box shrink to the measure it was given. */
+p,
+li,
+dd,
+dt,
+figcaption,
+blockquote,
+td,
+th,
+caption,
+h1,
+h2,
+h3 {
+  overflow-wrap: anywhere;
+}
+
 ul,
 ol {
   margin: 0;
@@ -205,6 +224,9 @@ button {
   left: var(--s-4);
   top: var(--s-4);
   z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: var(--s-2) var(--s-3);
   background: var(--btn-bg);
   color: var(--btn-text);

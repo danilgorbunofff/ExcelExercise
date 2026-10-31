@@ -12,6 +12,8 @@ try {
     import("../../../packages/progress/index.js"),
     import("../../../packages/keys/index.js"),
     import("../../../packages/sheet/index.js"),
+    import("../../../packages/content/markdown.js"),
+    import("../../../packages/content/articles.js"),
   ]);
 } catch (error) {
   if (error?.code !== "ERR_MODULE_NOT_FOUND") throw error;
@@ -23,10 +25,12 @@ try {
   );
 }
 
-const [grader, content, progress, keys, sheet] = packages;
+const [grader, content, progress, keys, sheet, markdown, articles] = packages;
 
 export const { KNOWN_FUNCTIONS, addressOf, buildCells, compute, indexToCol, isFormulaError, parseRef } = grader;
 export const { LEVELS, loadContent, referenceOf, revealOf, screenAt, validateLesson } = content;
 export const { BADGES, BADGE_LABELS, badgeFor, nextCopy, summarise, summaryLine } = progress;
 export const { chordText, isReserved, labelsOf, parseChord, parsePress } = keys;
 export const { cellAt, gridModel, moveSelection, startCell } = sheet;
+export const { headingId, parseMarkdown, sectionIds, wordCount } = markdown;
+export const { REQUIRED_SECTIONS, articleProblems, loadArticles, parseArticle } = articles;

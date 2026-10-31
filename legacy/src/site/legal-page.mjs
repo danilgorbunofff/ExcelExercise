@@ -24,6 +24,7 @@
 import { esc } from "./html.mjs";
 import { PRICE } from "./pricing-page.mjs";
 import { renderByline, renderDocument } from "./shell.mjs";
+import { breadcrumbJsonLd, jsonLd } from "./seo.mjs";
 
 /** What survives a deletion, and why. `lib/legal.js` re-exports this and the export document prints it. */
 export const RETENTION = [
@@ -62,7 +63,7 @@ const STORED = [
 const NEVER = [
   "no analytics script, and no page-view counter of any kind",
   "no advertising or tracking cookie, and nothing that survives you closing the tab",
-  "no third-party font, stylesheet, image or script — every page loads only from this site",
+  "no third-party font, stylesheet, image or script, every page loads only from this site",
   "no profile built from your behaviour, and nothing sold or handed to a data broker",
 ];
 
@@ -78,7 +79,7 @@ function definitionList(rows) {
 
 function retentionList() {
   return `      <dl class="legal-list">\n${RETENTION.map(
-    (row) => `        <dt>${esc(row.what)}</dt>\n        <dd>${esc(row.keeps)} — ${esc(row.because)}.</dd>`,
+    (row) => `        <dt>${esc(row.what)}</dt>\n        <dd>${esc(row.keeps)}, ${esc(row.because)}.</dd>`,
   ).join("\n")}\n      </dl>`;
 }
 
@@ -139,7 +140,7 @@ export function legalSections({ config, track }) {
           heading: "Cookies, and why there is no banner",
           html: paragraphs([
             "Signed out, this site sets no cookies at all.",
-            "Signed in, the auth server sets one first-party session cookie. It is the only way to know that the next request is still you, so it is strictly necessary — and a consent banner exists to ask permission for cookies that are not. There is nothing here to ask about, so there is no banner.",
+            "Signed in, the auth server sets one first-party session cookie. It is the only way to know that the next request is still you, so it is strictly necessary, and a consent banner exists to ask permission for cookies that are not. There is nothing here to ask about, so there is no banner.",
             "The same applies to storage: the four keys above are this site's own functionality, not tracking. A banner offering to switch them off would have to switch the drills off with them.",
           ]),
         },
@@ -174,7 +175,7 @@ export function legalSections({ config, track }) {
           id: "delete",
           heading: "Deleting your account",
           html: `${paragraphs([
-            "The same page deletes the account. It happens immediately — there is no grace period to wait out, and no support ticket to open.",
+            "The same page deletes the account. It happens immediately, there is no grace period to wait out, and no support ticket to open.",
             "Erased: the profile, every progress row, every attempt, the daily points, the streak, and any feedback you sent through the account.",
             "Kept, unlinked from you:",
           ])}\n${retentionList()}\n${paragraphs([
@@ -192,7 +193,7 @@ export function legalSections({ config, track }) {
           id: "changes",
           heading: "Changes to this page",
           html: paragraphs([
-            "This page is part of the repository and carries the date of the build you are reading. When what the code stores changes, this page changes in the same commit — a policy that drifts from the schema is a bug, not a revision.",
+            "This page is part of the repository and carries the date of the build you are reading. When what the code stores changes, this page changes in the same commit, a policy that drifts from the schema is a bug, not a revision.",
           ]),
         },
         {
@@ -225,8 +226,8 @@ export function legalSections({ config, track }) {
           heading: "Free drills, and the paid track",
           html: paragraphs([
             `Drills 1–${free} are free forever: no account, no email, no expiry. Nothing in this repository moves them behind the wall.`,
-            `The rest of the track is ${esc(PRICE)} for the whole thing — one payment, not one per drill — with a 100% refund guarantee and the option to cancel at any time.`,
-            "Checkout is not open in this build. Until it is, the paid drills open with the in-browser trial, and the price above is what the page says rather than what it charges.",
+            `The rest of the track is ${esc(PRICE)} for the whole thing, one payment, not one per drill, with a 100% refund guarantee and the option to cancel at any time.`,
+            "Checkout is not open yet. Until it is, the paid drills open free in this browser, and the price above is what the page says rather than what it charges.",
           ]),
         },
         {
@@ -244,7 +245,7 @@ export function legalSections({ config, track }) {
           html: `${paragraphs(["Do not:"])}\n      <ul class="legal-points">\n${[
             "scrape the site at a rate that degrades it for other people, or run it through a load test without asking first",
             "resell, sublicense or republish the drills, the copy or the grading logic",
-            "try to break the grader into showing a verdict the formula does not deserve — it is the thing being taught",
+            "try to break the grader into showing a verdict the formula does not deserve, it is the thing being taught",
             "attempt to reach another learner's rows, or probe for one",
           ]
             .map((line) => `        <li>${esc(line)}</li>`)
@@ -254,7 +255,7 @@ export function legalSections({ config, track }) {
           id: "feedback",
           heading: "Feedback you write",
           html: paragraphs([
-            "The note you type in the feedback box is yours. Sending it lets this site read it and act on it — in practice that means fixing the drill it is about — and nothing more: it is not published, not attributed, and not used for advertising.",
+            "The note you type in the feedback box is yours. Sending it lets this site read it and act on it, in practice that means fixing the drill it is about, and nothing more: it is not published, not attributed, and not used for advertising.",
             "Keep other people's information out of it.",
           ]),
         },
@@ -263,7 +264,7 @@ export function legalSections({ config, track }) {
           heading: "What belongs to this project",
           html: paragraphs([
             "The drill scripts, the lesson text, the design and the grading rules are this project's work. You may read the source, learn from it and run it yourself; you may not republish it as your own teaching product.",
-            "The formulas you write are yours, and always were — nothing here claims any right over a spreadsheet you made.",
+            "The formulas you write are yours, and always were, nothing here claims any right over a spreadsheet you made.",
           ]),
         },
         {
@@ -271,7 +272,7 @@ export function legalSections({ config, track }) {
           heading: "A grader is a teaching aid, not an authority",
           html: paragraphs([
             "Excel's formula rules vary by version and by locale: a decimal separator of `.` or `,`, a list separator of `,` or `;`, functions that exist in one release and not another. This grader implements a stated rule set and tells you which rule you broke.",
-            "So a red verdict means this site's rules were not met — not that Excel will reject the formula, and not that your spreadsheet is wrong. If a verdict looks wrong, say so: a grader that punishes a correct formula is a bug worth fixing, and the feedback box reaches the person who can fix it.",
+            "So a red verdict means this site's rules were not met, not that Excel will reject the formula, and not that your spreadsheet is wrong. If a verdict looks wrong, say so: a grader that punishes a correct formula is a bug worth fixing, and the feedback box reaches the person who can fix it.",
           ]),
         },
         {
@@ -287,7 +288,7 @@ export function legalSections({ config, track }) {
           heading: "Ending it",
           html: paragraphs([
             "You can end it whenever you like: delete the account and the sessions end with it.",
-            "An account can be suspended for the fair-use items above — in practice, for attacking the site or another learner. A suspension is not a deletion; your progress is still there, and the message says what happened.",
+            "An account can be suspended for the fair-use items above, in practice, for attacking the site or another learner. A suspension is not a deletion; your progress is still there, and the message says what happened.",
           ]),
         },
         {
@@ -340,6 +341,17 @@ ${document.sections.map((entry) => section(entry.id, entry.heading, entry.html))
       badge: document.badge,
       skipLabel: document.skipLabel,
       bodyClass: "legal",
+      // A legal page is not a lesson, so the only structured data worth emitting is where it sits in
+      // the site, which is what keeps the trail in the result rather than a bare URL.
+      jsonLd: jsonLd(
+        breadcrumbJsonLd({
+          config,
+          trail: [
+            { href: "/", label: "Excel drills" },
+            { href: document.path, label: document.title },
+          ],
+        }),
+      ),
     },
   };
 }

@@ -308,6 +308,13 @@ function mountDrill(payloadNode) {
     ? payload.track.showAnswerAfter
     : DEFAULT_REVEAL_AFTER;
   const screenCount = payload.screens.length;
+  // What this shelf calls the thing being answered. A drill track says "drill" and the project track
+  // says "project", so the gate under a project never offers to open a drill that is not there. Every
+  // payload built before this field existed reads as the drill, which is what all of them were.
+  const noun = payload.track.noun ?? "Drill";
+  // One gated item reads as "4", a range as "4–8"; the paid-half copy is the track's to describe.
+  const span = (from, to) => (from === to ? `${from}` : `${from}–${to}`);
+  const paidHalf = payload.track.paidHalf ?? "cover rounding, lookups, and text splitting";
 
   // A lesson is complete once every screen has been answered correctly: one screen is
   // worth the whole cap, four screens a quarter each. The loop therefore ends on the last
@@ -1038,13 +1045,16 @@ function mountDrill(payloadNode) {
     if (blocked.kind === "order") {
       const after = blocked.after;
       paywall.append(
-        el("h2", { class: "paywall-title", text: `Drill ${payload.track.number} opens after drill ${after.number}` }),
+        el("h2", {
+          class: "paywall-title",
+          text: `${noun} ${payload.track.number} opens after ${noun.toLowerCase()} ${after.number}`,
+        }),
         el("p", {
           class: "paywall-body",
           text: `The track is in order, so finishing "${after.title}" opens this one. Nothing is locked forever: the unlock below opens the whole track in this browser.`,
         }),
         el("p", { class: "paywall-actions" }, [
-          el("a", { class: "btn btn-primary", href: after.path, text: `Go to drill ${after.number}` }),
+          el("a", { class: "btn btn-primary", href: after.path, text: `Go to ${noun.toLowerCase()} ${after.number}` }),
         ]),
       );
       track("gate_view", { id: lessonId, reason: "order", after: after.id });
@@ -1059,10 +1069,10 @@ function mountDrill(payloadNode) {
         text: "Continue free this once",
       });
       paywall.append(
-        el("h2", { class: "paywall-title", text: "The last drill before the paid half" }),
+        el("h2", { class: "paywall-title", text: `The last ${noun.toLowerCase()} before the paid half` }),
         el("p", {
           class: "paywall-body",
-          text: `Drills 1–${free} are free and stay free. This one opens on a click, once, so you can judge the rest before deciding anything.`,
+          text: `${noun}s 1–${free} are free and stay free. This one opens on a click, once, so you can judge the rest before deciding anything.`,
         }),
         el("p", { class: "paywall-actions" }, [
           pass,
@@ -1070,7 +1080,7 @@ function mountDrill(payloadNode) {
         ]),
         el("p", {
           class: "paywall-note",
-          text: `Drills ${payload.track.number + 1}–${total} are the paid half. One free pass, remembered in this browser. Nothing is sent anywhere.`,
+          text: `${noun}s ${span(payload.track.number + 1, total)} are the paid half. One free pass, remembered in this browser. Nothing is sent anywhere.`,
         }),
       );
       track("gate_view", { id: lessonId, reason: "prompt", after: null });
@@ -1081,7 +1091,7 @@ function mountDrill(payloadNode) {
         openAfterGate(
           paywall,
           "One free pass used",
-          `Drill ${payload.track.number} is open. Drills ${payload.track.number + 1}–${total} are the paid half of the track.`,
+          `${noun} ${payload.track.number} is open. ${noun}s ${span(payload.track.number + 1, total)} are the paid half of the track.`,
         );
       });
     } else {
@@ -1092,8 +1102,8 @@ function mountDrill(payloadNode) {
           "p",
           { class: "paywall-body" },
           [
-            `Drills ${(payload.track.freeLessonCount ?? 0) + 1}–${total} cover rounding, lookups, ` +
-              `and text splitting. The first ${payload.track.freeLessonCount} stay free. A trial opens the remaining ` +
+            `${noun}s ${span((payload.track.freeLessonCount ?? 0) + 1, total)} ${paidHalf}. ` +
+              `The first ${payload.track.freeLessonCount} stay free. A trial opens the remaining ` +
               `${remaining} for ${7} days.`,
           ],
         ),
@@ -1287,13 +1297,18 @@ function mountTrack() {
   const rows = [...document.querySelectorAll(".lesson-row[data-lesson]")];
   if (rows.length === 0) return;
 
+  // Proof the island ran, for a reader who has nothing to show and for the tests that used to read
+  // the (now hidden at zero) progress line.
+  document.documentElement.dataset.track = "ready";
+
   const count = completedCount(progress);
   for (const row of rows) row.classList.toggle("is-done", isComplete(progress, row.dataset.lesson));
 
   const wrap = document.getElementById("track-progress");
   const note = document.getElementById("track-progress-note");
   const fill = document.getElementById("track-fill");
-  if (wrap) wrap.hidden = false;
+  // Nothing complete yet means nothing to say: an empty rail pinned at 0% is chrome, not information.
+  if (wrap) wrap.hidden = count === 0;
   if (note) note.textContent = `${count} of ${rows.length} drills complete${count === 0 ? "." : " in this browser."}`;
   if (fill) {
     fill.style.width = `${Math.round((count / rows.length) * 100)}%`;

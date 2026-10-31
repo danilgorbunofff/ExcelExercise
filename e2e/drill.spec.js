@@ -276,16 +276,19 @@ test("the session clock stops while the tab is hidden", async ({ page }) => {
   const opened = await lastElapsed(page, "screen_view");
   expect(typeof opened).toBe("number");
 
-  // 1.3 s hidden, then 1.3 s in front of the learner: only one of those seconds is time on task.
+  // Four seconds hidden, then one in front of the learner. The gap between "the hidden time was not
+  // counted" and "it was" is four seconds wide, so a loaded parallel runner that stalls the tab for an
+  // extra second cannot turn an honest clock into a failure: counting the hidden time would report at
+  // least five, and the assertion refuses anything above three.
   await setHidden(page, true);
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(4000);
   await setHidden(page, false);
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(1000);
   await check(page, "=SUM(B2:B4)");
 
   const answered = await lastElapsed(page, "check_correct");
   expect(answered - opened).toBeGreaterThanOrEqual(1);
-  expect(answered - opened).toBeLessThan(2);
+  expect(answered - opened).toBeLessThanOrEqual(3);
 });
 
 test("progress survives a reload on the same device", async ({ page }) => {

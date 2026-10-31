@@ -6,6 +6,7 @@ import { expect, test } from "@playwright/test";
 
 import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
 import { indexablePaths } from "../legacy/src/site/seo.mjs";
+import { loadProjectTrack } from "../lib/projects.js";
 import { loadSite } from "../lib/site.js";
 
 const site = loadSite();
@@ -40,6 +41,39 @@ test("an unknown path answers 404 with the site chrome", async ({ page }) => {
   await expect(page.locator("h1")).toHaveText("That page is not a drill");
   await expect(page.locator(".site .brand")).toBeVisible();
   await expect(page.locator("a.btn-primary")).toHaveAttribute("href", "/");
+});
+
+/**
+ * The soft-404 guard. With Cache Components on, an unknown param is rendered on request, and Next has
+ * already flushed the prerender shell with `200` when the page calls `notFound()` — so the *first*
+ * request for an invented slug answered `200` with the 404 page inside, and only the second answered
+ * `404`. A crawler asks once. These slugs are random per run, so each request is genuinely the first.
+ */
+test("an invented slug in each dynamic family is a 404 the first time it is asked", async ({ request }) => {
+  const stamp = Math.random().toString(36).slice(2, 10);
+  const families = [
+    `/learn/excel/not-a-drill-${stamp}`,
+    `/learn/projects/not-a-project-${stamp}`,
+    `/learn/groups/not-a-group-${stamp}`,
+    `/excel-functions/not-a-note-${stamp}`,
+  ];
+  for (const path of families) {
+    const response = await request.get(path);
+    expect(response.status(), `${path} answered with a success status (a soft 404)`).toBe(404);
+    expect(response.headers()["content-type"]).toContain("text/html");
+    expect(await response.text()).toContain("That page is not a drill");
+  }
+});
+
+test("the same families still serve their real entries", async ({ request }) => {
+  const lesson = site.index[0];
+  const project = loadProjectTrack().index[0];
+  const group = dashboardGroups({ track: site.track, index: site.index })[0];
+  const note = site.articles[0];
+  for (const path of [lesson.path, project.path, `/learn/groups/${group.id}`, NOTE_PATH(note)]) {
+    const response = await request.get(path);
+    expect(response.status(), `${path} no longer answers`).toBe(200);
+  }
 });
 
 test("/api/health reports the deploy identity", async ({ request }) => {

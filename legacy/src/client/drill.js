@@ -48,6 +48,16 @@ import { rewardLine } from "./reward.js";
 /** What the player uses when a track file from before `showAnswerAfter` loads in it. */
 const DEFAULT_REVEAL_AFTER = 3;
 
+/**
+ * Where the learner stopped in this drill, so leaving and coming back does not start over.
+ *
+ * One key for the whole site rather than one per drill: a learner is only ever in one drill, and the
+ * slug in the record is what refuses a stale entry from a different lesson. `index` is a screen
+ * position, never a score — resuming puts the raw screen back, and the answers given before leaving
+ * are not replayed, because the browser only ever kept a roll-up.
+ */
+const RESUME_KEY = "es.resume";
+
 const RULE_LABEL = {
   syntax: "The formula cannot be read",
   require: "Wrong function",
@@ -300,6 +310,31 @@ function mountDrill(payloadNode) {
   let grace = parseGrace(store.read(GRACE_KEY));
 
   const lessonId = payload.id;
+
+  /**
+   * The screen to open on: the one left last time, or the first.
+   *
+   * Only this drill's own entry counts, only a position inside the drill counts, and a finished drill
+   * always opens at the top — its record says completed, so there is nothing left to continue.
+   */
+  function resumeAt() {
+    if (isComplete(progress, lessonId)) return 0;
+    let saved = null;
+    try {
+      saved = JSON.parse(store.read(RESUME_KEY) ?? "null");
+    } catch {
+      return 0;
+    }
+    if (!saved || typeof saved !== "object" || saved.slug !== payload.slug) return 0;
+    const index = Number(saved.index);
+    return Number.isInteger(index) && index > 0 && index < payload.screens.length ? index : 0;
+  }
+
+  /** Written on every screen entry; `0` means "nothing to come back to", which is also how finishing reads. */
+  function noteResume(position) {
+    const index = isComplete(progress, lessonId) ? 0 : position;
+    store.write(RESUME_KEY, JSON.stringify({ slug: payload.slug, index, at: new Date().toISOString() }));
+  }
   const total = payload.track.total || 1;
   // How many misses on one screen open the reference answer. The track file owns the number, so a
   // lesson that wants more rope changes content rather than the player; the schema fills in the
@@ -572,6 +607,7 @@ function mountDrill(payloadNode) {
     screenMisses = 0;
     offeredSolution = false;
     screenStartedMs = clock.elapsedMs();
+    noteResume(position);
 
     clearFeedback();
     ui.solution.hidden = true;
@@ -1243,7 +1279,7 @@ function mountDrill(payloadNode) {
   });
 
   paintProgress();
-  enterScreen(0);
+  enterScreen(resumeAt());
   // A lesson exhausted on an earlier visit keeps its reveal: the record already holds the misses, and
   // hiding the only way out would trap the learner.
   if (attemptsFor(progress, lessonId) >= revealAfter && ui.showAnswer) {

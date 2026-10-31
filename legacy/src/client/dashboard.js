@@ -8,7 +8,7 @@
  * browser refuses storage must not be told they have done nothing.
  */
 
-import { BADGE_LABELS, ago, canStart, nextCopy, summarise, summaryLine } from "../progress/index.js";
+import { BADGE_LABELS, ago, canStart, mergeProgress, nextCopy, summarise, summaryLine } from "../progress/index.js";
 import { PROGRESS_KEY, emptyProgress, parseProgress, serializeProgress } from "./state.js";
 
 const RESET_CONFIRM_MS = 6000;
@@ -235,6 +235,37 @@ function armReset() {
   state.timer = setTimeout(disarm, RESET_CONFIRM_MS);
 }
 
+/**
+ * The signed-in half of the page: ask the server what it has, and merge it in.
+ *
+ * The island paints from `localStorage` first because that is what works with no account, no network
+ * and on the static build. But a learner who signs in on a second browser, or who finished drills
+ * before signing up on another device, has a copy the browser cannot see: the server. This one request
+ * closes that gap, and it is deliberately silent on every failure — a 401, a 404 (the static edition
+ * has no API), an offline tab and a garbage body all mean "the local copy is all there is", which is
+ * exactly what the page already painted.
+ */
+async function reconcile() {
+  if (typeof globalThis.fetch !== "function") return;
+  let body;
+  try {
+    const response = await fetch("/api/progress", { credentials: "same-origin", headers: { accept: "application/json" } });
+    if (!response.ok) return;
+    body = await response.json();
+  } catch {
+    return;
+  }
+  if (body?.ok !== true || body.signed_in !== true || !body.progress) return;
+
+  const { progress, changed } = mergeProgress(state.progress, body.progress);
+  if (!changed) return;
+  state.progress = progress;
+  // Written back so the next page load starts from the union: otherwise every visit would re-download
+  // the same rows and re-merge them, and a drill finished while signed out would look new each time.
+  writeProgress(progress);
+  paint();
+}
+
 function main() {
   state.plan = readPlan();
   if (!state.plan) return;
@@ -249,6 +280,8 @@ function main() {
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && ui.reset?.dataset.armed === "true") disarm();
   });
+
+  reconcile();
 }
 
 main();

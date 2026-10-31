@@ -1,7 +1,8 @@
 /**
- * `POST /api/progress` — the one way a signed-in learner's progress reaches the database.
+ * `/api/progress` — the one way a signed-in learner's progress crosses between the browser and the
+ * database, in both directions.
  *
- * Two bodies, because there are two things to say:
+ * `POST` has two bodies, because there are two things to say:
  *
  *   * `{ batch_id, events }` — the buffer the drill fills in memory. Every row is derived from those
  *     events (`lib/progress/derive.js`), so a browser cannot post itself a score.
@@ -17,11 +18,15 @@
  * day's first completion. That happens after the write, in `lib/retention/write.js`, and a refusal
  * there is logged rather than returned — the lesson is recorded either way, and re-sending a batch to
  * collect points it already collected would be the wrong trade.
+ *
+ * `GET` is the other half: the dashboard reads its counts from `localStorage`, so without it a signed-in
+ * learner on a second browser sees an empty track. It answers the same record shape the island parses.
  */
 import { authConfig } from "../../../lib/auth/config.js";
 import { currentUser } from "../../../lib/auth/server.js";
 import { parseBatch } from "../../../lib/progress/derive.js";
 import { parseMigration } from "../../../lib/progress/migrate.js";
+import { recordFrom } from "../../../lib/progress/record.js";
 import { importProgress, progressClient, writeBatch } from "../../../lib/progress/write.js";
 import { loadProjectTrack } from "../../../lib/projects.js";
 import { creditBatch } from "../../../lib/retention/write.js";
@@ -68,6 +73,36 @@ async function migrate({ client, user, body }) {
   }
 
   return json({ ok: true, replayed: result.replayed, lessons: result.lessons }, result.replayed ? 200 : 201);
+}
+
+/**
+ * `GET /api/progress` — what the database thinks this learner has finished, in the browser's own shape.
+ *
+ * The dashboard is a prerendered page filled by an island, so before this route existed a signed-in
+ * learner's copy on a second browser read "0 of 88" while the database held a finished track: the only
+ * store the island knew about was `localStorage`. The answer is deliberately the roll-up record
+ * (`{ v, done, tries, unlocked }`, see `lib/progress/record.js`) rather than the richer rows, because
+ * the island already parses exactly that and a second shape would mean a second code path.
+ *
+ * Anonymous and unconfigured are answers, not errors: the static edition and the accounts-off
+ * deployment both call this from the same island, and both should keep working off `localStorage`.
+ */
+export async function GET() {
+  if (!authConfig().enabled) return json({ ok: true, signed_in: false, configured: false }, 200);
+
+  const { supabase, user } = await currentUser();
+  if (!user || !supabase) return json({ ok: true, signed_in: false }, 200);
+
+  const { data, error } = await supabase
+    .from("lesson_progress")
+    .select("lesson_id, status, attempts, helped, completed_at, last_seen_at")
+    .order("last_seen_at", { ascending: false });
+  if (error) {
+    console.error(`api/progress: reading lesson_progress failed: ${error.message}`);
+    return json({ ok: false, error: "progress_read_failed" }, 502);
+  }
+
+  return json({ ok: true, signed_in: true, progress: recordFrom(data) }, 200);
 }
 
 export async function POST(request) {

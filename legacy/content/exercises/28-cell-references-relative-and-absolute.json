@@ -1,0 +1,151 @@
+{
+  "id": "28-cell-references-relative-and-absolute",
+  "slug": "cell-references-relative-and-absolute",
+  "level": 1,
+  "title": "Cell references: relative and absolute",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B8, work out Friday's cost as the crates in B6 times the rate in C7, with the rate address locked so a fill keeps it on C7.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Delivery",
+            "Crates",
+            "Cost"
+          ],
+          [
+            "Mon",
+            120,
+            null
+          ],
+          [
+            "Tue",
+            90,
+            null
+          ],
+          [
+            "Wed",
+            140,
+            null
+          ],
+          [
+            "Thu",
+            60,
+            null
+          ],
+          [
+            "Fri",
+            110,
+            null
+          ],
+          [
+            "Rate per crate",
+            null,
+            1.15
+          ],
+          [
+            "Friday cost",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B8",
+      "expect": {
+        "value": 126.5
+      },
+      "require": [
+        {
+          "id": "func-round",
+          "func": "ROUND",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B6",
+      "rules": [],
+      "hints": {
+        "syntax": "ROUND takes the arithmetic and the digits: =ROUND(B6*$C$7,2).",
+        "func-round": "Money gets rounded to two places, and ROUND is the function that does it in the same cell as the arithmetic.",
+        "require-ref": "Read the crates from B6 and the rate from C7; a typed 110 stops matching the sheet.",
+        "value": "110 crates at 1.15 each is 126.5. Check that the rate you multiplied by is the one in C7.",
+        "error": "Dividing the cost by zero returns #DIV/0!, which is what C8 produces if you point the rate there."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUND(B6*$C$7,2)",
+          "=ROUND(B6*C$7,2)",
+          "=ROUND($C$7*B6,2)",
+          "=ROUND(B6*$C$7,2)+0",
+          "=ROUND(C$7*B6,2)",
+          "=ROUND(B6*$C$7,2)*1"
+        ],
+        "reject": [
+          {
+            "formula": "=ROUND(B6*$C$7,2",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing computes"
+          },
+          {
+            "formula": "=B6*$C$7",
+            "rule": "func-round",
+            "why": "the arithmetic is right but the cost is not rounded, and the screen is practising ROUND"
+          },
+          {
+            "formula": "=ROUND(B6*$C$8,2)",
+            "rule": "value",
+            "why": "the rate cell is one row too low, so the cost is zero"
+          },
+          {
+            "formula": "=ROUND(B6*$C$6,2)",
+            "rule": "value",
+            "why": "the rate cell is empty, so the cost comes back as zero"
+          },
+          {
+            "formula": "=ROUND(110*$C$7,2)",
+            "rule": "require-ref",
+            "why": "the crates typed into the formula, so the row no longer follows the sheet"
+          },
+          {
+            "formula": "=ROUND(B6*$C$7,2)/0",
+            "rule": "error",
+            "why": "a cost divided by zero returns #DIV/0!"
+          },
+          {
+            "formula": "=SUM(B6,$C$7)",
+            "rule": "func-round",
+            "why": "adds the crates to the rate instead of multiplying, and without rounding"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=ROUND(number, digits)",
+    "explain": "B6 holds 110 crates and C7 holds the rate per crate, 1.15. Friday's cost is B6 times C7, rounded to two places so the column carries no fractions of a penny. The dollar signs are the point of the drill. A plain C7 filled down becomes C8, then C9, and the cost column quietly multiplies by blank cells. Writing $C$7 locks the column and the row, so a copy down keeps pointing at the rate. C$7 would also survive a fill down, which is why it is accepted here, but it would break across columns. A bare C7 means 'the cell one column to the right of me, wherever I end up'. Dragging the formula down walks the rate off its row and changes the cost in every row below.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The cost was divided by an empty cell, usually a rate column that is filled in later."
+      },
+      {
+        "code": "#REF!",
+        "text": "The formula was copied from a cell that sits beside the rate, so a relative C7 walked off the sheet and the reference broke."
+      }
+    ],
+    "atWork": "A rate card with one price per unit at the top, copied down a hundred order lines.",
+    "outcome": "Lock the cell a formula must keep reading when it is filled down.",
+    "teaches": "Absolute references with ROUND",
+    "dataset": "Crates by day at one rate",
+    "reference": "=ROUND(B6*$C$7,2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Excel absolute references: lock a cell",
+    "description": "$C$7 keeps the rate fixed when the formula is filled down, while a bare C7 walks off its row and multiplies by blank cells. ROUND trims the pennies."
+  }
+}

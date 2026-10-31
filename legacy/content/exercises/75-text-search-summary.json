@@ -1,0 +1,259 @@
+{
+  "id": "75-text-search-summary",
+  "slug": "text-search-summary",
+  "level": 2,
+  "title": "Text search summary",
+  "docs": {
+    "syntax": "=MID(text,FIND(\"-\",text)+1,4) finds the separator then slices after it; criteria take patterns",
+    "explain": "This screen is the two halves of text work in one place. The first half is a slice placed relative to a separator: FIND reports where the hyphen sits, one is added because the digits begin after it, and MID reads from there. Nothing in that formula is a typed number that depends on this particular table, which is what separates a formula from a transcription. The second half is the pattern in a criterion, where a star does the work that a whole list of region names would otherwise do. Both halves appear because real sheets mix them: an imported column arrives as one long string, and the reporting column beside it asks how many rows fit a pattern. The detail that trips people is that the two techniques answer different kinds of question. The slice returns a piece of text and has to be pinned to a position; the pattern returns a number and does not care where anything sits. Reading both off one table, as this screen does, makes the distinction concrete rather than theoretical.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "A position argument is not a number, or the text being searched for is absent."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The pattern matches no rows, so there is nothing to average."
+      }
+    ],
+    "atWork": "Slicing a code around its separator and totalling rows that fit one pattern.",
+    "outcome": "Combine FIND with MID for a slice, and a wildcard criterion for a matching total.",
+    "teaches": "MID driven by FIND beside a wildcard criterion, on one table",
+    "dataset": "Code, region and amount columns, sliced and matched",
+    "reference": "=MID(A2,FIND(\"-\",A2)+1,4)"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In D2, read the four digits that follow the hyphen in the code in A2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Region",
+            "Amount",
+            "Answer"
+          ],
+          [
+            "AN-1042",
+            "North",
+            120,
+            null
+          ],
+          [
+            "BO-2299",
+            "South",
+            80,
+            null
+          ],
+          [
+            "CY-3140",
+            "North",
+            200,
+            null
+          ],
+          [
+            "DE-4471",
+            "North",
+            60,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": "1042"
+      },
+      "reference": "=MID(A2,FIND(\"-\",A2)+1,4)",
+      "require": [
+        {
+          "id": "func-mid",
+          "func": "MID",
+          "minArgs": 3
+        },
+        {
+          "id": "func-find",
+          "func": "FIND",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=MID(A2,FIND(\"-\",A2)+1,4): FIND locates the hyphen, MID reads from just after it.",
+        "func-mid": "The digits are a slice of the code, so MID reads them.",
+        "func-find": "The hyphen moves between rows, so FIND works out where it sits.",
+        "require-ref": "The code is in A2.",
+        "value": "The hyphen is third, so the four digits start at four.",
+        "error": "If the code held no hyphen, FIND would fail with #VALUE!."
+      },
+      "fixtures": {
+        "accept": [
+          "=MID(A2,FIND(\"-\",A2)+1,4)",
+          "=mid(a2,find(\"-\",a2)+1,4)",
+          "=MID($A$2,FIND(\"-\",$A$2)+1,4)",
+          "=MID(A$2,FIND(\"-\",A$2)+1,4)",
+          "=MID( A2 , FIND(\"-\",A2)+1 , 4 )",
+          "=MID(A2,FIND(\"-\",A2)+1,LEN(A2)-FIND(\"-\",A2))",
+          "=MID(A2,FIND(\"-\",A2)+1,99)"
+        ],
+        "reject": [
+          {
+            "formula": "=MID(A2,4,4)",
+            "rule": "func-find",
+            "why": "the start position is typed rather than found"
+          },
+          {
+            "formula": "=FIND(\"-\",A2)",
+            "rule": "func-mid",
+            "why": "the position is reported instead of the digits"
+          },
+          {
+            "formula": "=MID(A2,FIND(\"-\",A2)+2,4)",
+            "rule": "value",
+            "why": "starting one place late drops the first digit"
+          },
+          {
+            "formula": "=MID(A2,FIND(\"-\",A2)+1,3)",
+            "rule": "value",
+            "why": "three characters truncate the number"
+          },
+          {
+            "formula": "=MID(A3,FIND(\"-\",A3)+1,4)",
+            "rule": "require-ref",
+            "why": "the formula reads the second row rather than A2"
+          },
+          {
+            "formula": "=MID(A2,FIND(\"_\",A2)+1,4)",
+            "rule": "error",
+            "why": "there is no underscore to find"
+          },
+          {
+            "formula": "=MID A2,FIND(\"-\",A2)+1,4",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In D2, round the average of the North amounts to one decimal place.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Region",
+            "Amount",
+            "Answer"
+          ],
+          [
+            "AN-1042",
+            "North",
+            120,
+            null
+          ],
+          [
+            "BO-2299",
+            "South",
+            80,
+            null
+          ],
+          [
+            "CY-3140",
+            "North",
+            200,
+            null
+          ],
+          [
+            "DE-4471",
+            "North",
+            60,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 126.7
+      },
+      "reference": "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"N*\"),1)",
+      "require": [
+        {
+          "id": "func-averageifs",
+          "func": "AVERAGEIFS",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "C2",
+      "hints": {
+        "syntax": "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"N*\"),1): the averages first, the pattern last.",
+        "func-averageifs": "A conditional average is AVERAGEIFS' job.",
+        "require-ref": "The amounts are in C2:C5.",
+        "value": "380 across three rows is 126.66..., which rounds to 126.7.",
+        "error": "Averaging the region column has no numbers to average."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"N*\"),1)",
+          "=round(averageifs(c2:c5,b2:b5,\"n*\"),1)",
+          "=ROUND(AVERAGEIFS($C$2:$C$5,$B$2:$B$5,\"N*\"),1)",
+          "=ROUND(AVERAGEIFS(C$2:C$5,B$2:B$5,\"N*\"),1)",
+          "=ROUND( AVERAGEIFS(C2:C5, B2:B5, \"N*\" ) , 1 )",
+          "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"North\"),1)",
+          "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"N????\"),1)"
+        ],
+        "reject": [
+          {
+            "formula": "=ROUND(AVERAGE(C2:C5),1)",
+            "rule": "func-averageifs",
+            "why": "the pattern never enters, so the South row is averaged in"
+          },
+          {
+            "formula": "=AVERAGEIFS(C2:C5,B2:B5,\"N*\")",
+            "rule": "value",
+            "why": "the unrounded average is 126.66666..."
+          },
+          {
+            "formula": "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"S*\"),1)",
+            "rule": "value",
+            "why": "one South row averages to 80"
+          },
+          {
+            "formula": "=ROUND(AVERAGEIFS(C2:C4,B2:B4,\"N*\"),1)",
+            "rule": "value",
+            "why": "the last North row is outside the range"
+          },
+          {
+            "formula": "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"N*\")/0,1)",
+            "rule": "error",
+            "why": "the average is then divided by zero"
+          },
+          {
+            "formula": "=ROUND(AVERAGEIFS(B2:B5,B2:B5,\"N*\"),1)",
+            "rule": "require-ref",
+            "why": "the amount column is never read"
+          },
+          {
+            "formula": "=ROUND AVERAGEIFS(C2:C5,B2:B5,\"N*\"),1",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Slice text with FIND and MID in Excel",
+    "description": "FIND says where the separator sits and MID reads from there. A wildcard criterion on the same screen shows why a pattern answers a different question."
+  },
+  "updated": "2026-10-31"
+}

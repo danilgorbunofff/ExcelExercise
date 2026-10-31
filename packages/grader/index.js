@@ -9,7 +9,7 @@ export { FormulaError, CODES, isFormulaError } from "./errors.js";
 export { tokenize } from "./tokenize.js";
 export { parse, walkAst, callsOf, childrenOf } from "./parse.js";
 export { FUNCTIONS, KNOWN_FUNCTIONS, criteriaTest } from "./functions.js";
-export { evaluate, evaluateFormula, createContext, formatValue } from "./evaluate.js";
+export { evaluate, evaluateFormula, createContext, formatValue, pinnedClock } from "./evaluate.js";
 export {
   compareValues,
   valuesEqual,
@@ -26,8 +26,8 @@ export { colToIndex, indexToCol, isColumnLabel, parseRef, addressOf, expandRange
 export const buildCells = buildCellsFromGrid;
 
 /** Evaluate a standalone formula against an ad-hoc cell map; returns the value. */
-export function compute(formula, cells = {}) {
-  return evaluateFormula(formula, cells);
+export function compute(formula, cells = {}, options = {}) {
+  return evaluateFormula(formula, cells, options);
 }
 
 /** Parse only: useful for "is this a formula at all" checks in the UI. */

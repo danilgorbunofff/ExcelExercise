@@ -1,0 +1,249 @@
+{
+  "id": "83-clean-up-an-imported-list",
+  "slug": "clean-up-an-imported-list",
+  "level": 3,
+  "title": "Clean up an imported list",
+  "docs": {
+    "syntax": "=PROPER(TRIM(text)) tidies spacing and case; nest SUBSTITUTE and LOWER for a key",
+    "explain": "An imported list arrives with the problems of wherever it came from: padding spaces, doubled spaces inside names, and inconsistent capitalisation. None of those are visible in a wide column, and all of them break a lookup later. MATCH does not ignore a trailing space, and it would rather return an error than a near miss. Cleaning is therefore not cosmetic work. It is the step that makes the rest of the workbook correct. The order matters more than the functions do. TRIM first, because it removes the padding and collapses the runs of spaces inside a string to one. Then the case function, because the words are now the right shape to capitalise. Swapping that order mostly works and teaches the wrong lesson, so the reject list carries it. The second screen builds a key, which is the same cleaning followed by replacing the space with a separator. It nests all three: trim, substitute, lower. Once a key column exists, two lists that spell a name differently join on it, and that is what the whole exercise is for.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "A function is given a range instead of a single cell, so it has no one text to clean."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name is misspelled, so the sheet has nothing to call."
+      }
+    ],
+    "atWork": "Turning an imported, inconsistently spaced name column into something a lookup can match.",
+    "outcome": "Tidy spacing and case with TRIM and PROPER, then build a lower-case key from the same text.",
+    "teaches": "TRIM before PROPER, then TRIM, SUBSTITUTE and LOWER nested into a match key",
+    "dataset": "Imported names with padding, doubled spaces and mixed case",
+    "reference": "=PROPER(TRIM(A2))"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In B2, tidy the imported name in A2 so it has no stray spaces and each word is capitalised.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Imported",
+            "Answer"
+          ],
+          [
+            "  ANA  LOPEZ  ",
+            null
+          ],
+          [
+            "  bo   CHEN ",
+            null
+          ],
+          [
+            "CY  patel",
+            null
+          ],
+          [
+            "  di  OKORO  ",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": "Ana Lopez"
+      },
+      "reference": "=PROPER(TRIM(A2))",
+      "require": [
+        {
+          "id": "func-trim",
+          "func": "TRIM",
+          "minArgs": 1
+        },
+        {
+          "id": "func-proper",
+          "func": "PROPER",
+          "minArgs": 1
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=PROPER(TRIM(A2)): trim the spacing, then capitalise the words.",
+        "func-trim": "The cell is padded and doubled up, so the spaces have to go first.",
+        "func-proper": "Each word has to be capitalised rather than shouted.",
+        "require-ref": "The imported name is in A2.",
+        "value": "Padding and doubled spaces collapse, and the words become Ana Lopez.",
+        "error": "Cleaning a whole column at once gives no single text to clean."
+      },
+      "fixtures": {
+        "accept": [
+          "=PROPER(TRIM(A2))",
+          "=proper(trim(a2))",
+          "=PROPER(TRIM($A$2))",
+          "=PROPER(TRIM(A$2))",
+          "=PROPER( TRIM( A2 ) )",
+          "=PROPER(TRIM(A2))&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=TRIM(A2)",
+            "rule": "func-proper",
+            "why": "the spacing is fixed but the name stays shouted"
+          },
+          {
+            "formula": "=PROPER(A2)",
+            "rule": "func-trim",
+            "why": "the padding and doubled spaces survive"
+          },
+          {
+            "formula": "=UPPER(A2)",
+            "rule": "func-trim",
+            "why": "neither the spacing nor the case is tidied"
+          },
+          {
+            "formula": "=PROPER(TRIM(A2))&\" \"",
+            "rule": "value",
+            "why": "a trailing space is added back"
+          },
+          {
+            "formula": "=PROPER(TRIM(A3))",
+            "rule": "require-ref",
+            "why": "the formula reads the second imported name rather than A2"
+          },
+          {
+            "formula": "=PROPER(TRIM(A2))/0",
+            "rule": "error",
+            "why": "the cleaned text is then divided by zero"
+          },
+          {
+            "formula": "=PROPER TRIM(A2)",
+            "rule": "syntax",
+            "why": "the argument falls outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In B2, build a lower-case key from the imported name in A2 with a dot where the space was.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Imported",
+            "Answer"
+          ],
+          [
+            "  ANA  LOPEZ  ",
+            null
+          ],
+          [
+            "  bo   CHEN ",
+            null
+          ],
+          [
+            "CY  patel",
+            null
+          ],
+          [
+            "  di  OKORO  ",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": "ana.lopez"
+      },
+      "reference": "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\".\"))",
+      "require": [
+        {
+          "id": "func-trim",
+          "func": "TRIM",
+          "minArgs": 1
+        },
+        {
+          "id": "func-substitute",
+          "func": "SUBSTITUTE",
+          "minArgs": 3
+        },
+        {
+          "id": "func-lower",
+          "func": "LOWER",
+          "minArgs": 1
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\".\")): trim, replace the space, then lower-case.",
+        "func-trim": "The doubled spaces would otherwise become doubled dots.",
+        "func-substitute": "The remaining single space is swapped for a dot.",
+        "func-lower": "The name is shouted, so the key has to be lower-cased.",
+        "require-ref": "The imported name is in A2.",
+        "value": "Ana Lopez becomes ana.lopez once the padding is gone.",
+        "error": "A whole column of imported names gives no single text to clean."
+      },
+      "fixtures": {
+        "accept": [
+          "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\".\"))",
+          "=lower(substitute(trim(a2),\" \",\".\"))",
+          "=LOWER(SUBSTITUTE(TRIM($A$2),\" \",\".\"))",
+          "=LOWER(SUBSTITUTE(TRIM(A$2),\" \",\".\"))",
+          "=LOWER( SUBSTITUTE( TRIM( A2 ) , \" \" , \".\" ) )",
+          "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\".\"))&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=SUBSTITUTE(TRIM(A2),\" \",\".\")",
+            "rule": "func-lower",
+            "why": "the key is built but never lower-cased"
+          },
+          {
+            "formula": "=LOWER(TRIM(A2))",
+            "rule": "func-substitute",
+            "why": "the space is left as a space"
+          },
+          {
+            "formula": "=LOWER(SUBSTITUTE(A2,\" \",\".\"))",
+            "rule": "func-trim",
+            "why": "the padding and doubled spaces never leave the string"
+          },
+          {
+            "formula": "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\"-\"))",
+            "rule": "value",
+            "why": "a hyphen is not the separator the key needs"
+          },
+          {
+            "formula": "=LOWER(SUBSTITUTE(TRIM(A3),\" \",\".\"))",
+            "rule": "require-ref",
+            "why": "the formula reads the second imported name rather than A2"
+          },
+          {
+            "formula": "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\".\"))/0",
+            "rule": "error",
+            "why": "the key is then divided by zero"
+          },
+          {
+            "formula": "=LOWER SUBSTITUTE(TRIM(A2),\" \",\".\")",
+            "rule": "syntax",
+            "why": "the argument falls outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Clean up an imported list in Excel",
+    "description": "TRIM removes padding and collapses doubled spaces, then PROPER fixes the case. That order matters, and the tidied name is what lets a later lookup match."
+  },
+  "updated": "2026-10-31"
+}

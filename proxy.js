@@ -14,15 +14,64 @@ import { NextResponse } from "next/server";
 import { authConfig } from "./lib/auth/config.js";
 import { loginUrl } from "./lib/auth/redirect.js";
 import { entitledFor, paywallDecision, paywallEnforced } from "./lib/paywall.js";
+import { notFoundDocument } from "./lib/not-found.js";
+import { loadProjectTrack } from "./lib/projects.js";
 import { loadSite } from "./lib/site.js";
+import { admitVerifyRequest, clientAddress, refusalPage } from "./lib/verify/limit.js";
 
-// Everything under `/account` needs a session. Keep the list here rather than duplicating it in each
-// page: a page that forgets to check would render a signed-out shell and look like a bug.
-const GATED = [/^\/account(?:\/|$)/];
+// Everything under `/account`, the board it links to, and the daily challenge need a session. Keep the
+// list here rather than duplicating it in each page: a page that forgets to check would render a
+// signed-out shell and look like a bug.
+//
+// `/api/daily` is deliberately absent: it is fetched, not navigated to, and its own `401` is an answer
+// the runner can show. A redirect there would hand `fetch` a login page and read as a network failure.
+const GATED = [/^\/account(?:\/|$)/, /^\/leaderboard\/?$/, /^\/daily(?:\/|$)/];
 
 // The exception, and the only one: `/account/deleted` is where the delete form redirects, and by then
 // the session is gone by design — a gate there would bounce a just-deleted learner to `/login`.
 const PUBLIC = [/^\/account\/deleted\/?$/];
+
+// The public certificate page is the one URL a stranger can guess at, so it is the one URL with a
+// limit on it. It is read signed in or out, and it is answered before the session work below: a
+// crawl must not cost a database round trip per guess, and the guard has to hold on a deployment
+// with accounts unconfigured.
+const VERIFY = /^\/verify\/[^/]+\/?$/;
+
+// The four addresses whose last segment names something in the catalog: a drill, a project, a dashboard
+// group, or a function note. Everything else the app serves has a fixed path.
+const DYNAMIC = [
+  [/^\/learn\/excel\/([^/]+)\/?$/, "lesson"],
+  [/^\/learn\/projects\/([^/]+)\/?$/, "project"],
+  [/^\/learn\/groups\/([^/]+)\/?$/, "group"],
+  [/^\/excel-functions\/([^/]+)\/?$/, "note"],
+];
+
+/**
+ * Whether this path names a real entry, or `null` when the path is not one of the four families.
+ *
+ * The answer comes from the same catalog the pages prerender from, so a slug cannot be known to one and
+ * unknown to the other. A malformed escape sequence is not a guess either way: it is refused.
+ */
+function knownEntry(pathname) {
+  for (const [pattern, family] of DYNAMIC) {
+    const match = pattern.exec(pathname);
+    if (!match) continue;
+    let slug;
+    try {
+      slug = decodeURIComponent(match[1]);
+    } catch {
+      return false;
+    }
+    if (slug === "" || slug === "." || slug === "..") return false;
+    if (family === "lesson") return loadSite().entryFor(slug) !== null;
+    if (family === "project") return loadProjectTrack().entryFor(slug) !== null;
+    if (family === "note") return loadSite().articleFor(slug) !== null;
+    // A group is the dashboard's own grouping, and only a group that holds a drill has a page.
+    const { track, index } = loadSite();
+    return track.groups.some((group) => group.id === slug && index.some((entry) => entry.group === slug));
+  }
+  return null;
+}
 
 // The one place a paid drill can be opened. The lesson pages are prerendered HTML, which cannot be
 // refused once it exists, so the refusal has to happen on the request.
@@ -47,6 +96,34 @@ async function paywallFor(pathname, supabase, user) {
 }
 
 export async function proxy(request) {
+  // Before the session work, and before the accounts-unconfigured shortcut below: a wrong address is a
+  // wrong address on every deployment, signed in or not.
+  if (knownEntry(request.nextUrl.pathname) === false) {
+    return new NextResponse(notFoundDocument(), {
+      status: 404,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        // Not cached for long: the catalog can gain an entry on the next deploy, and this answer is
+        // only true for the deployment that made it.
+        "cache-control": "public, max-age=0, must-revalidate",
+      },
+    });
+  }
+
+  if (VERIFY.test(request.nextUrl.pathname)) {
+    const verdict = admitVerifyRequest({ address: clientAddress(request.headers) });
+    if (!verdict.allowed) {
+      return new NextResponse(refusalPage(verdict.retryAfter), {
+        status: 429,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "no-store",
+          "retry-after": String(verdict.retryAfter),
+        },
+      });
+    }
+  }
+
   const config = authConfig();
   if (!config.enabled) return NextResponse.next();
 

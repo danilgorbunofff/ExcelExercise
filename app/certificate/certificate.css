@@ -1,0 +1,204 @@
+/* Certificate pages. Next-only: the static build has no certificate route, so these rules must not
+ * reach `legacy/src/styles/components.css` and change its byte count. */
+
+.certificate-facts {
+  margin: 0 0 var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface-sunk);
+}
+
+.certificate-facts div + div {
+  margin-top: var(--s-3);
+}
+
+.certificate-facts dt {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.certificate-facts dd {
+  margin: var(--s-1) 0 0;
+  font-size: var(--fs-ui);
+}
+
+/* The credential is meant to be copied by eye, so it is larger, tracked out, and selectable as one
+ * token rather than broken across lines in the middle. */
+.certificate-facts code {
+  font-family: var(--font-mono);
+  font-size: var(--fs-ui);
+  letter-spacing: 0.08em;
+  word-break: keep-all;
+  user-select: all;
+}
+
+.certificate-help {
+  margin: 0 0 var(--s-4);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  line-height: 1.5;
+}
+
+.certificate-help a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.certificate-help a:hover {
+  color: var(--text);
+}
+
+/* The verified record: the one block on the site whose job is to look like a document. */
+.certificate-sheet {
+  padding: var(--s-6);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  text-align: center;
+}
+
+.certificate-sheet .certificate-kicker {
+  margin: 0 0 var(--s-3);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.certificate-sheet .certificate-name {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.certificate-sheet .certificate-basis {
+  margin: 0 0 var(--s-5);
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+}
+
+.certificate-sheet .certificate-serial {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.certificate-sheet .certificate-serial strong {
+  color: var(--text);
+  font-weight: 600;
+  user-select: all;
+}
+
+.certificate-sheet[data-revoked="true"] {
+  border-style: dashed;
+}
+
+.certificate-sheet[data-revoked="true"] .certificate-name {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+  color: var(--text-muted);
+}
+
+/* The record's own URL, printed under the sheet. A printed certificate leaves the browser behind, so
+ * the address that checks it has to be on the paper: without it the sheet is an unstyled claim. */
+.certificate-print-url {
+  display: none;
+  margin: var(--s-5) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+
+.certificate-print {
+  margin: var(--s-4) 0;
+}
+
+/* --- print --------------------------------------------------------------------------------------
+ * What the sheet is for. The chrome goes and the sheet keeps its words. Colours are stated in ink
+ * rather than inherited: a print stylesheet that trusts the screen palette works until the day the
+ * palette changes, and the failure — a card printed with its border and shadow but not its meaning —
+ * is one nobody notices until the paper is in their hand. */
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  /* Only what cannot be used on paper: navigation, the way back to the rest of the site, and the
+   * controls themselves. The words stay — the lede, the facts, the revoked notice and the sheet are
+   * what the page is about, and a print stylesheet that strips them would leave a blank rectangle. */
+  .skip,
+  header.site,
+  footer.foot,
+  .auth-links,
+  .certificate-help,
+  .certificate-print,
+  .skeleton {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  main.shell.auth {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  .auth-card {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    max-width: none !important;
+  }
+
+  /* The notice stays: a revoked certificate must print with the sentence that says so, or the paper
+   * would outlive the withdrawal it is supposed to record. */
+  .auth-notice {
+    margin: var(--s-4) 0 0 !important;
+    border: 1px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .certificate-sheet {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .certificate-sheet .certificate-kicker,
+  .certificate-sheet .certificate-basis,
+  .certificate-sheet .certificate-serial {
+    color: #222 !important;
+  }
+
+  .certificate-sheet .certificate-serial strong {
+    color: #000 !important;
+  }
+
+  .certificate-sheet[data-revoked="true"] .certificate-name {
+    color: #000 !important;
+  }
+
+  .certificate-print-url {
+    display: block !important;
+    color: #222 !important;
+  }
+}

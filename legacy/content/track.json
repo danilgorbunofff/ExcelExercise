@@ -1,14 +1,14 @@
 {
   "id": "formula-drills",
   "title": "Excel formula drills",
-  "promise": "26 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
+  "promise": "88 real spreadsheet tasks. Type the formula, get told exactly what is wrong.",
   "freeLessonCount": 3,
   "showAnswerAfter": 3,
   "groups": [
     {
       "id": "intro",
       "title": "Getting started",
-      "intro": "A formula is a recipe you type once and the sheet follows. Everything else here is built on that idea, so this group starts at the beginning: what the equals sign commits you to, how a cell reference points at a place rather than at a value, and why copying a formula down a column changes what it points at. You will write a total by hand, then watch AutoSum write the same one, then read the answer off the status bar without typing anything at all — three ways to answer a question you will ask a thousand times.\n\nNothing here assumes you have written a formula before; the level stays at 1 throughout. Each task is a small spreadsheet with a labelled answer cell, marked the moment you submit it. Finish the group and you will know the difference between a value and a reference, and you will never again wonder why =A1+B1 turned into something else after it was copied."
+      "intro": "A formula is a recipe you type once and the sheet follows. Everything else here is built on that idea, so this group starts at the beginning: what the equals sign commits you to, how a cell reference points at a place rather than at a value, and why copying a formula down a column changes what it points at. You will write a total by hand, then watch AutoSum write the same one, then read the answer off the status bar without typing anything at all: three ways to answer a question you will ask a thousand times.\n\nNothing here assumes you have written a formula before; the level stays at 1 throughout. Each task is a small spreadsheet with a labelled answer cell, marked the moment you submit it. Finish the group and you will know the difference between a value and a reference, and you will never again wonder why =A1+B1 turned into something else after it was copied."
     },
     {
       "id": "sum",
@@ -18,12 +18,12 @@
     {
       "id": "count",
       "title": "Counting rows",
-      "intro": "Counting looks trivial until the data is real. COUNT only sees numbers, COUNTA counts anything that is not empty, and COUNTBLANK counts the gaps — three functions, three different questions, and the wrong one still produces a number that looks plausible in a report. This group puts each of them on a sheet where the wrong choice is visible, so the drill can tell you what you counted and why it is not what you were asked for.\n\nFrom there it moves to conditions: COUNTIF for a single test, COUNTIFS for several at once, and wildcards for when the thing you are matching is buried inside a longer string. The levels stay at 1 and 2, so formulas stay short enough to hold in your head while the habit forms. Six slots, one already live, and each wrong answer names the count you actually wrote rather than just rejecting it. The last is a summary drill on picking the right count for a question."
+      "intro": "Counting looks trivial until the data is real. COUNT only sees numbers, COUNTA counts anything that is not empty, and COUNTBLANK counts the gaps. That is three functions, three different questions, and the wrong one still produces a number that looks plausible in a report. This group puts each of them on a sheet where the wrong choice is visible, so the drill can tell you what you counted and why it is not what you were asked for.\n\nFrom there it moves to conditions: COUNTIF for a single test, COUNTIFS for several at once, and wildcards for when the thing you are matching is buried inside a longer string. The levels stay at 1 and 2, so formulas stay short enough to hold in your head while the habit forms. Six slots, one already live, and each wrong answer names the count you wrote rather than just rejecting it. The last is a summary drill on picking the right count for a question."
     },
     {
       "id": "statistical",
       "title": "Averages and ranks",
-      "intro": "Averages lie in specific, predictable ways, and this group is about the cases where they do. It starts with MIN and MAX, then MEDIAN — the value that survives an outlier which would drag an AVERAGE anywhere it liked. MODE returns the most common value, which answers a different question than the one most people think they are asking. LARGE and SMALL return the nth value without sorting the list, which is how you write a top-five report on a sheet nobody is allowed to reorder. The ranking lesson puts RANK beside those values so you can see the difference between a position and a value.\n\nEach slot is one function, but each is a decision about which summary the number deserves, and a wrong summary is worse than no summary at all. Seven slots at levels 1 and 2, one already live. If you have ever sent a mean to a meeting that needed a median, start here."
+      "intro": "Averages lie in specific, predictable ways, and this group is about the cases where they do. It starts with MIN and MAX, then MEDIAN, the value that survives an outlier that would drag an AVERAGE anywhere it liked. MODE returns the most common value, which answers a different question than the one most people think they are asking. LARGE and SMALL return the nth value without sorting the list, which is how you write a top-five report on a sheet nobody is allowed to reorder. The ranking lesson puts RANK beside those values so you can see the difference between a position and a value.\n\nEach slot is one function, but each is a decision about which summary the number deserves, and a wrong summary is worse than no summary at all. Seven slots at levels 1 and 2, one already live. If you have ever sent a mean to a meeting that needed a median, start here."
     },
     {
       "id": "logical",
@@ -33,22 +33,22 @@
     {
       "id": "rounding",
       "title": "Rounding money",
-      "intro": "Rounding is a formatting decision until it is money, and then it is a policy. Two decimals on screen are not two decimals in the cell, and the difference compounds down a column of invoices. This group separates the cases: ROUND for the arithmetic everyone expects, ROUNDUP and ROUNDDOWN when a price or a fee has to move in one direction only, and MROUND and FLOOR when the unit of rounding is not a fraction but a multiple — five pence, a quarter of an hour, a box of twelve.\n\nEvery prompt names the rule and shows the unit, because \"round to the nearest 0.05\" and \"round up to the nearest 0.05\" differ by one word and produce different answers all the way down the column. Three slots, all at level 2, the shortest group here and the one where a small slip is most expensive. The markup drill is live now; the other two follow the same pattern."
+      "intro": "Rounding is a formatting decision until it is money, and then it is a policy. Two decimals on screen are not two decimals in the cell, and the difference compounds down a column of invoices. This group separates the cases: ROUND for the arithmetic everyone expects, ROUNDUP and ROUNDDOWN when a price or a fee has to move in one direction only, and MROUND and FLOOR when the unit of rounding is not a fraction but a multiple: five pence, a quarter of an hour, a box of twelve.\n\nEvery prompt names the rule and shows the unit, because \"round to the nearest 0.05\" and \"round up to the nearest 0.05\" differ by one word and produce different answers all the way down the column. Three slots, all at level 2, the shortest group here and the one where a small slip is most expensive. The markup drill is live now; the other two follow the same pattern."
     },
     {
       "id": "lookup",
       "title": "Looking values up",
-      "intro": "Looking a value up is the most requested formula in any office and the most commonly broken. VLOOKUP is usually the culprit: its fourth argument defaults to approximate match, so a formula that works perfectly on sorted data returns quietly wrong answers on unsorted data — no error, no warning, a number that is simply somebody else's. This group teaches VLOOKUP properly first, approximate match and its sorted-column requirement included, so you can recognise the failure when you inherit one.\n\nThen HLOOKUP for rows, wildcards for partial keys, and a two-way lookup built from VLOOKUP and MATCH. XLOOKUP gets lessons of its own: exact match without counting columns, searching from the bottom for the latest entry, and a fallback argument that replaces the IFERROR wrapper. The last slot builds both functions on the same table and compares what each asks you to know. Ten slots at levels 2 and 3, the largest group here for a reason."
+      "intro": "Looking a value up is the most requested formula in any office and the most commonly broken. VLOOKUP is usually the culprit: its fourth argument defaults to approximate match, so a formula that works perfectly on sorted data returns quietly wrong answers on unsorted data. No error, no warning, just a number that is simply somebody else's. This group teaches VLOOKUP properly first, approximate match and its sorted-column requirement included, so you can recognise the failure when you inherit one.\n\nThen HLOOKUP for rows, wildcards for partial keys, and a two-way lookup built from VLOOKUP and MATCH. XLOOKUP gets lessons of its own: exact match without counting columns, searching from the bottom for the latest entry, and a fallback argument that replaces the IFERROR wrapper. The last slot builds both functions on the same table and compares what each asks you to know. Ten slots at levels 2 and 3, the largest group here for a reason."
     },
     {
       "id": "index-match",
       "title": "INDEX and MATCH",
-      "intro": "INDEX and MATCH are two ordinary functions that combine into the most flexible lookup in Excel. Neither is clever alone: MATCH returns the position of a value in a range, INDEX returns the value at a position you hand it. Put them together and you can look left of the key column, which VLOOKUP cannot, and survive a column being inserted in the middle of the table. This group builds them in that order, one function per lesson, so the combination is a conclusion rather than a formula to memorise.\n\nThe later slots cover the two-way lookup — MATCH on rows, MATCH on columns, INDEX at the intersection — and a summary drill that asks you to choose between INDEX MATCH, XLOOKUP and VLOOKUP for a given table. Six slots at levels 2 and 3, with the index-match drill live now. Read the group and you will read other people's spreadsheets differently."
+      "intro": "INDEX and MATCH are two ordinary functions that combine into the most flexible lookup in Excel. Neither is clever alone: MATCH returns the position of a value in a range, INDEX returns the value at a position you hand it. Put them together and you can look left of the key column, which VLOOKUP cannot, and survive a column being inserted in the middle of the table. This group builds them in that order, one function per lesson, so the combination is a conclusion rather than a formula to memorise.\n\nThe later slots cover the two-way lookup, with MATCH on rows, MATCH on columns and INDEX at the intersection, and a summary drill that asks you to choose between INDEX MATCH, XLOOKUP and VLOOKUP for a given table. Six slots at levels 2 and 3, with the index-match drill live now. Read the group and you will read other people's spreadsheets differently."
     },
     {
       "id": "text-search",
       "title": "Finding text",
-      "intro": "Half of the data you are handed is text that has to be measured before it can be used. This group starts with length and edges: LEN, LEFT and RIGHT, the tools that turn a code like INV-2024-0815 into its three useful parts. MID takes the middle, and FIND and SEARCH locate a delimiter — one is case-sensitive, one is not, and that decides whether your formula survives a typo in the source data. The wildcard lesson covers partial matches inside criteria, which is how you find every row mentioning a supplier whose name you only half remember.\n\nTEXTBEFORE and TEXTAFTER do the same split in one step on current versions, and the group closes with a summary drill on choosing between it and MID. Seven slots at levels 1 to 3, with the left-find-prefix drill already live. No regular expressions and no add-ins: just the functions already on every machine that opens your file."
+      "intro": "Half of the data you are handed is text that has to be measured before it can be used. This group starts with length and edges: LEN, LEFT and RIGHT, the tools that turn a code like INV-2024-0815 into its three useful parts. MID takes the middle, and FIND and SEARCH locate a delimiter. One is case-sensitive and one is not, and that decides whether your formula survives a typo in the source data. The wildcard lesson covers partial matches inside criteria, which is how you find every row mentioning a supplier whose name you only half remember.\n\nTEXTBEFORE and TEXTAFTER do the same split in one step on current versions, and the group closes with a summary drill on choosing between it and MID. Seven slots at levels 1 to 3, with the left-find-prefix drill already live. No regular expressions and no add-ins: just the functions already on every machine that opens your file."
     },
     {
       "id": "text-change",
@@ -63,7 +63,7 @@
     {
       "id": "date",
       "title": "Dates and deadlines",
-      "intro": "A date in Excel is a number wearing a costume, and every date problem is a problem with that number. This group starts with the volatile clock: TODAY and NOW recalculate whenever the file does, which is either exactly what you want or a slow leak, depending on where you put them. DATE builds a date from its parts, so a period can be constructed instead of typed. DAYS subtracts two dates properly, and DATEDIF counts whole months or years between them, which is what an age or a service-length column actually needs. The deadlines lesson combines that with a condition, turning a date column into an overdue flag.\n\nFour slots at levels 2 and 3, with a summary drill on picking the right distance between two dates. If a formula of yours has ever returned 45321 and you formatted your way out of it, this is the group that explains what you were looking at."
+      "intro": "A date in Excel is a number wearing a costume, and every date problem is a problem with that number. This group starts with the volatile clock: TODAY and NOW recalculate whenever the file does, which is either exactly what you want or a slow leak, depending on where you put them. DATE builds a date from its parts, so a period can be constructed instead of typed. DAYS subtracts two dates properly, and DATEDIF counts whole months or years between them, which is what an age or a service-length column needs. The deadlines lesson combines that with a condition, turning a date column into an overdue flag.\n\nFour slots at levels 2 and 3, with a summary drill on picking the right distance between two dates. If a formula of yours has ever returned 45321 and you formatted your way out of it, this is the group that explains what you were looking at."
     },
     {
       "id": "aggregate",
@@ -78,7 +78,7 @@
     {
       "id": "modeling",
       "title": "Real workbooks",
-      "intro": "This group is where the pieces combine into something a colleague would recognise. A commission sheet that updates itself, a headcount and payroll summary, an inventory reorder report and a monthly close checklist: each is a small workbook whose formulas have to agree with each other, and each is graded end to end rather than cell by cell. Every skill comes from earlier groups — SUMIFS for tiered rates, a lookup against a rate table, IF for the flag, dates for the cut-off.\n\nWhat is new is structure. Where named ranges earn their keep, why the input block sits apart from the calculation block, and how to lay a sheet out so the next person can audit it without asking you anything. Four slots at level 3, and no new functions: the work is composition. If you have finished the earlier groups and wondered what they are for, this is the answer."
+      "intro": "This group is where the pieces combine into something a colleague would recognise. A commission sheet that updates itself, a headcount and payroll summary, an inventory reorder report and a monthly close checklist: each is a small workbook whose formulas have to agree with each other, and each is graded end to end rather than cell by cell. Every skill comes from earlier groups: SUMIFS for tiered rates, a lookup against a rate table, IF for the flag, dates for the cut-off.\n\nWhat is new is structure. Where named ranges earn their keep, why the input block sits apart from the calculation block, and how to lay a sheet out so the next person can audit it without asking you anything. Four slots at level 3, and no new functions: the work is composition. If you have finished the earlier groups and wondered what they are for, this is the answer."
     },
     {
       "id": "capstone",
@@ -88,18 +88,15 @@
   ],
   "lessons": [
     {
-      "title": "What a formula actually does",
-      "level": 1,
+      "id": "27-what-a-formula-actually-does",
       "group": "intro"
     },
     {
-      "title": "Cell references: relative and absolute",
-      "level": 1,
+      "id": "28-cell-references-relative-and-absolute",
       "group": "intro"
     },
     {
-      "title": "AutoSum and the status bar total",
-      "level": 1,
+      "id": "29-autosum-and-the-status-bar-total",
       "group": "intro"
     },
     {
@@ -107,38 +104,31 @@
       "group": "sum"
     },
     {
-      "title": "SUMIFS: two conditions at once",
-      "level": 2,
+      "id": "48-sumifs-two-conditions-at-once",
       "group": "sum"
     },
     {
-      "title": "SUMIF with a sum range on another column",
-      "level": 2,
+      "id": "49-sumif-a-sum-range-on-another-column",
       "group": "sum"
     },
     {
-      "title": "Add only the positives",
-      "level": 2,
+      "id": "50-add-only-the-positives",
       "group": "sum"
     },
     {
-      "title": "Debug a total that skips a row",
-      "level": 2,
+      "id": "51-debug-a-total-that-skips-a-row",
       "group": "sum"
     },
     {
-      "title": "SUM across several sheets",
-      "level": 2,
+      "id": "52-sum-across-several-blocks",
       "group": "sum"
     },
     {
-      "title": "Running total down a column",
-      "level": 2,
+      "id": "53-running-total-down-a-column",
       "group": "sum"
     },
     {
-      "title": "Sum functions summary",
-      "level": 2,
+      "id": "54-sum-functions-summary",
       "group": "sum"
     },
     {
@@ -150,28 +140,23 @@
       "group": "statistical"
     },
     {
-      "title": "LARGE and SMALL: the nth highest",
-      "level": 2,
+      "id": "43-large-and-small-the-nth-highest",
       "group": "statistical"
     },
     {
-      "title": "MEDIAN: the middle value",
-      "level": 2,
+      "id": "44-median-the-middle-value",
       "group": "statistical"
     },
     {
-      "title": "MODE: the most common value",
-      "level": 2,
+      "id": "45-mode-the-most-common-value",
       "group": "statistical"
     },
     {
-      "title": "Rank a list without sorting it",
-      "level": 2,
+      "id": "46-rank-a-list-without-sorting-it",
       "group": "statistical"
     },
     {
-      "title": "Average functions summary",
-      "level": 2,
+      "id": "47-average-functions-summary",
       "group": "statistical"
     },
     {
@@ -187,53 +172,44 @@
       "group": "count"
     },
     {
-      "title": "COUNTIFS: several conditions",
-      "level": 2,
-      "group": "count"
+      "group": "count",
+      "id": "55-countifs-several-conditions"
     },
     {
-      "title": "COUNTIF with wildcards",
-      "level": 2,
-      "group": "count"
+      "group": "count",
+      "id": "56-countif-with-wildcards"
     },
     {
-      "title": "Count functions summary",
-      "level": 2,
-      "group": "count"
+      "group": "count",
+      "id": "57-count-functions-summary"
     },
     {
       "id": "04-if-pass-fail",
       "group": "logical"
     },
     {
-      "title": "TRUE and FALSE: what a comparison returns",
-      "level": 1,
-      "group": "logical"
+      "group": "logical",
+      "id": "58-true-and-false-what-a-comparison-returns"
     },
     {
-      "title": "AND, OR and NOT: combining tests",
-      "level": 2,
-      "group": "logical"
+      "group": "logical",
+      "id": "59-and-or-not-combining-tests"
     },
     {
-      "title": "IFS: more than two outcomes",
-      "level": 2,
-      "group": "logical"
+      "group": "logical",
+      "id": "60-ifs-more-than-two-outcomes"
     },
     {
-      "title": "SWITCH: match a list of values",
-      "level": 3,
-      "group": "logical"
+      "group": "logical",
+      "id": "61-switch-match-a-list-of-values"
     },
     {
-      "title": "IS functions: test what a cell holds",
-      "level": 2,
-      "group": "logical"
+      "group": "logical",
+      "id": "62-isblanks-and-isnumbers"
     },
     {
-      "title": "Logical functions summary",
-      "level": 2,
-      "group": "logical"
+      "group": "logical",
+      "id": "63-logical-functions-summary"
     },
     {
       "id": "05-sumif-region",
@@ -248,8 +224,7 @@
       "group": "rounding"
     },
     {
-      "title": "MROUND and FLOOR: round to a multiple",
-      "level": 2,
+      "id": "42-mround-and-floor-round-to-a-multiple",
       "group": "rounding"
     },
     {
@@ -285,13 +260,11 @@
       "group": "lookup"
     },
     {
-      "title": "VLOOKUP and XLOOKUP on the same table",
-      "level": 3,
+      "id": "30-vlookup-and-xlookup-on-the-same-table",
       "group": "lookup"
     },
     {
-      "title": "Lookup functions summary",
-      "level": 3,
+      "id": "31-lookup-functions-summary",
       "group": "lookup"
     },
     {
@@ -307,18 +280,15 @@
       "group": "index-match"
     },
     {
-      "title": "INDEX MATCH: look left of the key",
-      "level": 3,
+      "id": "32-index-match-look-left-of-the-key",
       "group": "index-match"
     },
     {
-      "title": "Two-way INDEX MATCH",
-      "level": 3,
+      "id": "33-two-way-index-match",
       "group": "index-match"
     },
     {
-      "title": "INDEX and MATCH summary",
-      "level": 3,
+      "id": "34-index-and-match-summary",
       "group": "index-match"
     },
     {
@@ -330,176 +300,144 @@
       "group": "text-search"
     },
     {
-      "title": "MID: characters from the middle",
-      "level": 2,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "71-mid-characters-from-the-middle"
     },
     {
-      "title": "FIND and SEARCH: case-sensitive or not",
-      "level": 2,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "72-find-and-search-case"
     },
     {
-      "title": "Wildcards in text criteria",
-      "level": 2,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "73-wildcards-in-text-criteria"
     },
     {
-      "title": "TEXTBEFORE and TEXTAFTER: split on a delimiter",
-      "level": 3,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "74-textbefore-and-textafter"
     },
     {
-      "title": "Text search summary",
-      "level": 2,
-      "group": "text-search"
+      "group": "text-search",
+      "id": "75-text-search-summary"
     },
     {
       "id": "10-capstone-margin",
       "group": "capstone"
     },
     {
-      "title": "Sales summary end to end",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "81-a-sales-summary-end-to-end"
     },
     {
-      "title": "Lookup dashboard from three tables",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "82-a-lookup-dashboard-from-three-tables"
     },
     {
-      "title": "Clean up an imported list",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "83-clean-up-an-imported-list"
     },
     {
-      "title": "Budget versus actual with a variance flag",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "84-budget-versus-actual-with-a-variance-flag"
     },
     {
-      "title": "Formula audit: fix five broken sheets",
-      "level": 3,
-      "group": "capstone"
+      "group": "capstone",
+      "id": "85-formula-audit-fix-five-broken-sheets"
     },
     {
       "id": "25-concat-and-the-operator",
       "group": "text-change"
     },
     {
-      "title": "TEXTJOIN: join a range and skip blanks",
-      "level": 2,
+      "id": "35-textjoin-join-a-range-and-skip-blanks",
       "group": "text-change"
     },
     {
-      "title": "UPPER, LOWER and PROPER",
-      "level": 1,
+      "id": "36-upper-lower-and-proper",
       "group": "text-change"
     },
     {
-      "title": "SUBSTITUTE: replace one piece of text",
-      "level": 2,
-      "group": "text-change"
+      "group": "text-change",
+      "id": "76-substitute-replace-one-piece-of-text"
     },
     {
       "id": "26-iferror-catch-the-error-show-your-text",
       "group": "errors"
     },
     {
-      "title": "IFNA: catch only a missing match",
-      "level": 2,
-      "group": "errors"
+      "group": "errors",
+      "id": "64-ifna-catch-only-a-missing-match"
     },
     {
-      "title": "Read #N/A, #VALUE! and #REF!",
-      "level": 2,
-      "group": "errors"
+      "group": "errors",
+      "id": "65-reading-error-values"
     },
     {
-      "title": "Error handling summary",
-      "level": 2,
-      "group": "errors"
+      "group": "errors",
+      "id": "66-error-handling-summary"
     },
     {
-      "title": "TODAY and NOW: the volatile clock",
-      "level": 2,
+      "id": "37-today-and-now-the-volatile-clock",
       "group": "date"
     },
     {
-      "title": "DATE: build a date from parts",
-      "level": 2,
+      "id": "38-date-build-a-date-from-parts",
       "group": "date"
     },
     {
-      "title": "DATEDIF: days, months or years between",
-      "level": 3,
+      "id": "39-datedif-days-months-or-years-between",
       "group": "date"
     },
     {
-      "title": "DAYS and simple date maths",
-      "level": 2,
+      "id": "40-days-and-simple-date-maths",
       "group": "date"
     },
     {
-      "title": "Date functions summary",
-      "level": 2,
+      "id": "41-date-functions-summary",
       "group": "date"
     },
     {
-      "title": "SUMPRODUCT: multiply, then add",
-      "level": 3,
-      "group": "aggregate"
+      "group": "aggregate",
+      "id": "67-sumproduct-multiply-then-add"
     },
     {
-      "title": "SUBTOTAL: totals that ignore hidden rows",
-      "level": 3,
-      "group": "aggregate"
+      "group": "aggregate",
+      "id": "68-subtotal-a-sum-over-a-group"
     },
     {
-      "title": "AGGREGATE: skip errors and hidden rows",
-      "level": 3,
-      "group": "aggregate"
+      "group": "aggregate",
+      "id": "69-aggregate-a-total-that-can-skip"
     },
     {
-      "title": "Aggregate functions summary",
-      "level": 3,
-      "group": "aggregate"
+      "group": "aggregate",
+      "id": "70-aggregate-functions-summary"
     },
     {
-      "title": "UNIQUE: one row per distinct value",
-      "level": 3,
+      "id": "86-unique-one-row-per-distinct-value",
       "group": "arrays"
     },
     {
-      "title": "FILTER: the rows that meet a condition",
-      "level": 3,
+      "id": "87-filter-the-rows-that-meet-a-condition",
       "group": "arrays"
     },
     {
-      "title": "SORT and spilled ranges",
-      "level": 3,
+      "id": "88-sort-and-spilled-ranges",
       "group": "arrays"
     },
     {
-      "title": "A commission sheet that updates itself",
-      "level": 3,
-      "group": "modeling"
+      "group": "modeling",
+      "id": "77-a-commission-sheet-that-updates-itself"
     },
     {
-      "title": "A headcount and payroll summary",
-      "level": 3,
-      "group": "modeling"
+      "group": "modeling",
+      "id": "78-a-headcount-and-payroll-summary"
     },
     {
-      "title": "An inventory reorder report",
-      "level": 3,
-      "group": "modeling"
+      "group": "modeling",
+      "id": "79-an-inventory-reorder-report"
     },
     {
-      "title": "A monthly close checklist in formulas",
-      "level": 3,
-      "group": "modeling"
+      "group": "modeling",
+      "id": "80-a-monthly-close-checklist-in-formulas"
     }
   ]
 }

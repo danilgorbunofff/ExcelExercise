@@ -39,10 +39,10 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=IF(B2>=70,\"Pass\",\"Fail\") — the test first, then the two outcomes in order.",
+        "syntax": "=IF(B2>=70,\"Pass\",\"Fail\"): the test first, then the two outcomes in order.",
         "func-if": "Use IF so the word changes by itself when the score changes. Typing Pass is right once and wrong forever after.",
         "require-ref": "The test has to read the score cell, not a number you typed in.",
-        "value": "The test or the two branches are in the wrong order. IF returns the first value when the test is true, the second when it is false. Ana scored exactly 70, so 70>70 is false and 70>=70 is true — that boundary is the whole lesson.",
+        "value": "The test or the two branches are in the wrong order. IF returns the first value when the test is true, the second when it is false. Ana scored exactly 70, so 70>70 is false and 70>=70 is true. That boundary is the whole lesson.",
         "error": "#NAME? means a branch was written without quotes, so Excel hunted for a name called Pass. Both text outcomes need double quotes, and IF needs all three arguments."
       },
       "fixtures": {
@@ -106,7 +106,7 @@
   ],
   "docs": {
     "syntax": "=IF(logical_test, value_if_true, value_if_false)",
-    "explain": "IF evaluates one condition and returns one of two values. Ana scored exactly 70, the test 70>=70 is true, so =IF(B2>=70,\"Pass\",\"Fail\") returns \"Pass\". Change B2 to 68 and the same formula returns \"Fail\" with no editing at all. The order of the arguments matters: the true-value comes second, the false-value third. Both outcomes can be numbers, text, or other formulas, and leaving the third argument out is legal but returns FALSE rather than a blank, which is how columns end up showing FALSE where somebody expected an empty cell. Text outcomes always need quotation marks; without them Excel looks for a name called Pass and fails.",
+    "explain": "IF runs one test and returns one of two values. Ana scored exactly 70, the test 70>=70 is true, so =IF(B2>=70,\"Pass\",\"Fail\") returns Pass. Change B2 to 68 and the same formula returns Fail with no editing. Order matters: the true value comes second, the false value third. Both outcomes can be numbers, text or other formulas. Leaving the third argument out is legal and returns FALSE, which is how columns end up showing FALSE where a blank was expected. Text outcomes need quotation marks, or Excel looks for a name called Pass and fails.",
     "errors": [
       {
         "code": "FALSE",
@@ -126,5 +126,10 @@
     "teaches": "IF",
     "dataset": "Exam results",
     "reference": "=IF(B2>=70,\"Pass\",\"Fail\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "IF in Excel: one test, two answers",
+    "description": "IF returns one value when a test is true and another when it is false. Ana scores exactly 70, so the boundary between 70>=70 and 70>70 decides the drill."
   }
 }

@@ -22,3 +22,13 @@ test-results/
 playwright-report/
 blob-report/
 .playwright/
+
+# Design-audit scratch output (.impeccable/ hook cache and critique runs)
+.impeccable/
+
+# Lighthouse reports from `npm run lighthouse`
+lighthouse-reports/
+.lighthouseci/
+
+# `npm run review` writes its logs and annex readings here
+.review/

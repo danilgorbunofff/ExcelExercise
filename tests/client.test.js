@@ -42,6 +42,7 @@ import {
   trialDaysLeft,
   validEmail,
 } from "../legacy/src/client/state.js";
+import { rewardFrom, rewardLine } from "../legacy/src/client/reward.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DAY = 24 * 60 * 60 * 1000;
@@ -328,6 +329,37 @@ describe("checking the bar", () => {
     for (const args of [undefined, {}, { selected: null, answerCell }, { selected: "", answerCell }]) {
       assert.equal(canGrade(args), false, `${JSON.stringify(args)} must not grade`);
     }
+  });
+});
+
+describe("the reward line", () => {
+  it("reads only what the server actually paid", () => {
+    assert.deepEqual(rewardFrom({ ok: true, points: { awarded: 12, total: 56 }, streak: { current: 3, longest: 9 } }), {
+      points: { awarded: 12 },
+      streak: { current: 3 },
+    });
+    // A batch the server refused, replayed, or paid nothing for has no reward to report.
+    for (const body of [
+      null,
+      "ok",
+      {},
+      { ok: false, error: "unconfigured" },
+      { ok: true, points: null, streak: null },
+      { ok: true, points: { awarded: 0 }, streak: { current: 0 } },
+      { ok: true, points: { awarded: "twelve" }, streak: { current: Number.NaN } },
+    ]) {
+      assert.equal(rewardFrom(body), null, `${JSON.stringify(body)} must report nothing`);
+    }
+  });
+
+  it("names the delta and the streak in that order", () => {
+    assert.equal(rewardLine({ points: { awarded: 12 }, streak: { current: 3 } }), "+12 points · 3-day streak");
+    // A second lesson on the same day repeats the streak rather than claiming another day of it.
+    assert.equal(rewardLine({ points: { awarded: 4 }, streak: { current: 1 } }), "+4 points · 1-day streak");
+    assert.equal(rewardLine({ points: { awarded: 1 }, streak: null }), "+1 point");
+    assert.equal(rewardLine({ points: null, streak: { current: 7 } }), "7-day streak");
+    assert.equal(rewardLine({ points: null, streak: null }), "");
+    assert.equal(rewardLine(null), "");
   });
 });
 

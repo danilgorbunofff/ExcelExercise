@@ -1,0 +1,144 @@
+{
+  "id": "ufo-dashboard",
+  "slug": "ufo-dashboard",
+  "level": 1,
+  "title": "UFO sightings dashboard",
+  "schemaVersion": 2,
+  "brief": [
+    {
+      "heading": "The file",
+      "body": "ufo.xlsx holds one sheet, Sightings, with fourteen logged sightings. Columns A to F are the date, the city, the state, the shape reported, how long the sighting lasted in seconds, and how many witnesses were present. Rows 17 to 20 carry a summary block the sheet computes for you, so open the file in Excel, Sheets or LibreOffice and the numbers in B17 to B20 are already there."
+    },
+    {
+      "heading": "The work",
+      "body": "You are the analyst the report goes to. Eight tasks: read the summary block, find the rows behind it, and answer in the box under the sheet. The preview under each task shows the same values the file shows, so nothing here needs a download — but the download is there when you want to sort the rows yourself, which is how most of these are quickest."
+    },
+    {
+      "heading": "How it is marked",
+      "body": "Each answer is checked the moment you submit it, and a wrong answer tells you what to look at rather than only that you were wrong. Nothing is timed and you can leave and come back: the project keeps its place."
+    }
+  ],
+  "dataset": {
+    "file": "ufo.xlsx",
+    "description": "Fourteen sightings, one sheet, with a computed summary block",
+    "sheet": {
+      "name": "Sightings",
+      "startCell": "A1",
+      "rows": [
+        ["Date", "City", "State", "Shape", "Duration (s)", "Witnesses"],
+        ["2023-03-04", "Phoenix", "AZ", "Triangle", 120, 3],
+        ["2023-03-11", "Portland", "OR", "Light", 45, 1],
+        ["2023-04-02", "Phoenix", "AZ", "Disc", 300, 5],
+        ["2023-04-19", "Austin", "TX", "Light", 60, 2],
+        ["2023-05-06", "Portland", "OR", "Triangle", 180, 4],
+        ["2023-05-23", "Denver", "CO", "Orb", 90, 2],
+        ["2023-06-10", "Austin", "TX", "Light", 30, 1],
+        ["2023-06-27", "Phoenix", "AZ", "Orb", 240, 6],
+        ["2023-07-14", "Denver", "CO", "Triangle", 150, 3],
+        ["2023-07-30", "Seattle", "WA", "Light", 75, 2],
+        ["2023-08-16", "Austin", "TX", "Disc", 210, 4],
+        ["2023-09-02", "Seattle", "WA", "Orb", 105, 1],
+        ["2023-09-19", "Phoenix", "AZ", "Light", 55, 2],
+        ["2023-10-05", "Portland", "OR", "Disc", 320, 5],
+        [null, null, null, null, null, null],
+        ["Sightings", "=COUNTA(B2:B15)", null, null, null, null],
+        ["Witnesses", "=SUM(F2:F15)", null, null, null, null],
+        ["Mean duration (s)", "=ROUND(AVERAGE(E2:E15),1)", null, null, null, null],
+        ["Longest (s)", "=MAX(E2:E15)", null, null, null, null]
+      ]
+    }
+  },
+  "docs": {
+    "syntax": "=COUNTA(B2:B15), =SUM(F2:F15), =ROUND(AVERAGE(E2:E15),1)",
+    "explain": "The summary block is four formulas and nothing else. COUNTA counts the city cells that are not empty, which is the number of sightings without anyone having to count rows by hand. SUM adds every witness across the fourteen rows. AVERAGE divides that same duration column by the number of values in it, and ROUND pins the result to one decimal so the report does not print a repeating decimal. MAX finds the single longest sighting. The rows behind those numbers are what the eight tasks are about: once the block is computed, most questions are a sort away.",
+    "atWork": "Every sightings, complaints or orders sheet that arrives on a Monday morning is this file: raw rows and a block of totals someone will read first. The person who can add the totals, and then say what sits behind the largest one, is the one who gets asked next.",
+    "outcome": "Read a raw sightings log, find the rows behind its summary, and report what it says.",
+    "teaches": "Count, sum and average raw rows",
+    "reference": "=ROUND(AVERAGE(E2:E15),1)",
+    "dataset": "ufo.xlsx · Sightings",
+    "errors": [
+      {
+        "code": "A zero instead of a blank",
+        "text": "AVERAGE ignores an empty cell but counts a zero, so a missing duration typed as 0 pulls the mean down. Leave it blank."
+      },
+      {
+        "code": "The summary in the range",
+        "text": "The data stops at row 15 and the summary starts at 17. A range like E2:E20 pulls the summary numbers into the average as well."
+      }
+    ]
+  },
+  "screens": [
+    {
+      "id": "ufo-count",
+      "type": "workbook",
+      "prompt": "How many sightings does the log hold? B17 states it for you.",
+      "answers": ["14", "fourteen"],
+      "hints": {
+        "value": "B17 is COUNTA of the city column. Count rows 2 to 15 if you would rather check it by hand."
+      }
+    },
+    {
+      "id": "ufo-witnesses",
+      "type": "workbook",
+      "prompt": "What is the total number of witnesses recorded across every sighting?",
+      "answers": ["41", "forty-one"],
+      "hints": {
+        "value": "B18 sums column F. Adding it yourself: 3, 1, 5, 2, 4, 2, 1, 6, 3, 2, 4, 1, 2 and 5."
+      }
+    },
+    {
+      "id": "ufo-mean",
+      "type": "workbook",
+      "prompt": "What is the mean sighting duration in seconds, rounded to one decimal? B19 holds it.",
+      "answers": ["141.4"],
+      "hints": {
+        "value": "B19 is ROUND(AVERAGE(E2:E15),1). The durations add up to 1980 seconds over 14 sightings."
+      }
+    },
+    {
+      "id": "ufo-state",
+      "type": "workbook",
+      "prompt": "Which state appears on the most rows of the log? Answer with its two-letter code.",
+      "answers": ["AZ", "Arizona"],
+      "hints": {
+        "value": "Count the codes in column C: one state appears four times, two appear three times and two appear twice."
+      }
+    },
+    {
+      "id": "ufo-longest-city",
+      "type": "workbook",
+      "prompt": "The longest sighting lasted 320 seconds. Which city reported it?",
+      "answers": ["Portland"],
+      "hints": {
+        "value": "B20 is MAX of column E. Find that value in column E and read the city on the same row."
+      }
+    },
+    {
+      "id": "ufo-over-150",
+      "type": "workbook",
+      "prompt": "How many sightings lasted longer than 150 seconds? Exactly 150 does not count.",
+      "answers": ["5", "five"],
+      "hints": {
+        "value": "Scan column E for values above 150: 300, 180, 240, 210 and 320. The 150 in row 10 is not one of them."
+      }
+    },
+    {
+      "id": "ufo-triangles",
+      "type": "workbook",
+      "prompt": "How many witnesses in total reported the triangle shape?",
+      "answers": ["10", "ten"],
+      "hints": {
+        "value": "Three rows say Triangle. Add only their witness counts: 3, 4 and 3."
+      }
+    },
+    {
+      "id": "ufo-az-witnesses",
+      "type": "workbook",
+      "prompt": "How many witnesses in total were in Arizona?",
+      "answers": ["16", "sixteen"],
+      "hints": {
+        "value": "Four rows are AZ. Their witness counts are 3, 5, 6 and 2 — SUMIF over state, taking witnesses."
+      }
+    }
+  ]
+}

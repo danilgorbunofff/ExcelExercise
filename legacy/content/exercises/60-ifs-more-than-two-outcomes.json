@@ -1,0 +1,233 @@
+{
+  "id": "60-ifs-more-than-two-outcomes",
+  "slug": "ifs-more-than-two-outcomes",
+  "level": 3,
+  "title": "IFS: more than two outcomes",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B6, band Ben's score: 90 and above is A, 80 and above B, 70 and above C, otherwise D.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Name",
+            "Score"
+          ],
+          [
+            "Ada",
+            92
+          ],
+          [
+            "Ben",
+            78
+          ],
+          [
+            "Cleo",
+            85
+          ],
+          [
+            "Dev",
+            64
+          ],
+          [
+            "Bands",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": {
+        "value": "C"
+      },
+      "reference": "=IFS(B3>=90,\"A\",B3>=80,\"B\",B3>=70,\"C\",TRUE,\"D\")",
+      "require": [
+        {
+          "id": "func-ifs",
+          "func": "IFS",
+          "minArgs": 4
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B3",
+      "rules": [],
+      "hints": {
+        "syntax": "=IFS(test 1, result 1, test 2, result 2, ...): tests and results alternate.",
+        "func-ifs": "Nested IFs work too, but this lesson wants the function built for several outcomes.",
+        "require-ref": "Band the score in the grid rather than typing 78 into the formula.",
+        "value": "78 is under 80 but at least 70, so the third test wins and the answer is C.",
+        "error": "A test that divides by zero returns #DIV/0! instead of a band."
+      },
+      "fixtures": {
+        "accept": [
+          "=IFS(B3>=90,\"A\",B3>=80,\"B\",B3>=70,\"C\",TRUE,\"D\")",
+          "=ifs(b3>=90,\"A\",b3>=80,\"B\",b3>=70,\"C\",true,\"D\")",
+          "=IFS($B$3>=90,\"A\",$B$3>=80,\"B\",$B$3>=70,\"C\",TRUE,\"D\")",
+          "=IFS(B$3>=90,\"A\",B$3>=80,\"B\",B$3>=70,\"C\",TRUE,\"D\")",
+          "=IFS($B3>=90,\"A\",$B3>=80,\"B\",$B3>=70,\"C\",TRUE,\"D\")",
+          "=IFS(B3>89,\"A\",B3>79,\"B\",B3>69,\"C\",TRUE,\"D\")"
+        ],
+        "reject": [
+          {
+            "formula": "=IFS(B3>=90,\"A\",B3>=80,\"B\",TRUE,\"D\")",
+            "rule": "value",
+            "why": "the 70 band is missing, so 78 falls through to D"
+          },
+          {
+            "formula": "=IFS(B3>=90,\"B\",B3>=80,\"C\",B3>=70,\"D\",TRUE,\"A\")",
+            "rule": "value",
+            "why": "the labels are shifted by one band, so 78 answers D"
+          },
+          {
+            "formula": "=IF(B3>=90,\"A\",\"D\")",
+            "rule": "func-ifs",
+            "why": "a two-outcome IF has no room for the middle bands"
+          },
+          {
+            "formula": "=IFS(B4>=90,\"A\",B4>=80,\"B\",B4>=70,\"C\",TRUE,\"D\")",
+            "rule": "require-ref",
+            "why": "Cleo's score is banded instead of Ben's"
+          },
+          {
+            "formula": "=IFS(B3>=90,\"A\",B3>=80,\"B\",B3>=70,\"C\",TRUE,\"D\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=IFS(B3>=90 \"A\",B3>=80,\"B\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves a test with no result"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B6, label Cleo: 90 and above is Merit, 80 and above Pass, anything lower is Resit.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Name",
+            "Score"
+          ],
+          [
+            "Ada",
+            92
+          ],
+          [
+            "Ben",
+            78
+          ],
+          [
+            "Cleo",
+            85
+          ],
+          [
+            "Dev",
+            64
+          ],
+          [
+            "Labels",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": {
+        "value": "Pass"
+      },
+      "reference": "=IFS(B4>=90,\"Merit\",B4>=80,\"Pass\",TRUE,\"Resit\")",
+      "require": [
+        {
+          "id": "func-ifs",
+          "func": "IFS",
+          "minArgs": 4
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B4",
+      "rules": [],
+      "hints": {
+        "syntax": "=IFS(test 1, result 1, test 2, result 2, TRUE, fallback): TRUE catches everything else.",
+        "func-ifs": "Three outcomes are two tests plus a fallback, which is what IFS reads best as.",
+        "require-ref": "Point at Cleo's score so the label follows the grid.",
+        "value": "85 is under 90 but at least 80, so the answer is Pass.",
+        "error": "A division by zero in a test returns #DIV/0! instead of a label."
+      },
+      "fixtures": {
+        "accept": [
+          "=IFS(B4>=90,\"Merit\",B4>=80,\"Pass\",TRUE,\"Resit\")",
+          "=ifs(b4>=90,\"Merit\",b4>=80,\"Pass\",true,\"Resit\")",
+          "=IFS($B$4>=90,\"Merit\",$B$4>=80,\"Pass\",TRUE,\"Resit\")",
+          "=IFS(B$4>=90,\"Merit\",B$4>=80,\"Pass\",TRUE,\"Resit\")",
+          "=IFS($B4>=90,\"Merit\",$B4>=80,\"Pass\",TRUE,\"Resit\")",
+          "=IFS(B4>89,\"Merit\",B4>79,\"Pass\",TRUE,\"Resit\")"
+        ],
+        "reject": [
+          {
+            "formula": "=IFS(B4>=80,\"Resit\",B4>=90,\"Merit\",TRUE,\"Pass\")",
+            "rule": "value",
+            "why": "the labels are swapped, so 85 is labelled Resit"
+          },
+          {
+            "formula": "=IFS(B4>=90,\"Merit\",B4>=86,\"Pass\",TRUE,\"Resit\")",
+            "rule": "value",
+            "why": "the pass bar is set one mark too high, so 85 falls through to Resit"
+          },
+          {
+            "formula": "=IF(B4>=90,\"Merit\",\"Resit\")",
+            "rule": "func-ifs",
+            "why": "an IF with two outcomes skips the Pass band entirely"
+          },
+          {
+            "formula": "=IFS(B2>=90,\"Merit\",B2>=80,\"Pass\",TRUE,\"Resit\")",
+            "rule": "require-ref",
+            "why": "Ada's score is labelled instead of Cleo's"
+          },
+          {
+            "formula": "=IFS(B4>=90,\"Merit\",B4>=80,\"Pass\",TRUE,\"Resit\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=IFS(B4>=90,\"Merit\" B4>=80,\"Pass\")",
+            "rule": "syntax",
+            "why": "the missing comma turns a test and a result into one argument"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=IFS(test1, result1, test2, result2, ..., TRUE, fallback)",
+    "explain": "IF handles two outcomes, and the moment a question has three the nested IFs start multiplying parentheses until nobody can read them. IFS takes tests and results in pairs and returns the result of the first test that is TRUE. That is why the order of the pairs is the whole logic. Put the loosest test first and nothing else can ever be reached. A final pair of TRUE and a fallback is how a range that might be empty still returns something instead of #N/A. Leaving it out is the most common error with the function. In this drill Ben's 78 is tested against 90, then 80, then 70, and lands on C. Cleo's 85 in the second screen is labelled Pass, because Merit needs 90. Every test is a comparison on a cell in the grid, so changing a score re-bands the row without touching the formula. IFS is not available in very old versions of Excel, where nested IFs are the only route, so it is worth being able to read both forms.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "No test was TRUE and the formula had no TRUE fallback pair."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "A test did not produce a logical value, or the pairs were uneven."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function was typed as IFS in a version that does not have it."
+      }
+    ],
+    "atWork": "Banding scores, grades and service levels into labels without a lookup table.",
+    "outcome": "Read a score into one of several bands with a single ordered function.",
+    "teaches": "IFS with ordered tests and a TRUE fallback pair",
+    "dataset": "Four-name score sheet with bands to decide",
+    "reference": "=IFS(B3>=90,\"A\",B3>=80,\"B\",B3>=70,\"C\",TRUE,\"D\")"
+  },
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "IFS in Excel: more than two outcomes",
+    "description": "IFS takes tests and results in pairs and returns the first true one, so order carries the logic. Leave out the TRUE fallback and a missed band gives #N/A."
+  }
+}

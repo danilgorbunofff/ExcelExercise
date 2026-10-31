@@ -1,0 +1,258 @@
+{
+  "id": "49-sumif-a-sum-range-on-another-column",
+  "slug": "sumif-a-sum-range-on-another-column",
+  "level": 2,
+  "title": "SUMIF: a sum range on another column",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In C7, total the North bonus from column C, testing the region in column A.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Amount",
+            "Bonus"
+          ],
+          [
+            "North",
+            320,
+            32
+          ],
+          [
+            "South",
+            250,
+            25
+          ],
+          [
+            "North",
+            180,
+            18
+          ],
+          [
+            "West",
+            300,
+            30
+          ],
+          [
+            "North",
+            400,
+            40
+          ],
+          [
+            "North bonus",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C7",
+      "expect": {
+        "value": 90
+      },
+      "reference": "=SUMIF(A2:A6,\"North\",C2:C6)",
+      "require": [
+        {
+          "id": "func-sumif",
+          "func": "SUMIF",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUMIF(A2:A6,\"North\",C2:C6): condition range, condition, then the numbers to add.",
+        "func-sumif": "This lesson is a SUMIF drill; the total has to come from one SUMIF call.",
+        "require-ref": "Read the regions from the grid rather than typing them into the formula.",
+        "value": "The North bonuses are 32, 18 and 40, which come to 90.",
+        "error": "Dividing by zero leaves #DIV/0! in the cell instead of a total."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIF(A2:A6,\"North\",C2:C6)",
+          "=sumif(a2:a6,\"north\",c2:c6)",
+          "=SUMIF($A$2:$A$6,\"North\",$C$2:$C$6)",
+          "=SUMIF(A2:A6,\"North\",C2:C6)+0",
+          "=SUMIF(A2:A6,\"North\",C2:C6)*1",
+          "=SUMIF(A$2:A$6,\"North\",C$2:C$6)"
+        ],
+        "reject": [
+          {
+            "formula": "=SUMIF(A2:A6,\"North\")",
+            "rule": "func-sumif",
+            "why": "two arguments only, so the amounts column is never named"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,A2:A6,\"North\")",
+            "rule": "func-sumif",
+            "why": "the same answer through SUMIFS, which is not the function this drill asks for"
+          },
+          {
+            "formula": "=SUMIF(A2:A6,\"South\",C2:C6)",
+            "rule": "value",
+            "why": "25 — the South bonus, not the North one"
+          },
+          {
+            "formula": "=SUMIF(A2:A6,\"North\",B2:B6)",
+            "rule": "value",
+            "why": "900 is the North amount, not the North bonus"
+          },
+          {
+            "formula": "=SUMIF(A3:A6,\"North\",C3:C6)",
+            "rule": "require-ref",
+            "why": "the ranges start on row 3, so the first North bonus is dropped"
+          },
+          {
+            "formula": "=SUMIF(A2:A6,\"North\",C2:C6)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUMIF(A2:A6 \"North\",C2:C6)",
+            "rule": "syntax",
+            "why": "the missing comma leaves the condition glued to the range"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B7, total the scores above 40 by letting SUMIF add the cells it tested.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Score"
+          ],
+          [
+            "A-1",
+            40
+          ],
+          [
+            "A-2",
+            35
+          ],
+          [
+            "B-1",
+            52
+          ],
+          [
+            "B-2",
+            38
+          ],
+          [
+            "B-3",
+            47
+          ],
+          [
+            "Scored over 40",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 99
+      },
+      "reference": "=SUMIF(B2:B6,\">40\")",
+      "require": [
+        {
+          "id": "func-sumif",
+          "func": "SUMIF",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUMIF(B2:B6,\">40\"): two arguments, and the comparison is written in quotes.",
+        "func-sumif": "A plain SUM adds every score; the filter is the whole point here.",
+        "require-ref": "Test the scores in the grid rather than a list of numbers typed into the formula.",
+        "value": "The scores above 40 are 52 and 47, which total 99.",
+        "error": "A division by zero in the formula returns #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIF(B2:B6,\">40\")",
+          "=sumif(b2:b6,\">40\")",
+          "=SUMIF($B$2:$B$6,\">40\")",
+          "=SUMIF(B2:B6,\">40\")+0",
+          "=SUMIF(B2:B6,\">40\")*1",
+          "=SUMIF(B$2:B$6,\">40\")"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B6)",
+            "rule": "func-sumif",
+            "why": "212 — every score, including the three below the line"
+          },
+          {
+            "formula": "=COUNTIF(B2:B6,\">40\")",
+            "rule": "func-sumif",
+            "why": "this counts the two scores instead of adding them"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\"<40\")",
+            "rule": "value",
+            "why": "73 — the scores below 40 rather than the ones above"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\">=40\")",
+            "rule": "value",
+            "why": "139, because 40 itself is included"
+          },
+          {
+            "formula": "=SUMIF(B3:B6,\">40\")",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so the score of 40 is never tested"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\">40\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUMIF(B2:B6 \">40\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves one argument where two are needed"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUMIF(criteria_range, condition, [sum_range])",
+    "explain": "The third argument is the part people leave out. Given only a criteria range and a condition, SUMIF adds the cells it just tested. That is right for a column of scores, and wrong the moment the numbers you want sit somewhere else. This drill separates them on purpose. Column A holds the region and column C holds the bonus, so the condition reads column A and the addition reads column C. Leave the third argument off and the total becomes the sum of the regions, which is not even a number. The ranges only have to line up row for row, not be the same column. A2:A6 is tested, C2:C6 is added, and row 2 in each is the same sale. That also means a shifted range is silently wrong rather than an error, so check that both ranges start and end on the same rows. Comparison conditions work the same way here as in the second screen, where the sum range is omitted because the scores are both the test and the total.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The sum range holds text where numbers were expected."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name is misspelled, usually as SMIF or SUMIFS with SUMIF's argument order."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "A division by zero in the formula stops it before a total is produced."
+      }
+    ],
+    "atWork": "A commission sheet where the region decides who is paid but the bonus column carries the money.",
+    "outcome": "Total one column while testing a different column for the condition.",
+    "teaches": "SUMIF with a separate sum range, and a comparison condition with no sum range",
+    "dataset": "Regional amounts and bonuses, and a list of scores",
+    "reference": "=SUMIF(A2:A6,\"North\",C2:C6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SUMIF with a separate sum range",
+    "description": "Given only a range and a condition, SUMIF adds the cells it just tested. Add the third argument and it totals a different column while testing the first."
+  }
+}

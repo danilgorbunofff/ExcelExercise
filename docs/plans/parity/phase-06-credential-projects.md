@@ -76,18 +76,22 @@ Reference projects: 4 dashboards + 1 interview assessment with downloadable XLSX
 10. **Preview panel.** Read-only sheet rendered from the XLSX at build time (same package as phase 2
     workbook screens); no iframe.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [ ] Issuing twice returns the existing certificate, never a second one.
-- [ ] Name cannot be changed by client request, DB update, or re-run of the issue endpoint.
-- [ ] `/verify/{id}` works signed out and in a private window.
-- [ ] An unknown ID returns a clean not-found page, not an error.
-- [ ] Revoked certificate shows "revoked" while remaining verifiable as a record.
-- [ ] LinkedIn URL opens the add-licence form with all fields prefilled (manual check, recorded).
-- [ ] PDF renders correctly with a 60-character name and non-Latin characters.
-- [ ] All 4 Excel projects downloadable first-party with correct MIME and size; no third-party
-      request. (The fifth, the SQL case, is accepted in phase 8.)
-- [ ] Projects are gated identically to lessons (free user cannot reach the fourth).
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p6-81 | Issuing twice returns the existing certificate | Built, unproven | `tests/db/certificate.spec.js`; `/verify` is public, issuing is not reachable in any gate | DB only | Build B1 |
+| p6-82 | Name cannot be changed by client, DB update or re-issue | Built, unproven | `tests/db/certificate.spec.js` (write-once trigger, `23001`) | DB only | Build B1 |
+| p6-83 | `/verify/{id}` works signed out | Proven | `e2e/certificate.spec.js:19,31` | browser, signed out | — |
+| p6-84 | Unknown ID returns a clean not-found page | Proven | `e2e/certificate.spec.js:37,46` | browser | — |
+| p6-85 | Revoked certificate shows "revoked" and still resolves | Built, unproven | `tests/db/certificate.spec.js`; no revoked fixture reaches a browser | DB only | Build B1 |
+| p6-86 | Enumeration rate-limited, a reader is not | Proven | `tests/verify-limit.test.js:29`; `e2e/verify-limit.spec.js:47` | browser + unit — **value unpinned**, M11 | — |
+| p6-94 | LinkedIn URL prefills the licence form | Built, unproven | `tests/certificate.test.js` asserts the URL field by field; never opened in LinkedIn | claim admits it | Defer: LinkedIn's UI cannot be automated; trigger LinkedIn endpoint change |
+| p6-95 | Printed sheet correct with a 60-char name and non-Latin characters | Built, unproven | `tests/client.test.js:323,330,337` cover ink, one page and the URL; the 60-char + non-Latin case is unrecorded | print not exercised with that input | Build B5 |
+| p6-97 | Four projects downloadable first-party, correct MIME and size | Proven | `e2e/projects.spec.js:81` (M24); `tests/projects.test.js:101` | browser | — |
+| p6-104 | Projects gated identically to lessons | Proven | `e2e/projects.spec.js:96` | browser | — |
 
 ## Test plan
 
@@ -108,3 +112,130 @@ Reference projects: 4 dashboards + 1 interview assessment with downloadable XLSX
 | PDF rendering environment differences | render server-side only, snapshot test the output |
 | Name typos are permanent | double entry + preview of the rendered name before confirming |
 | Project content cost | reuse existing screens where possible; 4 Excel projects ≈ 12 author-days |
+
+## As built — certificate vertical (2026-11-30)
+
+Work items 1–3, 5, 6 and 7 are shipped; 4, 8, 9 and 10 are not started. The numbers below are
+measured on this tree, not planned.
+
+| Gate | Result |
+|---|---|
+| `npm run check` | `tests 1639 suites 216 pass 1639 fail 0`; `content: 88 of 88 catalogued lessons, 16 groups, 152 screens, 1946 fixtures replayed`; `903 accepted and 1043 rejected`; `built 109 pages (11213.0 kB of HTML+CSS)`; `next routes: 109 prerendered pages match the shared templates`; `verified … 4384 checks passed` |
+| `npx playwright test` | `120 passed` |
+| `npm run vendor:check` | `25 files match manifest.json` |
+| `npm run db:check` | `tests 223 suites 55 pass 223 fail 0` |
+
+Counts against the pre-phase-6 baseline: tests 1565 → 1602 (+37 unit, all in `tests/certificate.test.js`),
+suites 199 → 208 (nine new `tests/db/certificate.spec.js` suites), Playwright 112 → 118 (+6 in
+`e2e/certificate.spec.js`), DB tests 0 → 223 in the new spec (including four that run the revoke script as a child process), everything else unmoved.
+
+What exists:
+
+- `supabase/migrations/0013_certificates.sql` — `certificates` (PK `user_id`, one per learner),
+  write-once trigger, `issue_certificate(...)` that re-counts eligibility in SQL, public
+  `verify_certificate(text)`, admin-gated `revoke_certificate(text,text,uuid)`, self-read RLS, and
+  **all seven** table privileges revoked from `anon`/`authenticated` (the first cut revoked only
+  `insert, update, delete` and `rls.spec.js` caught the leftover default `TRUNCATE` grant — the same
+  trap `0007` records).
+- `lib/certificate/{credential,eligibility,issue}.js`, `app/api/certificate/route.js`,
+  `app/certificate/*`, `app/verify/[id]/page.js`.
+- Eligibility is completion-only, accuracy threshold 0, as the reference has it.
+
+Deviations from the plan above, recorded rather than silently taken:
+
+- **Item 4 is answered with a print stylesheet, not a PDF renderer.** A renderer is a new dependency;
+  `window.print()` is not. `/verify/[id]` and `/certificate` render a sheet that prints as a document —
+  the site chrome is dropped, and the sheet carries the credential id and its own URL, because a printed
+  page cannot follow a link. `certificates.pdf_path` stays nullable and unused.
+- **The PDF acceptance criterion is therefore still open, in its rewritten form.** "PDF renders correctly
+  with a 60-character name and non-Latin characters" becomes "the sheet prints correctly with…", and
+  neither has been checked on paper: the e2e environment has no database, so Playwright can prove that
+  print media drops the chrome (`e2e/certificate.spec.js`) but cannot render a record to print. A
+  human with a printer, or a DB-backed Playwright project, is what closes it.
+- **Item 5 says "indexable is fine"; the shipped page is `noindex`.** The plan permits indexing, it does
+  not require it, and a credential names one person. Nothing else on the row changes — signed-out access,
+  the four distinct states and the revoked notice are as specified.
+- **The enumeration rate limit is now in place, and it took a deviation to get right.** It is not the
+  plan's "indexable is fine / rate limit" pair as written: the guard is per address per minute rather
+  than per credential, so a shared address costs a whole minute only after sixty checks, and it lives in
+  `proxy.js` above the unconfigured-accounts early return, because a limit that switches off with accounts
+  would be off on exactly the deployment a crawler prefers. See `lib/verify/limit.js`.
+- **Item 7 has no UI, by choice, and now has a script.** `revoke_certificate` is admin-gated and
+  actor-logged in SQL; `npm run certificate:revoke` wraps it with the two refusals an operator would
+  otherwise forget (the actor is not an admin — checked before the call, and already revoked — checked
+  before the call so the error is a sentence instead of `P0002`). Its four tests run the real script as a
+  child process against the live stack; there is no mock, because a mocked script proves nothing about
+  the script.
+
+## As built — projects (2026-12-01)
+
+Work items 8, 9 and 10 are shipped. All four projects exist, are reachable, are gated, and their
+datasets download first-party. Numbers measured on this tree.
+
+| Gate | Result |
+|---|---|
+| `npm run check` | `tests 1639 suites 216 pass 1639 fail 0`; `content: 88 of 88 catalogued lessons, 16 groups, 152 screens, 1946 fixtures replayed`; `903 accepted and 1043 rejected`; `built 109 pages (11213.0 kB of HTML+CSS)`; `next routes: 109 prerendered pages match the shared templates`; `verified … 4384 checks passed` |
+| `npx playwright test` | `139 passed` |
+| `npm run vendor:check` | `25 files match manifest.json` |
+
+The four, in the order the shelf and the rail use (level, then slug):
+
+| # | Project | Dataset | Level | Screens | Free |
+|---|---|---|---|---|---|
+| 1 | `ufo-dashboard` — UFO sightings dashboard | `/datasets/ufo.xlsx` (2685 B) | 1 | 8 | yes |
+| 2 | `trout-case` — Trout river case | `/datasets/trout.xlsx` (2659 B) | 2 | 8 | yes |
+| 3 | `wine-dashboard` — Wine cellar dashboard | `/datasets/wine.xlsx` (2675 B) | 2 | 8 | yes |
+| 4 | `interview-assessment` — Interview assessment | `/datasets/interview-assessment.xlsx` (2813 B) | 3 | 8 | no |
+
+What exists:
+
+- `legacy/content/projects/*.json` — brief, `dataset` (`file`, `sheet`, `startCell`, rows), eight
+  screens each with prompt, expected answers, hints and docs. The datasets are authored, not copied:
+  `legacy/src/xlsx.mjs` writes a real `.xlsx` (six-part ZIP, `calcPr` so Excel recalculates on open)
+  from the same rows the preview renders, so the download and the preview cannot disagree.
+- `legacy/src/site/projects.mjs` — `PROJECT_SHELF`, `loadProjects` (level-then-slug), `projectTrack`
+  (`lessonNoun: "Project"`, `paidHalf`, `freeLessonCount: 3`), `renderProjectCard`, `prepareProjectsPage`.
+- `app/projects/page.js`, `app/learn/projects/[slug]/page.js`, `lib/projects.js`,
+  `app/datasets/[name]/route.js` — the shelf, the player (the shared `prepareExercisePage` /
+  `renderChrome` templates, not a second player), and a whitelisted download route.
+- Progress: the project pages post to the existing progress route with `track='project'`, so a project
+  is one completion of the same row shape a lesson writes.
+- `tests/projects.test.js` (3 suites, 9 tests) and `e2e/projects.spec.js` (4 tests).
+
+Deviations from the plan above, recorded rather than silently taken:
+
+- **Item 8's `public/datasets/` became a prerendered route.** `app/datasets/[name]/route.js` with
+  `generateStaticParams` renders all four as SSG (`x-nextjs-cache: HIT`) and refuses any name outside
+  the four the content declares, so a path cannot walk out of the directory. A static `public/` copy
+  would have been a second, hand-maintained truth next to the JSON the preview uses. Note for anyone
+  editing it: `cacheComponents: true` rejects `export const dynamic` in a route handler; the export is
+  deliberately absent and `generateStaticParams` is what prerenders.
+- **The plan's file name for the fourth dataset is the shipped name.** `interview-assessment.xlsx`,
+  as the table says; an earlier cut had `interview.xlsx` and was renamed to match this doc.
+- **Item 9's "`project` lesson type" is a noun on the track, not a branch in the player.** The gate
+  copy in `legacy/src/client/drill.js` reads `payload.track.noun` and `payload.track.paidHalf`, so the
+  same code says "Project 4 opens after project 1" and "Projects 1–3 are the paid half of the shelf"
+  where a lesson says "Drill 4 opens after drill 3". The defaults are the lesson words, so lesson copy
+  is byte-identical and `e2e/gate.spec.js` / `e2e/paywall.spec.js` never moved.
+- **Projects are Next-only, and the static build does not link them.** The shared footer gained a
+  *Guided projects* link, which pointed the static build's 109 pages at a page it does not have —
+  `tests/build.test.js` caught it ("index links to /projects, which does not resolve to a file"). The
+  link is now behind `projectsAvailable`, defaulting `false` and passed `true` by every Next route: the
+  same availability-flag shape the page templates already use for `clientAvailable`. Before that fix
+  nothing anywhere linked `/projects` at all, so the shelf was unreachable; the earlier first-project
+  `prevPath` also pointed at `/learn/projects`, which is not a page, so the "All projects" rail link
+  and the canonical URL both went to a 404. Both were found by the new tests, not by reading.
+- **The project page exposed a 320px horizontal overflow the reflow spec now covers.** `.error-table
+  tbody th` carried `white-space: nowrap` over an authored error row 504px wide, pushing the table
+  past its 272px column; `e2e/reflow.spec.js` measured `a project: 332px in 320px`. The row header now
+  wraps (`overflow-wrap: anywhere` on `.error-table th, .error-table td`). The sheet preview was never
+  the cause: `.workbook-scroll` already clipped it.
+- **The new pages were outside the reflow and a11y nets, and both nets caught something once widened.**
+  `e2e/reflow.spec.js` now covers 19 pages at 320 and 390 px instead of 8, `e2e/a11y.spec.js` now scans
+  the shelf and a project (before and after a miss) — 24 tests to 26, clean at `critical`/`serious`. The
+  reflow sweep also caught `/flashcards` at `322px in 320px`, a pre-existing 2px overflow from a third
+  nowrap item in the non-wrapping `header.site` flex row; `.site` gained `flex-wrap: wrap`. The same
+  crawl found that `/flashcards`, `/daily`, `/leaderboard`, `/certificate` and `/account` had no inbound
+  link at all, and `/pricing` only the drill's paywall prompt; the footer now names all six (two rows,
+  the second behind an `appPagesAvailable` host flag for the static build). Details in
+  `reviews/00-foundation-verification-plan.md`, "Unrouted surfaces and the coverage they were hiding".

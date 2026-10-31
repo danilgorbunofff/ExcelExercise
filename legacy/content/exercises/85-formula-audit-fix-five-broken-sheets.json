@@ -1,0 +1,601 @@
+{
+  "id": "85-formula-audit-fix-five-broken-sheets",
+  "slug": "formula-audit-fix-five-broken-sheets",
+  "level": 3,
+  "title": "Formula audit: fix five broken sheets",
+  "docs": {
+    "syntax": "each error code names one break: a zero divisor, a missing key, text in arithmetic, a wrong range, a misspelling",
+    "explain": "This capstone is the reverse of everything before it. The other lessons hand you a question and ask for a formula. Here the formula exists, it is broken, and the sheet shows you the error code it broke with. Reading that code is the skill. A division error means the denominator can be zero, and the fix is a guard rather than a different function. A not-available error means a lookup found nothing, and the fix is to test for the row before asking for it. A value error means one of the operands is text and the arithmetic has no number to work with, which is caught with a type test. A reference error means a range points outside the data, and the fix is to read the range against the table rather than to trust the mouse. A name error means the function was mistyped, and the repair is spelling. The five screens here are one of each, in that order. Each one takes a different function to repair, which is why the audit is the last lesson in the track rather than an early one.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "A denominator is zero, so the division has no result."
+      },
+      {
+        "code": "#N/A",
+        "text": "A lookup key is not in the table, so there is no row to read."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "An operand is text where a number is needed."
+      },
+      {
+        "code": "#REF!",
+        "text": "A range points outside the data, so it no longer exists."
+      },
+      {
+        "code": "#NAME?",
+        "text": "A function name is misspelled, so the sheet does not know it."
+      }
+    ],
+    "atWork": "Opening a workbook someone else built and fixing it from the error code down.",
+    "outcome": "Repair five broken cells, one per error code, by choosing the test each code implies.",
+    "teaches": "an error-code-first repair: guard, key test, type test, range, spelling",
+    "dataset": "Five broken sheets, one per error code, to repair in place",
+    "reference": "=IF(B3=0,\"n/a\",C3/B3)"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In D3, repair the ratio for the rep with no visits so it reads n/a instead of an error.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Rep",
+            "Visits",
+            "Orders",
+            "Ratio"
+          ],
+          [
+            "Ana",
+            10,
+            4,
+            null
+          ],
+          [
+            "Bo",
+            0,
+            0,
+            null
+          ],
+          [
+            "Cy",
+            8,
+            6,
+            null
+          ],
+          [
+            "Di",
+            5,
+            0,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D3",
+      "expect": {
+        "value": "n/a"
+      },
+      "reference": "=IF(B3=0,\"n/a\",C3/B3)",
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "B3",
+      "hints": {
+        "syntax": "=IF(B3=0,\"n/a\",C3/B3): test the denominator, then divide.",
+        "func-if": "The cell has to choose between a word and a division.",
+        "require-ref": "The visits figure for that rep is in B3.",
+        "value": "With no visits the answer is the word n/a, not a number.",
+        "error": "A zero divisor is exactly what the guard is there to catch."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(B3=0,\"n/a\",C3/B3)",
+          "=if(b3=0,\"n/a\",c3/b3)",
+          "=IF($B$3=0,\"n/a\",$C$3/$B$3)",
+          "=IF(B$3=0,\"n/a\",C$3/B$3)",
+          "=IF( B3 = 0 , \"n/a\" , C3 / B3 )",
+          "=IF(B3<>0,C3/B3,\"n/a\")"
+        ],
+        "reject": [
+          {
+            "formula": "=C3/B3",
+            "rule": "func-if",
+            "why": "the division is left to break on a zero denominator"
+          },
+          {
+            "formula": "=IFERROR(C3/B3,\"n/a\")",
+            "rule": "func-if",
+            "why": "the error is swallowed rather than tested for"
+          },
+          {
+            "formula": "=IF(B3=0,\"none\",C3/B3)",
+            "rule": "value",
+            "why": "the repair reads the wrong word"
+          },
+          {
+            "formula": "=IF(B3=0,\"n/a\",C3/B3)&\" \"",
+            "rule": "value",
+            "why": "a trailing space is added to the repaired word"
+          },
+          {
+            "formula": "=IF(B2=0,\"n/a\",C2/B2)",
+            "rule": "require-ref",
+            "why": "the guard is written against the first rep rather than the broken row"
+          },
+          {
+            "formula": "=IF(B3=\"x\",\"n/a\",C3/B3)",
+            "rule": "error",
+            "why": "the guard tests the wrong thing, so the zero divisor is still reached"
+          },
+          {
+            "formula": "=IF B3=0,\"n/a\",C3/B3",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In F2, repair the lookup so a name that is not in the list reads not found instead of an error.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Rep",
+            "Visits",
+            "Orders",
+            "Ratio",
+            null,
+            "Lookup"
+          ],
+          [
+            "Ana",
+            10,
+            4,
+            null,
+            "Zed",
+            null
+          ],
+          [
+            "Bo",
+            0,
+            0,
+            null,
+            null,
+            null
+          ],
+          [
+            "Cy",
+            8,
+            6,
+            null,
+            null,
+            null
+          ],
+          [
+            "Di",
+            5,
+            0,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "F2",
+      "expect": {
+        "value": "not found"
+      },
+      "reference": "=IF(COUNTIF(A2:A5,E2)=0,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE))",
+      "require": [
+        {
+          "id": "func-countif",
+          "func": "COUNTIF",
+          "minArgs": 2
+        },
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 4
+        }
+      ],
+      "requireRef": "E2",
+      "hints": {
+        "syntax": "=IF(COUNTIF(A2:A5,E2)=0,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE)): count the key first, then look it up.",
+        "func-countif": "The key is tested for before the lookup asks for its row.",
+        "func-vlookup": "The orders figure is read from the third column of the rep table.",
+        "require-ref": "The typed name is in E2.",
+        "value": "Zed is not in the list, so the answer is the word not found.",
+        "error": "A lookup of a missing key is what returns #N/A, so the test must come first."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(COUNTIF(A2:A5,E2)=0,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE))",
+          "=if(countif(a2:a5,e2)=0,\"not found\",vlookup(e2,a2:c5,3,false))",
+          "=IF(COUNTIF($A$2:$A$5,$E$2)=0,\"not found\",VLOOKUP($E$2,$A$2:$C$5,3,FALSE))",
+          "=IF(COUNTIF(A$2:A$5,E$2)=0,\"not found\",VLOOKUP(E$2,A$2:C$5,3,FALSE))",
+          "=IF( COUNTIF(A2:A5,E2) = 0 , \"not found\" , VLOOKUP(E2,A2:C5,3,FALSE) )",
+          "=IF(COUNTIF(A2:A5,E2)=0,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE))&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=VLOOKUP(E2,A2:C5,3,FALSE)",
+            "rule": "func-countif",
+            "why": "the lookup is left to fail on a missing key, with no test in front of it"
+          },
+          {
+            "formula": "=IF(COUNTIF(A2:A5,E2)=0,\" not found\",VLOOKUP(E2,A2:C5,3,FALSE))",
+            "rule": "value",
+            "why": "the repair types the words with a space in front of them"
+          },
+          {
+            "formula": "=IF(COUNTIF(A2:A5,E2)=0,\"missing\",VLOOKUP(E2,A2:C5,3,FALSE))",
+            "rule": "value",
+            "why": "the repair reads the wrong words"
+          },
+          {
+            "formula": "=IF(COUNTIF(A2:A5,E2)=1,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE))",
+            "rule": "error",
+            "why": "the test is the wrong way round, so the lookup still runs on a missing key"
+          },
+          {
+            "formula": "=IF(COUNTIF(A2:A5,E2)=0,\"not found\",\"found\")",
+            "rule": "func-vlookup",
+            "why": "the real row is never looked up, so every present rep reads found"
+          },
+          {
+            "formula": "=IF(1=0,\"not found\",\"found\")",
+            "rule": "func-countif",
+            "why": "the key is never tested against the list"
+          },
+          {
+            "formula": "=IF(COUNTIF(A2:A5,\"Zed\")=0,\"not found\",VLOOKUP(\"Zed\",A2:C5,3,FALSE))",
+            "rule": "require-ref",
+            "why": "the typed name is hard-coded instead of read from its cell"
+          },
+          {
+            "formula": "=IF(COUNTIF(A2:A5,E2)/0=0,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE))",
+            "rule": "error",
+            "why": "the test itself divides by zero"
+          },
+          {
+            "formula": "=IF COUNTIF(A2:A5,E2)=0,\"not found\",VLOOKUP(E2,A2:C5,3,FALSE)",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-3",
+      "prompt": "In D3, repair the line value so a quantity that is not a number contributes nothing instead of failing.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Qty",
+            "Price",
+            "Value"
+          ],
+          [
+            "bolt",
+            4,
+            2.5,
+            null
+          ],
+          [
+            "nut",
+            "n/a",
+            1.5,
+            null
+          ],
+          [
+            "washer",
+            10,
+            0.4,
+            null
+          ],
+          [
+            "screw",
+            6,
+            0.8,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D3",
+      "expect": {
+        "value": 0
+      },
+      "reference": "=IF(ISNUMBER(B3),B3*C3,0)",
+      "require": [
+        {
+          "id": "func-isnumber",
+          "func": "ISNUMBER",
+          "minArgs": 1
+        }
+      ],
+      "requireRef": "B3",
+      "hints": {
+        "syntax": "=IF(ISNUMBER(B3),B3*C3,0): test the operand's type, then multiply.",
+        "func-isnumber": "The quantity is text on that row, so the fix starts with a type test.",
+        "require-ref": "The quantity is in B3.",
+        "value": "A line with no usable quantity is worth nothing, so it contributes zero.",
+        "error": "Multiplying text by a price is what raises the value error."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(ISNUMBER(B3),B3*C3,0)",
+          "=if(isnumber(b3),b3*c3,0)",
+          "=IF(ISNUMBER($B$3),$B$3*$C$3,0)",
+          "=IF(ISNUMBER(B$3),B$3*C$3,0)",
+          "=IF( ISNUMBER( B3 ) , B3 * C3 , 0 )",
+          "=IF(ISNUMBER(B3),B3*C3,0)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=B3*C3",
+            "rule": "func-isnumber",
+            "why": "the multiplication is left to fail on a text quantity"
+          },
+          {
+            "formula": "=0",
+            "rule": "func-isnumber",
+            "why": "the zero is typed rather than decided by the quantity"
+          },
+          {
+            "formula": "=IF(ISNUMBER(B3),B3*C3,\"\")",
+            "rule": "value",
+            "why": "an empty string is not the zero the line is worth"
+          },
+          {
+            "formula": "=IF(ISNUMBER(B3),B3*C3,1)",
+            "rule": "value",
+            "why": "a line with no quantity is counted as one unit"
+          },
+          {
+            "formula": "=IF(ISNUMBER(C3),B3*C3,0)",
+            "rule": "error",
+            "why": "the test is applied to the price, so the text quantity is still multiplied"
+          },
+          {
+            "formula": "=IF(ISNUMBER(B2),B2*C2,0)",
+            "rule": "require-ref",
+            "why": "the guard is written against the first line rather than the broken row"
+          },
+          {
+            "formula": "=IF(ISNUMBER(B3),B3*C3,0)/0",
+            "rule": "error",
+            "why": "the repaired value is then divided by zero"
+          },
+          {
+            "formula": "=IF ISNUMBER(B3),B3*C3,0",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-4",
+      "prompt": "In D2, repair the North total so its ranges cover every row of the table.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Amount",
+            "Answer"
+          ],
+          [
+            "North",
+            100,
+            null
+          ],
+          [
+            "South",
+            200,
+            null
+          ],
+          [
+            "North",
+            150,
+            null
+          ],
+          [
+            "East",
+            90,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 250
+      },
+      "reference": "=SUMIF(A2:A5,\"North\",B2:B5)",
+      "require": [
+        {
+          "id": "func-sumif",
+          "func": "SUMIF",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=SUMIF(A2:A5,\"North\",B2:B5): the labels, the criterion, then the amounts.",
+        "func-sumif": "Only the North rows count, so the total needs a criterion.",
+        "require-ref": "The amount column is B2:B5.",
+        "value": "A hundred and a hundred and fifty are the two North rows, so 250.",
+        "error": "A range that points outside the table is what raised the reference error."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIF(A2:A5,\"North\",B2:B5)",
+          "=sumif(a2:a5,\"north\",b2:b5)",
+          "=SUMIF($A$2:$A$5,\"North\",$B$2:$B$5)",
+          "=SUMIF(A$2:A$5,\"North\",B$2:B$5)",
+          "=SUMIF( A2:A5 , \"North\" , B2:B5 )",
+          "=SUMIF(A2:A5,\"North\",B2:B5)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B5)",
+            "rule": "func-sumif",
+            "why": "every region is added rather than the North rows"
+          },
+          {
+            "formula": "=SUMIF(A2:A3,\"North\",B2:B3)",
+            "rule": "value",
+            "why": "the ranges stop before the second North row"
+          },
+          {
+            "formula": "=SUMIF(A2:A5,\"South\",B2:B5)",
+            "rule": "value",
+            "why": "the South row is totalled instead"
+          },
+          {
+            "formula": "=SUMIF(A3:A5,\"North\",B3:B5)",
+            "rule": "require-ref",
+            "why": "the first row is left out of both ranges"
+          },
+          {
+            "formula": "=SUMIF(A2:A5,\"North\",B2:B5)/0",
+            "rule": "error",
+            "why": "the total is then divided by zero"
+          },
+          {
+            "formula": "=SUMIF A2:A5,\"North\",B2:B5",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-5",
+      "prompt": "In D2, repair the average so it stops reading a name error and reports the score column.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Name",
+            "Score",
+            "Answer"
+          ],
+          [
+            "Ana",
+            82,
+            null
+          ],
+          [
+            "Bo",
+            91,
+            null
+          ],
+          [
+            "Cy",
+            78,
+            null
+          ],
+          [
+            "Di",
+            88,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 84.75
+      },
+      "reference": "=AVERAGE(B2:B5)",
+      "require": [
+        {
+          "id": "func-average",
+          "func": "AVERAGE",
+          "minArgs": 1
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=AVERAGE(B2:B5): the function name, then the score column.",
+        "func-average": "The repaired cell reports the mean of the scores.",
+        "require-ref": "The score column is B2:B5.",
+        "value": "339 across four names is 84.75.",
+        "error": "A misspelled function name is what raised the name error."
+      },
+      "fixtures": {
+        "accept": [
+          "=AVERAGE(B2:B5)",
+          "=average(b2:b5)",
+          "=AVERAGE($B$2:$B$5)",
+          "=AVERAGE(B$2:B$5)",
+          "=AVERAGE( B2:B5 )",
+          "=AVERAGE(B2:B5)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=AVRAGE(B2:B5)",
+            "rule": "func-average",
+            "why": "the name is still misspelled"
+          },
+          {
+            "formula": "=SUM(B2:B5)",
+            "rule": "func-average",
+            "why": "the scores are added rather than averaged"
+          },
+          {
+            "formula": "=AVERAGE(B2:B4)",
+            "rule": "value",
+            "why": "the last score is outside the range"
+          },
+          {
+            "formula": "=AVERAGE(B3:B5)",
+            "rule": "require-ref",
+            "why": "the first score is outside the range"
+          },
+          {
+            "formula": "=AVERAGE(B2:B5)/0",
+            "rule": "error",
+            "why": "the average is then divided by zero"
+          },
+          {
+            "formula": "=AVERAGE B2:B5",
+            "rule": "syntax",
+            "why": "the argument falls outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Formula audit: fix five broken sheets",
+    "description": "Each Excel error code names one kind of break. A division error needs a guard, a name error needs spelling, and the code tells you which one you have."
+  },
+  "updated": "2026-10-31"
+}

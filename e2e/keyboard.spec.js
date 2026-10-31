@@ -6,6 +6,10 @@
  */
 import { expect, test } from "@playwright/test";
 
+import { freeDrill } from "../lib/site.js";
+
+const FREE = freeDrill();
+
 test.use({ reducedMotion: "reduce" });
 
 /** Where the document's focus is, as a selector-ish label a failure can print. */
@@ -26,11 +30,26 @@ async function waitForClient(page) {
   await expect(page.locator("#progress-fill")).toHaveAttribute("data-full", /^(true|false)$/);
 }
 
+/**
+ * The key that walks the tab order on this engine.
+ *
+ * Safari does not put links or buttons in the Tab order unless the reader has turned on full keyboard
+ * access, and Option+Tab is that convention's chord. A keyboard-only Safari user has the setting on,
+ * so the walk presses the chord there rather than asserting an order Safari deliberately does not
+ * have. WebKit with the chord visits the same elements in the same order as Chromium and Firefox,
+ * which is what makes this suite meaningful on all three.
+ */
+async function tabKey(page) {
+  const engine = page.context().browser()?.browserType().name();
+  return engine === "webkit" ? "Alt+Tab" : "Tab";
+}
+
 /** Walk the tab order until the named element has it. A bounded walk, so a page that cannot reach the
  *  control fails with the trail it took instead of hanging — and a walk that falls back to `body`
  *  after it had focus fails immediately, because that is a stolen or lost focus, not a tab order. */
 async function tabTo(page, wanted, limit = 30) {
   const trail = [];
+  const key = await tabKey(page);
   let started = false;
   for (let step = 0; step <= limit; step += 1) {
     const at = await focused(page);
@@ -40,13 +59,13 @@ async function tabTo(page, wanted, limit = 30) {
     }
     if (at !== "body") started = true;
     trail.push(at);
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(key);
   }
   throw new Error(`tab order never reached ${wanted} in ${limit} presses: ${trail.join(" -> ")}`);
 }
 
 test("a whole drill is passable without a mouse", async ({ page }) => {
-  await page.goto("/learn/excel/sum-basics");
+  await page.goto(FREE.path);
   await expect(page.locator("#formula")).toBeVisible();
   await waitForClient(page);
 
@@ -73,11 +92,11 @@ test("a whole drill is passable without a mouse", async ({ page }) => {
 
   // And it works: Enter on it leaves the drill.
   await page.keyboard.press("Enter");
-  await expect(page).not.toHaveURL(/sum-basics/);
+  await expect(page).not.toHaveURL(new RegExp(FREE.slug));
 });
 
 test("the hint and the reveal are reachable, and the reveal says what it will do", async ({ page }) => {
-  await page.goto("/learn/excel/sum-basics");
+  await page.goto(FREE.path);
   await waitForClient(page);
   await tabTo(page, "#formula");
 

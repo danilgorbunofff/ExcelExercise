@@ -12,21 +12,57 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Item", "Units"],
-          ["Bolts", 250],
-          ["Nuts", 130],
-          ["Washers", 96],
-          ["Total units", 476],
-          ["Crates needed", null]
+          [
+            "Item",
+            "Units"
+          ],
+          [
+            "Bolts",
+            250
+          ],
+          [
+            "Nuts",
+            130
+          ],
+          [
+            "Washers",
+            96
+          ],
+          [
+            "Total units",
+            476
+          ],
+          [
+            "Crates needed",
+            null
+          ]
         ]
       },
       "answerCell": "B6",
-      "expect": { "value": 40 },
+      "expect": {
+        "value": 40
+      },
       "reference": "=ROUNDUP(B5/12,0)",
-      "require": [{ "id": "func-roundup", "func": "ROUNDUP", "minArgs": 2 }],
+      "require": [
+        {
+          "id": "func-roundup",
+          "func": "ROUNDUP",
+          "minArgs": 2
+        }
+      ],
       "forbid": [],
       "requireRef": "B5",
-      "rules": [{ "id": "whole-crates", "type": "matchType", "func": "ROUNDUP", "arg": 2, "values": [0] }],
+      "rules": [
+        {
+          "id": "whole-crates",
+          "type": "matchType",
+          "func": "ROUNDUP",
+          "arg": 2,
+          "values": [
+            0
+          ]
+        }
+      ],
       "hints": {
         "syntax": "ROUNDUP takes the number and how many decimals to keep: =ROUNDUP(B5/12,0).",
         "func-roundup": "ROUNDUP is the one that moves away from zero, and a part crate still has to be ordered.",
@@ -90,21 +126,57 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Item", "Units"],
-          ["Bolts", 250],
-          ["Nuts", 130],
-          ["Washers", 96],
-          ["Total units", 476],
-          ["Full crates", null]
+          [
+            "Item",
+            "Units"
+          ],
+          [
+            "Bolts",
+            250
+          ],
+          [
+            "Nuts",
+            130
+          ],
+          [
+            "Washers",
+            96
+          ],
+          [
+            "Total units",
+            476
+          ],
+          [
+            "Full crates",
+            null
+          ]
         ]
       },
       "answerCell": "B6",
-      "expect": { "value": 39 },
+      "expect": {
+        "value": 39
+      },
       "reference": "=ROUNDDOWN(B5/12,0)",
-      "require": [{ "id": "func-rounddown", "func": "ROUNDDOWN", "minArgs": 2 }],
+      "require": [
+        {
+          "id": "func-rounddown",
+          "func": "ROUNDDOWN",
+          "minArgs": 2
+        }
+      ],
       "forbid": [],
       "requireRef": "B5",
-      "rules": [{ "id": "whole-crates", "type": "matchType", "func": "ROUNDDOWN", "arg": 2, "values": [0] }],
+      "rules": [
+        {
+          "id": "whole-crates",
+          "type": "matchType",
+          "func": "ROUNDDOWN",
+          "arg": 2,
+          "values": [
+            0
+          ]
+        }
+      ],
       "hints": {
         "syntax": "=ROUNDDOWN(B5/12,0) takes the number and the decimals to keep.",
         "func-rounddown": "A full crate is the part crate thrown away, so this is the direction that moves toward zero.",
@@ -164,7 +236,7 @@
   ],
   "docs": {
     "syntax": "=ROUNDUP(number, digits) and =ROUNDDOWN(number, digits)",
-    "explain": "The three items add up to 476 units, and a crate holds twelve. 476 divided by 12 is 39.67, which is not a number of crates you can order, so one of the two one-way functions has to decide the answer. ROUNDUP moves away from zero and gives 40: thirty-nine full crates and a part crate, and the part crate still has to ship. ROUNDDOWN moves toward zero and gives 39: the full crates only, with 8 units left on the floor. ROUND would give 40 here, which is why it is the wrong tool — it happens to agree today and would answer 39 the moment the total dropped below 474, so the count would change direction without anyone noticing.",
+    "explain": "The three items add up to 476 units and a crate holds twelve. 476 divided by 12 is 39.67, which is not a number of crates you can order, so one of the two one-way functions has to decide. ROUNDUP moves away from zero and gives 40: thirty-nine full crates and a part crate that still has to ship. ROUNDDOWN moves toward zero and gives 39: the full crates only, with 8 units left on the floor. ROUND would give 40 today, which is why it is the wrong tool here. It agrees by luck and would answer 39 the moment the total dropped below 474, so the count would change direction without anyone noticing.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -180,5 +252,10 @@
     "teaches": "ROUNDUP and ROUNDDOWN",
     "dataset": "Three items and a crate size",
     "reference": "=ROUNDUP(B5/12,0)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "ROUNDUP and ROUNDDOWN in Excel",
+    "description": "476 units at twelve to a crate is 39.67. ROUNDUP orders 40 crates because the part crate ships, ROUNDDOWN counts 39 full ones, and ROUND agrees by luck."
   }
 }

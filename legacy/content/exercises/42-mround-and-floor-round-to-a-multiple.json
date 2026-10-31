@@ -1,0 +1,223 @@
+{
+  "id": "42-mround-and-floor-round-to-a-multiple",
+  "slug": "mround-and-floor-round-to-a-multiple",
+  "level": 2,
+  "title": "MROUND and FLOOR: round to a multiple",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "Round each pallet's unit count to the nearest five and put the first one in C2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Pallet",
+            "Units",
+            "Nearest 5"
+          ],
+          [
+            "P-01",
+            47,
+            null
+          ],
+          [
+            "P-02",
+            92,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 45
+      },
+      "reference": "=MROUND(B2,5)",
+      "require": [
+        {
+          "id": "func-mround",
+          "func": "MROUND",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "MROUND takes the number and the multiple: =MROUND(B2,5).",
+        "func-mround": "Rounding to the nearest five is not rounding to a number of decimals: name the multiple instead.",
+        "require-ref": "Read the count from B2 rather than typing 47 into the formula.",
+        "value": "47 is two away from 45 and three away from 50, so the nearest five is 45.",
+        "error": "Dividing by zero anywhere in the formula leaves #DIV/0! instead of a rounded count."
+      },
+      "fixtures": {
+        "accept": [
+          "=MROUND(B2,5)",
+          "=mround(b2,5)",
+          "=MROUND($B$2,5)",
+          "=MROUND(B2,5)+0",
+          "=MROUND(B2,5)*1",
+          "=MROUND(B$2,5)"
+        ],
+        "reject": [
+          {
+            "formula": "=ROUND(B2,0)",
+            "rule": "func-mround",
+            "why": "rounds to the nearest whole number, 47, which is not a multiple of five"
+          },
+          {
+            "formula": "=FLOOR(B2,5)",
+            "rule": "func-mround",
+            "why": "the right answer from the wrong direction — 45 here, but FLOOR never rounds up"
+          },
+          {
+            "formula": "=MROUND(47,5)",
+            "rule": "require-ref",
+            "why": "the count typed in, so the second pallet keeps the first pallet's rounding"
+          },
+          {
+            "formula": "=MROUND(B2,10)",
+            "rule": "value",
+            "why": "rounds to the nearest ten, 50, so the packs no longer line up with the fives"
+          },
+          {
+            "formula": "=MROUND(B2,5)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=MROUND(B2 5)",
+            "rule": "syntax",
+            "why": "the missing comma means the arguments never separate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "Only whole packs ship, so put the units that fit the full packs of the first order into D2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Order",
+            "Units",
+            "Pack",
+            "Shipped"
+          ],
+          [
+            "A-10",
+            47,
+            6,
+            null
+          ],
+          [
+            "A-11",
+            92,
+            6,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 42
+      },
+      "reference": "=FLOOR(B2,C2)",
+      "require": [
+        {
+          "id": "func-floor",
+          "func": "FLOOR",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "FLOOR takes the number and the pack size: =FLOOR(B2,C2).",
+        "func-floor": "You need the number of units that a whole number of packs covers, so round down to the pack size.",
+        "require-ref": "Read units and pack size from B2 and C2, so the second order follows the same rule.",
+        "value": "Seven packs of six is 42, and the five units left over do not form a pack.",
+        "error": "Dividing by zero replaces the shipment with #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=FLOOR(B2,C2)",
+          "=floor(b2,c2)",
+          "=FLOOR($B$2,$C$2)",
+          "=FLOOR(B2,C2)+0",
+          "=FLOOR(B2,C2)*1",
+          "=FLOOR(B$2,C$2)"
+        ],
+        "reject": [
+          {
+            "formula": "=ROUND(B2/C2,0)*C2",
+            "rule": "func-floor",
+            "why": "rounds the pack count to nearest, 48, and commits to a pack nobody filled"
+          },
+          {
+            "formula": "=CEILING(B2,C2)",
+            "rule": "func-floor",
+            "why": "rounds up, 48, which is the opposite direction from what ships"
+          },
+          {
+            "formula": "=FLOOR(47,6)",
+            "rule": "require-ref",
+            "why": "the units typed in, so the second order is never actually calculated"
+          },
+          {
+            "formula": "=FLOOR(B2,1)",
+            "rule": "value",
+            "why": "rounds to a multiple of one, which leaves the count untouched at 47"
+          },
+          {
+            "formula": "=FLOOR(B2,C2-2)",
+            "rule": "value",
+            "why": "rounds down to a multiple of four, 44, using a pack size the supplier never offered"
+          },
+          {
+            "formula": "=FLOOR(B2,C2)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=FLOOR(B2 C2)",
+            "rule": "syntax",
+            "why": "the missing comma leaves two arguments jammed into one"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=MROUND(number, multiple) and =FLOOR(number, significance)",
+    "explain": "ROUND answers a question about decimals: how many places do you keep. MROUND and FLOOR answer a different question, which is what multiple this number belongs to. Their second argument is that multiple, not a count of places. MROUND takes the nearest one in either direction, FLOOR always goes down and CEILING always goes up. This is the arithmetic of packaging: cartons of six, pallets of forty-eight, price steps of five pence. The unit you round to is a real decision, and it lives in the formula rather than in a format. The number that leaves the sheet is already a whole number of packs. Two traps are worth naming. MROUND ties go away from zero, so 2.5 rounds to 3, and a negative number with a positive multiple is #NUM! because the signs have to agree. A significance of zero makes both functions divide by zero, so `=FLOOR(47,0)` is `#DIV/0!` rather than 47, because rounding to a multiple of nothing has no meaning. When the pack size lives in a cell, use it. Hard-coding six in twelve formulas means twelve edits when the supplier changes.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The multiple was zero, so there is no grid of multiples to round onto."
+      },
+      {
+        "code": "#NUM!",
+        "text": "The two arguments have different signs, so FLOOR cannot decide which multiple to land on."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "A multiple arrived as text, so the rounding grid cannot be built."
+      }
+    ],
+    "atWork": "A warehouse that ships only whole packs, and a price list quoted in five-pence steps, both computed by formula so the rounding rule is visible and auditable.",
+    "outcome": "Round to a multiple of something real, such as a pack, a pallet or a price step, rather than to decimals.",
+    "teaches": "MROUND, FLOOR and CEILING",
+    "dataset": "Pallet counts and order lines packed in sixes",
+    "reference": "=MROUND(B2,5)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "MROUND and FLOOR in Excel",
+    "description": "ROUND asks how many decimals to keep. MROUND and FLOOR ask which multiple a number belongs to: cartons of six, pallets of forty-eight, price steps of five."
+  }
+}

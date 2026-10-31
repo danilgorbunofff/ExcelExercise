@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { t } from "../../legacy/src/site/messages.mjs";
+
 // Presentational only: no directives, no request APIs, so both the server pages and the client forms
 // can render these. Anything that needs the session belongs in `./shell.js`.
 
@@ -18,16 +20,28 @@ export function Notice({ children }) {
 }
 
 /**
+ * What a streamed section shows until the server has built it: one bar where each line of the real
+ * content will land, and one short sentence a screen reader hears. `aria-busy` keeps the section
+ * quiet while it fills, so the sentence is what gets announced — not a dozen empty boxes.
+ */
+export function Skeleton({ label, rows = 3 }) {
+  return (
+    <div className="skeleton" role="status" aria-busy="true">
+      <span className="visually-hidden">{label}</span>
+      {Array.from({ length: rows }, (_unused, at) => (
+        <span className="skeleton-bar" key={at} aria-hidden="true" />
+      ))}
+    </div>
+  );
+}
+
+/**
  * The Suspense fallback. It is deliberately not a `Notice`: a page that is still streaming has not
  * decided what to tell the learner yet, and a locator or a screen reader pointed at the notices would
  * otherwise find "Loading…" sitting where an explanation is expected.
  */
 export function Loading() {
-  return (
-    <p className="auth-loading" role="status">
-      Loading the form…
-    </p>
-  );
+  return <Skeleton label={t("chrome.loading.form")} rows={2} />;
 }
 
 export function ErrorText({ children }) {

@@ -8,7 +8,7 @@
  * browser refuses storage must not be told they have done nothing.
  */
 
-import { BADGE_LABELS, ago, canStart, nextCopy, summarise, summaryLine } from "../progress/index.js";
+import { BADGE_LABELS, ago, canStart, mergeProgress, nextCopy, summarise, summaryLine } from "../progress/index.js";
 import { PROGRESS_KEY, emptyProgress, parseProgress, serializeProgress } from "./state.js";
 
 const RESET_CONFIRM_MS = 6000;
@@ -20,11 +20,14 @@ const ui = {
   complete: document.getElementById("dash-complete"),
   total: document.getElementById("dash-total"),
   fill: document.getElementById("dash-fill"),
+  rail: document.getElementById("dash-rail"),
   note: document.getElementById("dash-note"),
   nextLink: document.getElementById("dash-next-link"),
   nextLabel: document.getElementById("dash-next-label"),
   nextWhy: document.getElementById("dash-next-why"),
+  legend: document.getElementById("dash-legend"),
   recent: document.getElementById("dash-recent"),
+  recentSection: document.getElementById("dash-recent-section"),
   resetSection: document.getElementById("dash-reset-section"),
   reset: document.getElementById("dash-reset"),
   resetNote: document.getElementById("dash-reset-note"),
@@ -99,14 +102,6 @@ function renderRecent(rows) {
       badgePill(row.badge),
     ]),
   );
-  if (items.length === 0) {
-    items.push(
-      el("li", {
-        class: "dash-recent-empty",
-        text: "Nothing finished yet. The first drill is one formula and about two minutes.",
-      }),
-    );
-  }
   ui.recent.replaceChildren(...items);
 }
 
@@ -134,7 +129,21 @@ function paintLock(node, row) {
   if (!note) slot.append(target);
 }
 
-function paint() {
+/**
+ * Which of the 16 groups open. The page is an index, not a scroll: every group starts closed, and the
+ * reader's own record decides which ones are worth opening — the one holding the next drill, and any
+ * group with a drill that has something to say. Run on first paint and after a reset, never on every
+ * repaint, so a group the reader closed stays closed.
+ */
+function revealGroups(summary) {
+  const wanted = new Set(summary.groups.filter((group) => group.completed > 0).map((group) => group.id));
+  if (summary.next?.group) wanted.add(summary.next.group);
+  for (const node of document.querySelectorAll("details.dash-group")) {
+    node.open = wanted.has(node.id.replace(/^group-/, ""));
+  }
+}
+
+function paint({ openGroups = false } = {}) {
   const summary = summarise({ plan: state.plan, progress: state.progress });
 
   if (ui.complete) ui.complete.textContent = String(summary.completed);
@@ -151,13 +160,25 @@ function paint() {
     if (!node) continue;
     node.dataset.badge = row.badge;
     const label = node.querySelector("[data-badge-for]");
-    if (label) label.textContent = BADGE_LABELS[row.badge] ?? BADGE_LABELS.not_started;
+    if (label) {
+      // The pill carries the badge too: its colour is keyed on `data-badge`, and a "Complete" that is
+      // grey in the list but green in "Recently finished" reads as two different verdicts.
+      label.dataset.badge = row.badge;
+      label.textContent = BADGE_LABELS[row.badge] ?? BADGE_LABELS.not_started;
+    }
     paintLock(node, row);
   }
 
   for (const group of summary.groups) {
     const counter = document.querySelector(`[data-group-count="${group.id}"]`);
-    if (counter) counter.textContent = `${group.completed} of ${group.total}`;
+    if (!counter) continue;
+    // On the track a group nobody has started states how much is in it; on that group's own page the
+    // count is the page's subject, so it always reads "N of M".
+    const onTrack = counter.closest("summary") !== null;
+    counter.textContent =
+      onTrack && group.completed === 0
+        ? `${group.total} drill${group.total === 1 ? "" : "s"}`
+        : `${group.completed} of ${group.total}`;
   }
 
   const copy = nextCopy({ next: summary.next, nextReason: summary.nextReason });
@@ -169,7 +190,18 @@ function paint() {
   }
 
   renderRecent(summary.recent);
+
+  // Chrome that reports zero is hidden until there is something to report: a first-time reader gets no
+  // rail pinned at zero, no legend for badges they have not earned, and no empty "Recently finished".
+  if (ui.rail) ui.rail.hidden = summary.completed === 0;
+  if (ui.legend) {
+    const flagged = summary.rows.some((row) => row.badge === "stale" || row.badge === "needs_practice");
+    ui.legend.hidden = !flagged;
+  }
+  if (ui.recentSection) ui.recentSection.hidden = summary.recent.length === 0;
   if (ui.resetSection) ui.resetSection.hidden = summary.completed === 0 || state.blocked !== null;
+
+  if (openGroups) revealGroups(summary);
 }
 
 function disarm() {
@@ -190,7 +222,7 @@ function armReset() {
     disarm();
     if (cleared) {
       state.progress = wiped;
-      paint();
+      paint({ openGroups: true });
       ui.resetNote.textContent = "Progress cleared. Every drill is unstarted again.";
     } else {
       ui.resetNote.textContent = "This browser would not let the page clear its storage.";
@@ -203,6 +235,37 @@ function armReset() {
   state.timer = setTimeout(disarm, RESET_CONFIRM_MS);
 }
 
+/**
+ * The signed-in half of the page: ask the server what it has, and merge it in.
+ *
+ * The island paints from `localStorage` first because that is what works with no account, no network
+ * and on the static build. But a learner who signs in on a second browser, or who finished drills
+ * before signing up on another device, has a copy the browser cannot see: the server. This one request
+ * closes that gap, and it is deliberately silent on every failure — a 401, a 404 (the static edition
+ * has no API), an offline tab and a garbage body all mean "the local copy is all there is", which is
+ * exactly what the page already painted.
+ */
+async function reconcile() {
+  if (typeof globalThis.fetch !== "function") return;
+  let body;
+  try {
+    const response = await fetch("/api/progress", { credentials: "same-origin", headers: { accept: "application/json" } });
+    if (!response.ok) return;
+    body = await response.json();
+  } catch {
+    return;
+  }
+  if (body?.ok !== true || body.signed_in !== true || !body.progress) return;
+
+  const { progress, changed } = mergeProgress(state.progress, body.progress);
+  if (!changed) return;
+  state.progress = progress;
+  // Written back so the next page load starts from the union: otherwise every visit would re-download
+  // the same rows and re-merge them, and a drill finished while signed out would look new each time.
+  writeProgress(progress);
+  paint();
+}
+
 function main() {
   state.plan = readPlan();
   if (!state.plan) return;
@@ -212,11 +275,13 @@ function main() {
     : "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.";
   state.progress = readProgress();
 
-  paint();
+  paint({ openGroups: true });
   ui.reset?.addEventListener("click", armReset);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && ui.reset?.dataset.armed === "true") disarm();
   });
+
+  reconcile();
 }
 
 main();

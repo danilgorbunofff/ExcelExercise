@@ -1,0 +1,151 @@
+{
+  "id": "29-autosum-and-the-status-bar-total",
+  "slug": "autosum-and-the-status-bar-total",
+  "level": 1,
+  "title": "AutoSum and the status bar total",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, total the stock column A2:A6 with AutoSum.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Expense",
+            "Amount"
+          ],
+          [
+            "Rent",
+            120
+          ],
+          [
+            "Insurance",
+            95
+          ],
+          [
+            "Fuel",
+            60
+          ],
+          [
+            "Software",
+            145
+          ],
+          [
+            "Travel",
+            40
+          ],
+          [
+            "Courier",
+            12.5
+          ],
+          [
+            "Bank fees",
+            3.5
+          ],
+          [
+            "Typed total (stale)",
+            420
+          ],
+          [
+            "AutoSum total",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B10",
+      "expect": {
+        "value": 476
+      },
+      "require": [
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "AutoSum writes =SUM( for you; typed out it is =SUM(B2:B8).",
+        "func-sum": "The seven amounts are added by SUM over their own column, which is what the AutoSum button inserts.",
+        "require-ref": "Sum the amounts in B2:B8; adding seven typed numbers leaves the character of the range behind.",
+        "value": "Add the seven amounts from the top row down to Bank fees, and stop before the typed total.",
+        "error": "A total divided by zero returns #DIV/0!, which is what an empty divisor cell produces."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUM(B2:B8)",
+          "=sum(b2:b8)",
+          "=SUM($B$2:$B$8)",
+          "=SUM(B2:B8)+0",
+          "=SUM(B2:B8)*1",
+          "=SUM(B2:B8)-0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B8",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so the total never computes"
+          },
+          {
+            "formula": "=SUM(B2:B9)",
+            "rule": "value",
+            "why": "the stale typed total in B9 is added on top, so every expense counts twice"
+          },
+          {
+            "formula": "=SUM(B2:B7)",
+            "rule": "value",
+            "why": "the bank fees in B8 are left out of the range"
+          },
+          {
+            "formula": "=B9",
+            "rule": "func-sum",
+            "why": "copies the stale figure instead of adding the column"
+          },
+          {
+            "formula": "=SUM(120,95,60,145,40,12.5,3.5)",
+            "rule": "require-ref",
+            "why": "the amounts typed into the formula, so a corrected expense never reaches the total"
+          },
+          {
+            "formula": "=SUM(B2:B8)/0",
+            "rule": "error",
+            "why": "a total divided by zero returns #DIV/0!"
+          },
+          {
+            "formula": "=COUNTA(B2:B8)",
+            "rule": "func-sum",
+            "why": "answers how many expenses there are, not what they add up to"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUM(range)",
+    "explain": "The AutoSum button guesses a range from the numbers above or beside the active cell, then inserts =SUM( with that range already selected. Here the run of numbers stops at B8, because B9 holds a figure somebody typed by hand months ago. Selecting the whole column instead of the seven amounts is the classic way to double a total: 476 becomes 896. The status bar is the check. Highlight B2:B8 and it shows Sum 476 before you write anything. AutoSum is a guess, not a proof: it looks for the nearest run of numbers and stops where the run stops. The honest habit is to press it, look at which cells got highlighted, and fix the range before pressing Enter on the total.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The total was divided by a blank cell, often an average column whose count is not filled in yet."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name was typed by hand as =SUMM(, which the sheet cannot recognise at all."
+      }
+    ],
+    "atWork": "A monthly expense sheet where one stale hand-typed total sits under the live figures.",
+    "outcome": "Total a run of expenses and spot the stale figure that would double it.",
+    "teaches": "SUM and reading the status bar",
+    "dataset": "Seven expenses and a stale total",
+    "reference": "=SUM(B2:B8)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "AutoSum in Excel and the status bar total",
+    "description": "AutoSum guesses the nearest run of numbers, and one stale figure below the run doubles the total. The status bar shows the real sum first."
+  }
+}

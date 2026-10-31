@@ -1,0 +1,298 @@
+{
+  "id": "63-logical-functions-summary",
+  "slug": "logical-functions-summary",
+  "level": 3,
+  "title": "Logical functions: putting the pieces together",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B9, put PASS in the cell when the total is over 100 and no item is under 15 units, otherwise FAIL.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Units"
+          ],
+          [
+            "Bolt",
+            18
+          ],
+          [
+            "Nut",
+            22
+          ],
+          [
+            "Washer",
+            25
+          ],
+          [
+            "Screw",
+            30
+          ],
+          [
+            "Clip",
+            24
+          ],
+          [
+            "Pin",
+            31
+          ],
+          [
+            "Total",
+            150
+          ],
+          [
+            "Verdict",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": "PASS"
+      },
+      "reference": "=IF(AND(B8>100,MIN(B2:B7)>=15),\"PASS\",\"FAIL\")",
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 2
+        },
+        {
+          "id": "func-and",
+          "func": "AND",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B8",
+      "rules": [],
+      "hints": {
+        "syntax": "=IF(AND(test 1, test 2),\"PASS\",\"FAIL\"): the tests go inside the IF.",
+        "func-if": "Two words have to come out of one formula, so the test needs an IF around it.",
+        "func-and": "Both conditions have to hold at the same time, which is what AND is for.",
+        "require-ref": "Read the total and the units column rather than typing the numbers.",
+        "value": "The total is 150 and the smallest item is 18, so both tests hold and the cell says PASS.",
+        "error": "A division by zero anywhere in the tests returns #DIV/0! instead of a verdict."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(AND(B8>100,MIN(B2:B7)>=15),\"PASS\",\"FAIL\")",
+          "=if(and(b8>100,min(b2:b7)>=15),\"PASS\",\"FAIL\")",
+          "=IF(AND($B$8>100,MIN($B$2:$B$7)>=15),\"PASS\",\"FAIL\")",
+          "=IF(AND(B$8>100,MIN(B$2:B$7)>=15),\"PASS\",\"FAIL\")",
+          "=IF(AND($B8>100,MIN($B2:$B$7)>=15),\"PASS\",\"FAIL\")",
+          "=IF(AND(B8>100,MIN(B2:B7)>14),\"PASS\",\"FAIL\")"
+        ],
+        "reject": [
+          {
+            "formula": "=AND(B8>100,MIN(B2:B7)>=15)",
+            "rule": "func-if",
+            "why": "that answers TRUE instead of the word PASS"
+          },
+          {
+            "formula": "=IF(B8>100,\"FAIL\",\"PASS\")",
+            "rule": "func-and",
+            "why": "one test cannot hold both conditions, and the words are the wrong way round"
+          },
+          {
+            "formula": "=IF(AND(B8>100,MIN(B2:B7)>=20),\"PASS\",\"FAIL\")",
+            "rule": "value",
+            "why": "the smallest item is 18, so a 20-unit floor answers FAIL"
+          },
+          {
+            "formula": "=IF(AND(SUM(B2:B7)>100,MIN(B2:B7)>=15),\"PASS\",\"FAIL\")",
+            "rule": "require-ref",
+            "why": "the total is recalculated instead of reading the total row"
+          },
+          {
+            "formula": "=IF(AND(B8>100,MIN(B2:B7)>=15),\"PASS\",\"FAIL\")/0",
+            "rule": "error",
+            "why": "text divided by zero leaves #VALUE! in the cell"
+          },
+          {
+            "formula": "=IF(AND(B8>100 MIN(B2:B7)>=15),\"PASS\",\"FAIL\")",
+            "rule": "syntax",
+            "why": "the missing comma merges two tests into one argument"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In D8, average the price column and round it to one decimal, but say none when there is nothing to average.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Units",
+            "Price",
+            "Answer"
+          ],
+          [
+            "Bolt",
+            18,
+            4.5,
+            null
+          ],
+          [
+            "Nut",
+            22,
+            3.9,
+            null
+          ],
+          [
+            "Washer",
+            25,
+            4.2,
+            null
+          ],
+          [
+            "Screw",
+            30,
+            5.1,
+            null
+          ],
+          [
+            "Clip",
+            24,
+            3.4,
+            null
+          ],
+          [
+            "Pin",
+            31,
+            4.8,
+            null
+          ],
+          [
+            "Total",
+            150,
+            null,
+            null
+          ],
+          [
+            "Average price",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D8",
+      "expect": {
+        "value": 4.3
+      },
+      "reference": "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\")",
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 2
+        },
+        {
+          "id": "func-isnumber",
+          "func": "ISNUMBER",
+          "minArgs": 1
+        },
+        {
+          "id": "func-round",
+          "func": "ROUND",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "C2",
+      "rules": [],
+      "hints": {
+        "syntax": "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\"): the guard comes first.",
+        "func-if": "The formula has two outcomes, a number and the word none, so it needs an IF.",
+        "func-isnumber": "Asking whether the average produced a number is how an empty range is caught.",
+        "func-round": "One decimal place comes from ROUND, not from the cell format.",
+        "require-ref": "Average the price column of the grid rather than typing the prices.",
+        "value": "The six prices average 4.3166, which rounds to 4.3.",
+        "error": "A division by zero in the range returns #DIV/0! before the guard can help."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\")",
+          "=if(isnumber(average(c2:c7)),round(average(c2:c7),1),\"none\")",
+          "=IF(ISNUMBER(AVERAGE($C$2:$C$7)),ROUND(AVERAGE($C$2:$C$7),1),\"none\")",
+          "=IF(ISNUMBER(AVERAGE(C$2:C$7)),ROUND(AVERAGE(C$2:C$7),1),\"none\")",
+          "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\")+0",
+          "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\")*1"
+        ],
+        "reject": [
+          {
+            "formula": "=ROUND(AVERAGE(C2:C7),2)",
+            "rule": "func-if",
+            "why": "that answers 4.32 with no guard and no second outcome"
+          },
+          {
+            "formula": "=IF(ROUND(AVERAGE(C2:C7),1)>10,ROUND(AVERAGE(C2:C7),1),\"none\")",
+            "rule": "func-isnumber",
+            "why": "a magnitude test is not a guard against an empty range, and 4.3 fails it"
+          },
+          {
+            "formula": "=IF(ISNUMBER(AVERAGE(C2:C7)),AVERAGE(C2:C7),\"none\")",
+            "rule": "func-round",
+            "why": "the average is left unrounded at 4.3166"
+          },
+          {
+            "formula": "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),2),\"none\")",
+            "rule": "value",
+            "why": "two decimal places answer 4.32 instead of 4.3"
+          },
+          {
+            "formula": "=IF(ISNUMBER(AVERAGE(C3:C7)),ROUND(AVERAGE(C3:C7),1),\"none\")",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so the first price is left out"
+          },
+          {
+            "formula": "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\")/0",
+            "rule": "error",
+            "why": "the finished value is then divided by zero"
+          },
+          {
+            "formula": "=IF(ISNUMBER(AVERAGE(C2:C7)) ROUND(AVERAGE(C2:C7),1),\"none\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves the IF with a test and one argument"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=IF(AND(test 1, test 2),\"PASS\",\"FAIL\"); =IF(ISNUMBER(AVERAGE(range)),ROUND(...,1),\"none\")",
+    "explain": "A summary lesson is where the pieces have to work together. Each of these formulas reads a test, decides something, and returns one of two kinds of value. The first screen nests AND inside IF. Both conditions are checked, and the cell answers the word PASS or FAIL rather than TRUE or FALSE, which is what a reader of the sheet wants to see. The second wraps the average in ISNUMBER before rounding it, so an empty or text-only price column returns none instead of #DIV/0!. The guard is not decoration. It is the difference between a report that prints and one that shows an error in a client meeting. Both formulas keep every number inside the grid. The total row, the units column and the price column are read, never typed, so editing a price moves the answer without touching a formula. Two habits are worth carrying away. The first is that ROUND changes the value while cell formatting only changes the display, so a rounded number can be summed safely and a formatted one cannot. The second is that an IF with a guard is easier to read than IFERROR around a calculation. It names the condition that could fail instead of catching every error that did.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "A text result was used in arithmetic that could not accept it."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The average divided by a count of zero because no number was in the range."
+      },
+      {
+        "code": "#NAME?",
+        "text": "One of the nested function names was misspelled."
+      }
+    ],
+    "atWork": "Printing a rounded average with a fallback word instead of an error when a month has no data.",
+    "outcome": "Combine a logical test, a combined test and a rounded calculation in one formula.",
+    "teaches": "nesting AND inside IF, and guarding a calculation with ISNUMBER before ROUND",
+    "dataset": "Stock list with a total row, and a price column to average",
+    "reference": "=IF(AND(B8>100,MIN(B2:B7)>=15),\"PASS\",\"FAIL\")"
+  },
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Combine IF, AND and ROUND in Excel",
+    "description": "Nest AND inside IF and the cell answers PASS or FAIL instead of TRUE. Guard the average with ISNUMBER so a text-only column says none instead of #DIV/0!."
+  }
+}

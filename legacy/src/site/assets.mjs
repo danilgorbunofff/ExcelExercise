@@ -8,6 +8,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { esc } from "./html.mjs";
+import { indexablePaths } from "./seo.mjs";
 
 /** 5A §5: jade-9 is the one colour the favicon may use, and an SVG cannot read a CSS var. */
 const FAVICON_JADE = "#29a383";
@@ -67,24 +68,20 @@ export function buildStyles({ vendorDir, stylesDir }) {
 }
 
 /**
- * Home, the two legal pages and one entry per lesson. The legal pages are in here on purpose: they are
- * the pages a crawler is supposed to find, and `/privacy` being one of them is what makes the cookie
- * stance findable rather than a claim in a README. Everything else — the dashboard, the group pages,
- * `/pricing` — is `noindex` and stays out, which the count below is the proof of.
+ * The sitemap XML, from the one list of indexable URLs in `seo.mjs`. The dashboard, `/pricing` and the
+ * signed-in surfaces are `noindex` and are never passed in, so they cannot leak in here; the legal
+ * pages and the hub pages are passed in because a crawler is supposed to find them.
  */
-export function renderSitemap({ config, track, index }) {
-  const entries = [
-    { loc: `${config.baseUrl}/`, priority: "1.0" },
-    { loc: `${config.baseUrl}/privacy`, priority: "0.3" },
-    { loc: `${config.baseUrl}/terms`, priority: "0.3" },
-    ...index.map((entry) => ({ loc: `${config.baseUrl}${entry.path}`, priority: "0.8" })),
-  ];
-  if (entries.length !== index.length + 3) throw new Error("sitemap: track size mismatch");
+export function renderSitemap({ config, index = [], groups = [], articles = [], extra }) {
+  const entries = indexablePaths({ config, index, groups, articles, extra }).map((entry) => ({
+    ...entry,
+    loc: `${config.baseUrl}${entry.path}`,
+  }));
 
   const urls = entries
     .map(
       (entry) =>
-        `  <url>\n    <loc>${esc(entry.loc)}</loc>\n    <lastmod>${config.builtAt}</lastmod>\n    <priority>${entry.priority}</priority>\n  </url>`,
+        `  <url>\n    <loc>${esc(entry.loc)}</loc>\n    <lastmod>${esc(entry.lastModified)}</lastmod>\n    <priority>${entry.priority}</priority>\n  </url>`,
     )
     .join("\n");
 
@@ -98,6 +95,8 @@ ${urls}
 export function renderRobots({ config }) {
   return `User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /certificate
 
 Sitemap: ${config.baseUrl}/sitemap.xml
 `;

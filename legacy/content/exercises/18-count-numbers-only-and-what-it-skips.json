@@ -12,19 +12,51 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Sample", "Reading"],
-          ["S-01", 12.5],
-          ["S-02", "n/a"],
-          ["S-03", 8.2],
-          ["S-04", null],
-          ["S-05", 15],
-          ["S-06", "7"],
-          ["Readings counted", null]
+          [
+            "Sample",
+            "Reading"
+          ],
+          [
+            "S-01",
+            12.5
+          ],
+          [
+            "S-02",
+            "n/a"
+          ],
+          [
+            "S-03",
+            8.2
+          ],
+          [
+            "S-04",
+            null
+          ],
+          [
+            "S-05",
+            15
+          ],
+          [
+            "S-06",
+            "7"
+          ],
+          [
+            "Readings counted",
+            null
+          ]
         ]
       },
       "answerCell": "B8",
-      "expect": { "value": 3 },
-      "require": [{ "id": "func-count", "func": "COUNT", "minArgs": 1 }],
+      "expect": {
+        "value": 3
+      },
+      "require": [
+        {
+          "id": "func-count",
+          "func": "COUNT",
+          "minArgs": 1
+        }
+      ],
       "forbid": [],
       "requireRef": "B2",
       "rules": [],
@@ -86,7 +118,7 @@
   ],
   "docs": {
     "syntax": "=COUNT(value1, [value2], ...)",
-    "explain": "Column B mixes things up on purpose: 12.5 in B2, the words n/a in B3, 8.2 in B4, an empty cell in B5, 15 in B6 and the text 7 in B7. COUNT walks the range and counts only the cells Excel holds as numbers, so it answers 3: the 12.5, the 8.2 and the 15. The n/a is text and is skipped, the blank in B5 is nothing at all, and the 7 in B7 is text because it was typed in with an apostrophe or pasted from a system that sends everything as text — it looks like a number and Excel does not treat it as one. SUM over the same range answers 35.7, which is why a count that comes back short is the fastest way to find cells that arrived as text.",
+    "explain": "Column B mixes things up on purpose: 12.5 in B2, the words n/a in B3, 8.2 in B4, an empty cell in B5, 15 in B6 and the text 7 in B7. COUNT walks the range and counts only the cells Excel holds as numbers, so it answers 3: the 12.5, the 8.2 and the 15. The n/a is text and is skipped. The blank in B5 is nothing at all. The 7 in B7 is text because it was typed with an apostrophe or pasted from a system that sends everything as text. It looks like a number and Excel does not treat it as one. SUM over the same range answers 35.7, so a count that comes back short is the fastest way to find cells that arrived as text.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -102,5 +134,10 @@
     "teaches": "COUNT",
     "dataset": "Readings with text and blanks",
     "reference": "=COUNT(B2:B7)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "COUNT in Excel: numbers only",
+    "description": "Six readings, but COUNT answers 3: text, blanks and a 7 that arrived as text are skipped. SUM still adds 35.7, so a short count gives bad cells away."
   }
 }

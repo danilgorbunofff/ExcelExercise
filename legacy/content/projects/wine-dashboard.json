@@ -1,0 +1,142 @@
+{
+  "id": "wine-dashboard",
+  "slug": "wine-dashboard",
+  "level": 2,
+  "title": "Wine cellar dashboard",
+  "schemaVersion": 2,
+  "brief": [
+    {
+      "heading": "The file",
+      "body": "wine.xlsx holds one sheet, Cellar, with twelve wines and six columns: the wine, its region, its vintage, how many bottles are on the shelf, the price of one bottle and the score a critic gave it. Rows 15 to 18 are a computed block: how many bottles the cellar holds, what the stock is worth, the mean score and the best score."
+    },
+    {
+      "heading": "The work",
+      "body": "The owner is deciding what to restock, and the answer is never the average — it is which region, which vintage and which price are carrying the cellar. Eight tasks run from reading the block to grouping the rows yourself. The preview shows prices and scores exactly as the file does; the download is there when you want to sort twelve rows rather than squint at them."
+    },
+    {
+      "heading": "What good looks like",
+      "body": "Every answer here is one fact, spelled the way the sheet spells it. Where a number needs rounding the task says to how many decimals, because the sheet rounds to two and an unrounded mean would never match."
+    }
+  ],
+  "dataset": {
+    "file": "wine.xlsx",
+    "description": "Twelve wines with a computed stock block",
+    "sheet": {
+      "name": "Cellar",
+      "startCell": "A1",
+      "rows": [
+        ["Wine", "Region", "Vintage", "Bottles", "Price", "Score"],
+        ["Barolo Riserva", "Piedmont", 2016, 24, 78, 96],
+        ["Barbaresco", "Piedmont", 2018, 18, 54, 93],
+        ["Chianti Classico", "Tuscany", 2019, 60, 21, 89],
+        ["Brunello", "Tuscany", 2015, 12, 95, 97],
+        ["Rioja Gran Reserva", "Rioja", 2014, 36, 42, 94],
+        ["Albariño", "Rías Baixas", 2021, 48, 18, 88],
+        ["Priorat", "Catalonia", 2017, 15, 66, 95],
+        ["Cava Brut", "Catalonia", 2019, 72, 12, 85],
+        ["Mosel Riesling", "Mosel", 2020, 30, 24, 92],
+        ["Barolo", "Piedmont", 2012, 8, 110, 98],
+        ["Chablis", "Burgundy", 2018, 40, 38, 91],
+        ["Sancerre", "Loire", 2021, 54, 26, 90],
+        [null, null, null, null, null, null],
+        ["Bottles", "=SUM(D2:D13)", null, null, null, null],
+        ["Stock value", "=SUMPRODUCT(D2:D13,E2:E13)", null, null, null, null],
+        ["Mean score", "=ROUND(AVERAGE(F2:F13),2)", null, null, null, null],
+        ["Best score", "=MAX(F2:F13)", null, null, null, null]
+      ]
+    }
+  },
+  "docs": {
+    "syntax": "=SUM(D2:D13), =SUMPRODUCT(D2:D13,E2:E13), =ROUND(AVERAGE(F2:F13),2)",
+    "explain": "SUM counts bottles because bottles are one column. Stock value cannot use SUM: it needs each row's bottles multiplied by that row's price and then added, which is what SUMPRODUCT does in a single cell — a helper column of twelve multiplications would say the same thing in twelve cells. AVERAGE of the score column divided by twelve and rounded to two decimals gives the cellar's mean critic score, and MAX names the best bottle in it. The tasks then leave the block behind: the interesting questions are which region carries the cellar and which rows are behind the best score.",
+    "atWork": "Stock, price and rating columns are the shape of every inventory sheet a business runs on. The difference between a list and a dashboard is whether someone can answer 'what is this worth, and which part of it is doing the work' without opening a calculator.",
+    "outcome": "Value a cellar, then find which region, vintage and price are carrying it.",
+    "teaches": "Weighted totals and grouped reads",
+    "reference": "=SUMPRODUCT(D2:D13,E2:E13)",
+    "dataset": "wine.xlsx · Cellar",
+    "errors": [
+      {
+        "code": "SUM instead of SUMPRODUCT",
+        "text": "=SUM(D2:D13,E2:E13) adds the two columns together as one list. It returns 1001, not the value of the stock."
+      },
+      {
+        "code": "The block inside the range",
+        "text": "The cellar stops at row 13. A range that reaches row 18 will add the block's own answers into the total."
+      }
+    ]
+  },
+  "screens": [
+    {
+      "id": "wine-bottles",
+      "type": "workbook",
+      "prompt": "How many bottles does the cellar hold in total? B15 states it.",
+      "answers": ["417"],
+      "hints": {
+        "value": "B15 is SUM of the bottles column. If you are adding by hand, work down column D twelve rows."
+      }
+    },
+    {
+      "id": "wine-value",
+      "type": "workbook",
+      "prompt": "What is the whole cellar worth at these prices? B16 computes bottles × price per row.",
+      "answers": ["13998", "13,998"],
+      "hints": {
+        "value": "That is SUMPRODUCT of bottles and price. Multiply each row's bottles by its price, then add the twelve results."
+      }
+    },
+    {
+      "id": "wine-best",
+      "type": "workbook",
+      "prompt": "Which wine scored highest? Answer with the wine name as the sheet writes it.",
+      "answers": ["Barolo"],
+      "hints": {
+        "value": "B18 is MAX of the score column. Two rows say Barolo — the one you want is the older vintage."
+      }
+    },
+    {
+      "id": "wine-region",
+      "type": "workbook",
+      "prompt": "Which region holds the most bottles?",
+      "answers": ["Catalonia"],
+      "hints": {
+        "value": "Two Catalonia rows: 15 and 72 bottles. Compare that 87 against Piedmont on 24 + 18 + 8."
+      }
+    },
+    {
+      "id": "wine-high-score",
+      "type": "workbook",
+      "prompt": "How many bottles does the cellar hold of wines scoring 95 or better?",
+      "answers": ["59"],
+      "hints": {
+        "value": "Four rows score 95 or more. Add their bottles: 24, 12, 15 and 8."
+      }
+    },
+    {
+      "id": "wine-piedmont-price",
+      "type": "workbook",
+      "prompt": "What is the mean price of the Piedmont wines, rounded to two decimals?",
+      "answers": ["80.67"],
+      "hints": {
+        "value": "Three Piedmont rows cost 78, 54 and 110. That total over three is a repeating decimal, hence two decimals."
+      }
+    },
+    {
+      "id": "wine-oldest",
+      "type": "workbook",
+      "prompt": "Which vintage is the oldest in the cellar? Answer with the year.",
+      "answers": ["2012"],
+      "hints": {
+        "value": "Oldest is the smallest year in column C, not the largest. The oldest bottle is also the highest scoring one."
+      }
+    },
+    {
+      "id": "wine-cheap",
+      "type": "workbook",
+      "prompt": "How many wines cost less than 25 per bottle?",
+      "answers": ["4", "four"],
+      "hints": {
+        "value": "Look down column E for prices under 25. Sancerre at 26 is not one of them."
+      }
+    }
+  ]
+}

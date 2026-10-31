@@ -1,0 +1,316 @@
+{
+  "id": "82-a-lookup-dashboard-from-three-tables",
+  "slug": "a-lookup-dashboard-from-three-tables",
+  "level": 3,
+  "title": "Lookup dashboard from three tables",
+  "docs": {
+    "syntax": "=INDEX(answer,MATCH(name,names,0)) looks up anything; nest the inner INDEX for three tables",
+    "explain": "A dashboard is a cell you type a name into and a set of cells that follow. The mechanism that makes it follow is INDEX and MATCH, which the earlier group introduced as a pair and which this lesson uses twice. The first use is the ordinary one: find the row where the name matches, then read the value at that position in another column. That gets you the figure the dashboard shows. The second use is why dashboards need three tables rather than two. A rep is in a list, the rep belongs to a region, and the region has a target. The target is not reachable from the rep's row without going through the region first. Writing the inner INDEX and MATCH inside the outer one is the whole technique. The inner pair answers which region, and the outer pair answers what that region's target is. Once the shape is in place the dashboard is just more of the same. The manual alternative, a helper column of regions plus a VLOOKUP on top of it, becomes unnecessary rather than wrong.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The name is not in the lookup column, so MATCH has no position to return."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The match type is a number other than zero, one or minus one."
+      }
+    ],
+    "atWork": "Driving a summary cell from a name someone types, across tables that are not joined.",
+    "outcome": "Read a keyed value with INDEX and MATCH, then chain the pair to reach a third table.",
+    "teaches": "INDEX and MATCH on the typed name, then nested through a region column",
+    "dataset": "Four reps and a three-region target table beside them",
+    "reference": "=INDEX(C2:C5,MATCH(F2,A2:A5,0))"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In D2, read the sales figure of the rep named in F2.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Rep",
+            "Region",
+            "Sales",
+            "Answer",
+            null,
+            "Lookup",
+            null
+          ],
+          [
+            "Ana",
+            "North",
+            1200,
+            null,
+            null,
+            "Di",
+            null
+          ],
+          [
+            "Bo",
+            "South",
+            850,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Cy",
+            "North",
+            1450,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            "Di",
+            "East",
+            600,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 600
+      },
+      "reference": "=INDEX(C2:C5,MATCH(F2,A2:A5,0))",
+      "require": [
+        {
+          "id": "func-index",
+          "func": "INDEX",
+          "minArgs": 2
+        },
+        {
+          "id": "func-match",
+          "func": "MATCH",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "F2",
+      "hints": {
+        "syntax": "=INDEX(C2:C5,MATCH(F2,A2:A5,0)): the sales column, then the position of the typed name.",
+        "func-index": "The answer is read from the sales column at a position.",
+        "func-match": "The position comes from finding the typed name in the rep column.",
+        "require-ref": "The typed name is in F2.",
+        "value": "Di is the fourth rep, and the fourth sales figure is 600.",
+        "error": "A match type of zero is the only one that finds an exact name here."
+      },
+      "fixtures": {
+        "accept": [
+          "=INDEX(C2:C5,MATCH(F2,A2:A5,0))",
+          "=index(c2:c5,match(f2,a2:a5,0))",
+          "=INDEX($C$2:$C$5,MATCH($F$2,$A$2:$A$5,0))",
+          "=INDEX(C$2:C$5,MATCH(F$2,A$2:A$5,0))",
+          "=INDEX( C2:C5 , MATCH( F2 , A2:A5 , 0 ) )",
+          "=INDEX(C2:C5,MATCH(F2,A2:A5,0))+0"
+        ],
+        "reject": [
+          {
+            "formula": "=VLOOKUP(F2,A2:C5,3,FALSE)",
+            "rule": "func-index",
+            "why": "the position is found rather than computed as a row and column"
+          },
+          {
+            "formula": "=INDEX(C2:C5,4)",
+            "rule": "func-match",
+            "why": "the row is typed in rather than found from the typed name"
+          },
+          {
+            "formula": "=INDEX(B2:B5,MATCH(F2,A2:A5,0))",
+            "rule": "value",
+            "why": "the region column is read instead of the sales column"
+          },
+          {
+            "formula": "=INDEX(C2:C5,MATCH(F2,A2:A5,0))+1",
+            "rule": "value",
+            "why": "one is added to the sales figure"
+          },
+          {
+            "formula": "=INDEX(C2:C5,MATCH(\"Di\",A2:A5,0))",
+            "rule": "require-ref",
+            "why": "the typed name is hard-coded instead of read from its cell"
+          },
+          {
+            "formula": "=INDEX(C2:C5,MATCH(F2,B2:B5,0))",
+            "rule": "error",
+            "why": "the typed name is looked for in the region column and not found"
+          },
+          {
+            "formula": "=INDEX C2:C5,MATCH(F2,A2:A5,0)",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In D2, report the target of the region the rep named in F2 belongs to.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Rep",
+            "Region",
+            "Sales",
+            "Answer",
+            null,
+            "Region",
+            "Target"
+          ],
+          [
+            "Ana",
+            "North",
+            1200,
+            null,
+            null,
+            "North",
+            5000
+          ],
+          [
+            "Bo",
+            "South",
+            850,
+            null,
+            null,
+            "South",
+            3000
+          ],
+          [
+            "Cy",
+            "North",
+            1450,
+            null,
+            null,
+            "East",
+            2000
+          ],
+          [
+            "Di",
+            "East",
+            600,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            "Lookup",
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            "Di",
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 2000
+      },
+      "reference": "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0))",
+      "require": [
+        {
+          "id": "func-index",
+          "func": "INDEX",
+          "minArgs": 2
+        },
+        {
+          "id": "func-match",
+          "func": "MATCH",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "F7",
+      "hints": {
+        "syntax": "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0)): the inner pair finds the region, the outer pair finds its target.",
+        "func-index": "Two columns are read by position: the region, then the target.",
+        "func-match": "Two positions are found: the rep's row, then the region's row.",
+        "require-ref": "The typed name is in F7.",
+        "value": "Di is in East, and the East target is 2000.",
+        "error": "Looking a rep name up in the region list finds nothing and returns #N/A."
+      },
+      "fixtures": {
+        "accept": [
+          "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0))",
+          "=index(g2:g4,match(index(b2:b5,match(f7,a2:a5,0)),f2:f4,0))",
+          "=INDEX($G$2:$G$4,MATCH(INDEX($B$2:$B$5,MATCH($F$7,$A$2:$A$5,0)),$F$2:$F$4,0))",
+          "=INDEX(G$2:G$4,MATCH(INDEX(B$2:B$5,MATCH(F$7,A$2:A$5,0)),F$2:F$4,0))",
+          "=INDEX( G2:G4 , MATCH( INDEX( B2:B5 , MATCH( F7 , A2:A5 , 0 ) ) , F2:F4 , 0 ) )",
+          "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0))+0"
+        ],
+        "reject": [
+          {
+            "formula": "=INDEX(G2:G4,MATCH(F7,F2:F4,0))",
+            "rule": "error",
+            "why": "a rep name is looked for in the region list and not found"
+          },
+          {
+            "formula": "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0))+1",
+            "rule": "value",
+            "why": "one is added to the region target"
+          },
+          {
+            "formula": "=INDEX(F2:F4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0))",
+            "rule": "value",
+            "why": "the region is returned rather than its target"
+          },
+          {
+            "formula": "=INDEX(G2:G4,1)",
+            "rule": "func-match",
+            "why": "the first target is typed in rather than found"
+          },
+          {
+            "formula": "=MATCH(F7,A2:A5,0)",
+            "rule": "func-index",
+            "why": "the row number is reported rather than the target"
+          },
+          {
+            "formula": "=INDEX(G2:G4,MATCH(\"East\",F2:F4,0))",
+            "rule": "require-ref",
+            "why": "the region is hard-coded instead of reached through the typed name"
+          },
+          {
+            "formula": "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0))/0",
+            "rule": "error",
+            "why": "the target is then divided by zero"
+          },
+          {
+            "formula": "=INDEX G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0)",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Lookup dashboard from three tables",
+    "description": "INDEX and MATCH find a rep. A second nested pair then reaches the target for the region that rep belongs to, which is why a dashboard needs a third table."
+  },
+  "updated": "2026-10-31"
+}

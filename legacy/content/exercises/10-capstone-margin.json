@@ -89,12 +89,12 @@
       "hints": {
         "syntax": "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,1),\"\")",
         "func-iferror": "Wrap the whole calculation in IFERROR(value, \"\") so a region with no revenue shows a blank instead of #DIV/0!.",
-        "func-sumif": "Total the North revenue and the North cost separately — SUM would mix in every region.",
+        "func-sumif": "Total the North revenue and the North cost separately: SUM would mix in every region.",
         "func-round": "The margin needs ROUND to 1 decimal; without it the cell shows a long string of digits.",
         "one-decimal": "ROUND's second argument is the number of decimals, and this answer wants 1.",
         "require-ref": "Match on the region column and add the revenue column, so the answer follows the table.",
         "value": "Work in stages: North revenue, minus North cost, over North revenue, times 100. That is (2500 − 1380) / 2500 × 100 = 44.8.",
-        "error": "An error escaping this cell means the division ran before IFERROR could catch it, or IFERROR has no second argument — so there is nothing to show when a region comes back empty. IFERROR(value, \"\") goes on the outside, around everything."
+        "error": "An error escaping this cell means the division ran before IFERROR could catch it, or IFERROR has no second argument, so there is nothing to show when a region comes back empty. IFERROR(value, \"\") goes on the outside, around everything."
       },
       "fixtures": {
         "accept": [
@@ -178,7 +178,7 @@
         "44.8"
       ],
       "hints": {
-        "value": "B7 is the same IFERROR(ROUND(SUMIF…)) cell you wrote above, and the file recalculates it when it opens."
+        "value": "B7 is the same IFERROR(ROUND(SUMIF...)) cell you wrote above, and the file recalculates it when it opens."
       },
       "sheet": {
         "name": "Margin",
@@ -225,7 +225,7 @@
   ],
   "docs": {
     "syntax": "=IFERROR(ROUND((SUMIF(regions,\"North\",revenue)-SUMIF(regions,\"North\",cost))/SUMIF(regions,\"North\",revenue)*100,1),\"\")",
-    "explain": "This is the whole track in one cell. SUMIF picks the North rows out of both money columns: revenue 1500 + 1000 = 2500, cost 800 + 580 = 1380. Gross margin is (revenue − cost) / revenue, so (2500 − 1380) / 2500 = 0.448, and multiplying by 100 gives 44.8 percent. ROUND with 1 decimal keeps it there. IFERROR is the professional finish: if a region ever has no revenue the division would raise #DIV/0!, and wrapping the result in IFERROR(...,\"\") turns that loud error into a quiet blank that a chart can still read. Notice the order — ROUND sits inside IFERROR, so the error check sees the finished number, and the empty string is a text value, which is why the cell has to be formatted as text-friendly or left alone rather than forced to a number format.",
+    "explain": "This is the whole track in one cell. SUMIF picks the North rows out of both money columns: revenue 1500 + 1000 = 2500, cost 800 + 580 = 1380. Gross margin is (revenue − cost) / revenue, so (2500 − 1380) / 2500 = 0.448, and multiplying by 100 gives 44.8 percent. ROUND with 1 decimal keeps it there. IFERROR is the professional finish. If a region ever has no revenue the division raises #DIV/0!, and wrapping the result in IFERROR(...,\"\") turns that loud error into a blank that a chart can still read. The order matters: ROUND sits inside IFERROR, so the error check sees the finished number.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -237,7 +237,7 @@
       },
       {
         "code": "448",
-        "text": "Multiplying by 100 twice, or forgetting that ROUND on 0.448 with 1 decimal gives 0.4 — check which side of the percent you are on."
+        "text": "Multiplying by 100 twice, or forgetting that ROUND on 0.448 with 1 decimal gives 0.4. Check which side of the percent you are on."
       }
     ],
     "atWork": "This is the monthly-region-summary cell. SUMIF for the numerator and denominator, ROUND to keep the finance team happy, IFERROR so a new region with no sales yet does not paint a red error across the dashboard.",
@@ -245,5 +245,10 @@
     "teaches": "SUMIF, ROUND and IFERROR nested in one formula",
     "dataset": "Revenue and cost by region",
     "reference": "=IFERROR(ROUND((SUMIF(A2:A5,\"North\",B2:B5)-SUMIF(A2:A5,\"North\",C2:C5))/SUMIF(A2:A5,\"North\",B2:B5)*100,1),\"\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Capstone in Excel: a gross margin cell",
+    "description": "SUMIF pulls the North rows, ROUND keeps one decimal and IFERROR turns a division error into a blank. The whole track in one formula, 44.8 percent."
   }
 }

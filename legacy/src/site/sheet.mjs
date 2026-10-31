@@ -8,7 +8,7 @@
 import { chordText, gridModel, labelsOf, parseChord, parsePress, referenceOf } from "./packages.mjs";
 import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
 import { previewSheet } from "./preview.mjs";
-import { workbookUrl } from "../xlsx.mjs";
+import { datasetUrl, workbookUrl } from "../xlsx.mjs";
 
 /**
  * The grid itself, shared by the drill and the workbook preview. `targetCell` is the cell the learner
@@ -71,14 +71,23 @@ function renderDataGrid({ id, label, startCell, rows, targetCell = null, interac
 /**
  * The sheet: column letters, row numbers, read-only data, one target cell. `id` is per screen,
  * because a lesson may show several sheets and two elements cannot share an id.
+ *
+ * `interactive` and `targetCell` exist for the landing page's proof sheet: it borrows a real drill's
+ * grid to show what the product looks like, but it is not a drill, so it renders as a plain table
+ * with no focusable answer cell to tab into.
  */
-export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } = {}) {
+export function renderSheet(
+  exercise,
+  screen,
+  { icons = {}, id = "sheet-grid", interactive = true, targetCell = screen.answerCell } = {},
+) {
   return renderDataGrid({
     id,
     label: `${exercise.docs.dataset}, read-only data`,
     startCell: screen.grid.startCell,
     rows: screen.grid.rows,
-    targetCell: screen.answerCell,
+    targetCell,
+    interactive,
   });
 }
 
@@ -86,6 +95,10 @@ export function renderSheet(exercise, screen, { icons = {}, id = "sheet-grid" } 
  * A picture screen's image. `alt` is the question rather than a caption, so there is no `figcaption`
  * repeating it: a screen reader reads the figure's image and gets the whole prompt in one turn. The
  * image is first-party — `build.mjs` copies `content/images/` onto `/assets/img/`, where this points.
+ *
+ * The image sits in a scroll region of its own so a narrow phone can keep the figure at its drawn
+ * scale instead of shrinking its text under 8 px; the region is focusable because a box only a
+ * trackpad can scroll is not reachable at all.
  */
 export function imageUrl(path) {
   return `/assets/img/${path.slice("images/".length)}`;
@@ -93,13 +106,20 @@ export function imageUrl(path) {
 
 export function renderPicture(screen, { position = 0 } = {}) {
   return `<figure class="picture" id="picture-${position}">
-                  <img${attrs({
-                    class: "picture-img",
-                    src: imageUrl(screen.image),
-                    alt: screen.alt,
-                    loading: "lazy",
-                    decoding: "async",
+                  <div${attrs({
+                    class: "picture-scroll",
+                    tabindex: "0",
+                    role: "group",
+                    "aria-label": "The picture, which scrolls sideways when the screen is narrow",
                   })}>
+                    <img${attrs({
+                      class: "picture-img",
+                      src: imageUrl(screen.image),
+                      alt: screen.alt,
+                      loading: "lazy",
+                      decoding: "async",
+                    })}>
+                  </div>
                 </figure>`;
 }
 
@@ -113,11 +133,14 @@ export function renderPicture(screen, { position = 0 } = {}) {
  * formula that produced it.
  */
 export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
-  const url = workbookUrl(exercise.slug, screen.id);
-  const { rows, formulas } = previewSheet(screen.sheet);
+  // A project screen carries the project's one dataset rather than a file of its own: eight tasks over
+  // one spreadsheet is one download, not eight copies of the same rows.
+  const url = screen.file ? datasetUrl(screen.file) : workbookUrl(exercise.slug, screen.id);
+  const noun = screen.file ? "dataset" : "workbook";
+  const { rows, formulas } = previewSheet(screen.sheet, { today: screen.today });
   const preview = renderDataGrid({
     id: `workbook-grid-${position}`,
-    label: `${screen.sheet.name}, preview of the workbook`,
+    label: `${screen.sheet.name}, preview of the ${noun}`,
     startCell: screen.sheet.startCell,
     rows,
     interactive: false,
@@ -134,7 +157,7 @@ export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
 
   return `<div class="workbook" id="workbook-${position}">
                   <p class="workbook-file">
-                    <a class="workbook-link" href="${esc(url)}" download>Download the workbook<span class="workbook-ext"> (.xlsx)</span></a>
+                    <a class="workbook-link" href="${esc(url)}" download>Download the ${noun}<span class="workbook-ext"> (.xlsx)</span></a>
                     <span class="workbook-meta">It opens in Excel, Sheets or LibreOffice.</span>
                   </p>
                   <details class="workbook-preview" open>

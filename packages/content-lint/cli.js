@@ -3,6 +3,11 @@
  * `content-lint check` — the gate CI runs. `content-lint fixtures --lesson 6` — the table an author
  * reads while writing them. `content-lint new --lesson 11 --group lookup` — a passing skeleton in
  * the next free slot. `content-lint preview --lesson 11` — the drill as its page will read.
+ * `content-lint copy` — how the prose reads: banned phrases, sentence length, readability, duplicate
+ * lessons. `content-lint articles` — the same, over the function notes, plus the drill each one
+ * borrows. `content-lint legal` — the promises `/privacy` and `/terms` make: no organisation,
+ * university, cohort, referral or seat is for sale, and every section they owe a reader is there.
+ * `check --strict` runs all three and fails on any blocking hit.
  */
 
 import { join, dirname } from "node:path";
@@ -10,7 +15,11 @@ import { fileURLToPath } from "node:url";
 
 import { LEVELS, loadContent, screenAt } from "../content/index.js";
 import { addressOf, indexToCol, parseRef } from "../grader/index.js";
+import { lintArticles } from "./articles.js";
+import { lintCopy, loadRules } from "./copy.js";
+import { lintLegal } from "./legal.js";
 import { MIN_FIXTURES, lintContent, replayFixtures } from "./index.js";
+import { siteConfig } from "../../legacy/src/site/config.mjs";
 import { scaffoldLesson } from "./scaffold.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -19,16 +28,23 @@ const DEFAULT_FIXTURES = join(ROOT, "tests", "fixtures");
 
 function parseArgs(argv) {
   const [command = "check", ...rest] = argv;
-  const options = { command, content: DEFAULT_CONTENT, fixtures: DEFAULT_FIXTURES, lesson: null, group: null };
+  const options = { command, content: DEFAULT_CONTENT, fixtures: DEFAULT_FIXTURES, lesson: null, group: null, strict: false };
   for (let index = 0; index < rest.length; index += 1) {
     const arg = rest[index];
     if (arg === "--content") options.content = rest[++index];
     else if (arg === "--fixtures") options.fixtures = rest[++index];
     else if (arg === "--lesson") options.lesson = rest[++index];
     else if (arg === "--group") options.group = rest[++index];
-    else throw new Error(`unknown argument "${arg}" — try check, fixtures, new or preview`);
+    else if (arg === "--strict") options.strict = true;
+    else throw new Error(`unknown argument "${arg}" — try check, fixtures, copy, articles, legal, new or preview`);
   }
   return options;
+}
+
+/** The legal lint reads the same config and track the pages print, so it can never disagree with them. */
+function legalReport(contentDir) {
+  const { track } = loadContent(contentDir);
+  return lintLegal({ config: siteConfig(process.env), track });
 }
 
 /** Matches `--lesson 6` against `06-round-markup` as well as the full id. */
@@ -54,6 +70,92 @@ function printCheck(report) {
       ? `✓ content passes — ${stats.accepted} accepted and ${stats.rejected} rejected formulas agree with the grader`
       : `✖ ${errors.length} error${errors.length === 1 ? "" : "s"} — content is not shippable`,
   );
+}
+
+/** The copy report: numbers first, then only the findings that need a decision. */
+function printCopy(report, { strict, rules }) {
+  const { stats, findings } = report;
+  console.log(
+    `copy: ${stats.lessons} lessons, ${stats.groups} groups — ${stats.findings} finding${stats.findings === 1 ? "" : "s"} ` +
+      `(${stats.errors} blocking), reading ease ${stats.ease.mean ?? "n/a"} (${rules.flesch.min}-${rules.flesch.max})`,
+  );
+  const pending = [
+    stats.missingSeoTitle && `${stats.missingSeoTitle} without seo.title`,
+    stats.missingSeoDescription && `${stats.missingSeoDescription} without seo.description`,
+    stats.missingUpdated && `${stats.missingUpdated} without updated`,
+  ].filter(Boolean);
+  if (pending.length > 0) console.log(`  pending: ${pending.join(", ")}`);
+
+  const order = Object.entries(stats.byRule).sort((a, b) => b[1] - a[1]);
+  if (order.length > 0) console.log(`  by rule: ${order.map(([rule, count]) => `${rule} ${count}`).join(", ")}`);
+
+  const shown = findings.filter((finding) => (strict ? finding.severity === "error" : true));
+  const limit = strict ? shown.length : 40;
+  for (const finding of shown.slice(0, limit)) {
+    console.log(`  ${finding.severity === "error" ? "✖" : "⚠"} ${finding.where} ${finding.field}: ${finding.message}`);
+    if (finding.excerpt) console.log(`      ${finding.excerpt}`);
+  }
+  if (shown.length > limit) console.log(`  ... ${shown.length - limit} more; run with --lesson to narrow`);
+
+  const worst = report.lessons
+    .filter((lesson) => lesson.ease !== null)
+    .sort((a, b) => a.ease - b.ease)
+    .slice(0, 5);
+  if (worst.length > 0) console.log(`  hardest to read: ${worst.map((lesson) => `${lesson.id} ${lesson.ease}`).join(", ")}`);
+
+  const blocking = findings.filter((finding) => finding.severity === "error").length;
+  console.log(
+    blocking === 0
+      ? "✓ copy passes — no banned phrase, no decorative punctuation, no repeated lesson"
+      : `${strict ? "✖" : "⚠"} ${blocking} blocking finding${blocking === 1 ? "" : "s"} — prose is not shippable yet`,
+  );
+  return blocking === 0 || !strict ? 0 : 1;
+}
+
+/** The legal report: the promises, then the findings a reader could be misled by. */
+function printLegal(report, { strict }) {
+  const { stats, findings } = report;
+  console.log(
+    `legal: ${stats.documents} documents, ${stats.sections} sections, ${stats.retention} retention rows — ` +
+      `${stats.errors} blocking`,
+  );
+  const shown = findings.filter((finding) => (strict ? finding.severity === "error" : true));
+  for (const finding of shown) {
+    console.log(`  ${finding.severity === "error" ? "✖" : "⚠"} ${finding.where} ${finding.field}: ${finding.message}`);
+  }
+  console.log(
+    stats.errors === 0
+      ? "✓ legal passes — nothing is sold that this site does not sell, and every owed section is there"
+      : `✖ ${stats.errors} blocking finding${stats.errors === 1 ? "" : "s"} — the privacy and terms pages are not shippable`,
+  );
+  return stats.errors === 0 || !strict ? 0 : 1;
+}
+
+/** The notes report: the count, the numbers, then the findings that need a decision. */
+function printArticles(report, { strict }) {
+  const { stats, findings } = report;
+  console.log(
+    `articles: ${stats.articles} notes, ${stats.meanWords} words on average — ${stats.findings} finding${stats.findings === 1 ? "" : "s"} ` +
+      `(${stats.errors} blocking)`,
+  );
+  const order = Object.entries(stats.byRule).sort((a, b) => b[1] - a[1]);
+  if (order.length > 0) console.log(`  by rule: ${order.map(([rule, count]) => `${rule} ${count}`).join(", ")}`);
+
+  const shown = strict ? findings.filter((finding) => finding.severity === "error") : findings;
+  for (const finding of shown) {
+    console.log(`  ${finding.severity === "error" ? "✖" : "⚠"} ${finding.where} ${finding.field}: ${finding.message}`);
+    if (finding.excerpt) console.log(`      ${finding.excerpt}`);
+  }
+  if (!strict && stats.errors > 0) {
+    console.log(`  ${stats.errors} of these block the build; run with --strict to see only those`);
+  }
+  const blocking = findings.filter((finding) => finding.severity === "error").length;
+  console.log(
+    blocking === 0
+      ? "✓ notes pass — every one parses, points at a drivable exercise, and reads like a person wrote it"
+      : `${strict ? "✖" : "⚠"} ${blocking} blocking finding${blocking === 1 ? "" : "s"} — notes are not shippable yet`,
+  );
+  return blocking === 0 || !strict ? 0 : 1;
 }
 
 function printFixtures(lesson, screens) {
@@ -187,7 +289,73 @@ function main(argv) {
   if (options.command === "check") {
     const report = lintContent(options.content, { fixturesDir: options.fixtures });
     printCheck(report);
-    return report.ok ? 0 : 1;
+    if (!options.strict) return report.ok ? 0 : 1;
+    // `--strict` also ships the prose: a lesson can render and still be unshippable.
+    const copy = lintCopy(options.content);
+    const copyOk = printCopy(copy, { strict: true, rules: loadRules() }) === 0;
+    // The notes are part of the prose the site ships, so `--strict` ships them too.
+    const notesOk = printArticles(lintArticles(options.content), { strict: true }) === 0;
+    // `/privacy` and `/terms` are prose too, and a false promise there is worse than a clumsy sentence.
+    const legalOk = printLegal(legalReport(options.content), { strict: true }) === 0;
+    return report.ok && copyOk && notesOk && legalOk ? 0 : 1;
+  }
+
+  if (options.command === "legal") {
+    let report;
+    try {
+      report = legalReport(options.content);
+    } catch (error) {
+      console.error(error.message);
+      return 1;
+    }
+    return printLegal(report, { strict: options.strict });
+  }
+
+  if (options.command === "articles") {
+    let report;
+    try {
+      report = lintArticles(options.content);
+    } catch (error) {
+      console.error(error.message);
+      return 1;
+    }
+    return printArticles(report, { strict: options.strict });
+  }
+
+  if (options.command === "copy") {
+    let copy;
+    try {
+      copy = lintCopy(options.content);
+    } catch (error) {
+      console.error(error.message);
+      return 1;
+    }
+    if (options.lesson) {
+      const lesson = findLesson(copy.lessons, options.lesson);
+      if (!lesson) {
+        console.error(`no lesson matches "${options.lesson}"`);
+        return 2;
+      }
+      const narrowed = copy.findings.filter((finding) => finding.where.includes(`${lesson.id}.json`));
+      const byRule = {};
+      for (const finding of narrowed) byRule[finding.rule] = (byRule[finding.rule] ?? 0) + 1;
+      return printCopy(
+        {
+          ...copy,
+          findings: narrowed,
+          stats: {
+            ...copy.stats,
+            lessons: 1,
+            findings: narrowed.length,
+            errors: narrowed.filter((finding) => finding.severity === "error").length,
+            byRule,
+            ease: { min: lesson.ease, max: lesson.ease, mean: lesson.ease },
+          },
+        },
+        { strict: options.strict, rules: loadRules() },
+      );
+    }
+    return printCopy(copy, { strict: options.strict, rules: loadRules() });
   }
 
   if (options.command === "fixtures") {
@@ -233,7 +401,7 @@ function main(argv) {
     return 0;
   }
 
-  console.error(`unknown command "${options.command}" — use check, fixtures, new or preview`);
+  console.error(`unknown command "${options.command}" — use check, fixtures, copy, articles, legal, new or preview`);
   return 2;
 }
 

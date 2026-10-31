@@ -12,14 +12,28 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Code", "Characters"],
-          ["Invoice 2026-03", null]
+          [
+            "Code",
+            "Characters"
+          ],
+          [
+            "Invoice 2026-03",
+            null
+          ]
         ]
       },
       "answerCell": "B2",
-      "expect": { "value": 15 },
+      "expect": {
+        "value": 15
+      },
       "reference": "=LEN(A2)",
-      "require": [{ "id": "func-len", "func": "LEN", "minArgs": 1 }],
+      "require": [
+        {
+          "id": "func-len",
+          "func": "LEN",
+          "minArgs": 1
+        }
+      ],
       "forbid": [],
       "requireRef": "A2",
       "rules": [],
@@ -80,14 +94,28 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Code", "Prefix"],
-          ["Invoice 2026-03", null]
+          [
+            "Code",
+            "Prefix"
+          ],
+          [
+            "Invoice 2026-03",
+            null
+          ]
         ]
       },
       "answerCell": "B2",
-      "expect": { "value": "Inv" },
+      "expect": {
+        "value": "Inv"
+      },
       "reference": "=LEFT(A2,3)",
-      "require": [{ "id": "func-left", "func": "LEFT", "minArgs": 2 }],
+      "require": [
+        {
+          "id": "func-left",
+          "func": "LEFT",
+          "minArgs": 2
+        }
+      ],
       "forbid": [],
       "requireRef": "A2",
       "rules": [],
@@ -148,14 +176,28 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Code", "Year and month"],
-          ["Invoice 2026-03", null]
+          [
+            "Code",
+            "Year and month"
+          ],
+          [
+            "Invoice 2026-03",
+            null
+          ]
         ]
       },
       "answerCell": "B2",
-      "expect": { "value": "6-03" },
+      "expect": {
+        "value": "6-03"
+      },
       "reference": "=RIGHT(A2,4)",
-      "require": [{ "id": "func-right", "func": "RIGHT", "minArgs": 2 }],
+      "require": [
+        {
+          "id": "func-right",
+          "func": "RIGHT",
+          "minArgs": 2
+        }
+      ],
       "forbid": [],
       "requireRef": "A2",
       "rules": [],
@@ -212,7 +254,7 @@
   ],
   "docs": {
     "syntax": "=LEN(text), =LEFT(text, count), =RIGHT(text, count)",
-    "explain": "Invoice 2026-03 is fifteen characters, and that number is worth knowing before you cut anything: LEN(A2) reports 15 because it counts the space between the word and the year as a character like any other. LEFT(A2,3) keeps the first three and gives Inv, the document prefix. RIGHT(A2,4) keeps the last four and gives 6-03, the year without its century plus the month. Cutting by a fixed count works only when every code has the same shape; when a code arrives with a different prefix length, the count that was right for one row cuts the wrong characters off the next, and that is when LEN and FIND start doing the work instead of a typed number.",
+    "explain": "Invoice 2026-03 is fifteen characters, and that number is worth knowing before you cut anything. LEN(A2) reports 15 because it counts the space between the word and the year as a character like any other. LEFT(A2,3) keeps the first three and gives Inv, the document prefix. RIGHT(A2,4) keeps the last four and gives 6-03, the year without its century plus the month. Cutting by a fixed count works only when every code has the same shape. When a code arrives with a different prefix length, the count that was right for one row cuts the wrong characters off the next. That is when LEN and FIND start doing the work instead of a typed number.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -228,5 +270,10 @@
     "teaches": "LEN, LEFT and RIGHT",
     "dataset": "One fifteen-character code",
     "reference": "=LEN(A2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "LEN, LEFT and RIGHT in Excel",
+    "description": "Invoice 2026-03 is 15 characters, space included. LEFT gives Inv, RIGHT gives 6-03, and a typed count stops working the moment the prefix changes length."
   }
 }

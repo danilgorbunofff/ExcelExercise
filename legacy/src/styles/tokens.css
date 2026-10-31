@@ -3,7 +3,7 @@
    here. Radix provides the 12-step scales, the names below say what each step means. */
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 
   /* surfaces — Radix sand */
   --bg: var(--sand-2);
@@ -60,14 +60,100 @@
   --shadow-1: 0 1px 2px #21201c0f, 0 1px 3px -1px #21201c14;
   --dur-1: 120ms;
   --dur-2: 180ms;
+  /* The loading pulse. Long enough to read as work in progress rather than a flicker, which is why it
+     is a third duration instead of the interaction pair above. */
+  --dur-3: 1.4s;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
   --shell: 1080px;
-  --prose: 68ch;
+  /* `ch` is the width of `0`, which in IBM Plex Sans is 10.2px at 17px while the average prose glyph
+     is 8.49px — so 68ch resolves to 693.6px and prints 82-94 characters a line, past the point where
+     the eye loses its place on the return sweep. 620px is 73 characters at the same glyph width. */
+  --prose: min(68ch, 620px);
+  /* A block that is shown rather than read — the landing's specimen sheet, the two progress
+     readouts — sits narrower than the measure so it reads as an object on the page. One value, so
+     the same readout is not 380px on one page and 420px on another. */
+  --artifact: 480px;
   --rail: 260px;
 }
 
-/* Radix redefines --sand-*, --jade-* under .dark, so the surface aliases follow
-   automatically. Only the three hand-tuned state inks need a dark pair. */
+/* Phase 9A §7 — dark mode is a palette swap and nothing else. Radix publishes a dark counterpart for
+   every step with the same meaning (1–2 backgrounds, 3–5 tints, 6–8 borders, 9–10 solids, 11–12 text),
+   so re-pointing the four scales re-points every semantic name derived from them, and no component
+   learns that a second theme exists. The vendor files ship those steps behind `.dark`, which needs a
+   script to set a class before first paint; this page is server-rendered with no theme script, so the
+   sRGB values are restated here under the preference the OS already publishes. (The vendors' P3
+   upgrade still lives in `.dark` for a client that sets the class.)
+   The three hand-tuned state inks are the one exception: they were darkened to clear 4.5:1 on a light
+   tint, and Radix's dark 11s are the pair that clear it on the dark one. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --sand-1: #111110;
+    --sand-2: #191918;
+    --sand-3: #222221;
+    --sand-4: #2a2a28;
+    --sand-5: #31312e;
+    --sand-6: #3b3a37;
+    --sand-7: #494844;
+    --sand-8: #62605b;
+    --sand-9: #6f6d66;
+    --sand-10: #7c7b74;
+    --sand-11: #b5b3ad;
+    --sand-12: #eeeeec;
+
+    --jade-1: #0d1512;
+    --jade-2: #121c18;
+    --jade-3: #0f2e22;
+    --jade-4: #0b3b2c;
+    --jade-5: #114837;
+    --jade-6: #1b5745;
+    --jade-7: #246854;
+    --jade-8: #2a7e68;
+    --jade-9: #29a383;
+    --jade-10: #27b08b;
+    --jade-11: #1fd8a4;
+    --jade-12: #adf0d4;
+
+    --amber-1: #16120c;
+    --amber-2: #1d180f;
+    --amber-3: #302008;
+    --amber-4: #3f2700;
+    --amber-5: #4d3000;
+    --amber-6: #5c3d05;
+    --amber-7: #714f19;
+    --amber-8: #8f6424;
+    --amber-9: #ffc53d;
+    --amber-10: #ffd60a;
+    --amber-11: #ffca16;
+    --amber-12: #ffe7b3;
+
+    --red-1: #191111;
+    --red-2: #201314;
+    --red-3: #3b1219;
+    --red-4: #500f1c;
+    --red-5: #611623;
+    --red-6: #72232d;
+    --red-7: #8c333a;
+    --red-8: #b54548;
+    --red-9: #e5484d;
+    --red-10: #ec5d5e;
+    --red-11: #ff9592;
+    --red-12: #ffd1d9;
+
+    --ok: var(--jade-11);
+    --warn: var(--amber-11);
+
+    /* A shadow drawn on a dark surface has to be blacker than the surface to read as lift at all. */
+    --shadow-1: 0 1px 2px #00000059, 0 1px 3px -1px #00000073;
+    /* The light scrim is a green-black at 45%; on a dark page that only muddies it, so this is the
+       same scrim at the opacity that still separates a dialog from what sits behind it. */
+    --scrim: rgb(0 0 0 / 62%);
+  }
+}
+
+/* The explicit hook the vendor scales answer to. Kept so a client that wants to pin a theme can set
+   `class="dark"` without touching the palette above. */
 .dark {
   color-scheme: dark;
   --ok: var(--jade-11);

@@ -139,7 +139,7 @@
   ],
   "docs": {
     "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
-    "explain": "TX-103 is the third entry of A2:A5, so XLOOKUP returns the third entry of D2:D5, which is 9.5. The two ranges are read in parallel, position by position: the lookup range answers which row, and the return range answers which column, so no digit ever describes the table's shape. That is why the cost column can sit between the SKUs and the prices without breaking anything, and why =XLOOKUP(A6,A2:A5,C2:C5) returns 4.8 instead of 9.5. Both ranges have to be the same size and start on the same row \u2014 D1:D4 is off by one row and answers with 14. Match mode defaults to exact, so the fourth and fifth arguments can stay empty.",
+    "explain": "TX-103 is the third entry of A2:A5, so XLOOKUP returns the third entry of D2:D5, which is 9.5. The two ranges are read in parallel, position by position. The lookup range answers which row, and the return range answers which column, so no digit describes the table's shape. That is why the cost column can sit between the SKUs and the prices without breaking anything, and why =XLOOKUP(A6,A2:A5,C2:C5) returns 4.8 instead of 9.5. Both ranges have to be the same size and start on the same row: D1:D4 is off by one and answers with 14. Match mode defaults to exact, so the last two arguments can stay empty.",
     "errors": [
       {
         "code": "#N/A",
@@ -155,5 +155,10 @@
     "teaches": "XLOOKUP",
     "dataset": "SKU price list with cost and price columns",
     "reference": "=XLOOKUP(A6,A2:A5,D2:D5)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "XLOOKUP in Excel: exact match, no columns",
+    "description": "XLOOKUP reads a key column and an answer column in parallel, so inserting a column cannot break it. The third SKU returns 9.5, not the 4.8 cost beside it."
   }
 }

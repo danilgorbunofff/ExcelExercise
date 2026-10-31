@@ -220,50 +220,32 @@ design system, with accessibility and browser-resilience the reference does not 
       clears WCAG AA's 24 px target minimum. Chord and workbook screens are covered by their own page
       tests but not by axe, because no catalog lesson ships one.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [x] A 7-screen lesson exercising all five types reaches 100 and completes. `tests/five-types.test.js`
-      is that lesson: it swaps lesson 16 for a seven-screen copy (two formulas, the shipped picture, a
-      chord, a sequence, a workbook and a second chord), builds the site from a temp root, and then walks
-      the published payload the way the player does — each screen graded with the answer the lesson
-      itself carries, by the same modules `gradeScreen` dispatches to, through
-      `createSession`/`recordVerdict` with the player's own weighting. The build writes the one workbook
-      file, `verify()` is clean, the page carries three keyboard panels, one picture panel, one workbook
-      panel and two sheets, and the walk finishes on screen 7 with one `lesson_complete` and seven
-      `screen_complete`. This criterion is about the engine carrying the five types together; all three
-      non-`formula` types now also ship on real lessons — chord and sequence on lesson 03, the workbook
-      on the capstone — built by the same path.
-- [x] Recycling works: a lesson with 5 screens still terminates at 100.
-- [ ] Chord drills pass manual matrix on Chrome/Safari/Firefox × macOS/Windows. **The one criterion a
-      machine cannot close here, now for one reason only.** The content half closed on 2026-10-29 —
-      lesson 03 ships a chord and a sequence — but the matrix is a claim about real browsers on two
-      platforms, and Playwright's Chromium is neither Safari nor Windows. What is left for a human: open
-      that lesson in each of the six cells, press the chord, confirm the screen advances rather than the
-      browser acting on it, and repeat with the sequence; then type both in the bar. The
-      capability detection both paths depend on is covered (`tests/keys.test.js`,
-      `tests/keys-page.test.js`), so what remains is a deployment check rather than an open question.
-- [x] At least one real browser-reserved combination degrades to the fallback instead of dead-ending.
-      `tests/keys.test.js` proves the player's own rule (`keysLive` in `drill.js`): every chord in the
-      list reserved means no listener and the bar instead, and one reserved step drops a whole sequence
-      to the bar, because a sequence missing a press can never complete. The fallback is not a dead end —
-      the reveal is printed in words, so `matchesTyped` grades `Ctrl+T`, `ctrl + t` and `CTRL+T` alike.
-      Proven at the module level rather than in a browser on purpose: no shipped lesson carries a
-      reserved shortcut, and in a browser the press would first have to be swallowed to be worth testing.
-- [x] Wrong answer shows the authored hint for the actual failure mode, not a generic message. Proven in
-      `tests/grader.test.js`, which walks the precedence chain (own rule → alias → `hints.value`), and in
-      `tests/client.test.js`, which pins that the player shows `result.hint` and falls back to the screen's
-      general line rather than to nothing.
-- [x] Show-answer threshold is configurable and respected. `showAnswerAfter` is content
-      (`tests/track-schema.test.js` pins the default and the 1–10 bounds), travels in the payload, and the
-      player gates the reveal and its restore path on it (`tests/client.test.js`; the visible counter in
-      `e2e/drill.spec.js` reads "Attempt N of 3" from that same value).
-- [x] Workbook preview renders offline, with no third-party request. Proven in
-      `tests/workbook-page.test.js`, whose fixture asserts the preview table is server-rendered markup.
-- [x] axe: zero critical/serious on the player. `e2e/a11y.spec.js`, five scans, all clean.
-- [x] Keyboard-only learner completes a full lesson. `e2e/keyboard.spec.js` does it in one drill, from
-      the tab walk to the next drill's link.
-- [x] Session timer pauses when the tab is hidden. `e2e/drill.spec.js` hides the tab, waits, and
-      asserts the next event's `elapsed` did not grow by the hidden second.
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p2-24 | Event vocabulary, 17 names | Proven | `tests/session.test.js:402` | unit | — |
+| p2-30 | Score loop `createSession`/`recordVerdict`/`emitAll` | Proven | `tests/session.test.js:45` (M3) | browser + unit | — |
+| p2-35 | Wall-clock session budget, default 60 min | Built, unproven | `packages/session/clock.js:12`; M16 survived — every test injects the budget | browser exercises the mechanism, not the default | Build B4 |
+| p2-43 | Formula screen, multi-screen lesson | Proven | `e2e/drill.spec.js:181`; `tests/fragments.test.js:42` | browser | — |
+| p2-55 | `type` picks the panel at build time | Proven | `tests/five-types.test.js:132` | build + browser | — |
+| p2-62 | Picture screen | Proven | `e2e/a11y.spec.js:143` | browser | — |
+| p2-74 | Chord + sequence screens, capability fallback | Proven | `tests/keys.test.js:239` (M14); `e2e/a11y.spec.js:160` | browser | — |
+| p2-91 | Workbook screen ships rows, not a file | Proven | `tests/workbook-build.test.js:77` (M21); `e2e/a11y.spec.js:179` | browser | — |
+| p2-114 | Hints and help, three surfaces, one owner each | Proven | `tests/grader.test.js:458` (M2) | browser | — |
+| p2-208 | Focus management, `aria-live`, keyboard | Proven | `e2e/wcag22.spec.js:106` | browser | — |
+| p2-225 | 7-screen lesson reaches 100 and completes | Proven | `tests/five-types.test.js:149` | unit | — |
+| p2-236 | Recycling terminates at 100 | Proven | `tests/session.test.js:68,87,96` (M3 breaks the cap) | unit | — |
+| p2-237 | Chord matrix on Chrome/Safari/Firefox × macOS/Windows | Built, unproven | no recorded matrix; only Chromium in CI | n/a — claim says so itself | Build B3 |
+| p2-245 | A browser-reserved chord degrades to the fallback | Proven | `tests/keys.test.js:252` (M14) | browser | — |
+| p2-252 | Wrong answer shows the hint for the actual failure mode | Proven | `tests/grader.test.js:458,708,717` (M2) | browser | — |
+| p2-256 | `showAnswerAfter` configurable and respected | Proven | `tests/client.test.js:603,612,618` | browser | — |
+| p2-260 | Workbook preview renders offline, no third-party request | Proven | `tests/build.test.js:363`; `e2e/a11y.spec.js:179` | browser | — |
+| p2-262 | axe: zero critical/serious on the player | Proven | `e2e/a11y.spec.js:83` | browser | — |
+| p2-263 | Keyboard-only learner completes a full lesson | Proven | `e2e/keyboard.spec.js:67` | browser | — |
+| p2-265 | Timer pauses when the tab is hidden | Proven | `e2e/drill.spec.js:274` — `setHidden` harness | browser | — |
 
 ## Test plan
 

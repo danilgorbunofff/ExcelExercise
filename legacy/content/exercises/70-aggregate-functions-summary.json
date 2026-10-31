@@ -1,0 +1,252 @@
+{
+  "id": "70-aggregate-functions-summary",
+  "slug": "aggregate-functions-summary",
+  "level": 3,
+  "title": "Totals that multiply, skip and reconcile",
+  "docs": {
+    "syntax": "=SUMPRODUCT(pairs) values a table; =SUBTOTAL(9,range) adds a group; a ratio of the two is a weighted figure",
+    "explain": "This screen is the reconciliation every stock sheet ends up needing. The value column already holds each row's price times its quantity, and the total under it is a SUBTOTAL. The question is whether that column and the underlying prices and quantities agree, and the way to answer it is to compute the same total by the other route and compare. If both routes were built correctly they land on the same number, and the ratio between them is one. That single figure is a better check than eyeballing two totals on different rows: one means the two paths agree, anything else means a row was added, deleted or typed over. It also shows why the two functions are siblings rather than rivals. SUMPRODUCT reads across a row and multiplies; SUBTOTAL reads down a column and adds. Putting them in one formula makes the arithmetic explicit, which is the part of a spreadsheet that is easiest to get wrong and hardest to see. The first screen totals the value column, and the second divides the product total by it, so the learner writes the same two functions in both directions.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The subtotal is zero, so the comparison cannot be made."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The ranges given to SUMPRODUCT do not have the same shape."
+      }
+    ],
+    "atWork": "Checking that a value column agrees with the prices and quantities behind it.",
+    "outcome": "Reconcile two routes to the same total and read the ratio as a pass or a fail.",
+    "teaches": "SUBTOTAL over a value column and a SUMPRODUCT that reproduces it",
+    "dataset": "Stock list with a value column and a total row to check",
+    "reference": "=SUBTOTAL(9,D2:D4)"
+  },
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In D5, total the value column with SUBTOTAL.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Price",
+            "Qty",
+            "Line"
+          ],
+          [
+            "pen",
+            10,
+            2,
+            20
+          ],
+          [
+            "pad",
+            5,
+            4,
+            20
+          ],
+          [
+            "ink",
+            20,
+            3,
+            60
+          ],
+          [
+            "Line total",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D5",
+      "expect": {
+        "value": 100
+      },
+      "reference": "=SUBTOTAL(9,D2:D4)",
+      "require": [
+        {
+          "id": "func-subtotal",
+          "func": "SUBTOTAL",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "D2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUBTOTAL(9,D2:D4): the number comes first, then the value column.",
+        "func-subtotal": "The total under a table is the subtotal, not a plain sum.",
+        "require-ref": "The value column is D2:D4.",
+        "value": "Twenty plus twenty plus sixty is 100.",
+        "error": "Dividing the total by zero replaces it with #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUBTOTAL(9,D2:D4)",
+          "=subtotal(9,d2:d4)",
+          "=SUBTOTAL(9,$D$2:$D$4)",
+          "=SUBTOTAL(9,D$2:D$4)",
+          "=SUBTOTAL( 9 , D2:D4 )",
+          "=SUBTOTAL(9,D2:D4)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(D2:D4)",
+            "rule": "func-subtotal",
+            "why": "a plain SUM keeps adding rows a filter has hidden"
+          },
+          {
+            "formula": "=SUBTOTAL(9,D2:D3)",
+            "rule": "value",
+            "why": "the last line value is left out"
+          },
+          {
+            "formula": "=SUBTOTAL(4,D2:D4)",
+            "rule": "value",
+            "why": "function number four returns the largest line, not the total"
+          },
+          {
+            "formula": "=SUBTOTAL(9,D3:D4)",
+            "rule": "require-ref",
+            "why": "the range starts one row late"
+          },
+          {
+            "formula": "=SUBTOTAL(9,D2:D4)/0",
+            "rule": "error",
+            "why": "the total is divided by zero"
+          },
+          {
+            "formula": "=SUBTOTAL 9,D2:D4",
+            "rule": "syntax",
+            "why": "the range sits outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In D5, divide the price-times-quantity total by the line total and round it to one decimal place.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Item",
+            "Price",
+            "Qty",
+            "Line"
+          ],
+          [
+            "pen",
+            10,
+            2,
+            20
+          ],
+          [
+            "pad",
+            5,
+            4,
+            20
+          ],
+          [
+            "ink",
+            20,
+            3,
+            60
+          ],
+          [
+            "Line total",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D5",
+      "expect": {
+        "value": 1
+      },
+      "reference": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4),1)",
+      "require": [
+        {
+          "id": "func-sumproduct",
+          "func": "SUMPRODUCT",
+          "minArgs": 2
+        },
+        {
+          "id": "func-subtotal",
+          "func": "SUBTOTAL",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4),1): the ratio sits inside the ROUND.",
+        "func-sumproduct": "The numerator is price times quantity, which is what SUMPRODUCT is for.",
+        "func-subtotal": "The denominator is the total under the value column, which is a SUBTOTAL.",
+        "require-ref": "Both routes read the table rows rather than numbers typed by hand.",
+        "value": "100 divided by 100 is 1, so the two routes agree.",
+        "error": "A zero subtotal leaves nothing to divide by, so #DIV/0! comes back."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4),1)",
+          "=round(sumproduct(b2:b4,c2:c4)/subtotal(9,d2:d4),1)",
+          "=ROUND(SUMPRODUCT($B$2:$B$4,$C$2:$C$4)/SUBTOTAL(9,$D$2:$D$4),1)",
+          "=ROUND(SUMPRODUCT(B$2:B$4,C$2:C$4)/SUBTOTAL(9,D$2:D$4),1)",
+          "=ROUND( SUMPRODUCT(B2:B4, C2:C4) / SUBTOTAL(9, D2:D4) , 1 )",
+          "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4)*1,1)"
+        ],
+        "reject": [
+          {
+            "formula": "=AVERAGE(B2:B4)",
+            "rule": "func-sumproduct",
+            "why": "neither route is written: the prices are averaged on their own"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4),1)",
+            "rule": "func-subtotal",
+            "why": "the denominator is a plain sum rather than the subtotal under the column"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,C2:C4),1)",
+            "rule": "value",
+            "why": "the quantity total is 9, so the ratio is nowhere near one"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D3),1)",
+            "rule": "value",
+            "why": "the last line value is missing from the denominator"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B3:B4,C3:C4)/SUBTOTAL(9,D2:D4),1)",
+            "rule": "require-ref",
+            "why": "the first item is missing from the numerator"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4),1)/0",
+            "rule": "error",
+            "why": "the ratio is then divided by zero"
+          },
+          {
+            "formula": "=ROUND SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4),1",
+            "rule": "syntax",
+            "why": "the ratio falls outside the parentheses ROUND needs"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Reconcile a stock sheet in Excel",
+    "description": "Total the value column with SUBTOTAL, then rebuild it from prices and quantities with SUMPRODUCT. A ratio of exactly one means both routes agree."
+  },
+  "updated": "2026-10-31"
+}

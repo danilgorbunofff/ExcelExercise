@@ -39,6 +39,28 @@ test("the offer page names the price and the split", async ({ page }) => {
   await expect(page.locator(".gate-note")).toContainText("Checkout is not open yet");
 });
 
+test("the price comes before the roster, and the roster stays a list", async ({ page }) => {
+  await page.goto("/pricing");
+
+  // The roster is the offer's evidence, not its argument: a buyer who has to scroll past 85 rows to
+  // reach the number has been given the wrong page order.
+  const price = await page.locator("#price-heading").evaluate((el) => el.getBoundingClientRect().top);
+  const free = await page.locator("#free-heading").evaluate((el) => el.getBoundingClientRect().top);
+  expect(price).toBeLessThan(free);
+
+  // Each row is `NN · title — outcome` on one line. It used to be a two-cell grid, which sent the
+  // outcome text through the 24px counter cell so every row wrapped to ~350px and the page to 34,600.
+  const row = await page
+    .locator("#free-heading + .how-steps li")
+    .first()
+    .evaluate((el) => ({ height: el.getBoundingClientRect().height, width: el.getBoundingClientRect().width }));
+  expect(row.height).toBeLessThan(90);
+  expect(row.width).toBeGreaterThan(200);
+
+  const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+  expect(pageHeight).toBeLessThan(12_000);
+});
+
 test("the first paid drill opens on one click, and only once", async ({ page }) => {
   await seedBefore(page, promptAt.slug);
   await page.goto(promptAt.path);

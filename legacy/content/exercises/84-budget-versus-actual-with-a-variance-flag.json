@@ -1,0 +1,257 @@
+{
+  "id": "84-budget-versus-actual-with-a-variance-flag",
+  "slug": "budget-versus-actual-with-a-variance-flag",
+  "level": 3,
+  "title": "Budget versus actual with a variance flag",
+  "docs": {
+    "syntax": "=ROUND((actual-budget)/budget,3) sizes the variance; ABS lets one threshold catch both directions",
+    "explain": "A budget report is only useful when it says which lines need attention, and the arithmetic that makes the decision is a division rather than a subtraction. Dividing by the budget turns a variance into a share of what was planned. That is what makes one threshold apply to every line: twenty pounds over is nothing on a five thousand pound line and everything on a fifty pound one. The first screen writes that share and rounds it. An unrounded ratio is a long tail of digits that nobody reads, and no comparison against a threshold can be written to match it. The second screen adds the flag, and the interesting part is the ABS call. A flag written without it catches overspends and silently lets underspends through, so a line thirty per cent under budget never gets reviewed. Wrapping the difference in ABS makes one threshold cover both directions, which is what a review flag is for. Together the two screens are the shape of every variance table: a share of plan, then a word that says whether that share is worth a conversation.",
+    "errors": [
+      {
+        "code": "#DIV/0!",
+        "text": "The budget figure is zero, so the variance has nothing to be measured against."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "A budget or actual cell holds text, so the difference cannot be worked out."
+      }
+    ],
+    "atWork": "Turning budget and actual columns into a comparable variance and a review flag.",
+    "outcome": "Size a variance as a share of budget, then flag it with one threshold in both directions.",
+    "teaches": "a rounded variance share, then an IF over ABS so under- and overspends both flag",
+    "dataset": "Four budget lines with budget, actual and one answer cell",
+    "reference": "=ROUND((C2-B2)/B2,3)"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In D2, report the actual-vs-budget variance of the first line as a share of its budget, to three decimal places.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Line",
+            "Budget",
+            "Actual",
+            "Answer"
+          ],
+          [
+            "rent",
+            2000,
+            2100,
+            null
+          ],
+          [
+            "payroll",
+            5000,
+            4800,
+            null
+          ],
+          [
+            "tools",
+            300,
+            300,
+            null
+          ],
+          [
+            "travel",
+            800,
+            950,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 0.05
+      },
+      "reference": "=ROUND((C2-B2)/B2,3)",
+      "require": [
+        {
+          "id": "func-round",
+          "func": "ROUND",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=ROUND((C2-B2)/B2,3): the difference over the budget, to three places.",
+        "func-round": "The raw ratio is a long tail of digits, so it is rounded for reporting.",
+        "require-ref": "The budget figure is in B2.",
+        "value": "A hundred over two thousand is five per cent, or 0.05.",
+        "error": "A zero budget leaves the share nothing to be measured against."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUND((C2-B2)/B2,3)",
+          "=round((c2-b2)/b2,3)",
+          "=ROUND(($C$2-$B$2)/$B$2,3)",
+          "=ROUND((C$2-B$2)/B$2,3)",
+          "=ROUND( ( C2 - B2 ) / B2 , 3 )",
+          "=ROUND((C2-B2)/B2,3)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=C2-B2",
+            "rule": "func-round",
+            "why": "the difference is left as an amount rather than a share"
+          },
+          {
+            "formula": "=ROUND(C2-B2,3)",
+            "rule": "value",
+            "why": "a hundred pounds is not five per cent"
+          },
+          {
+            "formula": "=ROUND((B2-C2)/B2,3)",
+            "rule": "value",
+            "why": "the subtraction runs the wrong way, giving a negative share"
+          },
+          {
+            "formula": "=ROUND((C2-B2)/C2,3)",
+            "rule": "value",
+            "why": "the difference is measured against the actual rather than the budget"
+          },
+          {
+            "formula": "=ROUND((C3-B3)/B3,3)",
+            "rule": "require-ref",
+            "why": "the formula reads the second line rather than B2"
+          },
+          {
+            "formula": "=ROUND((C2-B2)/0,3)",
+            "rule": "error",
+            "why": "the difference is divided by zero"
+          },
+          {
+            "formula": "=ROUND (C2-B2)/B2,3",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In D2, flag the first line review when its variance is more than ten per cent in either direction and ok otherwise.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Line",
+            "Budget",
+            "Actual",
+            "Answer"
+          ],
+          [
+            "rent",
+            2000,
+            2100,
+            null
+          ],
+          [
+            "payroll",
+            5000,
+            4800,
+            null
+          ],
+          [
+            "tools",
+            300,
+            300,
+            null
+          ],
+          [
+            "travel",
+            800,
+            950,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": "ok"
+      },
+      "reference": "=IF(ABS(C2-B2)/B2>0.1,\"review\",\"ok\")",
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 3
+        },
+        {
+          "id": "func-abs",
+          "func": "ABS",
+          "minArgs": 1
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=IF(ABS(C2-B2)/B2>0.1,\"review\",\"ok\"): the absolute share against the threshold, then two words.",
+        "func-if": "The cell has to choose between two words.",
+        "func-abs": "An overspend and an underspend both count, so the difference is taken without its sign.",
+        "require-ref": "The budget figure is in B2.",
+        "value": "Five per cent is inside ten, so the first line is ok.",
+        "error": "A zero budget divides by zero before the comparison is made."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(ABS(C2-B2)/B2>0.1,\"review\",\"ok\")",
+          "=if(abs(c2-b2)/b2>0.1,\"review\",\"ok\")",
+          "=IF(ABS($C$2-$B$2)/$B$2>0.1,\"review\",\"ok\")",
+          "=IF(ABS(C$2-B$2)/B$2>0.1,\"review\",\"ok\")",
+          "=IF( ABS( C2 - B2 ) / B2 > 0.1 , \"review\" , \"ok\" )",
+          "=IF(ABS(C2-B2)/B2>0.1,\"review\",\"ok\")&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=\"ok\"",
+            "rule": "func-if",
+            "why": "the flag is typed rather than decided by the variance"
+          },
+          {
+            "formula": "=IF(C2>B2,\"review\",\"ok\")",
+            "rule": "func-abs",
+            "why": "the size of the variance never enters, so any overspend flags"
+          },
+          {
+            "formula": "=IF(ABS(C2-B2)/B2>0.1,\"ok\",\"review\")",
+            "rule": "value",
+            "why": "the two branches are swapped"
+          },
+          {
+            "formula": "=IF(ABS(C2-B2)>0.1,\"review\",\"ok\")",
+            "rule": "value",
+            "why": "a hundred pounds is compared against a share"
+          },
+          {
+            "formula": "=IF(ABS(C3-B3)/B3>0.1,\"review\",\"ok\")",
+            "rule": "require-ref",
+            "why": "the formula reads the second line rather than B2"
+          },
+          {
+            "formula": "=IF(ABS(C2-B2)/0>0.1,\"review\",\"ok\")",
+            "rule": "error",
+            "why": "the difference is divided by zero inside the test"
+          },
+          {
+            "formula": "=IF ABS(C2-B2)/B2>0.1,\"review\",\"ok\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Budget versus actual with a variance flag",
+    "description": "A variance divided by its budget lets one threshold fit every line. ABS around the difference catches underspends too, so nothing slips past review."
+  },
+  "updated": "2026-10-31"
+}

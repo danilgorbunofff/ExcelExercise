@@ -19,7 +19,9 @@ import { isDeepStrictEqual } from "node:util";
 import { gzipSync } from "node:zlib";
 
 import { siteConfig } from "./site/config.mjs";
-import { loadContent } from "./site/content.mjs";
+import { loadArticles, loadContent } from "./site/content.mjs";
+import { dashboardGroups } from "./site/dashboard-page.mjs";
+import { indexablePaths } from "./site/seo.mjs";
 import { esc } from "./site/html.mjs";
 import { referenceOf, revealOf, screenAt } from "./site/packages.mjs";
 import { imageUrl } from "./site/sheet.mjs";
@@ -57,6 +59,8 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
   }
 
   const { track, index } = loadContent(join(root, "content"));
+  const articles = loadArticles(join(root, "content"));
+  const articlePaths = articles.map((article) => `/excel-functions/${article.slug}`);
   const read = (path) => readFileSync(join(distDir, path), "utf8");
 
   // --- every lesson page -------------------------------------------------------------
@@ -139,21 +143,43 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
         ok(false, `${label} JSON-LD`, `is not valid JSON (${error.message})`);
       }
       if (ld) {
+        // The page emits a `@graph`: the drill and the trail that leads to it. Both are checked, because
+        // the breadcrumb is what puts the group name in the result instead of a bare slug.
+        const nodes = Array.isArray(ld["@graph"]) ? ld["@graph"] : [ld];
+        const drill = nodes.find((node) => node["@type"] === "LearningResource");
         const url = `${config.baseUrl}${entry.path}`;
-        ok(ld["@type"] === "LearningResource", `${label} JSON-LD @type`, `is "${ld["@type"]}"`);
-        ok(ld.url === url, `${label} JSON-LD url`, `is "${ld.url}", expected "${url}"`);
-        ok(ld["@id"] === `${url}#drill`, `${label} JSON-LD @id`, `is "${ld["@id"]}"`);
-        ok(ld.position === entry.number, `${label} JSON-LD position`, `is "${ld.position}"`);
-        ok(
-          ld.isAccessibleForFree === entry.free,
-          `${label} JSON-LD isAccessibleForFree`,
-          `is "${ld.isAccessibleForFree}"`,
-        );
-        ok(
-          ld.isPartOf?.["@id"] === `${config.baseUrl}/#${track.id}`,
-          `${label} JSON-LD isPartOf`,
-          "does not name the course",
-        );
+        if (ok(Boolean(drill), `${label} JSON-LD @type`, "has no LearningResource node")) {
+          ok(drill.url === url, `${label} JSON-LD url`, `is "${drill.url}", expected "${url}"`);
+          ok(drill["@id"] === `${url}#drill`, `${label} JSON-LD @id`, `is "${drill["@id"]}"`);
+          // The name has to be the heading the page shows. `seo.title` is the `<title>`, which may be
+          // longer; a name the reader never sees is a claim, not a label.
+          ok(drill.name === exercise.title, `${label} JSON-LD name`, `is "${drill.name}"`);
+          ok(drill.position === entry.number, `${label} JSON-LD position`, `is "${drill.position}"`);
+          ok(
+            drill.isAccessibleForFree === entry.free,
+            `${label} JSON-LD isAccessibleForFree`,
+            `is "${drill.isAccessibleForFree}"`,
+          );
+          ok(
+            drill.isPartOf?.["@id"] === `${config.baseUrl}/#${track.id}`,
+            `${label} JSON-LD isPartOf`,
+            "does not name the course",
+          );
+        }
+        const trail = nodes.find((node) => node["@type"] === "BreadcrumbList");
+        if (ok(Boolean(trail), `${label} JSON-LD breadcrumb`, "is absent")) {
+          const positions = trail.itemListElement.map((step) => step.position);
+          ok(
+            positions.every((value, at) => value === at + 1),
+            `${label} JSON-LD breadcrumb`,
+            "has positions that do not run 1..n",
+          );
+          ok(
+            trail.itemListElement.at(-1)?.item === url,
+            `${label} JSON-LD breadcrumb`,
+            "does not end on the lesson itself",
+          );
+        }
       }
     }
 
@@ -196,6 +222,31 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     const html = read("index.html");
     has(html, `<h1>${esc(track.title)}</h1>`, "index.html heading");
     for (const entry of index) has(html, `href="${entry.path}"`, `index.html link to ${entry.path}`);
+
+    // The landing page shows the product instead of describing it: a real drill's grid, and the
+    // grader's own sentence about a real near miss. It has to stay a picture of the product — an
+    // answer cell here would be a control that does nothing — and its words have to come from the
+    // lesson, so the hero cannot drift away from what the grader actually says. Membership tests,
+    // not a second copy of the choice `renderProof` makes.
+    const proofScreen = index[0]?.exercise.screens.find((screen) => screen.type === "formula");
+    if (ok(Boolean(proofScreen), "index.html proof", "has no formula screen to draw")) {
+      const start = html.indexOf('<figure class="proof">');
+      if (ok(start !== -1, "index.html proof sheet", "is missing")) {
+        const proof = html.slice(start, html.indexOf("</figure>", start));
+        ok(!proof.includes("tabindex"), "index.html proof sheet", "has a tab stop, so it is a control that does nothing");
+        ok(!proof.includes("cell-target"), "index.html proof sheet", "marks an answer cell, so it looks answerable");
+        ok(
+          proofScreen.fixtures.accept.some((formula) => proof.includes(`<code class="proof-formula">${esc(formula)}</code>`)),
+          "index.html proof formula",
+          "is not one of the lesson's accepted answers",
+        );
+        ok(
+          proofScreen.fixtures.reject.some((entry) => proof.includes(`<q>${esc(entry.why)}</q>`)),
+          "index.html proof verdict",
+          "does not quote one of the grader's own reasons",
+        );
+      }
+    }
   }
 
   // --- dashboard --------------------------------------------------------------------
@@ -204,7 +255,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
   // replaces them. `noindex` is checked here because a sitemap entry for it would be a lie.
   if (ok(existsSync(join(distDir, "learn/index.html")), "learn/index.html", "does not exist")) {
     const html = read("learn/index.html");
-    has(html, "<h1>Where you are</h1>", "learn/index.html heading");
+    has(html, "<h1>Your progress</h1>", "learn/index.html heading");
     has(html, '<meta name="robots" content="noindex">', "learn/index.html noindex");
     for (const entry of index) has(html, `href="${entry.path}"`, `learn/index.html link to ${entry.path}`);
     for (const group of track.groups) {
@@ -263,8 +314,9 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
   }
 
   // --- group pages ------------------------------------------------------------------
-  // One page per group that has drills, for linking straight to a group. Same island, one group's rows,
-  // and `noindex` like `/learn`: the counts on it are one browser's, not something to rank.
+  // One page per group that has drills: the group's own hub. It is indexable, listed in the sitemap,
+  // and carries the keyword in the heading ("Looking values up in Excel"), because unlike `/learn` it
+  // says the same thing to every reader.
   let groupPages = 0;
   for (const group of track.groups) {
     const entries = index.filter((entry) => entry.group === group.id);
@@ -273,9 +325,9 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     if (!ok(existsSync(join(distDir, file)), file, "does not exist")) continue;
     groupPages += 1;
     const html = read(file);
-    has(html, `<h1>${esc(group.title)}</h1>`, `${file} heading`);
-    has(html, '<meta name="robots" content="noindex">', `${file} noindex`);
-    has(html, 'href="/learn"', `${file} back link`);
+    has(html, `<h1>Excel exercises: ${esc(group.title)}</h1>`, `${file} heading`);
+    ok(!html.includes('<meta name="robots" content="noindex">'), file, "is noindex, so it cannot rank");
+    has(html, 'href="/excel-exercises"', `${file} back link`);
     has(html, `id="group-${group.id}"`, `${file} group section`);
     has(html, `data-group-count="${group.id}"`, `${file} counter`);
     has(html, 'id="dashboard-data"', `${file} progress payload`);
@@ -289,6 +341,37 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
       `${file} rows`,
       `lists ${rows.length} of ${entries.length} drills`,
     );
+  }
+
+  // --- function notes ---------------------------------------------------------------
+  // A note is written prose plus a borrowed drill. The checks are the ones that keep it a note: one
+  // heading, the canonical URL, the Article markup, a laballed input, and no FAQ or HowTo block, which
+  // Google stopped showing as a rich result and which would now be a promise the page cannot keep.
+  if (articles.length > 0) {
+    const hub = "excel-functions/index.html";
+    if (ok(existsSync(join(distDir, hub)), hub, "does not exist")) {
+      const html = read(hub);
+      has(html, 'href="/excel-functions/vlookup"', `${hub} first note link`);
+      ok(!html.includes('<meta name="robots" content="noindex">'), hub, "is noindex, so it cannot rank");
+      ok((html.match(/class="article-card-title"/g) ?? []).length === articles.length, hub, "does not list every note");
+    }
+    for (const article of articles) {
+      const file = `excel-functions/${article.slug}/index.html`;
+      const label = file;
+      if (!ok(existsSync(join(distDir, file)), label, "does not exist")) continue;
+      const html = read(file);
+      ok((html.match(/<h1[\s>]/g) ?? []).length === 1, label, "does not have exactly one h1");
+      has(html, `<h1>${esc(article.title)}</h1>`, `${label} heading`);
+      has(html, `<link rel="canonical" href="${config.baseUrl}/excel-functions/${article.slug}">`, `${label} canonical`);
+      has(html, `"@type":"Article"`, `${label} Article markup`);
+      has(html, `"@type":"BreadcrumbList"`, `${label} breadcrumb markup`);
+      ok(!html.includes('"@type":"FAQPage"'), label, "carries FAQPage markup, which no longer earns a rich result");
+      ok(!html.includes('"@type":"HowTo"'), label, "carries HowTo markup, which no longer earns a rich result");
+      has(html, `id="article-drill-form"`, `${label} drill form`);
+      has(html, `id="article-answer"`, `${label} drill input`);
+      has(html, '<label class="article-drill-label" for="article-answer">', `${label} persistent label`);
+      has(html, `href="/excel/${article.exercise}"`, `${label} link to its exercise`);
+    }
   }
 
   // --- pricing ----------------------------------------------------------------------
@@ -313,7 +396,14 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
         "links into a drill the page does not open",
       );
     }
-    has(html, 'href="/signup?next=/pricing"', "pricing/index.html account link");
+    // The static edition has no server. A signup button is either an absolute link to the deployment
+    // that does, or absent; a relative one would be a 404 in a primary call to action.
+    ok(
+      !html.includes('href="/signup'),
+      "pricing/index.html signup link",
+      "is relative, but this build serves no signup page",
+    );
+    if (config.appUrl) has(html, `href="${config.appUrl}/signup?next=/pricing"`, "pricing/index.html signup target");
   }
 
   // --- privacy and terms ------------------------------------------------------------
@@ -327,7 +417,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
         h1: "<h1>What this site keeps, and what it never sees</h1>",
         retention: "Kept, unlinked from you:",
         browser: "<code>localStorage</code>",
-        export: 'href="/account"',
+        export: "account page",
         tracked: "no analytics script",
       },
     ],
@@ -337,7 +427,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
         h1: "<h1>The deal, in plain English</h1>",
         retention: "If it does not do what this page says it does, the remedy is a refund",
         browser: "Excel's formula rules vary by version and by locale",
-        export: 'href="/account"',
+        export: "account page",
         tracked: "not been reviewed by a lawyer",
       },
     ],
@@ -356,38 +446,78 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     for (const [label, probe] of [
       ["retention list", expected.retention],
       ["browser storage section", expected.browser],
-      ["account page link", expected.export],
+      ["account page", expected.export],
       ["honest disclosure", expected.tracked],
     ]) {
       has(html, probe, `${file} ${label}`);
     }
+    // Same rule as the signup button: the policy may describe the account page, but it must not link
+    // a reader of the static edition into a page this host does not have.
+    ok(
+      !html.includes('href="/account"'),
+      `${file} account link`,
+      "is relative, but this build serves no account page",
+    );
+    if (config.appUrl) has(html, `href="${config.appUrl}/account"`, `${file} account target`);
   }
 
   // --- sitemap and robots -----------------------------------------------------------
   if (ok(existsSync(join(distDir, "sitemap.xml")), "sitemap.xml", "does not exist")) {
     const xml = read("sitemap.xml");
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-    // Home, `/privacy`, `/terms` and one entry per lesson. The legal pages are indexable, so they are
-    // the three non-lesson entries rather than the two a `+ 1` used to allow.
-    ok(locs.length === index.length + 3, "sitemap.xml", `lists ${locs.length} URLs, expected ${index.length + 3}`);
-    ok(locs.includes(`${config.baseUrl}/`), "sitemap.xml", "does not list the index");
+    // The list is `indexablePaths()`' list, so the count is whatever that function produced rather than
+    // an arithmetic expression that has to be edited every time a hub is added.
+    const expected = indexablePaths({
+      config,
+      index,
+      groups: dashboardGroups({ track, index }),
+      articles: articles.map((article) => ({
+        path: `/excel-functions/${article.slug}`,
+        updated: article.updated,
+      })),
+      extra:
+        articles.length > 0
+          ? ["exercises", "functions", "about", "privacy", "terms"]
+          : ["exercises", "about", "privacy", "terms"],
+    }).map((item) => `${config.baseUrl}${item.path}`);
+    ok(
+      locs.length === expected.length,
+      "sitemap.xml",
+      `lists ${locs.length} URLs, expected ${expected.length}`,
+    );
+    ok(locs.every((loc, position) => loc === expected[position]), "sitemap.xml", "does not match indexablePaths()");
+    for (const item of expected) ok(locs.includes(item), "sitemap.xml", `does not list ${item}`);
     ok(!locs.includes(`${config.baseUrl}/learn`), "sitemap.xml", "lists the dashboard, which is noindex");
     ok(!locs.includes(`${config.baseUrl}/pricing`), "sitemap.xml", "lists the pricing page, which is noindex");
-    for (const path of ["/privacy", "/terms"]) {
+    for (const path of ["/privacy", "/terms", "/about", "/excel-exercises"]) {
       ok(locs.includes(`${config.baseUrl}${path}`), "sitemap.xml", `does not list ${path}, which is indexable`);
     }
-    for (const entry of index) {
-      ok(locs.includes(`${config.baseUrl}${entry.path}`), "sitemap.xml", `does not list ${entry.path}`);
-    }
+    // Every `<lastmod>` is a real date, and the lesson entries carry their own when they have one: a
+    // sitemap that dates the whole site from the build is a sitemap crawlers learn to ignore.
+    const lastmods = [...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]);
+    ok(lastmods.length === locs.length, "sitemap.xml", "has a <lastmod> for every <loc>");
     ok(
-      !locs.some((loc) => loc.includes("/learn/groups/")),
+      lastmods.every((value) => /^\d{4}-\d{2}-\d{2}$/.test(value)),
       "sitemap.xml",
-      "lists a group page, which is noindex",
+      "has a <lastmod> that is not a date",
     );
   }
 
   if (ok(existsSync(join(distDir, "robots.txt")), "robots.txt", "does not exist")) {
     has(read("robots.txt"), `Sitemap: ${config.baseUrl}/sitemap.xml`, "robots.txt");
+  }
+
+  // --- the 404 document ---------------------------------------------------------------
+  // A static host cannot improvise this page; if the file is missing the reader gets the host's own
+  // plain text and the site's chrome is gone. It is also the one page that must never be indexed,
+  // which is the difference between a 404 and a page pretending to be one.
+  if (ok(existsSync(join(distDir, "404.html")), "404.html", "does not exist")) {
+    const html = read("404.html");
+    has(html, '<header class="site"', "404.html header");
+    has(html, '<footer class="foot"', "404.html footer");
+    has(html, "<h1>", "404.html heading");
+    has(html, '<meta name="robots" content="noindex">', "404.html noindex");
+    has(html, 'href="/excel-exercises"', "404.html catalogue link");
   }
 
   // --- assets -----------------------------------------------------------------------

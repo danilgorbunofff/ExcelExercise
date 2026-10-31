@@ -34,6 +34,17 @@ export function workbookUrl(slug, screenId) {
   return `/assets/files/${workbookName(slug, screenId)}`;
 }
 
+/**
+ * A project ships one dataset for every task on it, served by `/datasets/<file>` rather than a file
+ * per screen. The name is authored, so it is checked here: a project cannot ask for a path.
+ */
+export function datasetUrl(file) {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*\.xlsx$/.test(String(file))) {
+    throw new Error(`xlsx: dataset file ${JSON.stringify(file)} must be lowercase-kebab and end in .xlsx`);
+  }
+  return `/datasets/${file}`;
+}
+
 function cellXml(address, value) {
   if (value === null || value === undefined || value === "") return "";
   if (typeof value === "number") return `<c r="${address}"><v>${value}</v></c>`;

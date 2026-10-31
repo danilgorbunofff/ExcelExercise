@@ -1,0 +1,257 @@
+{
+  "id": "78-a-headcount-and-payroll-summary",
+  "slug": "a-headcount-and-payroll-summary",
+  "level": 3,
+  "title": "A headcount and payroll summary",
+  "docs": {
+    "syntax": "=SUMPRODUCT(heads,salaries) totals a payroll; divide by SUM(heads) for the cost per head",
+    "explain": "A payroll summary is two columns that only mean something together. Headcount on its own says how many people a team has; salary on its own says what one seat costs. Multiply them row by row and you have the payroll that team represents, and that row-by-row multiplication is exactly what SUMPRODUCT does in one call. The alternative, a helper column of headcount times salary and a SUM underneath, is what most sheets do. It works until someone sorts half the helper column, and doing it in one formula removes that failure. The second half of the lesson is the cost per head, which is the payroll divided by the total headcount rather than the average of the salary column. That distinction is the whole point. Averaging salaries treats a team of one and a team of three as equally important, while dividing by the headcount weighs them the way the money does. Two screens, the payroll and then the cost per head, put the two figures side by side on one table.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The two ranges given to SUMPRODUCT do not have the same shape."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The headcount total is zero, so there is nothing to divide by."
+      }
+    ],
+    "atWork": "Costing a payroll from headcount and salary columns that change every month.",
+    "outcome": "Total a payroll with SUMPRODUCT, then divide by the headcount for the cost per head.",
+    "teaches": "SUMPRODUCT pairing headcount with salary, then a per-head ratio over it",
+    "dataset": "Four teams with headcount and salary, summarised two ways",
+    "reference": "=SUMPRODUCT(B2:B5,C2:C5)"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In D2, total the payroll the whole sheet implies.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Team",
+            "Heads",
+            "Salary",
+            "Answer"
+          ],
+          [
+            "Sales",
+            3,
+            45000,
+            null
+          ],
+          [
+            "Support",
+            2,
+            38000,
+            null
+          ],
+          [
+            "Sales",
+            2,
+            41000,
+            null
+          ],
+          [
+            "Ops",
+            1,
+            52000,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 345000
+      },
+      "reference": "=SUMPRODUCT(B2:B5,C2:C5)",
+      "require": [
+        {
+          "id": "func-sumproduct",
+          "func": "SUMPRODUCT",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=SUMPRODUCT(B2:B5,C2:C5): the headcount column, then the salary column.",
+        "func-sumproduct": "Each row is headcount times salary, and the rows are then added.",
+        "require-ref": "The headcount column is B2:B5.",
+        "value": "135000 + 76000 + 82000 + 52000 is 345000.",
+        "error": "Two ranges of different shapes cannot be paired row by row."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMPRODUCT(B2:B5,C2:C5)",
+          "=sumproduct(b2:b5,c2:c5)",
+          "=SUMPRODUCT($B$2:$B$5,$C$2:$C$5)",
+          "=SUMPRODUCT(B$2:B$5,C$2:C$5)",
+          "=SUMPRODUCT( B2:B5 , C2:C5 )",
+          "=SUMPRODUCT(B2:B5,C2:C5)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B5)",
+            "rule": "func-sumproduct",
+            "why": "the headcount is added, not the payroll"
+          },
+          {
+            "formula": "=SUM(B2:B5)*SUM(C2:C5)",
+            "rule": "func-sumproduct",
+            "why": "the two totals are multiplied, which is not a payroll"
+          },
+          {
+            "formula": "=SUMPRODUCT(B2:B4,C2:C4)",
+            "rule": "value",
+            "why": "the last team is left out of the payroll"
+          },
+          {
+            "formula": "=SUMPRODUCT(B2:B5,C3:C6)",
+            "rule": "value",
+            "why": "the pairs no longer line up, so the payroll is not what the sheet says"
+          },
+          {
+            "formula": "=SUMPRODUCT(B2:B5,C2:C5)/0",
+            "rule": "error",
+            "why": "the payroll is then divided by zero"
+          },
+          {
+            "formula": "=SUMPRODUCT(B3:B5,C3:C5)",
+            "rule": "require-ref",
+            "why": "the first team is missing from the total"
+          },
+          {
+            "formula": "=SUMPRODUCT B2:B5,C2:C5",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In D2, round the payroll cost of one head to a whole number.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Team",
+            "Heads",
+            "Salary",
+            "Answer"
+          ],
+          [
+            "Sales",
+            3,
+            45000,
+            null
+          ],
+          [
+            "Support",
+            2,
+            38000,
+            null
+          ],
+          [
+            "Sales",
+            2,
+            41000,
+            null
+          ],
+          [
+            "Ops",
+            1,
+            52000,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 43125
+      },
+      "reference": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),0)",
+      "require": [
+        {
+          "id": "func-sumproduct",
+          "func": "SUMPRODUCT",
+          "minArgs": 2
+        },
+        {
+          "id": "func-sum",
+          "func": "SUM",
+          "minArgs": 1
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),0): the payroll over the headcount, rounded.",
+        "func-sumproduct": "The numerator is headcount times salary, added across rows.",
+        "func-sum": "The denominator is the total headcount, which is a plain sum of the column.",
+        "require-ref": "The headcount column is B2:B5.",
+        "value": "345000 across eight heads is 43125 each.",
+        "error": "A zero headcount total leaves nothing to divide by."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),0)",
+          "=round(sumproduct(b2:b5,c2:c5)/sum(b2:b5),0)",
+          "=ROUND(SUMPRODUCT($B$2:$B$5,$C$2:$C$5)/SUM($B$2:$B$5),0)",
+          "=ROUND(SUMPRODUCT(B$2:B$5,C$2:C$5)/SUM(B$2:B$5),0)",
+          "=ROUND( SUMPRODUCT(B2:B5, C2:C5) / SUM(B2:B5) , 0 )",
+          "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),1)"
+        ],
+        "reject": [
+          {
+            "formula": "=AVERAGE(C2:C5)",
+            "rule": "func-sumproduct",
+            "why": "the salaries are averaged, which weighs a team of one and a team of three alike"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/COUNT(B2:B5),0)",
+            "rule": "func-sum",
+            "why": "the divisor is a count of rows rather than the headcount"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(C2:C4),0)",
+            "rule": "value",
+            "why": "the divisor is the salary total, not the headcount total"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B4),0)",
+            "rule": "value",
+            "why": "the last team's head is missing from the divisor"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B3:B5,C3:C5)/SUM(B3:B5),0)",
+            "rule": "require-ref",
+            "why": "the first team is missing from both halves"
+          },
+          {
+            "formula": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5)/0,0)",
+            "rule": "error",
+            "why": "the ratio is then divided by zero"
+          },
+          {
+            "formula": "=ROUND SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),0",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Payroll total and cost per head in Excel",
+    "description": "SUMPRODUCT multiplies headcount by salary row by row in one call, and dividing that payroll by the headcount weighs teams the way the money does."
+  },
+  "updated": "2026-10-31"
+}

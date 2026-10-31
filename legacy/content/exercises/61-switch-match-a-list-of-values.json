@@ -1,0 +1,245 @@
+{
+  "id": "61-switch-match-a-list-of-values",
+  "slug": "switch-match-a-list-of-values",
+  "level": 3,
+  "title": "SWITCH: match a list of values",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In D2, translate the code in A2 into the item it names, with Unknown as the fallback.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Tier",
+            "Item",
+            "Answer"
+          ],
+          [
+            "W-01",
+            2,
+            "Widget",
+            null
+          ],
+          [
+            "G-02",
+            3,
+            "Gadget",
+            null
+          ],
+          [
+            "S-03",
+            1,
+            "Screw",
+            null
+          ],
+          [
+            "Lookup",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": "Widget"
+      },
+      "reference": "=SWITCH(A2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")",
+      "require": [
+        {
+          "id": "func-switch",
+          "func": "SWITCH",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SWITCH(value, match 1, result 1, match 2, result 2, ..., fallback): one value, then pairs.",
+        "func-switch": "There is nothing to count or compare here: the code is matched against a short list.",
+        "require-ref": "Read the code from the column instead of typing W-01 into the formula.",
+        "value": "A2 holds W-01, so the first pair matches and the answer is Widget.",
+        "error": "A fallback that divides by zero returns #DIV/0! instead of a label."
+      },
+      "fixtures": {
+        "accept": [
+          "=SWITCH(A2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")",
+          "=switch(a2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")",
+          "=SWITCH($A$2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")",
+          "=SWITCH($A2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")",
+          "=SWITCH(A$2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")",
+          "=SWITCH(A2,\"G-02\",\"Gadget\",\"W-01\",\"Widget\",\"Unknown\")"
+        ],
+        "reject": [
+          {
+            "formula": "=SWITCH(A2,\"W-01\",\"Gadget\",\"G-02\",\"Widget\",\"Unknown\")",
+            "rule": "value",
+            "why": "the results are swapped, so the first pair names Widget a Gadget"
+          },
+          {
+            "formula": "=SWITCH(A2,\"W-01\",\"Widget \",\"G-02\",\"Gadget\",\"Unknown\")",
+            "rule": "value",
+            "why": "a trailing space makes the result a different piece of text"
+          },
+          {
+            "formula": "=IF(A2=\"W-01\",\"Gadget\",\"Widget\")",
+            "rule": "func-switch",
+            "why": "an IF can hold two outcomes, and this one has the labels the wrong way round"
+          },
+          {
+            "formula": "=SWITCH(A3,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")",
+            "rule": "require-ref",
+            "why": "the second code is translated instead of the one in row 2"
+          },
+          {
+            "formula": "=SWITCH(A2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")/0",
+            "rule": "error",
+            "why": "text divided by zero leaves #VALUE! in the cell"
+          },
+          {
+            "formula": "=SWITCH(A2 \"W-01\",\"Widget\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves the function with a value and no pair"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In D3, turn the tier number in B3 into its name: 1 Bronze, 2 Silver, 3 Gold.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Tier",
+            "Item",
+            "Answer"
+          ],
+          [
+            "W-01",
+            2,
+            "Widget",
+            null
+          ],
+          [
+            "G-02",
+            3,
+            "Gadget",
+            null
+          ],
+          [
+            "S-03",
+            1,
+            "Screw",
+            null
+          ],
+          [
+            "Tier names",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D3",
+      "expect": {
+        "value": "Gold"
+      },
+      "reference": "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\")",
+      "require": [
+        {
+          "id": "func-switch",
+          "func": "SWITCH",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B3",
+      "rules": [],
+      "hints": {
+        "syntax": "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\"): numbers and text results mix freely.",
+        "func-switch": "A short list of equal-value matches is what SWITCH is for; a lookup table would need a range.",
+        "require-ref": "Match the tier cell in the grid rather than a typed 3.",
+        "value": "B3 holds 3, so the third pair matches and the answer is Gold.",
+        "error": "A division by zero in the fallback returns #DIV/0! instead of a name."
+      },
+      "fixtures": {
+        "accept": [
+          "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\")",
+          "=switch(b3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\")",
+          "=SWITCH($B$3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\")",
+          "=SWITCH($B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\")",
+          "=SWITCH(B$3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\")",
+          "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"Unknown\")"
+        ],
+        "reject": [
+          {
+            "formula": "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Bronze\",\"None\")",
+            "rule": "value",
+            "why": "the top tier is given the bronze label, so the answer is Bronze"
+          },
+          {
+            "formula": "=SWITCH(B3,\"1\",\"Bronze\",\"2\",\"Silver\",\"3\",\"Gold\",\"None\")",
+            "rule": "value",
+            "why": "the matches are text while the cell holds a number, so the fallback is returned"
+          },
+          {
+            "formula": "=IF(B3=3,\"Bronze\",\"Gold\")",
+            "rule": "func-switch",
+            "why": "a two-outcome IF cannot hold three tiers, and this one is inverted as well"
+          },
+          {
+            "formula": "=SWITCH(A3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\")",
+            "rule": "require-ref",
+            "why": "the code column is matched as though it held a tier number, so the fallback answers"
+          },
+          {
+            "formula": "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\")/0",
+            "rule": "error",
+            "why": "text divided by zero leaves #VALUE! in the cell"
+          },
+          {
+            "formula": "=SWITCH(B3,1,\"Bronze\" 2,\"Silver\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves a pair incomplete"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SWITCH(expression, value1, result1, value2, result2, ..., default)",
+    "explain": "SWITCH is an equality machine. It takes one value, then a list of values with the result each should produce, and returns the result of the first exact match. It is the clean way to translate short codes such as states, tiers, currencies or department letters. For those, a lookup table is more scaffolding than the question deserves, and the final argument doubles as the default when nothing matches. Unlike IFS the tests are not comparisons but plain values, so a text \"3\" never matches the number 3. That is the single most common way the function quietly returns its fallback. Order matters only in that the first match wins, so duplicate values are legal but only the first result can ever appear. In this drill A2 holds W-01 and the first pair names it Widget. The second screen matches a numeric tier of 3 to Gold, where the number-versus-text trap is on the reject list rather than in the hint text alone.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "No value matched and no default was supplied."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The value and result pairs were uneven, or a text result was divided."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function was typed as SWITCH in a version that does not have it."
+      }
+    ],
+    "atWork": "Translating status codes, cost centres and grade letters without maintaining a lookup range.",
+    "outcome": "Translate a short fixed list of codes into labels in one formula.",
+    "teaches": "SWITCH value/result pairs and the default, plus number-versus-text matching",
+    "dataset": "Item codes with a numeric tier column",
+    "reference": "=SWITCH(A2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\")"
+  },
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SWITCH in Excel: match a list of values",
+    "description": "SWITCH takes one value, then value and result pairs, and returns the first exact match. A text \"3\" never matches the number 3, so it quietly falls back."
+  }
+}

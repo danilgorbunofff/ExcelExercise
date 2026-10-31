@@ -82,7 +82,7 @@
         }
       ],
       "hints": {
-        "syntax": "=VLOOKUP(D2,A2:C6,3,FALSE) — what to find, where to look, which column, and how to match.",
+        "syntax": "=VLOOKUP(D2,A2:C6,3,FALSE): what to find, where to look, which column, and how to match.",
         "func-vlookup": "Look the value up with VLOOKUP instead of reading the salary off the screen and typing it.",
         "exact-match": "Add FALSE (or 0) as the fourth argument. Without it Excel uses an approximate match and can return a different employee's salary.",
         "require-ref": "Point the formula at the ID and the table so it still works when the payroll file changes.",
@@ -155,7 +155,7 @@
   ],
   "docs": {
     "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
-    "explain": "VLOOKUP finds a value in the first column of a table and returns something from the same row. The ID E-104 sits in D2; searching A2:A6 finds it on the fourth data row, and the salary in the third column of A:C is 54000, so =VLOOKUP(D2,A2:C6,3,FALSE) returns 54000. The fourth argument is the one that matters: FALSE (or 0) means \"exact or #N/A\", TRUE (or leaving it out) means \"approximate\", and approximate matching on an unsorted table returns the nearest value it stumbled across rather than an error. That is how a lookup returns a plausible but wrong salary, and why the exact form is the default you should reach for.",
+    "explain": "VLOOKUP finds a value in the first column of a table and returns something from the same row. The ID E-104 sits in D2, searching A2:A6 finds it on the fourth data row, and the salary in the third column of A:C is 54000. So =VLOOKUP(D2,A2:C6,3,FALSE) returns 54000. The fourth argument decides everything. FALSE, or 0, means exact match or #N/A. TRUE, or leaving it out, means approximate, and approximate matching on an unsorted table returns the nearest value it stumbled across instead of an error. That is how a lookup returns a plausible but wrong salary. Reach for the exact form by default.",
     "errors": [
       {
         "code": "#N/A",
@@ -170,10 +170,15 @@
         "text": "The second argument is not a range of cells, or the column number is zero."
       }
     ],
-    "atWork": "Payroll, price lists, product codes — any time two exports have to be joined by a key, this is the formula. Learning the exact-match form first is what stops the recurring 'VLOOKUP returns the wrong value' ticket.",
+    "atWork": "Payroll, price lists, product codes: any time two exports have to be joined by a key, this is the formula. Learning the exact-match form first is what stops the recurring 'VLOOKUP returns the wrong value' ticket.",
     "outcome": "Pull a value out of a table by its ID, exact match only.",
     "teaches": "VLOOKUP",
     "dataset": "Employee directory",
     "reference": "=VLOOKUP(D2,A2:C6,3,FALSE)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "VLOOKUP in Excel: exact match lookup",
+    "description": "VLOOKUP with FALSE finds an exact hit or #N/A, and TRUE guesses at the nearest row. The fourth argument decides whether the salary is right."
   }
 }

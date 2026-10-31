@@ -1,0 +1,271 @@
+{
+  "id": "77-a-commission-sheet-that-updates-itself",
+  "slug": "a-commission-sheet-that-updates-itself",
+  "level": 3,
+  "title": "A commission sheet that updates itself",
+  "docs": {
+    "syntax": "=sales*VLOOKUP(sales,tiers,2,TRUE) reads the rate the sales figure has reached",
+    "explain": "A commission sheet is the smallest real model in the workbook: an input column, a lookup table that someone else owns, and an answer that has to follow both. The lookup here is deliberately the approximate kind. Its fourth argument is TRUE, which tells VLOOKUP to stop at the largest tier that is not bigger than the sales figure. So 4200 lands on the 4000 tier and the rate comes back as five per cent. That is the behaviour a banded rate table needs, and it is the reason the table is sorted by the tier floor rather than by anything else. Writing the rate as a number inside the formula works today and breaks the first time finance moves a tier, which is why the reject list carries it. The rate is read, not remembered. The second screen asks for the rate alone, so the learner separates the lookup from the multiplication. That shows the formula has two independent halves, one reading a table and one doing arithmetic on the result.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The rate table is asked for an exact match, so a sales figure between tiers finds nothing."
+      },
+      {
+        "code": "#REF!",
+        "text": "The column number points past the last column of the rate table."
+      }
+    ],
+    "atWork": "Paying commission from a banded rate table that finance maintains separately.",
+    "outcome": "Read a banded rate with an approximate VLOOKUP and multiply it by the sales figure.",
+    "teaches": "VLOOKUP in approximate mode as a rate band, composed with multiplication",
+    "dataset": "Three sellers beside a three-band rate table below the data",
+    "reference": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2)"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In C2, pay the first seller their sales times the tier rate those sales reach.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Seller",
+            "Sales",
+            "Commission"
+          ],
+          [
+            "Ana",
+            4200,
+            null
+          ],
+          [
+            "Bo",
+            1800,
+            null
+          ],
+          [
+            "Cy",
+            9000,
+            null
+          ],
+          [
+            null,
+            null,
+            null
+          ],
+          [
+            "Tier",
+            "Rate",
+            null
+          ],
+          [
+            0,
+            0.02,
+            null
+          ],
+          [
+            2000,
+            0.03,
+            null
+          ],
+          [
+            4000,
+            0.05,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 210
+      },
+      "reference": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2)",
+      "require": [
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 4
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2): the sales figure, the table, column two, approximate.",
+        "func-vlookup": "The rate lives in the table below the data, so it has to be looked up.",
+        "require-ref": "The sales figure is in B2.",
+        "value": "4200 reaches the five per cent band, and five per cent of 4200 is 210.",
+        "error": "An exact match would find no tier at 4200 and return #N/A."
+      },
+      "fixtures": {
+        "accept": [
+          "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2)",
+          "=round(b2*vlookup(b2,$a$7:$b$9,2,true),2)",
+          "=VLOOKUP(B2,$A$7:$B$9,2,TRUE)*B2",
+          "=VLOOKUP(B2,$A$7:$B$9,2,1)*B2",
+          "=B2*VLOOKUP($B$2,$A$7:$B$9,2,1)",
+          "=ROUND( B2 * VLOOKUP( B2 , $A$7:$B$9 , 2 , TRUE ) , 2 )"
+        ],
+        "reject": [
+          {
+            "formula": "=B2*0.05",
+            "rule": "func-vlookup",
+            "why": "the rate is typed in rather than read from the table"
+          },
+          {
+            "formula": "=B2*VLOOKUP(B2,$A$7:$B$9,1,TRUE)",
+            "rule": "value",
+            "why": "column one is the tier floor, not the rate"
+          },
+          {
+            "formula": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2)*0.1",
+            "rule": "value",
+            "why": "the commission is then scaled to a tenth"
+          },
+          {
+            "formula": "=B2*VLOOKUP(B2,$A$7:$B$9,2,FALSE)",
+            "rule": "error",
+            "why": "an exact match finds no tier at 4200"
+          },
+          {
+            "formula": "=ROUND(B3*VLOOKUP(B3,$A$7:$B$9,2,TRUE),2)",
+            "rule": "require-ref",
+            "why": "the formula reads the second seller rather than B2"
+          },
+          {
+            "formula": "=ROUND(B2*VLOOKUP B2,$A$7:$B$9,2,TRUE),2",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In C2, report the rate the first seller's sales figure has reached as a decimal.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Seller",
+            "Sales",
+            "Rate"
+          ],
+          [
+            "Ana",
+            4200,
+            null
+          ],
+          [
+            "Bo",
+            1800,
+            null
+          ],
+          [
+            "Cy",
+            9000,
+            null
+          ],
+          [
+            null,
+            null,
+            null
+          ],
+          [
+            "Tier",
+            "Rate",
+            null
+          ],
+          [
+            0,
+            0.02,
+            null
+          ],
+          [
+            2000,
+            0.03,
+            null
+          ],
+          [
+            4000,
+            0.05,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 0.05
+      },
+      "reference": "=VLOOKUP(B2,$A$7:$B$9,2,TRUE)",
+      "require": [
+        {
+          "id": "func-vlookup",
+          "func": "VLOOKUP",
+          "minArgs": 4
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=VLOOKUP(B2,$A$7:$B$9,2,TRUE): the sales figure, the table, the rate column, approximate.",
+        "func-vlookup": "The band comes from the table, so the answer is a lookup.",
+        "require-ref": "The sales figure is in B2.",
+        "value": "4200 has passed the 4000 floor, so the five per cent band applies.",
+        "error": "Asking for an exact match at 4200 finds nothing and returns #N/A."
+      },
+      "fixtures": {
+        "accept": [
+          "=VLOOKUP(B2,$A$7:$B$9,2,TRUE)",
+          "=vlookup(b2,$a$7:$b$9,2,true)",
+          "=VLOOKUP($B$2,$A$7:$B$9,2,TRUE)",
+          "=VLOOKUP(B$2,$A$7:$B$9,2,1)",
+          "=VLOOKUP( B2 , $A$7:$B$9 , 2 , TRUE )",
+          "=VLOOKUP(B2,$A$7:$B$9,2,1)"
+        ],
+        "reject": [
+          {
+            "formula": "=B2*0.05",
+            "rule": "func-vlookup",
+            "why": "the rate is typed in rather than read from the table"
+          },
+          {
+            "formula": "=VLOOKUP(B2,$A$7:$B$9,1,TRUE)",
+            "rule": "value",
+            "why": "column one returns the tier floor, not the rate"
+          },
+          {
+            "formula": "=VLOOKUP(B3,$A$7:$B$9,2,TRUE)",
+            "rule": "require-ref",
+            "why": "the formula reads the second seller rather than B2"
+          },
+          {
+            "formula": "=VLOOKUP(B2,$A$7:$B$9,2,FALSE)",
+            "rule": "error",
+            "why": "an exact match finds no tier at 4200"
+          },
+          {
+            "formula": "=VLOOKUP(B2,$A$7:$B$9,3,TRUE)",
+            "rule": "error",
+            "why": "the rate table has only two columns"
+          },
+          {
+            "formula": "=VLOOKUP B2,$A$7:$B$9,2,TRUE",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Commission tiers with approximate VLOOKUP",
+    "description": "TRUE in the fourth argument stops at the largest tier the sales figure has reached, so 4200 pays the 4000 rate and a moved tier needs no edit."
+  },
+  "updated": "2026-10-31"
+}

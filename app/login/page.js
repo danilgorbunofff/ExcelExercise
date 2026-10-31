@@ -1,13 +1,15 @@
 import { Suspense } from "react";
 
+import { t } from "../../legacy/src/site/messages.mjs";
+
 import { AuthShell } from "../auth/shell.js";
 import { Loading } from "../auth/ui.js";
 
 import { LoginScreen } from "./screen.js";
 
 export const metadata = {
-  title: "Sign in",
-  description: "Sign in to keep your Excel drill progress across devices.",
+  title: t("auth.login.title"),
+  description: t("auth.login.meta"),
   robots: { index: false, follow: true },
 };
 
@@ -16,7 +18,7 @@ export const instant = false;
 
 export default function LoginPage({ searchParams }) {
   return (
-    <AuthShell counter="Sign in">
+    <AuthShell counter={t("auth.login.title")}>
       <Suspense fallback={<Loading />}>
         <LoginScreen searchParams={searchParams} />
       </Suspense>

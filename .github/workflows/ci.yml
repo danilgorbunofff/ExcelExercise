@@ -22,6 +22,11 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Built as production, on the real origin, so the crawl below is checking the site a reader would
+    # get rather than a laptop: a canonical that still says `localhost` fails `origin:check` here.
+    env:
+      SITE_ENV: production
+      SITE_URL: https://excelsupreme.com
     steps:
       - uses: actions/checkout@v4
 
@@ -55,8 +60,22 @@ jobs:
       - name: crawl the emitted static site
         run: node legacy/src/verify.mjs
 
+      # The lesson page's JavaScript and the route's first-party weight, both against a budget with the
+      # baseline recorded. The printer names the largest files when it fails.
+      - name: byte budget
+        run: npm run budget
+
       - name: routes match the templates
         run: npm run next:check
+
+      # No absolute URL may sit on the fallback origin once the build says production.
+      - name: every URL is on the shipped origin
+        run: npm run origin:check
+
+      # A service key or a Stripe secret in `legacy/dist` or `.next` is a leak the moment the artifact
+      # is served, and no other step looks inside the emitted files for one.
+      - name: no secret in the build output
+        run: npm run secret:check
 
       # `/api/health` is prerendered, so it reports the commit the artifact was *built* from — which is
       # exactly the identity a deploy should carry, and it fails loudly ("unknown") if the env is missed.
@@ -81,7 +100,8 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Three engines: the drill and the keyboard specs run on Firefox and WebKit as well as Chromium.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -92,8 +112,8 @@ jobs:
 
       - run: npm ci
 
-      - name: install chromium
-        run: npx playwright install --with-deps chromium
+      - name: install browsers
+        run: npx playwright install --with-deps chromium firefox webkit
 
       # `playwright.config.js` starts both servers itself — `next start` on 4174 and the static file
       # server over `legacy/dist` on 4175 — so only the build has to happen here.
@@ -103,10 +123,62 @@ jobs:
       - name: e2e
         run: npx playwright test
 
+      # Accessibility, best practices and SEO are errors; performance is a warning on a shared runner.
+      # The five routes are the ones a reader meets first: home, the price, a free drill, a note, the dashboard.
+      - name: lighthouse
+        run: npm run lighthouse
+
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  db:
+    # The one layer no other gate reaches: row level security, the GoTrue triggers and the SQL
+    # functions. It needs Docker, a real stack and a reset, so it is its own job rather than a step in
+    # `check` — and it runs the accounts browser suite too, because those specs are the only place a
+    # session, an entitlement and a certificate are proved together.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # `tests/db/harness.mjs` shells out to `psql`, and the images do not guarantee the client.
+      - name: postgres client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: start the stack
+        run: supabase start
+
+      - name: the database suite
+        run: npm run db:check
+
+      - name: install chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: build
+        run: npm run next:build
+
+      - name: the accounts browser suite
+        run: npm run e2e:accounts
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: accounts-report
           path: playwright-report/
           retention-days: 7
 
@@ -129,3 +201,6 @@ jobs:
 
       - name: vendored assets are unmodified
         run: npm run vendor:check
+
+      - name: no secret in the static build
+        run: npm run secret:check

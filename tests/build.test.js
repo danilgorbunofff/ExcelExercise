@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,7 @@ import { assertSelfContained, build, removeDotFiles } from "../legacy/src/build.
 import { createStaticServer, resolvePath, startServer } from "../legacy/src/serve.mjs";
 import { buildStyles, readIcons } from "../legacy/src/site/assets.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
-import { loadContent } from "../legacy/src/site/content.mjs";
+import { loadArticles, loadContent } from "../legacy/src/site/content.mjs";
 import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
 import { renderIndexPage } from "../legacy/src/site/index-page.mjs";
 import { esc } from "../legacy/src/site/html.mjs";
@@ -57,16 +57,35 @@ describe("build", () => {
     const pages = htmlFiles(out).map((file) => file.slice(out.length + 1));
     const { index } = loadContent(join(ROOT, "legacy/content"));
     const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
-    const expected = lessons.length + 5 + groupIds.length;
+    // The index, the dashboard, the offer, the legal pages, the two hubs and the host's 404 document,
+    // plus one page per lesson and one per group.
+    const articles = loadArticles(join(ROOT, "legacy/content"));
+    const expected = lessons.length + 8 + groupIds.length + (articles.length > 0 ? articles.length + 1 : 0);
     assert.equal(pages.length, expected, `expected ${expected} pages, got ${pages.length}`);
     assert.ok(pages.includes("index.html"));
     assert.ok(pages.includes("learn/index.html"));
     assert.ok(pages.includes("pricing/index.html"));
     assert.ok(pages.includes("privacy/index.html"));
     assert.ok(pages.includes("terms/index.html"));
+    assert.ok(pages.includes("excel-exercises/index.html"));
+    assert.ok(pages.includes("about/index.html"));
+    // Not part of the site: the page a static host serves for an address it cannot find.
+    assert.ok(pages.includes("404.html"));
     for (const exercise of lessons) assert.ok(pages.includes(`excel/${exercise.slug}.html`), `${exercise.slug} page is missing`);
     for (const id of groupIds) assert.ok(pages.includes(`learn/groups/${id}.html`), `${id} group page is missing`);
     assert.equal(summary.pages, expected);
+  });
+
+  it("introduces every page with a skip link that reads", () => {
+    // The template writes "Skip to the " once and the page supplies the noun, so a page that supplies
+    // "the error" makes the first control on the page read "Skip to the the error".
+    for (const file of htmlFiles(out)) {
+      const html = readFileSync(file, "utf8");
+      const label = html.match(/<a class="skip" href="#main">([^<]*)<\/a>/)?.[1];
+      assert.ok(label, `${file.slice(out.length + 1)} has no skip link`);
+      assert.match(label, /^Skip to the \S/, `${file.slice(out.length + 1)}: ${label}`);
+      assert.ok(!/\bthe the\b|\ba a\b/.test(label), `${file.slice(out.length + 1)}: ${label}`);
+    }
   });
 
   it("copies the assets the pages ask for", () => {
@@ -180,18 +199,24 @@ describe("build", () => {
   });
 
   it("emits the mount contract the client will use", () => {
-    const html = readFileSync(join(out, "excel", "sum-basics.html"), "utf8");
+    const html = readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8");
     for (const id of ["drill", "drill-screens", "sheet-0", "sheet-grid-0", "screen-answer-cell", "formula-bar", "ref-chip", "formula", "check", "feedback", "hint", "solution", "progress-count", "exercise-data"]) {
       assert.match(html, new RegExp(`id="${id}"`), `#${id} is missing`);
     }
+    // The shape comes from the first shipped lesson rather than a fixed page: later cohorts land in
+    // earlier catalog slots, so which lesson publishes first is not a stable fact to hardcode.
+    const first = lessons[0];
+    const { answerCell } = first;
+    const columns = first.grid.rows[0].length;
+    const rows = first.grid.rows.length;
     assert.match(html, /<section class="sheet-card" id="drill"/);
-    assert.match(html, /data-cell="B5" data-kind="target" tabindex="0" aria-selected="true"/);
-    // Four columns on screen: the row-header column plus A, B and C.
-    assert.match(html, /aria-colcount="4"/);
-    assert.match(html, /aria-rowcount="6"/);
+    assert.match(html, new RegExp(`data-cell="${answerCell}" data-kind="target" tabindex="0" aria-selected="true"`));
+    // One extra column and one extra row for the row-header band.
+    assert.match(html, new RegExp(`aria-colcount="${columns + 1}"`));
+    assert.match(html, new RegExp(`aria-rowcount="${rows + 1}"`));
     // The address chip is a value display; the input carries its own name.
-    assert.match(html, /<span class="ref-chip" id="ref-chip">B5<\/span>/);
-    assert.match(html, /id="formula"[^>]*aria-label="Your formula for B5"/);
+    assert.match(html, new RegExp(`<span class="ref-chip" id="ref-chip">${answerCell}</span>`));
+    assert.match(html, new RegExp(`id="formula"[^>]*aria-label="Your formula for ${answerCell}"`));
     assert.ok(!/name="formula"/.test(html), "a named control would leak the draft into the URL on a no-JS submit");
     // Phase 5 additions: the answer reveal and the client-filled progress bar.
     assert.match(html, /id="show-answer"[^>]*hidden/, "the answer reveal must ship hidden");
@@ -203,11 +228,16 @@ describe("build", () => {
       "assets/client/drill.js",
       "assets/client/state.js",
       "assets/client/feedback.js",
+      "assets/client/reward.js",
       "assets/grader/index.js",
     ]) {
       assert.doesNotThrow(() => readFileSync(join(out, file)), `${file} was not written`);
     }
-    assert.equal(summary.client, 4, "drill.js, its state module, the dashboard island, the feedback dialog");
+    assert.equal(
+      summary.client,
+      6,
+      "drill.js, its state and reward modules, the dashboard island, the feedback dialog, the note drill",
+    );
 
     for (const page of ["excel/sum-basics.html", "index.html"]) {
       const html = readFileSync(join(out, page), "utf8");
@@ -291,16 +321,32 @@ describe("build", () => {
   });
 
   it("emits valid structured data", () => {
-    const index = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(readFileSync(join(out, "index.html"), "utf8"))[1]);
-    assert.equal(index["@type"], "Course");
-    assert.equal(index.name, track.title);
-    assert.equal(index.hasPart.length, lessons.length);
+    // Every page emits one `<script>` that is either a node or a `@graph`; the assertions below read the
+    // nodes by `@type` so adding a breadcrumb or a site node to a page cannot switch them off.
+    const doc = (file) => {
+      const raw = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(readFileSync(join(out, file), "utf8"))[1];
+      return JSON.parse(raw);
+    };
+    const nodes = (file) => {
+      const ld = doc(file);
+      return Array.isArray(ld["@graph"]) ? ld["@graph"] : [ld];
+    };
+    const one = (file, type) => {
+      const found = nodes(file).filter((node) => node["@type"] === type);
+      assert.equal(found.length, 1, `${file} should carry exactly one ${type}`);
+      return found[0];
+    };
 
-    const lesson = JSON.parse(
-      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(readFileSync(join(out, "excel", "sum-basics.html"), "utf8"))[1],
-    );
-    assert.equal(lesson["@type"], "LearningResource");
-    assert.equal(lesson["@context"], "https://schema.org");
+    const index = one("index.html", "Course");
+    assert.equal(index.name, track.title);
+    assert.equal(index.url, `${BASE}/`);
+    one("index.html", "WebSite");
+    const org = one("index.html", "Organization");
+    assert.equal(index.provider["@id"], org["@id"], "the course should point at the organization node it ships with");
+
+    // `@context` is declared once, on the document, and every node in the graph inherits it.
+    assert.equal(doc(`excel/${lessons[0].slug}.html`)["@context"], "https://schema.org");
+    const lesson = one(`excel/${lessons[0].slug}.html`, "LearningResource");
     assert.equal(lesson.name, lessons[0].title);
     assert.equal(lesson.teaches, lessons[0].docs.teaches);
     assert.equal(lesson.educationalLevel, "Beginner");
@@ -309,10 +355,23 @@ describe("build", () => {
     assert.equal(lesson.isPartOf["@type"], "Course");
     assert.ok(!/rating|review/i.test(JSON.stringify(lesson)), "structured data must not invent ratings");
 
-    const gated = JSON.parse(
-      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(readFileSync(join(out, "excel", `${lessons.at(-1).slug}.html`), "utf8"))[1],
+    // The trail is what puts "Looking values up" in the result instead of a bare slug, so it is asserted
+    // as a shape: 1..n, and the last step is the lesson's own canonical URL.
+    const trail = one(`excel/${lessons[0].slug}.html`, "BreadcrumbList").itemListElement;
+    assert.deepEqual(
+      trail.map((step) => step.position),
+      trail.map((_, at) => at + 1),
     );
+    assert.equal(trail.at(-1).item, `${BASE}/excel/${lessons[0].slug}`);
+
+    const gated = one(`excel/${lessons.at(-1).slug}.html`, "LearningResource");
     assert.equal(gated.isAccessibleForFree, false, "the last lesson is behind the trial");
+
+    // The group hubs are indexable, so each one has to say what it is: a list of drills that belong to
+    // it, and nothing that claims a rating or a price.
+    const hub = one("learn/groups/lookup.html", "ItemList");
+    assert.ok(hub.name.includes("Excel"), "a hub's name should carry the keyword");
+    assert.ok(hub.itemListElement.length > 0, "a hub's list should name its drills");
   });
 
   it("fetches nothing from a third party", () => {
@@ -326,11 +385,11 @@ describe("build", () => {
         );
       }
     }
-    const lesson = readFileSync(join(out, "excel", "sum-basics.html"), "utf8");
+    const lesson = readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8");
     assert.match(lesson, /<link rel="preload" href="\/assets\/fonts\/plex-sans-latin\.woff2" as="font" type="font\/woff2" crossorigin/);
     assert.match(lesson, /<html lang="en">/);
     assert.match(lesson, /<body class="light lesson">/);
-    assert.match(lesson, new RegExp(`<link rel="canonical" href="${BASE}/excel/sum-basics">`));
+    assert.match(lesson, new RegExp(`<link rel="canonical" href="${BASE}/excel/${lessons[0].slug}">`));
   });
 
   it("ships one concatenated stylesheet in the only order that resolves", () => {
@@ -351,25 +410,89 @@ describe("build", () => {
   it("writes a sitemap of exactly the published URLs", () => {
     const xml = readFileSync(join(out, "sitemap.xml"), "utf8");
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-    assert.equal(locs.length, lessons.length + 3);
+    const { index } = loadContent(join(ROOT, "legacy/content"));
+    const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
+    // Home, four non-lesson pages, one hub per group, one entry per lesson — the list `indexablePaths()`
+    // builds. No dashboard, no pricing: both are `noindex`.
+    const articles = loadArticles(join(ROOT, "legacy/content"));
+    assert.equal(locs.length, 1 + 4 + groupIds.length + lessons.length + articles.length + (articles.length > 0 ? 1 : 0));
+    assert.equal(new Set(locs).size, locs.length, "a URL is listed twice");
     for (const loc of locs) assert.ok(loc.startsWith(`${BASE}/`), `${loc} is not absolute against the configured base`);
     assert.ok(locs.includes(`${BASE}/`));
     for (const exercise of lessons) assert.ok(locs.includes(`${BASE}/excel/${exercise.slug}`));
-    for (const legal of ["/privacy", "/terms"]) assert.ok(locs.includes(`${BASE}${legal}`), `${legal} is not in the sitemap`);
-    assert.equal((xml.match(/<lastmod>2026-10-28<\/lastmod>/g) ?? []).length, lessons.length + 3);
+    for (const path of ["/privacy", "/terms", "/about", "/excel-exercises"]) {
+      assert.ok(locs.includes(`${BASE}${path}`), `${path} is not in the sitemap`);
+    }
+    for (const id of groupIds) assert.ok(locs.includes(`${BASE}/learn/groups/${id}`), `${id} hub is not in the sitemap`);
+    assert.ok(!locs.includes(`${BASE}/learn`), "the dashboard is noindex and must stay out");
+    // Every entry is dated: a lesson that sets `updated` shows that date, everything else falls back to
+    // the build stamp. As the copy rewrite dates more lessons, the mix changes without this test caring.
+    const lastmods = [...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]);
+    assert.equal(lastmods.length, locs.length);
+    assert.ok(lastmods.every((date) => /^\d{4}-\d{2}-\d{2}$/.test(date)), "a lastmod is not a date");
+    const dated = lessons.filter((exercise) => exercise.updated).map((exercise) => exercise.updated);
+    assert.ok(dated.length > 0, "no lesson sets a date, so the sitemap can only repeat the build stamp");
+    for (const date of new Set(dated)) {
+      const expected = dated.filter((value) => value === date).length;
+      assert.equal((xml.match(new RegExp(`<lastmod>${date}</lastmod>`, "g")) ?? []).length, expected, `${date} is not on every lesson that claims it`);
+    }
     assert.match(xml, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   });
 
-  it("writes robots.txt that crawls everything and names the sitemap", () => {
+  it("writes robots.txt that crawls the pages and keeps the private surfaces out", () => {
     const robots = readFileSync(join(out, "robots.txt"), "utf8");
     assert.match(robots, /User-agent: \*\nAllow: \//);
+    // `/api/` serves JSON and `/certificate` is a personal URL that embeds a credential id; neither
+    // is a page a search result should land on. The dashboard is not here: it lives at `/learn` and
+    // is `noindex, follow` instead, because a `Disallow` would hide the directive from the crawler.
+    for (const path of ["/api/", "/certificate"]) {
+      assert.match(robots, new RegExp(`^Disallow: ${path}$`, "m"), `${path} is crawlable`);
+    }
+    assert.ok(!/^Disallow: \/verify$/m.test(robots), "/verify is public and must stay findable");
     assert.match(robots, new RegExp(`Sitemap: ${BASE}/sitemap\\.xml`));
   });
 
+  it("links only to pages it serves, or to an app route that exists", () => {
+    // Every other assertion in this file checks that the links we care about are present; none checks
+    // that the links which are present go anywhere. So resolve each internal href to an emitted file.
+    // The pages that only the Next app can serve have to be named, and each named route is checked
+    // against `app/` — a name that no longer exists is exactly how `/dashboard` reached robots.txt.
+    const APP_ONLY = ["/account", "/signup"];
+    for (const path of APP_ONLY) {
+      assert.ok(existsSync(join(ROOT, "app", path, "page.js")), `${path} has no page in app/, so it cannot be app-only`);
+    }
+    const missing = [];
+    for (const file of htmlFiles(out)) {
+      for (const [, href] of readFileSync(file, "utf8").matchAll(/href="([^"]+)"/g)) {
+        if (!href.startsWith("/") || href.startsWith("//")) continue;
+        const target = href.split("#")[0].split("?")[0];
+        if (!target || APP_ONLY.includes(target)) continue;
+        const full = join(out, target);
+        if ([full, `${full}.html`, join(full, "index.html")].some((candidate) => existsSync(candidate))) continue;
+        missing.push(`${href} (from ${file.slice(out.length + 1)})`);
+      }
+    }
+    assert.deepEqual(missing, [], "internal links point at pages that are not built");
+  });
+
+  it("gives the mobile browser bar a theme colour for each scheme", () => {
+    for (const page of [join(out, "index.html"), join(out, "excel", `${lessons[0].slug}.html`)]) {
+      const html = readFileSync(page, "utf8");
+      assert.match(html, /<meta name="color-scheme" content="light dark">/);
+      assert.match(html, /<meta name="theme-color" media="\(prefers-color-scheme: light\)" content="#f9f9f8">/);
+      assert.match(html, /<meta name="theme-color" media="\(prefers-color-scheme: dark\)" content="#191918">/);
+    }
+  });
+
   it("keeps the author off the byline when no author is configured", () => {
-    const html = readFileSync(join(out, "excel", "sum-basics.html"), "utf8");
+    const html = readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8");
     assert.ok(!/\bBy \w/.test(html), "no author is configured, so no name may be claimed");
-    assert.match(html, /Updated 28 Oct 2026/);
+    // A lesson dates its own page with its revision date; only a lesson without one falls back to the
+    // build stamp. Asserting the stamp would pin a date the page no longer claims.
+    const claimed = lessons[0].updated ?? ENV.SITE_BUILT_AT;
+    const [year, month, day] = claimed.split("-").map(Number);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    assert.match(html, new RegExp(`Updated ${day} ${months[month - 1]} ${year}`));
     assert.ok(!/~\d+ min/.test(html), "the index must not claim a duration");
   });
 
@@ -714,7 +837,7 @@ describe("serve", () => {
 
   it("serves the generated pages over HTTP", async () => {
     const base = `http://127.0.0.1:${server.address().port}`;
-    const lesson = await fetch(`${base}/excel/sum-basics`);
+    const lesson = await fetch(`${base}/excel/${lessons[0].slug}`);
     assert.equal(lesson.status, 200);
     assert.match(lesson.headers.get("content-type"), /text\/html/);
     assert.equal(lesson.headers.get("cache-control"), "no-store");

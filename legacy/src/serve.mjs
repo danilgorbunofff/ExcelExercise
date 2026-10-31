@@ -34,7 +34,7 @@ const NOT_FOUND = `<!doctype html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Not found — Excel Supreme</title>
+    <title>Not found · Excel Supreme</title>
   </head>
   <body>
     <h1>Nothing at this address</h1>

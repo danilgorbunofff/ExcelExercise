@@ -10,6 +10,7 @@ import { loadSite } from "../lib/site.js";
 const { track, index } = loadSite();
 const LESSONS = index.length;
 const FIRST = index[0].exercise.id;
+const LAST = index[index.length - 1];
 // The group the first drill sits in: more than one drill, so the page's own count has work to do.
 const GROUP = track.groups.find((group) => group.id === index[0].group);
 const GROUP_LESSONS = index.filter((entry) => entry.group === GROUP.id);
@@ -32,10 +33,17 @@ test("the dashboard lists every drill and opens on the first one", async ({ page
   );
   await expect(page.locator("#dash-next-label")).toHaveText(`Start drill 1 · ${index[0].exercise.title}`);
   await expect(page.locator("#dash-next-link")).toHaveAttribute("href", index[0].path);
-  await expect(page.locator("#dash-recent")).toContainText("Nothing finished yet");
+  // Nothing is finished, so the section that lists finished drills is not on screen at all.
+  await expect(page.locator("#dash-recent-section")).toBeHidden();
 
-  // A group header counts its own lessons, not the track's.
-  await expect(page.locator("[data-group-count]").first()).toHaveText(new RegExp(`^0 of \\d+$`));
+  // A group header counts its own lessons, not the track's, and says nothing about zero.
+  const firstGroup = page.locator("[data-group-count]").first();
+  await expect(firstGroup).toHaveText(new RegExp(`^\\d+ drills?$`));
+  await expect(page.locator("#dash-legend")).toBeHidden();
+  await expect(page.locator("#dash-rail")).toBeHidden();
+  // The group holding the next drill is open so the CTA and the list agree; the other 15 stay shut.
+  await expect(page.locator(`#group-${GROUP.id}`)).toHaveAttribute("open", "");
+  await expect(page.locator("details.dash-group[open]")).toHaveCount(1);
 });
 
 test("a lesson finished on its own page shows up here", async ({ page }) => {
@@ -43,6 +51,11 @@ test("a lesson finished on its own page shows up here", async ({ page }) => {
   await page.fill("#formula", "=SUM(B2:B4)");
   await page.click("#check");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+
+  // The drill page reloads before the dashboard is opened: what the dashboard counts has to be what
+  // survived a fresh document, not what the previous page still had in memory.
+  await page.reload();
+  await expect(page.locator(`.rail-item[data-lesson="${FIRST}"]`)).toHaveClass(/is-done/);
 
   await page.goto("/learn");
 
@@ -111,12 +124,48 @@ test("resetting asks twice and then forgets everything", async ({ page }) => {
   await expect(page.locator("#dash-note")).toHaveText(
     "Nothing started yet. The first drill is one formula and about two minutes.",
   );
-  await expect(page.locator("#dash-recent")).toContainText("Nothing finished yet");
+  await expect(page.locator("#dash-recent-section")).toBeHidden();
   await expect(page.locator("#dash-reset-section")).toBeHidden();
 
   // The seed script re-runs on every navigation, so the storage itself is what has to be empty.
   const stored = await page.evaluate(() => JSON.parse(window.localStorage.getItem("es.progress")));
   expect(stored.done).toEqual({});
+});
+
+test("erasing progress does not put the walls back", async ({ page }) => {
+  // Reset forgets what was learnt, not the learner's decision to open the track: `armReset` keeps
+  // `unlocked`. The seed is one-shot on purpose — an init script that re-runs on every navigation
+  // would write the pre-reset record back and let this pass without the reset ever preserving it.
+  await page.addInitScript(
+    (record) => {
+      if (window.sessionStorage.getItem("es.seeded") === "1") return;
+      window.sessionStorage.setItem("es.seeded", "1");
+      window.localStorage.setItem("es.progress", JSON.stringify(record));
+    },
+    {
+      v: 1,
+      done: { [FIRST]: { at: new Date().toISOString(), tries: 1, helped: false } },
+      tries: {},
+      unlocked: true,
+    },
+  );
+
+  await page.goto("/learn");
+  await expect(page.locator("#dash-complete")).toHaveText("1");
+
+  const reset = page.locator("#dash-reset");
+  await reset.click();
+  await reset.click();
+  await expect(page.locator("#dash-complete")).toHaveText("0");
+
+  const stored = await page.evaluate(() => JSON.parse(window.localStorage.getItem("es.progress")));
+  expect(stored.done).toEqual({});
+  expect(stored.unlocked).toBe(true);
+
+  // The last drill is behind both walls at once — the order gate and the paywall. Neither is one now.
+  await page.goto(LAST.path);
+  await expect(page.locator("#formula")).toBeVisible();
+  await expect(page.locator("#paywall")).toHaveCount(0);
 });
 
 test("a browser that refuses storage is told so, not shown zero", async ({ page }) => {
@@ -153,28 +202,36 @@ test("a group heading opens that group on its own, and back returns to the track
   expect(GROUP_LESSONS.length).toBeGreaterThan(1);
 
   await page.goto("/learn");
-  await page.click(`a[href="/learn/groups/${GROUP.id}"]`);
 
-  await expect(page.locator("h1")).toHaveText(GROUP.title);
+  // A group's own page is linked from inside its panel, so the reader opens the group first.
+  const panel = page.locator(`#group-${GROUP.id}`);
+  if (!(await panel.evaluate((details) => details.open))) await panel.locator("summary").click();
+  await panel.locator(`a[href="/learn/groups/${GROUP.id}"]`).click();
+
+  // The hub's heading says the skill and the tool, because that is what it ranks for.
+  await expect(page.locator("h1")).toHaveText(`Excel exercises: ${GROUP.title}`);
   // Only this group's drills, and the island counting them rather than the whole track.
   await expect(page.locator(".lesson-row")).toHaveCount(GROUP_LESSONS.length);
   const crossGroup = index.filter((entry) => entry.group !== GROUP.id).map((entry) => entry.exercise.id);
   for (const id of crossGroup) await expect(page.locator(`[data-lesson="${id}"]`)).toHaveCount(0);
   await expect(page.locator(`[data-group-count="${GROUP.id}"]`)).toHaveText(`0 of ${GROUP_LESSONS.length}`);
 
-  await page.click("a.link-btn[href='/learn']");
-  await expect(page.locator("h1")).toHaveText("Where you are");
-  await expect(page.locator(".lesson-row")).toHaveCount(LESSONS);
+  // The way back is the public hub, not the personal dashboard: a reader can arrive here from a search
+  // result without ever having opened `/learn`.
+  await page.click("a.link-btn[href='/excel-exercises']");
+  await expect(page.locator("h1")).toHaveText("Excel exercises with instant answers");
 });
 
-test("group pages stay out of the sitemap, and an unknown group is the not-found page", async ({
+test("group hubs are in the sitemap and indexable, and an unknown group is the not-found page", async ({
   page,
   request,
 }) => {
   const sitemap = await (await request.get("/sitemap.xml")).text();
-  expect(sitemap).not.toContain("/learn/groups/");
+  expect(sitemap).toContain(`/learn/groups/${GROUP.id}`);
 
-  expect((await request.get(`/learn/groups/${GROUP.id}`)).status()).toBe(200);
+  const hub = await request.get(`/learn/groups/${GROUP.id}`);
+  expect(hub.status()).toBe(200);
+  expect(await hub.text()).not.toContain('content="noindex"');
 
   // PPR answers the first request for an unknown param with a 200 shell, the same known consequence
   // phase-00 records for an unknown lesson slug. What a reader gets is the not-found page either way.

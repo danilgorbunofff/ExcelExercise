@@ -13,17 +13,43 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Runner", "Lap (s)"],
-          ["Ada", 61.2],
-          ["Ben", 58.4],
-          ["Cai", 63.9],
-          ["Dee", 59.1],
-          ["Fastest", null]
+          [
+            "Runner",
+            "Lap (s)"
+          ],
+          [
+            "Ada",
+            61.2
+          ],
+          [
+            "Ben",
+            58.4
+          ],
+          [
+            "Cai",
+            63.9
+          ],
+          [
+            "Dee",
+            59.1
+          ],
+          [
+            "Fastest",
+            null
+          ]
         ]
       },
       "answerCell": "B6",
-      "expect": { "value": 58.4 },
-      "require": [{ "id": "func-min", "func": "MIN", "minArgs": 1 }],
+      "expect": {
+        "value": 58.4
+      },
+      "require": [
+        {
+          "id": "func-min",
+          "func": "MIN",
+          "minArgs": 1
+        }
+      ],
       "forbid": [],
       "requireRef": "B2",
       "rules": [],
@@ -90,17 +116,43 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Runner", "Lap (s)"],
-          ["Ada", 61.2],
-          ["Ben", 58.4],
-          ["Cai", 63.9],
-          ["Dee", 59.1],
-          ["Slowest", null]
+          [
+            "Runner",
+            "Lap (s)"
+          ],
+          [
+            "Ada",
+            61.2
+          ],
+          [
+            "Ben",
+            58.4
+          ],
+          [
+            "Cai",
+            63.9
+          ],
+          [
+            "Dee",
+            59.1
+          ],
+          [
+            "Slowest",
+            null
+          ]
         ]
       },
       "answerCell": "B6",
-      "expect": { "value": 63.9 },
-      "require": [{ "id": "func-max", "func": "MAX", "minArgs": 1 }],
+      "expect": {
+        "value": 63.9
+      },
+      "require": [
+        {
+          "id": "func-max",
+          "func": "MAX",
+          "minArgs": 1
+        }
+      ],
       "forbid": [],
       "requireRef": "B2",
       "rules": [],
@@ -162,7 +214,7 @@
   ],
   "docs": {
     "syntax": "=MIN(number1, ...) for the smallest, =MAX(number1, ...) for the largest",
-    "explain": "The sheet lists four runners with the lap each one ran: 61.2 seconds in B2, 58.4 in B3, 63.9 in B4 and 59.1 in B5. Read them in order and the smallest is Ben's 58.4, so MIN over B2:B5 answers 58.4, and the largest is Cai's 63.9, so MAX over the same range answers 63.9. Neither function sorts anything or cares which row a time sits in, which is why the sheet can record laps in the order people finish. The four times total 242.6 and average 60.65, so an average would have told you about a time nobody ran, while MIN and MAX name the two runners who actually stood out.",
+    "explain": "The sheet lists four runners and the lap each one ran: 61.2 seconds in B2, 58.4 in B3, 63.9 in B4 and 59.1 in B5. Read in order, the smallest is Ben's 58.4, so MIN over B2:B5 answers 58.4. The largest is Cai's 63.9, so MAX over the same range answers 63.9. Neither function sorts anything or cares which row a time sits in, which is why the sheet can record laps in the order people finish. The four times total 242.6 and average 60.65, a time nobody ran. MIN and MAX name the two runners who stood out.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -178,5 +230,10 @@
     "teaches": "MIN and MAX",
     "dataset": "Four runners' lap times",
     "reference": "=MIN(B2:B5)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "MIN and MAX in Excel: fastest and slowest",
+    "description": "Four lap times, 61.2, 58.4, 63.9 and 59.1. MIN answers 58.4 and MAX answers 63.9 without sorting the sheet, while the average of 60.65 belongs to nobody."
   }
 }

@@ -1,0 +1,247 @@
+{
+  "id": "36-upper-lower-and-proper",
+  "slug": "upper-lower-and-proper",
+  "level": 2,
+  "title": "UPPER, LOWER and PROPER",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, put the reference in A2 into capitals so it matches the shipping labels.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Reference",
+            "Status"
+          ],
+          [
+            "ab-2291-xk",
+            "open"
+          ],
+          [
+            "cd-1180-qt",
+            "closed"
+          ],
+          [
+            "ef-4472-mp",
+            "open"
+          ],
+          [
+            "gh-9031-lr",
+            "open"
+          ],
+          [
+            "ij-6620-bn",
+            "closed"
+          ],
+          [
+            "Label",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": "AB-2291-XK"
+      },
+      "require": [
+        {
+          "id": "func-upper",
+          "func": "UPPER",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "UPPER takes one piece of text: =UPPER(A2).",
+        "func-upper": "Capitals are what the shipping labels use, and UPPER is the function that produces them.",
+        "require-ref": "Read the reference from A2, or from B7 which repeats it, so the drill follows the sheet.",
+        "value": "Every letter becomes a capital; the digits and the dashes stay as they are.",
+        "error": "UPPER accepts any cell; pointing it at a formula that has already failed passes the error through."
+      },
+      "fixtures": {
+        "accept": [
+          "=UPPER(A2)",
+          "=upper(a2)",
+          "=UPPER($A$2)",
+          "=UPPER(A2)&\"\"",
+          "=TRIM(UPPER(A2))",
+          "=UPPER(TRIM(A2))"
+        ],
+        "reject": [
+          {
+            "formula": "=UPPER(A2",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing converts"
+          },
+          {
+            "formula": "=LOWER(A2)",
+            "rule": "func-upper",
+            "why": "converts the reference the wrong way, so it stays in lower case"
+          },
+          {
+            "formula": "=PROPER(A2)",
+            "rule": "func-upper",
+            "why": "capitalises after each dash, which is not what a shipping label uses"
+          },
+          {
+            "formula": "=TRIM(A2)",
+            "rule": "func-upper",
+            "why": "removes stray spaces but leaves the letters as they are"
+          },
+          {
+            "formula": "=UPPER(\"ab-2291-xk\")",
+            "rule": "require-ref",
+            "why": "the reference typed into the formula, so a corrected reference never reaches the label"
+          },
+          {
+            "formula": "=UPPER(A2)&\"?\"",
+            "rule": "value",
+            "why": "puts the reference in capitals and then adds a character that does not belong"
+          },
+          {
+            "formula": "=UPPER(A2)/0",
+            "rule": "error",
+            "why": "dividing text by zero returns #VALUE!"
+          }
+        ]
+      },
+      "reference": "=UPPER(A2)"
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B7, tidy the name in A2 so each word starts with a capital and the rest is lower case.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Name",
+            "Team"
+          ],
+          [
+            "ada LOVELACE",
+            "engine"
+          ],
+          [
+            "GRACE hopper",
+            "research"
+          ],
+          [
+            "alan TURING",
+            "engine"
+          ],
+          [
+            "katherine JOHNSON",
+            "research"
+          ],
+          [
+            "mary jackson",
+            "ops"
+          ],
+          [
+            "Tidy name",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": "Ada Lovelace"
+      },
+      "require": [
+        {
+          "id": "func-proper",
+          "func": "PROPER",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "PROPER takes one piece of text and capitalises each word: =PROPER(B7).",
+        "func-proper": "PROPER is the function that fixes mixed-up capitalisation without retyping.",
+        "require-ref": "Read the name from B7, or from A2, so the drill follows the sheet.",
+        "value": "Each word starts with a capital and the remaining letters drop to lower case.",
+        "error": "PROPER does not remove the double space, so a name with one still reads oddly; it never errors on text."
+      },
+      "fixtures": {
+        "accept": [
+          "=PROPER(A2)",
+          "=proper(a2)",
+          "=PROPER($A$2)",
+          "=PROPER(A2)&\"\"",
+          "=TRIM(PROPER(A2))",
+          "=PROPER(TRIM(A2))"
+        ],
+        "reject": [
+          {
+            "formula": "=PROPER(A2",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing is tidied"
+          },
+          {
+            "formula": "=UPPER(A2)",
+            "rule": "func-proper",
+            "why": "puts the whole name in capitals instead of one capital per word"
+          },
+          {
+            "formula": "=LOWER(A2)",
+            "rule": "func-proper",
+            "why": "drops everything to lower case, which loses the capitals a name needs"
+          },
+          {
+            "formula": "=TRIM(A2)",
+            "rule": "func-proper",
+            "why": "trims spaces but leaves the surname in capitals"
+          },
+          {
+            "formula": "=PROPER(\"ada LOVELACE\")",
+            "rule": "require-ref",
+            "why": "the name typed into the formula, so a corrected spelling never reaches the answer"
+          },
+          {
+            "formula": "=PROPER(A2)&\"?\"",
+            "rule": "value",
+            "why": "tidies the name and then adds a character that does not belong"
+          },
+          {
+            "formula": "=PROPER(A2)/0",
+            "rule": "error",
+            "why": "dividing text by zero returns #VALUE!"
+          }
+        ]
+      },
+      "reference": "=PROPER(A2)"
+    }
+  ],
+  "docs": {
+    "syntax": "=UPPER(text) · =LOWER(text) · =PROPER(text)",
+    "explain": "Three functions change case and nothing else. UPPER makes every letter a capital, LOWER drops them all, and PROPER capitalises the first letter of each word. That last one is what a name typed in capitals on a phone needs to read normally. PROPER decides where a word starts from punctuation, so it also capitalises after a hyphen, which is why the shipping label uses UPPER. None of them trims spaces or fixes spelling, so a name with two spaces between the words still reads oddly after PROPER. The conversion only goes one way. UPPER cannot tell you what the original was, so run these on a copy when the source spelling might matter later, such as a customer's name.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The converted text was used in arithmetic, as in =UPPER(B7)/0."
+      },
+      {
+        "code": "#NAME?",
+        "text": "UPPER was typed with an extra letter, which is a function the sheet has never heard of."
+      }
+    ],
+    "atWork": "Names and codes arriving from three systems, each of which shouts or whispers them.",
+    "outcome": "Normalise capitalisation with UPPER, LOWER and PROPER.",
+    "teaches": "UPPER, LOWER and PROPER",
+    "dataset": "References and names in mixed case",
+    "reference": "=UPPER(A2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "UPPER, LOWER and PROPER in Excel",
+    "description": "Three functions change case and nothing else. PROPER starts a new word after any punctuation, which is why the shipping label needs UPPER instead."
+  }
+}

@@ -1,0 +1,265 @@
+{
+  "id": "48-sumifs-two-conditions-at-once",
+  "slug": "sumifs-two-conditions-at-once",
+  "level": 3,
+  "title": "SUMIFS: two conditions at once",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In C7, total the North amounts Ada sold with a function that takes two conditions.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Rep",
+            "Amount"
+          ],
+          [
+            "North",
+            "Ada",
+            320
+          ],
+          [
+            "South",
+            "Ben",
+            250
+          ],
+          [
+            "North",
+            "Cleo",
+            180
+          ],
+          [
+            "West",
+            "Dev",
+            300
+          ],
+          [
+            "North",
+            "Ada",
+            400
+          ],
+          [
+            "North, Ada total",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C7",
+      "expect": {
+        "value": 720
+      },
+      "reference": "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6,\"Ada\")",
+      "require": [
+        {
+          "id": "func-sumifs",
+          "func": "SUMIFS",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUMIFS(sum range, range 1, condition 1, range 2, condition 2): note the sum range comes first.",
+        "func-sumifs": "SUMIF only takes one condition; two of them need SUMIFS.",
+        "require-ref": "Point at the region column in the grid rather than typing the rep names into the formula.",
+        "value": "Ada's North sales are 320 in row 2 and 400 in row 6, so the total is 720.",
+        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6,\"Ada\")",
+          "=sumifs(c2:c6,a2:a6,\"north\",b2:b6,\"ada\")",
+          "=SUMIFS($C$2:$C$6,$A$2:$A$6,\"North\",$B$2:$B$6,\"Ada\")",
+          "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6,\"Ada\")+0",
+          "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6,\"Ada\")*1",
+          "=SUMIFS(C$2:C$6,A$2:A$6,\"North\",B$2:B$6,\"Ada\")"
+        ],
+        "reject": [
+          {
+            "formula": "=SUMIF(A2:A6,\"North\",C2:C6)",
+            "rule": "func-sumifs",
+            "why": "one condition only, so Ada's West sale is counted too and the answer is 900"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,A2:A6,\"North\")",
+            "rule": "value",
+            "why": "900 — one condition pair only, so the rep is never mentioned"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6,\"Cleo\")",
+            "rule": "value",
+            "why": "180, Cleo's sale, not Ada's 720"
+          },
+          {
+            "formula": "=SUMIFS(C3:C6,A3:A6,\"North\",B3:B6,\"Ada\")",
+            "rule": "require-ref",
+            "why": "the ranges start on row 3, so Ada's 320 disappears"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6,\"Ada\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6 \"Ada\")",
+            "rule": "syntax",
+            "why": "the missing comma jams two arguments into one"
+          },
+          {
+            "formula": "=SUMPRODUCT((A2:A6=\"North\")*(B2:B6=\"Ada\")*C2:C6)",
+            "rule": "func-sumifs",
+            "why": "the right number, but this lesson is a SUMIFS drill"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In C7, total the shipped orders that came to more than 200.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Product",
+            "Status",
+            "Amount"
+          ],
+          [
+            "Widget",
+            "Shipped",
+            320
+          ],
+          [
+            "Gadget",
+            "Pending",
+            250
+          ],
+          [
+            "Widget",
+            "Shipped",
+            180
+          ],
+          [
+            "Gadget",
+            "Shipped",
+            300
+          ],
+          [
+            "Widget",
+            "Pending",
+            400
+          ],
+          [
+            "Shipped over 200",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C7",
+      "expect": {
+        "value": 620
+      },
+      "reference": "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\">200\")",
+      "require": [
+        {
+          "id": "func-sumifs",
+          "func": "SUMIFS",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "C2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\">200\"): the comparison goes in quotes.",
+        "func-sumifs": "Two conditions on the same table is exactly what SUMIFS is for.",
+        "require-ref": "Point at the amount column so the threshold is compared against the grid, not a typed list.",
+        "value": "Only two shipped orders clear 200: 320 and 300, which total 620.",
+        "error": "A division by zero in the formula returns #DIV/0! instead of a total."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\">200\")",
+          "=sumifs(c2:c6,b2:b6,\"shipped\",c2:c6,\">200\")",
+          "=SUMIFS($C$2:$C$6,$B$2:$B$6,\"Shipped\",$C$2:$C$6,\">200\")",
+          "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\">200\")+0",
+          "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\">200\")*1",
+          "=SUMIFS(C$2:C$6,B$2:B$6,\"Shipped\",C$2:C$6,\">200\")"
+        ],
+        "reject": [
+          {
+            "formula": "=SUMIF(B2:B6,\"Shipped\",C2:C6)",
+            "rule": "func-sumifs",
+            "why": "the 180 order is shipped as well, so this totals 800"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,B2:B6,\"Shipped\")",
+            "rule": "value",
+            "why": "800 — one condition pair only, so the 200 threshold is never applied"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,B2:B6,\"Pending\",C2:C6,\">200\")",
+            "rule": "value",
+            "why": "650 of pending orders rather than shipped ones"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\"<200\")",
+            "rule": "value",
+            "why": "the comparison points the wrong way, so only the 180 order counts"
+          },
+          {
+            "formula": "=SUMIFS(C3:C6,B3:B6,\"Shipped\",C3:C6,\">200\")",
+            "rule": "require-ref",
+            "why": "the ranges start on row 3, so the first widget is left out"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,B2:B6,\"Shipped\",C2:C6,\">200\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUMIFS(C2:C6,B2:B6,\"Shipped\" C2:C6,\">200\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves a condition with no range"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUMIFS(sum_range, criteria_range1, criteria1, [criteria_range2, criteria2], ...)",
+    "explain": "SUMIF answers one question. Most real totals ask two. SUMIFS takes the range to add first, then any number of range and condition pairs. That first argument is the opposite order to SUMIF, which is why people who know SUMIF get it wrong. In this drill the sum range is C2:C6, the region column must say North, and the rep column must say Ada. That leaves rows 2 and 6 and answers 720. The second screen swaps one pair for a comparison: the status must be Shipped and the amount must be over 200. The 180 order is shipped but excluded, so the answer is 620. Conditions are text or comparisons in quotes, and the wildcard characters work inside them. All the criteria ranges must be the same shape as the sum range, or rows start drifting against each other and the total is quietly wrong. When a condition needs an OR rather than an AND, SUMIFS cannot express it in one call. Add two SUMIFS calls together instead of trying to bend one.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The sum range holds text where a number was expected."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "A condition or an argument divides by zero before the total is reached."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function was typed as SUMIF, which takes different arguments and a different order."
+      }
+    ],
+    "atWork": "A sales sheet that totals one rep in one region, and an order book that totals shipped orders above a credit limit.",
+    "outcome": "Total the rows that meet two conditions at once instead of filtering the table first.",
+    "teaches": "SUMIFS with two condition pairs, text and comparison criteria",
+    "dataset": "Repo sales by region and shipped orders by value",
+    "reference": "=SUMIFS(C2:C6,A2:A6,\"North\",B2:B6,\"Ada\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "SUMIFS in Excel: two conditions at once",
+    "description": "Most real totals ask two questions. SUMIFS takes the range to add first, then a range and a condition for each. Get that order wrong and the total drifts."
+  }
+}

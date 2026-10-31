@@ -1,0 +1,146 @@
+{
+  "id": "31-lookup-functions-summary",
+  "slug": "lookup-functions-summary",
+  "level": 2,
+  "title": "Lookup functions summary",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, return the product name for the SKU in B6, even though the name column sits left of the key.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Product",
+            "SKU",
+            "On hand"
+          ],
+          [
+            "Bracket",
+            "BX-210",
+            240
+          ],
+          [
+            "Clamp",
+            "CX-330",
+            96
+          ],
+          [
+            "Dowel",
+            "DX-410",
+            60
+          ],
+          [
+            "Extrusion",
+            "EX-500",
+            18
+          ],
+          [
+            "Which SKU?",
+            "DX-410",
+            null
+          ],
+          [
+            "Product",
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": "Dowel"
+      },
+      "require": [
+        {
+          "id": "func-xlookup",
+          "func": "XLOOKUP",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B6",
+      "rules": [],
+      "hints": {
+        "syntax": "XLOOKUP takes the value, the searched column, then the column to return: =XLOOKUP(B6,B2:B5,A2:A5).",
+        "func-xlookup": "The product name is to the left of the SKU, which is the case XLOOKUP handles without help.",
+        "require-ref": "Take the SKU from B6 so the next question is one edit away.",
+        "value": "DX-410 is the third SKU down, so the answer is the third product in the column to its left.",
+        "error": "XLOOKUP returns #N/A when the SKU is not in the searched column."
+      },
+      "fixtures": {
+        "accept": [
+          "=XLOOKUP(B6,B2:B5,A2:A5)",
+          "=xlookup(b6,b2:b5,a2:a5)",
+          "=XLOOKUP($B$6,$B$2:$B$5,$A$2:$A$5)",
+          "=XLOOKUP(B6,B2:B5,A2:A5)&\"\"",
+          "=TRIM(XLOOKUP(B6,B2:B5,A2:A5))",
+          "=PROPER(LOWER(XLOOKUP(B6,B2:B5,A2:A5)))"
+        ],
+        "reject": [
+          {
+            "formula": "=XLOOKUP(B6,B2:B5,A2:A5",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing is looked up"
+          },
+          {
+            "formula": "=VLOOKUP(B6,A2:B5,1,FALSE)",
+            "rule": "func-xlookup",
+            "why": "VLOOKUP cannot return a column to the left of the key, which is why this drill exists"
+          },
+          {
+            "formula": "=INDEX(A2:A5,MATCH(B6,B2:B5,0))",
+            "rule": "func-xlookup",
+            "why": "the right answer built from INDEX and MATCH; this screen is the one-function version"
+          },
+          {
+            "formula": "=XLOOKUP(B6,A2:A5,B2:B5)",
+            "rule": "error",
+            "why": "the searched column holds product names, so a SKU finds nothing and returns #N/A"
+          },
+          {
+            "formula": "=XLOOKUP(B6,B2:B5,C2:C5)",
+            "rule": "value",
+            "why": "returns the stock count rather than the product name"
+          },
+          {
+            "formula": "=XLOOKUP(\"DX-410\",B2:B5,A2:A5)",
+            "rule": "require-ref",
+            "why": "the SKU typed into the formula, so a change in B6 never reaches the answer"
+          },
+          {
+            "formula": "=XLOOKUP(B6,B2:B5,B2:B5)",
+            "rule": "value",
+            "why": "returns the SKU itself, because the searched column is also the returned one"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=XLOOKUP(value, search column, return column)",
+    "explain": "Four functions answer 'find this, give me that': VLOOKUP, HLOOKUP, INDEX with MATCH, and XLOOKUP. VLOOKUP and HLOOKUP can only return what sits below or right of the key, because their third argument counts forward from the key column. INDEX with MATCH can go anywhere but needs two functions to say one thing. XLOOKUP names the searched column and the returned column separately, so a key on the right and the answer on the left costs nothing, which is exactly the table here. Choosing between them is mostly about which column holds the answer. If it sits to the right of the key, the old functions are fine. If it sits to the left, XLOOKUP says so in one function instead of two.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "Nothing in the searched column matched, so there is no row to return from."
+      },
+      {
+        "code": "#REF!",
+        "text": "A column number counted past the returned range, so the lookup points at a column that is not there."
+      }
+    ],
+    "atWork": "A stock file exported by a till, where the code sits to the right of the description nobody wants to retype.",
+    "outcome": "Pick the lookup that can return a column to the left of its key.",
+    "teaches": "Choosing between the lookup functions",
+    "dataset": "Products left of their SKUs",
+    "reference": "=XLOOKUP(B6,B2:B5,A2:A5)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Which Excel lookup should you use?",
+    "description": "VLOOKUP and HLOOKUP only return what sits right of its key. INDEX with MATCH goes anywhere in two functions, and XLOOKUP names both columns."
+  }
+}

@@ -92,13 +92,13 @@
         }
       ],
       "hints": {
-        "syntax": "=INDEX(C2:C6,MATCH(D3,A2:A6,0)) — MATCH finds the row number, INDEX reads that row.",
+        "syntax": "=INDEX(C2:C6,MATCH(D3,A2:A6,0)): MATCH finds the row number, INDEX reads that row.",
         "func-index": "INDEX is the half that returns the value; it needs the column of salaries and a row number.",
         "func-match": "MATCH supplies the row number. It needs the column of IDs and the 0 for an exact match, or the row will be approximate.",
         "no-vlookup": "This lesson is about the alternative. VLOOKUP cannot look to the left, which is exactly why INDEX + MATCH exists.",
         "match-exact": "The third argument of MATCH must be 0. Anything else is an approximate match, which assumes sorted data.",
         "require-ref": "Point the formula at the ID cell and at the table, so it still works when payroll adds a row.",
-        "value": "Check which column INDEX is reading and which one MATCH is searching — they have to be the same rows.",
+        "value": "Check which column INDEX is reading and which one MATCH is searching. They have to be the same rows.",
         "error": "#N/A is the honest error here: MATCH did not find the ID in A2:A6. #REF! means the row number fell outside C2:C6, and #VALUE! usually means MATCH was given a range where a single cell belongs."
       },
       "fixtures": {
@@ -167,7 +167,7 @@
   ],
   "docs": {
     "syntax": "=INDEX(return_column, MATCH(lookup_value, search_column, 0))",
-    "explain": "MATCH answers one question: on which row does this value appear? Searching E-103 in A2:A6 returns 3, because it is the third row of that range. INDEX answers the other question: what is on row 3 of this column? Reading C2:C6 at position 3 returns 88000, and the two nested together give =INDEX(C2:C6,MATCH(D3,A2:A6,0)) = 88000. The 0 in MATCH is the exact-match flag and it is not optional in practice: omit it and MATCH assumes sorted data, so an ID that is not in the list returns the row before it instead of #N/A. The pair matters because each half can point at any column, so the return column no longer has to sit to the right of the search column.",
+    "explain": "MATCH answers which row a value sits on. Searching E-103 in A2:A6 returns 3, because it is the third row of that range. INDEX answers what is on row 3 of a column: reading C2:C6 at position 3 returns 88000. Nested, they give =INDEX(C2:C6,MATCH(D3,A2:A6,0)) and the answer 88000. The 0 in MATCH is the exact-match flag, and leaving it out is never safe. Without it MATCH assumes sorted data, so an ID that is missing returns the row before it instead of #N/A. Each half can point at any column, which is why the return column no longer has to sit to the right of the search column.",
     "errors": [
       {
         "code": "#N/A",
@@ -187,5 +187,10 @@
     "teaches": "INDEX and MATCH",
     "dataset": "Employee directory",
     "reference": "=INDEX(C2:C6,MATCH(D3,A2:A6,0))"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "INDEX MATCH in Excel: look up either way",
+    "description": "INDEX and MATCH look up a value without column order getting in the way. MATCH finds the row, INDEX reads it, and the answer here is 88000."
   }
 }

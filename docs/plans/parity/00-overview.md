@@ -165,16 +165,17 @@ lands and never stops.
 
 **Total:** 6–9 months for one engineer plus a content author in parallel.
 
-**Phases 0–3 verification:** every phase above has a matching review and verification plan under
+**Phases 0–4 verification:** every phase above has a matching review and verification plan under
 [`reviews/`](reviews/00-foundation-verification-plan.md) — measured baselines, the exact gate commands
 with their expected output, the failure modes a green gate hides, and the criteria that cannot be
-closed by a machine in this checkout.
+closed by a machine in this checkout. Phase 4's plan
+([`reviews/phase-04-accounts-entitlements-verification-plan.md`](reviews/phase-04-accounts-entitlements-verification-plan.md))
+was written after eight units landed; its 15 gate rows separate the 11 that run here from the four
+that wait on live Stripe test keys, a second environment and the `PAYWALL=on` decision.
 
-**Phases 4+ verification:** no `reviews/phase-04-*` verification plan exists yet, so phase 4's evidence
-lives in a `## Unit log` section at the end of
-[its phase plan](phase-04-accounts-entitlements.md) — gate output per unit, deviations from the plan, and
-the rows still open with the reason. A review plan should be written once phase 4 has more than one unit
-landed.
+**Phases 5+ verification:** no review plan exists yet for those phases, so their evidence lives in the
+`## Unit log` section of each phase plan — gate output per unit, deviations from the plan, and the rows
+still open with the reason. A review plan is written once a phase has more than one unit landed.
 
 ## 9. Working agreements
 
@@ -189,8 +190,8 @@ landed.
 
 1. A signed-out visitor can complete 3 lessons with no account, no third-party request, and no layout
    break on a 375 px viewport.
-2. A signed-in learner can complete all 88 Excel lessons and 23 SQL lessons, with points, streaks,
-   accuracy and badges persisting across devices.
+2. A signed-in learner can complete all 88 Excel lessons, with points, streaks, accuracy and badges
+   persisting across devices. *(Amended 2026-10-31: the 23 SQL lessons are out of this launch.)*
 3. A non-entitled learner hits a soft paywall and then a hard gate; a Stripe test subscription unlocks
    within one webhook tick; a refund revokes.
 4. Completing everything issues exactly one verifiable certificate, findable by credential ID while
@@ -198,10 +199,15 @@ landed.
 5. The daily challenge runs on a cron, accepts one attempt per user per day, and ranks by accuracy
    then time.
 6. 44 indexable articles each link to a real exercise; sitemap matches routes; no orphan pages.
-7. A group owner can invite 3 emails, see 2 accepted, and export a CSV matching the activity table.
-8. `npm test`, content lint, Playwright, RLS tests, axe and the performance budget are all green in CI.
+7. ~~A group owner can invite 3 emails, see 2 accepted, and export a CSV matching the activity
+   table.~~ *(Deleted 2026-10-31: no organizational access in the product.)*
+8. `npm test`, content lint, Playwright, the RLS suite, axe and the performance budget are all green
+   in CI — and the RLS suite must be *inside* a CI job, not beside it.
 
-Item 7 is the only one that lands in 9B; the other seven must be true at launch.
+Items 2 and 8 are amended as noted on 2026-10-31; item 7 is deleted. Item 4's "working LinkedIn link"
+is deferred — the URL is asserted field by field but no automated run can open LinkedIn's UI — so at
+launch that item means a prefilled URL, not a recorded click-through. The seven remaining items, as
+amended, are the launch bar, and phase 10's "Definition of launch" is the authoritative text.
 
 ## 11. Decisions
 
@@ -217,6 +223,9 @@ would force a revisit, because reversal cost is the only reason to spend time de
 | 5 | **B2B and referrals: split into 9A and 9B** | 9A (dark mode, a11y, print, copy extraction) cannot be retrofitted cheaply and gates launch; 9B (group portal, referrals) is a revenue experiment and only completes parity DoD 7 | 9B slips by a phase; the `groups`/`group_invites` schema and RLS already land in phase 4, so no migration is needed later |
 | 6 | **Certificate: server-issued PDF at a verification URL, plus an OG card rendered from the same record** | DoD 4 requires verification while signed out, so the URL is the deliverable; the card is a view of it | Cosmetic only |
 
-**Launch vs parity.** Launch = phases 0–8, 9A and 10. Parity = launch + 9B + the 13 shortcut lessons.
+**Launch vs parity.** Amended 2026-10-31: launch = phases 0–7, 9A and 10. Phase 8 (SQL) is out of
+this launch and 9B is deleted from the product, so parity = launch + phase 8 + the 13 shortcut
+lessons. The authoritative text is phase 10's "Definition of launch"; the dated review is
+[`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md).
 The split exists because the group portal and referral credit are revenue experiments with no
 correctness risk, while accessibility and print work get more expensive the longer they wait.

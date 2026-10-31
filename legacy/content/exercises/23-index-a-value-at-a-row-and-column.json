@@ -12,18 +12,61 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["Product", "Q1", "Q2", "Q3"],
-          ["Widget", 100, 120, 130],
-          ["Gadget", 90, 110, 125],
-          ["Gizmo", 140, 160, 150],
-          ["Row to read", 3, null, null],
-          ["Column to read", 2, null, null],
-          ["Units", null, null, null]
+          [
+            "Product",
+            "Q1",
+            "Q2",
+            "Q3"
+          ],
+          [
+            "Widget",
+            100,
+            120,
+            130
+          ],
+          [
+            "Gadget",
+            90,
+            110,
+            125
+          ],
+          [
+            "Gizmo",
+            140,
+            160,
+            150
+          ],
+          [
+            "Row to read",
+            3,
+            null,
+            null
+          ],
+          [
+            "Column to read",
+            2,
+            null,
+            null
+          ],
+          [
+            "Units",
+            null,
+            null,
+            null
+          ]
         ]
       },
       "answerCell": "B7",
-      "expect": { "value": 160 },
-      "require": [{ "id": "func-index", "func": "INDEX", "minArgs": 3 }],
+      "expect": {
+        "value": 160
+      },
+      "require": [
+        {
+          "id": "func-index",
+          "func": "INDEX",
+          "minArgs": 3
+        }
+      ],
       "forbid": [],
       "requireRef": "B5",
       "rules": [],
@@ -80,7 +123,7 @@
   ],
   "docs": {
     "syntax": "=INDEX(array, row_num, [column_num])",
-    "explain": "INDEX treats a block of cells as a grid and counts inside it: row 1 is Widget, row 2 is Gadget, row 3 is Gizmo, and column 1 is Q1, column 2 is Q2. B5 says 3 and B6 says 2, so the answer is row 3 column 2, which is 160. The counting restarts at the top-left corner of the block you hand it, not at row 1 of the sheet — that is why the block starts at B2 and Widget's Q1 is position (1,1). Feed the two numbers from cells and the same formula answers 130 if someone changes the column to 3, or 90 if they change the row to 2. That is the whole reason INDEX pairs with MATCH: MATCH works out the row, INDEX reads the cell.",
+    "explain": "INDEX treats a block of cells as a grid and counts inside it. Row 1 is Widget, row 2 is Gadget, row 3 is Gizmo; column 1 is Q1, column 2 is Q2. B5 says 3 and B6 says 2, so the answer is row 3 column 2, which is 160. The counting restarts at the top-left corner of the block you hand it, not at row 1 of the sheet. That is why the block starts at B2 and Widget's Q1 is position (1,1). Feed the two numbers from cells and the same formula answers 130 if someone changes the column to 3, or 90 if they change the row to 2. That is the whole reason INDEX pairs with MATCH: MATCH works out the row, INDEX reads the cell.",
     "errors": [
       {
         "code": "#REF!",
@@ -96,5 +139,10 @@
     "teaches": "INDEX",
     "dataset": "Three products across three quarters",
     "reference": "=INDEX(B2:D4,B5,B6)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "INDEX in Excel: a row and a column",
+    "description": "Row 3, column 2 of the block starting at B2 is 160. INDEX counts from the corner of the range you give it, so the formula follows the cells that change."
   }
 }

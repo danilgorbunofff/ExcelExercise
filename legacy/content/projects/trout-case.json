@@ -1,0 +1,144 @@
+{
+  "id": "trout-case",
+  "slug": "trout-case",
+  "level": 2,
+  "title": "Trout river case",
+  "schemaVersion": 2,
+  "brief": [
+    {
+      "heading": "The file",
+      "body": "trout.xlsx holds one sheet, Catch, with fourteen fish logged by three anglers over two beats of one river. Columns A to F are the date, the beat, the angler, the species, the length in centimetres and whether the fish was released. Rows 17 to 20 compute how many fish were logged, how many went back, the longest fish and the mean length."
+    },
+    {
+      "heading": "The work",
+      "body": "A river trust wants a one-page read of the season: which beat is producing, which species is being kept, and whether the lengths say anything. All eight tasks answer from this one sheet. This is the case-style project — the questions are the kind a volunteer coordinator would ask, and every one of them is a filter and a count over the same fifteen rows."
+    },
+    {
+      "heading": "Where people go wrong",
+      "body": "Two traps. 'Released' is text, so counting the word yes is not counting fish that were kept — do the subtraction, not a guess. And the beat column repeats, so a total per beat is three or four rows at a time, never the whole column."
+    }
+  ],
+  "dataset": {
+    "file": "trout.xlsx",
+    "description": "Fourteen logged fish across two beats and three anglers",
+    "sheet": {
+      "name": "Catch",
+      "startCell": "A1",
+      "rows": [
+        ["Date", "Beat", "Angler", "Species", "Length (cm)", "Released"],
+        ["2024-04-06", "Upper", "Hale", "Brown trout", 28, "yes"],
+        ["2024-04-06", "Upper", "Okonkwo", "Rainbow trout", 31, "yes"],
+        ["2024-04-13", "Lower", "Hale", "Brown trout", 22, "no"],
+        ["2024-04-13", "Lower", "Reyes", "Brown trout", 34, "yes"],
+        ["2024-04-20", "Upper", "Reyes", "Brook trout", 19, "yes"],
+        ["2024-04-27", "Lower", "Okonkwo", "Rainbow trout", 26, "yes"],
+        ["2024-05-04", "Upper", "Hale", "Brown trout", 41, "no"],
+        ["2024-05-11", "Lower", "Reyes", "Rainbow trout", 29, "yes"],
+        ["2024-05-18", "Upper", "Okonkwo", "Brook trout", 17, "no"],
+        ["2024-05-25", "Lower", "Hale", "Brown trout", 24, "yes"],
+        ["2024-06-01", "Upper", "Reyes", "Brown trout", 38, "yes"],
+        ["2024-06-08", "Lower", "Okonkwo", "Rainbow trout", 33, "no"],
+        ["2024-06-15", "Upper", "Hale", "Brook trout", 21, "yes"],
+        ["2024-06-22", "Lower", "Reyes", "Brown trout", 27, "yes"],
+        [null, null, null, null, null, null],
+        ["Fish logged", "=COUNTA(D2:D15)", null, null, null, null],
+        ["Released", "=COUNTIF(F2:F15,\"yes\")", null, null, null, null],
+        ["Longest (cm)", "=MAX(E2:E15)", null, null, null, null],
+        ["Mean length (cm)", "=ROUND(AVERAGE(E2:E15),1)", null, null, null, null]
+      ]
+    }
+  },
+  "docs": {
+    "syntax": "=COUNTA(D2:D15), =COUNTIF(F2:F15,\"yes\"), =ROUND(AVERAGE(E2:E15),1)",
+    "explain": "COUNTA counts the species cells, one per fish, which is the number of entries in the log. COUNTIF asks how many of the released cells say yes, and the answer is a count, not a length — the fish that were kept are what is left of fourteen once ten went back. MAX and ROUND(AVERAGE(...),1) describe the lengths without needing a second sheet. Every remaining task is those three ideas applied to a subset: filter a column to one value, then count or add what stays.",
+    "atWork": "A field log, a support queue export and a sales sheet are the same table with different words. 'Which subset is producing, and how big is what it produces' is the question a report answers, and it is always a filter and an aggregate.",
+    "outcome": "Turn a field log into the read a river trust would put on one page.",
+    "teaches": "Counting a filtered subset",
+    "reference": "=COUNTIF(F2:F15,\"yes\")",
+    "dataset": "trout.xlsx · Catch",
+    "errors": [
+      {
+        "code": "Counting yes to answer a keeled question",
+        "text": "Ten fish were released, so four were kept — not ten. Read which side of the question the yes counts belong to."
+      },
+      {
+        "code": "Whole-column totals",
+        "text": "A beat's total is three or four rows. Summing the beat column and comparing numbers per row is the error this project is built to catch."
+      }
+    ]
+  },
+  "screens": [
+    {
+      "id": "trout-logged",
+      "type": "workbook",
+      "prompt": "How many fish does the log record? B17 states it.",
+      "answers": ["14", "fourteen"],
+      "hints": {
+        "value": "B17 is COUNTA of the species column. Rows 2 to 15 hold the entries; row 1 is the header."
+      }
+    },
+    {
+      "id": "trout-released",
+      "type": "workbook",
+      "prompt": "How many of the logged fish were released?",
+      "answers": ["10", "ten"],
+      "hints": {
+        "value": "B18 counts the word yes in column F. Four rows say no, and fourteen minus four is the same answer."
+      }
+    },
+    {
+      "id": "trout-kept-brown",
+      "type": "workbook",
+      "prompt": "How many Brown trout were kept rather than released?",
+      "answers": ["2", "two"],
+      "hints": {
+        "value": "Brown trout rows: 28, 22, 34, 41, 24, 38 and 27 cm. Two of those seven say no in column F."
+      }
+    },
+    {
+      "id": "trout-longest-angler",
+      "type": "workbook",
+      "prompt": "Which angler landed the longest fish? B19 is its length.",
+      "answers": ["Hale"],
+      "hints": {
+        "value": "B19 is MAX of the length column. Find that number in column E and read the name in column C."
+      }
+    },
+    {
+      "id": "trout-beat-brown",
+      "type": "workbook",
+      "prompt": "Which beat produced more Brown trout — Upper or Lower?",
+      "answers": ["Lower"],
+      "hints": {
+        "value": "Three Brown trout rows are Upper and four are Lower. Count the rows, not the centimetres."
+      }
+    },
+    {
+      "id": "trout-mean",
+      "type": "workbook",
+      "prompt": "What is the mean length in centimetres, rounded to one decimal? B20 holds it.",
+      "answers": ["27.9"],
+      "hints": {
+        "value": "B20 is ROUND(AVERAGE(E2:E15),1). The fourteen lengths add up to 390 cm."
+      }
+    },
+    {
+      "id": "trout-rainbow-total",
+      "type": "workbook",
+      "prompt": "What is the combined length of every Rainbow trout in the log?",
+      "answers": ["119"],
+      "hints": {
+        "value": "Four Rainbow trout rows: 31, 26, 29 and 33 cm. Add those four only."
+      }
+    },
+    {
+      "id": "trout-upper-released",
+      "type": "workbook",
+      "prompt": "On the Upper beat, how many fish were released?",
+      "answers": ["5", "five"],
+      "hints": {
+        "value": "Seven rows are Upper. Two of them say no, so five say yes."
+      }
+    }
+  ]
+}

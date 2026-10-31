@@ -1,0 +1,257 @@
+{
+  "id": "81-a-sales-summary-end-to-end",
+  "slug": "a-sales-summary-end-to-end",
+  "level": 3,
+  "title": "Sales summary end to end",
+  "docs": {
+    "syntax": "=SUMIFS(amounts,criteria_range,\"North\") totals one region; wrap it in IF to compare two",
+    "explain": "Every summary has the same three parts: the column of numbers, the column that says which numbers count, and the criterion. SUMIFS names them in that order, which is the reverse of the older SUMIF. That reversed order is why the function surprises people who learned the single-criterion version first. Getting the order wrong is not a subtle error. The function returns zero or the sum of the wrong column, and both look plausible in a small table. That is the entire case for writing it carefully once. The second half of the lesson is the comparison. A summary that only prints totals leaves the reader to work out which region won. So the second screen wraps two of them in an IF and answers the question the report was asked. That composition is where a summary stops being a report of numbers and starts being an answer. It is also the shape the rest of this group builds on: a total, then a total compared to another total, then a word that says what the comparison means.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The criteria range and the sum range are different shapes, so the rows cannot be lined up."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name is misspelled, so the sheet has nothing to call."
+      }
+    ],
+    "atWork": "Reporting one region's sales out of a flat list, then naming the region that leads.",
+    "outcome": "Total a region with SUMIFS, then answer which region leads with one IF around two totals.",
+    "teaches": "SUMIFS on an amount and a label column, then a comparison over two of them",
+    "dataset": "Four sales rows tagged by region, summarised by region",
+    "reference": "=SUMIFS(C2:C5,A2:A5,\"North\")"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In D2, total the amount column for the North rows only.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Rep",
+            "Amount",
+            "Answer"
+          ],
+          [
+            "North",
+            "Ana",
+            1200,
+            null
+          ],
+          [
+            "South",
+            "Bo",
+            850,
+            null
+          ],
+          [
+            "North",
+            "Cy",
+            1450,
+            null
+          ],
+          [
+            "East",
+            "Di",
+            600,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 2650
+      },
+      "reference": "=SUMIFS(C2:C5,A2:A5,\"North\")",
+      "require": [
+        {
+          "id": "func-sumifs",
+          "func": "SUMIFS",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "C2",
+      "hints": {
+        "syntax": "=SUMIFS(C2:C5,A2:A5,\"North\"): the amounts first, then the labels, then the criterion.",
+        "func-sumifs": "Only the North rows count, so the total needs a criterion.",
+        "require-ref": "The amount column is C2:C5.",
+        "value": "1200 and 1450 are the two North rows, so the total is 2650.",
+        "error": "A criteria range of a different shape cannot be lined up with the amounts."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIFS(C2:C5,A2:A5,\"North\")",
+          "=sumifs(c2:c5,a2:a5,\"north\")",
+          "=SUMIFS($C$2:$C$5,$A$2:$A$5,\"North\")",
+          "=SUMIFS(C$2:C$5,A$2:A$5,\"North\")",
+          "=SUMIFS( C2:C5 , A2:A5 , \"North\" )",
+          "=SUMIFS(C2:C5,A2:A5,\"North\")+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(C2:C5)",
+            "rule": "func-sumifs",
+            "why": "every region is added rather than the North rows"
+          },
+          {
+            "formula": "=SUMIFS(C2:C5,B2:B5,\"North\")",
+            "rule": "value",
+            "why": "the criterion is applied to the rep column, which holds no region"
+          },
+          {
+            "formula": "=SUMIFS(C2:C3,A2:A3,\"North\")",
+            "rule": "value",
+            "why": "the range stops before the second North row"
+          },
+          {
+            "formula": "=SUMIFS(C2:C5,A2:A5,\"South\")",
+            "rule": "value",
+            "why": "the South rows are totalled instead"
+          },
+          {
+            "formula": "=SUMIFS(C3:C5,A3:A5,\"North\")",
+            "rule": "require-ref",
+            "why": "the first row is left out of both ranges"
+          },
+          {
+            "formula": "=SUMIFS(C2:C5,A2:A5,\"North\")/0",
+            "rule": "error",
+            "why": "the total is then divided by zero"
+          },
+          {
+            "formula": "=SUMIFS C2:C5,A2:A5,\"North\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In D2, name the region with the larger total, North or South.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Region",
+            "Rep",
+            "Amount",
+            "Answer"
+          ],
+          [
+            "North",
+            "Ana",
+            1200,
+            null
+          ],
+          [
+            "South",
+            "Bo",
+            850,
+            null
+          ],
+          [
+            "North",
+            "Cy",
+            1450,
+            null
+          ],
+          [
+            "East",
+            "Di",
+            600,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": "North"
+      },
+      "reference": "=IF(SUMIFS(C2:C5,A2:A5,\"North\")>SUMIFS(C2:C5,A2:A5,\"South\"),\"North\",\"South\")",
+      "require": [
+        {
+          "id": "func-if",
+          "func": "IF",
+          "minArgs": 3
+        },
+        {
+          "id": "func-sumifs",
+          "func": "SUMIFS",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "C2",
+      "hints": {
+        "syntax": "=IF(SUMIFS(...)>SUMIFS(...),\"North\",\"South\"): the test, the answer when it holds, the answer when it does not.",
+        "func-if": "The cell has to choose between two words.",
+        "func-sumifs": "Both sides of the comparison are region totals.",
+        "require-ref": "The amount column is C2:C5.",
+        "value": "2650 against 850, so the larger region is North.",
+        "error": "A divide by zero inside the test never reaches the words."
+      },
+      "fixtures": {
+        "accept": [
+          "=IF(SUMIFS(C2:C5,A2:A5,\"North\")>SUMIFS(C2:C5,A2:A5,\"South\"),\"North\",\"South\")",
+          "=IF(SUMIFS(C2:C5,A2:A5,\"North\")>=SUMIFS(C2:C5,A2:A5,\"South\"),\"North\",\"South\")",
+          "=IF(SUMIFS($C$2:$C$5,$A$2:$A$5,\"North\")>SUMIFS($C$2:$C$5,$A$2:$A$5,\"South\"),\"North\",\"South\")",
+          "=IF(SUMIFS(C$2:C$5,A$2:A$5,\"North\")>SUMIFS(C$2:C$5,A$2:A$5,\"South\"),\"North\",\"South\")",
+          "=IF( SUMIFS(C2:C5,A2:A5,\"North\") > SUMIFS(C2:C5,A2:A5,\"South\") , \"North\" , \"South\" )",
+          "=IF(SUMIFS(C2:C5,A2:A5,\"North\")>SUMIFS(C2:C5,A2:A5,\"South\"),\"North\",\"South\")&\"\""
+        ],
+        "reject": [
+          {
+            "formula": "=SUMIFS(C2:C5,A2:A5,\"North\")",
+            "rule": "func-if",
+            "why": "the total is reported rather than the winning region"
+          },
+          {
+            "formula": "=IF(C2>C3,\"North\",\"South\")",
+            "rule": "func-sumifs",
+            "why": "two single rows are compared instead of the region totals"
+          },
+          {
+            "formula": "=IF(SUMIFS(C2:C5,A2:A5,\"North\")>SUMIFS(C2:C5,A2:A5,\"South\"),\"South\",\"North\")",
+            "rule": "value",
+            "why": "the two answers are swapped"
+          },
+          {
+            "formula": "=IF(SUMIFS(C2:C5,A2:A5,\"South\")>SUMIFS(C2:C5,A2:A5,\"North\"),\"North\",\"South\")",
+            "rule": "value",
+            "why": "the comparison is the wrong way round"
+          },
+          {
+            "formula": "=IF(SUMIFS(C3:C5,A3:A5,\"North\")>SUMIFS(C3:C5,A3:A5,\"South\"),\"North\",\"South\")",
+            "rule": "require-ref",
+            "why": "the first row is left out of both totals"
+          },
+          {
+            "formula": "=IF(SUMIFS(C2:C5,A2:A5,\"North\")/0>0,\"North\",\"South\")",
+            "rule": "error",
+            "why": "the total is divided by zero inside the test"
+          },
+          {
+            "formula": "=IF SUMIFS(C2:C5,A2:A5,\"North\")>SUMIFS(C2:C5,A2:A5,\"South\"),\"North\",\"South\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Sales summary with SUMIFS, end to end",
+    "description": "SUMIFS names the number column, the label column and the criterion in that order. Wrap two totals in an IF and the report answers which region leads."
+  },
+  "updated": "2026-10-31"
+}

@@ -1,0 +1,255 @@
+{
+  "id": "43-large-and-small-the-nth-highest",
+  "slug": "large-and-small-the-nth-highest",
+  "level": 2,
+  "title": "LARGE and SMALL: the nth highest",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "Put the second-best time in the team into C2, keeping the list unsorted.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Swimmer",
+            "Seconds",
+            "Second best"
+          ],
+          [
+            "Ada",
+            58,
+            null
+          ],
+          [
+            "Ben",
+            61,
+            null
+          ],
+          [
+            "Cleo",
+            55,
+            null
+          ],
+          [
+            "Dev",
+            57,
+            null
+          ],
+          [
+            "Eli",
+            50,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 58
+      },
+      "reference": "=LARGE(B2:B6,2)",
+      "require": [
+        {
+          "id": "func-large",
+          "func": "LARGE",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "LARGE takes the range and which one you want: =LARGE(B2:B6,2).",
+        "func-large": "MAX gives only the best time; the second best needs a function that counts in from the top.",
+        "require-ref": "Point at the column of times rather than listing them inside the formula.",
+        "value": "2 means the second highest number, not the number in row 2: the answer is 58, not 61.",
+        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=LARGE(B2:B6,2)",
+          "=large(b2:b6,2)",
+          "=LARGE($B$2:$B$6,2)",
+          "=LARGE(B2:B6,2)+0",
+          "=LARGE(B2:B6,2)*1",
+          "=LARGE(B$2:B$6,2)"
+        ],
+        "reject": [
+          {
+            "formula": "=MAX(B2:B6)",
+            "rule": "func-large",
+            "why": "the highest time, 61, which is not the second highest"
+          },
+          {
+            "formula": "=SMALL(B2:B6,2)",
+            "rule": "func-large",
+            "why": "counts in from the bottom, so it returns 55"
+          },
+          {
+            "formula": "=LARGE(B2:B6)",
+            "rule": "func-large",
+            "why": "one argument only — LARGE needs to be told which one"
+          },
+          {
+            "formula": "=LARGE(B3:B6,2)",
+            "rule": "require-ref",
+            "why": "the range starts at B3, so the fastest swimmer is left out of the count"
+          },
+          {
+            "formula": "=LARGE(B2:B6,1)",
+            "rule": "value",
+            "why": "the best time, 61, rather than the one after it"
+          },
+          {
+            "formula": "=LARGE(B2:B6,2)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=LARGE(B2:B6 2)",
+            "rule": "syntax",
+            "why": "the missing comma means the arguments never separate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "Put the second-cheapest quote into C2 without re-sorting the table.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Quote",
+            "Cost",
+            "Second cheapest"
+          ],
+          [
+            "Q-1",
+            40,
+            null
+          ],
+          [
+            "Q-2",
+            35,
+            null
+          ],
+          [
+            "Q-3",
+            52,
+            null
+          ],
+          [
+            "Q-4",
+            38,
+            null
+          ],
+          [
+            "Q-5",
+            47,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 38
+      },
+      "reference": "=SMALL(B2:B6,2)",
+      "require": [
+        {
+          "id": "func-small",
+          "func": "SMALL",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "SMALL is LARGE from the other end: =SMALL(B2:B6,2).",
+        "func-small": "MIN only knows the cheapest quote; the next one up needs a function that counts in from the bottom.",
+        "require-ref": "Read the range from B2:B6 so the quotes stay the only place the numbers live.",
+        "value": "1 is the cheapest, 35; the second cheapest is 38.",
+        "error": "Dividing by zero replaces the quote with #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=SMALL(B2:B6,2)",
+          "=small(b2:b6,2)",
+          "=SMALL($B$2:$B$6,2)",
+          "=SMALL(B2:B6,2)+0",
+          "=SMALL(B2:B6,2)*1",
+          "=SMALL(B$2:B$6,2)"
+        ],
+        "reject": [
+          {
+            "formula": "=MIN(B2:B6)",
+            "rule": "func-small",
+            "why": "the cheapest quote, 35, rather than the one after it"
+          },
+          {
+            "formula": "=LARGE(B2:B6,2)",
+            "rule": "func-small",
+            "why": "counts in from the top, so it returns 47"
+          },
+          {
+            "formula": "=SMALL(B3:B6,2)",
+            "rule": "require-ref",
+            "why": "the first quote is outside the range, so the count starts one place too high"
+          },
+          {
+            "formula": "=SMALL(B2:B6,1)",
+            "rule": "value",
+            "why": "the cheapest quote, 35, not the second cheapest"
+          },
+          {
+            "formula": "=SMALL(B2:B6,4)",
+            "rule": "value",
+            "why": "the fourth cheapest, 47, which is two places too far up the list"
+          },
+          {
+            "formula": "=SMALL(B2:B6,2)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SMALL(B2:B6 2)",
+            "rule": "syntax",
+            "why": "the missing comma leaves two arguments jammed into one"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=LARGE(range, n) and =SMALL(range, n)",
+    "explain": "MAX and MIN answer only the first question anybody asks. The moment you want the runner-up, the third-worst month or the second-cheapest quote, you need a function that counts in from one end of the sorted order without sorting anything. LARGE does that from the top and SMALL from the bottom. The second argument is a position, not a row number, which is why 2 usually surprises people. The list stays exactly where it is: no helper column, no sort, no copy. Ranks that tie are counted separately, so two swimmers on 61 give LARGE 61 for both 1 and 2, and third place goes to the next distinct time. That is how Excel behaves, and it is worth knowing before a ranking report is published. A position beyond the size of the range returns #NUM! rather than a blank, so a chart title built on `=LARGE(...)` needs error handling if the list can shrink. The range should also be a range. LARGE over a hand-typed list freezes the answer and defeats the point.",
+    "errors": [
+      {
+        "code": "#NUM!",
+        "text": "The position asked for is larger than the number of values in the range."
+      },
+      {
+        "code": "#NUM!",
+        "text": "The position is zero or negative, so there is no such place in the order."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "The range holds no numbers at all, so there is no order to count in from."
+      }
+    ],
+    "atWork": "A team sheet that names the second-best time, and a tender list that tracks the second-cheapest quote, both without re-sorting the underlying table.",
+    "outcome": "Pick the nth value in an unsorted list instead of sorting it to read one number.",
+    "teaches": "LARGE and SMALL with a position argument",
+    "dataset": "Swim times and five supplier quotes",
+    "reference": "=LARGE(B2:B6,2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "LARGE and SMALL in Excel: the nth value",
+    "description": "LARGE counts in from the top of an unsorted list and SMALL from the bottom, so the second argument is a position, not a row number. No sort needed."
+  }
+}

@@ -1,0 +1,241 @@
+{
+  "id": "50-add-only-the-positives",
+  "slug": "add-only-the-positives",
+  "level": 2,
+  "title": "Add only the positives",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B7, add up the months that went up and leave the drops alone.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Month",
+            "Change"
+          ],
+          [
+            "Jan",
+            12
+          ],
+          [
+            "Feb",
+            -8
+          ],
+          [
+            "Mar",
+            15
+          ],
+          [
+            "Apr",
+            -3
+          ],
+          [
+            "May",
+            20
+          ],
+          [
+            "Gains",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 47
+      },
+      "reference": "=SUMIF(B2:B6,\">0\")",
+      "require": [
+        {
+          "id": "func-sumif",
+          "func": "SUMIF",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=SUMIF(B2:B6,\">0\"): the condition is a comparison, written in quotes.",
+        "func-sumif": "SUM takes everything; you only want the positive changes.",
+        "require-ref": "Test the changes from the grid, not from numbers typed into the formula.",
+        "value": "The gains are 12, 15 and 20, which total 47.",
+        "error": "A division by zero in the formula returns #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIF(B2:B6,\">0\")",
+          "=sumif(b2:b6,\">0\")",
+          "=SUMIF($B$2:$B$6,\">0\")",
+          "=SUMIF(B2:B6,\">0\")+0",
+          "=SUMIF(B2:B6,\">0\")*1",
+          "=SUMIF(B$2:B$6,\">0\")"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B6)",
+            "rule": "func-sumif",
+            "why": "36 — the gains and the drops netted off against each other"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\"<0\")",
+            "rule": "value",
+            "why": "-11, the losses rather than the gains"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\">=15\")",
+            "rule": "value",
+            "why": "35, because January's 12 is left out"
+          },
+          {
+            "formula": "=SUMIF(B3:B6,\">0\")",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so January's 12 is never tested"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\">0\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=SUMIF(B2:B6 \">0\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves one argument where two are needed"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B7, report the size of the losses as a positive number.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Week",
+            "Variance"
+          ],
+          [
+            "W-1",
+            -4
+          ],
+          [
+            "W-2",
+            6
+          ],
+          [
+            "W-3",
+            -9
+          ],
+          [
+            "W-4",
+            -2
+          ],
+          [
+            "W-5",
+            3
+          ],
+          [
+            "Losses",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B7",
+      "expect": {
+        "value": 15
+      },
+      "reference": "=-SUMIF(B2:B6,\"<0\")",
+      "require": [
+        {
+          "id": "func-sumif",
+          "func": "SUMIF",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=-SUMIF(B2:B6,\"<0\"): the minus sign flips a negative total to positive.",
+        "func-sumif": "Add only the negative weeks, and this drill wants a SUMIF doing it.",
+        "require-ref": "Read the variances from the grid so the filter applies to real cells.",
+        "value": "The losses add to -15, so the size of them is 15.",
+        "error": "A division by zero in the formula returns #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=-SUMIF(B2:B6,\"<0\")",
+          "=-sumif(b2:b6,\"<0\")",
+          "=-SUMIF($B$2:$B$6,\"<0\")",
+          "=-SUMIF(B2:B6,\"<0\")+0",
+          "=-SUMIF(B2:B6,\"<0\")*1",
+          "=-SUMIF(B$2:B$6,\"<0\")"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(B2:B6)",
+            "rule": "func-sumif",
+            "why": "-6, which nets the good weeks against the bad ones"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\"<0\")",
+            "rule": "value",
+            "why": "-15: the right rows, but reported with the sign on"
+          },
+          {
+            "formula": "=SUMIF(B2:B6,\">0\")",
+            "rule": "value",
+            "why": "9 — the winning weeks instead of the losing ones"
+          },
+          {
+            "formula": "=SUMIF(B3:B6,\"<0\")",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so the first loss is missed"
+          },
+          {
+            "formula": "=-SUMIF(B2:B6,\"<0\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=-SUMIF(B2:B6 \"<0\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves one argument where two are needed"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SUMIF(range, \">0\") and =-SUMIF(range, \"<0\")",
+    "explain": "A plain SUM of a profit-and-loss column tells you the net, which is usually the least useful number in it. Splitting the column by sign with SUMIF gives the two numbers a report wants: how much was gained, and how much was lost. The condition is a comparison in quotes, so \">0\" keeps the positives and \"<0\" keeps the negatives. Zero falls in neither bucket, which is worth remembering, because a zero month disappears from both totals and the two will not add back to the net. The second screen flips the sign of the losses so they read as a size rather than a negative. A leading minus in front of the function does that. It does not change which rows matched, so a mistake in the condition still shows up as the wrong size. If a column can hold text, SUMIF ignores it, and so would a single SUM over the same range. The difference is that SUMIF never adds a row you did not mean to keep.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The range holds text that cannot be compared with the number in the condition."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "A division by zero in the formula stops it before a total is produced."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function is misspelled, or SUMIFS was used with SUMIF's argument order."
+      }
+    ],
+    "atWork": "A monthly variance report that shows total gains and total losses as separate lines.",
+    "outcome": "Total the positive and negative rows separately instead of netting a column.",
+    "teaches": "SUMIF with a sign comparison, and flipping a negative total",
+    "dataset": "Monthly changes and weekly variances",
+    "reference": "=SUMIF(B2:B6,\">0\")"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Add only the positive or negative rows",
+    "description": "Splitting a profit column by sign with SUMIF gives the two numbers a report wants: what was gained and what was lost. A zero month counts in neither."
+  }
+}

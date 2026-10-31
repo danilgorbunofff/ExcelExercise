@@ -127,7 +127,7 @@
   ],
   "docs": {
     "syntax": "=HLOOKUP(lookup_value, table_array, row_index_num, [range_lookup])",
-    "explain": "HLOOKUP walks across the first row of B1:D3 until it finds Feb and then reads down that column to the row number you give it, so the third argument 3 lands on the price row and returns 5. The rows are what the index counts here, the way VLOOKUP counts columns: row 1 is the month headers, row 2 the units and row 3 the prices, which is why a 2 would quietly hand back 180. The fourth argument has to be FALSE, because an approximate match is only safe on a first row sorted ascending, and Jan, Feb, Mar is calendar order rather than alphabetical: Excel would be free to accept a neighbouring month and return its price. That is also why the drill rejects the formula with the fourth argument left out, even though Excel itself would run it, since leaving it out means TRUE. The reference is B4 rather than the word \"Feb\" so the lookup follows the month when it changes.",
+    "explain": "HLOOKUP walks across the first row of B1:D3 until it finds Feb, then reads down that column to the row number you give it. So the third argument 3 lands on the price row and returns 5. Here the index counts rows, the way VLOOKUP counts columns: row 1 is the months, row 2 the units, row 3 the prices, so a 2 would quietly hand back 180. The fourth argument has to be FALSE. Approximate match is only safe on a first row sorted ascending, and Jan, Feb, Mar is calendar order rather than alphabetical, so Excel would be free to accept a neighbouring month. That is why the drill rejects the formula with the argument left out, even though Excel would run it. The lookup value is B4 rather than the word Feb, so the answer follows the month.",
     "errors": [
       {
         "code": "#N/A",
@@ -147,5 +147,10 @@
     "teaches": "HLOOKUP",
     "dataset": "Monthly price sheet",
     "reference": "=HLOOKUP(B4,B1:D3,3,FALSE)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "HLOOKUP in Excel: read across a row table",
+    "description": "HLOOKUP finds a month in the first row and reads down to the row you name. Row 3 holds the price, so a 2 would quietly return the units figure instead."
   }
 }

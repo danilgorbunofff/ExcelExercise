@@ -1,0 +1,267 @@
+{
+  "id": "56-countif-with-wildcards",
+  "slug": "countif-with-wildcards",
+  "level": 3,
+  "title": "COUNTIF with wildcards",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B9, count the products whose name starts with \"Widget\" using one wildcard.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Product",
+            "Qty"
+          ],
+          [
+            "Widget A",
+            12
+          ],
+          [
+            "Widget B",
+            8
+          ],
+          [
+            "Gadget A",
+            5
+          ],
+          [
+            "Widget C",
+            20
+          ],
+          [
+            "Gizmo B",
+            3
+          ],
+          [
+            "Widget D",
+            9
+          ],
+          [
+            "Gadget B",
+            4
+          ],
+          [
+            "Names starting with Widget",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": 4
+      },
+      "reference": "=COUNTIF(A2:A8,\"Widget*\")",
+      "require": [
+        {
+          "id": "func-countif",
+          "func": "COUNTIF",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "=COUNTIF(A2:A8,\"Widget*\"): the pattern travels inside the quotes.",
+        "func-countif": "The list is text, so it needs a function that counts matches rather than numbers.",
+        "require-ref": "Point at the product column so the pattern is matched against the grid.",
+        "value": "The star stands for the rest of the text, so all four Widget rows count: 4.",
+        "error": "A division by zero in the formula returns #DIV/0! instead of a count."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTIF(A2:A8,\"Widget*\")",
+          "=countif(a2:a8,\"widget*\")",
+          "=COUNTIF($A$2:$A$8,\"Widget*\")",
+          "=COUNTIF(A2:A8,\"Widget*\")+0",
+          "=COUNTIF(A2:A8,\"Widget*\")*1",
+          "=COUNTIF(A2:A8,\"WIDGET*\")"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNT(A2:A8)",
+            "rule": "func-countif",
+            "why": "COUNT counts numbers, and this column holds text, so it answers 0"
+          },
+          {
+            "formula": "=COUNTIF(A2:A8,\"Widget\")",
+            "rule": "value",
+            "why": "no row is exactly \"Widget\", so the answer is 0 rather than 4"
+          },
+          {
+            "formula": "=COUNTIF(A2:A8,\"Widget A\")",
+            "rule": "value",
+            "why": "an exact name instead of a pattern, so only one row counts"
+          },
+          {
+            "formula": "=COUNTIF(A3:A8,\"Widget*\")",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so the first Widget is never counted"
+          },
+          {
+            "formula": "=COUNTIF(A2:A8,\"Widget*\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=COUNTIF(A2:A8 \"Widget*\")",
+            "rule": "syntax",
+            "why": "the missing comma leaves COUNTIF with a single argument"
+          },
+          {
+            "formula": "=COUNTA(A2:A8)",
+            "rule": "func-countif",
+            "why": "every name counts, including the two Gadgets and the Gizmo — 7"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B9, count the products whose name ends with \"B\".",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Product",
+            "Qty"
+          ],
+          [
+            "Widget A",
+            12
+          ],
+          [
+            "Widget B",
+            8
+          ],
+          [
+            "Gadget A",
+            5
+          ],
+          [
+            "Widget C",
+            20
+          ],
+          [
+            "Gizmo B",
+            3
+          ],
+          [
+            "Widget D",
+            9
+          ],
+          [
+            "Gadget B",
+            4
+          ],
+          [
+            "Ending in B",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B9",
+      "expect": {
+        "value": 3
+      },
+      "reference": "=COUNTIF(A2:A8,\"*B\")",
+      "require": [
+        {
+          "id": "func-countif",
+          "func": "COUNTIF",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A2",
+      "rules": [],
+      "hints": {
+        "syntax": "=COUNTIF(A2:A8,\"*B\"): the star sits before the letter to stand for everything ahead of it.",
+        "func-countif": "Matching part of a name is a counting question, not a lookup.",
+        "require-ref": "Match the pattern against the product column of the grid.",
+        "value": "\"Widget B\", \"Gizmo B\" and \"Gadget B\" end in B, so the count is 3.",
+        "error": "A formula that divides by zero returns #DIV/0! instead of a count."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTIF(A2:A8,\"*B\")",
+          "=countif(a2:a8,\"*b\")",
+          "=COUNTIF($A$2:$A$8,\"*B\")",
+          "=COUNTIF(A2:A8,\"*B\")+0",
+          "=COUNTIF(A2:A8,\"*B\")*1",
+          "=COUNTIF(A2:A8,\"*B*\")"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTIF(A2:A8,\"B*\")",
+            "rule": "value",
+            "why": "the star points the other way, so it looks for names that begin with B and finds none"
+          },
+          {
+            "formula": "=COUNTIF(A2:A8,\"B\")",
+            "rule": "value",
+            "why": "an exact match on a single letter, so nothing is counted"
+          },
+          {
+            "formula": "=COUNTIF(A2:A8,\"*A\")",
+            "rule": "value",
+            "why": "the wrong ending, which counts the two A names instead of the three B names"
+          },
+          {
+            "formula": "=COUNTIF(A3:A8,\"*B\")",
+            "rule": "require-ref",
+            "why": "the range starts on row 3, so Widget B in row 2 is left out"
+          },
+          {
+            "formula": "=COUNTIF(A2:A8,\"*B\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=COUNTIF(A2:A8,\"*B\"",
+            "rule": "syntax",
+            "why": "the closing parenthesis is missing"
+          },
+          {
+            "formula": "=COUNT(A2:A8)+2",
+            "rule": "func-countif",
+            "why": "a typed 2 is not a count of the names"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=COUNTIF(range, \"pattern*\") — * stands for any run of characters, ? for exactly one",
+    "explain": "Text criteria accept two wildcards, and they turn a counting question into a pattern question. The star stands for any number of characters, including none, so Widget* matches Widget A, Widget B, Widget C and Widget D but never a Gadget. The question mark stands for exactly one character, so SO-100? matches any order number one digit longer in that position. A pattern with no wildcard is an exact match, which is why COUNTIF on Widget alone answers zero rather than four. The cells hold Widget A, not Widget. Patterns are case-insensitive, so widget* and Widget* are the same test. The whole pattern must sit inside the quotes, or the function sees a range and a piece of text with no comma between them. In this drill the first screen counts four names starting with Widget and the second counts two names ending in B, where the star moves in front of the letter. The usual mistake is putting the star on the wrong end, which silently counts a different set of rows rather than failing loudly.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The pattern and a range were jammed into one argument by a missing comma."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The count was divided by zero before it reached the cell."
+      },
+      {
+        "code": "#NAME?",
+        "text": "COUNT was used on a text column, which counts numbers and answers zero."
+      }
+    ],
+    "atWork": "Counting every product in one family, and counting records that share a code prefix or suffix.",
+    "outcome": "Count partial matches on text instead of listing every exact value that qualifies.",
+    "teaches": "COUNTIF with * and ? wildcards, and where the star has to sit",
+    "dataset": "Product list with mixed names and unit quantities",
+    "reference": "=COUNTIF(A2:A8,\"Widget*\")"
+  },
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "COUNTIF with wildcards in Excel",
+    "description": "The star matches any run of characters and the question mark matches one. A star on the wrong end of the pattern silently counts a different set of rows."
+  }
+}

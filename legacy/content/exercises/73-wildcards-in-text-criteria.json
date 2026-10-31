@@ -1,0 +1,265 @@
+{
+  "id": "73-wildcards-in-text-criteria",
+  "slug": "wildcards-in-text-criteria",
+  "level": 2,
+  "title": "Wildcards in text criteria",
+  "docs": {
+    "syntax": "In a criterion, ? matches one character and * matches any run of them",
+    "explain": "A criterion is a piece of text that says which rows count, and criteria understand two marks that plain text does not. A question mark stands in for exactly one character; a star stands in for any number of them, including none. That turns a criterion into a pattern, and a pattern is what you want whenever the column is a code rather than a category. The region column here holds whole words, so Nor* and N* and North all select the same three rows. That is the surprising part: the wildcard is not fuzzy matching, it is a pattern with rules. The code column is where the patterns earn their keep. Every code is two letters, a hyphen and four digits, so ??-* selects the whole table while *-1* selects only the rows whose digits contain a one. COUNTIF and SUMIF both read criteria the same way, and the second screen swaps the count for a sum, so the learner writes the pattern once and reuses it. Wildcards are also the fastest way to spot rows that do not fit the pattern at all, which is why they appear on almost every cleanup sheet.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The criterion is not text that can be read as a pattern or a comparison."
+      },
+      {
+        "code": "#REF!",
+        "text": "A range points at rows that no longer exist after a column was deleted."
+      }
+    ],
+    "atWork": "Counting or totalling the rows whose code or name fits one pattern.",
+    "outcome": "Write a wildcard criterion in COUNTIF and reuse the same pattern in SUMIF.",
+    "teaches": "? and * inside a criteria string, and the same pattern driving a count and a sum",
+    "dataset": "Regions and amounts beside codes that share one pattern",
+    "reference": "=COUNTIF(B2:B5,\"Nor*\")"
+  },
+  "screens": [
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-1",
+      "prompt": "In D2, count the North rows with a wildcard criterion.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Region",
+            "Amount",
+            "Answer"
+          ],
+          [
+            "AN-1042",
+            "North",
+            120,
+            null
+          ],
+          [
+            "BO-2299",
+            "South",
+            80,
+            null
+          ],
+          [
+            "CY-3140",
+            "North",
+            200,
+            null
+          ],
+          [
+            "DE-4471",
+            "North",
+            60,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 3
+      },
+      "reference": "=COUNTIF(B2:B5,\"Nor*\")",
+      "require": [
+        {
+          "id": "func-countif",
+          "func": "COUNTIF",
+          "minArgs": 2
+        }
+      ],
+      "requireRef": "B2",
+      "hints": {
+        "syntax": "=COUNTIF(B2:B5,\"Nor*\"): the region column, then the pattern in quotes.",
+        "func-countif": "Counting rows that match a pattern is COUNTIF's own job.",
+        "require-ref": "The region column is B2:B5.",
+        "value": "Three of the four regions start with Nor.",
+        "error": "A criterion that cannot be read as text or a comparison gives #VALUE!."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTIF(B2:B5,\"Nor*\")",
+          "=countif(b2:b5,\"nor*\")",
+          "=COUNTIF($B$2:$B$5,\"Nor*\")",
+          "=COUNTIF(B$2:B$5,\"Nor*\")",
+          "=COUNTIF( B2:B5 , \"Nor*\" )",
+          "=COUNTIF(B2:B5,\"N*\")",
+          "=COUNTIF(B2:B5,\"N????\")",
+          "=COUNTIF(B2:B5,\"North\")"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTA(B2:B5)",
+            "rule": "func-countif",
+            "why": "every region counts the same, which is not what a criterion asks"
+          },
+          {
+            "formula": "=SUM(C2:C5)",
+            "rule": "func-countif",
+            "why": "the amounts are added rather than the North rows counted"
+          },
+          {
+            "formula": "=COUNTIF(B2:B5,\"N\")",
+            "rule": "value",
+            "why": "no region is the single letter N"
+          },
+          {
+            "formula": "=COUNTIF(B2:B4,\"Nor*\")",
+            "rule": "value",
+            "why": "the last North row is outside the range"
+          },
+          {
+            "formula": "=COUNTIF(B2:B5,\"S*\")",
+            "rule": "value",
+            "why": "one row starts with S, not three"
+          },
+          {
+            "formula": "=COUNTIF(C2:C5,\">100\")",
+            "rule": "require-ref",
+            "why": "the region column is never read"
+          },
+          {
+            "formula": "=COUNTIF(B2:B5,\"Nor*\")/0",
+            "rule": "error",
+            "why": "the count is then divided by zero"
+          },
+          {
+            "formula": "=COUNTIF B2:B5,\"Nor*\"",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "type": "formula",
+      "rules": [],
+      "forbid": [],
+      "id": "formula-2",
+      "prompt": "In D2, add the amounts of every code that fits the two-letter pattern with a wildcard.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Code",
+            "Region",
+            "Amount",
+            "Answer"
+          ],
+          [
+            "AN-1042",
+            "North",
+            120,
+            null
+          ],
+          [
+            "BO-2299",
+            "South",
+            80,
+            null
+          ],
+          [
+            "CY-3140",
+            "North",
+            200,
+            null
+          ],
+          [
+            "DE-4471",
+            "North",
+            60,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D2",
+      "expect": {
+        "value": 460
+      },
+      "reference": "=SUMIF(A2:A5,\"??-*\",C2:C5)",
+      "require": [
+        {
+          "id": "func-sumif",
+          "func": "SUMIF",
+          "minArgs": 3
+        }
+      ],
+      "requireRef": "A2",
+      "hints": {
+        "syntax": "=SUMIF(A2:A5,\"??-*\",C2:C5): the code column, the pattern, then the amounts.",
+        "func-sumif": "A conditional total is SUMIF's job.",
+        "require-ref": "The code column is A2:A5.",
+        "value": "All four codes fit, so the four amounts add up to 460.",
+        "error": "A criterion that cannot be read as text or a comparison gives #VALUE!."
+      },
+      "fixtures": {
+        "accept": [
+          "=SUMIF(A2:A5,\"??-*\",C2:C5)",
+          "=sumif(a2:a5,\"??-*\",c2:c5)",
+          "=SUMIF($A$2:$A$5,\"??-*\",$C$2:$C$5)",
+          "=SUMIF(A$2:A$5,\"??-*\",C$2:C$5)",
+          "=SUMIF( A2:A5 , \"??-*\" , C2:C5 )",
+          "=SUMIF(A2:A5,\"*-*\",C2:C5)",
+          "=SUMIF(A2:A5,\"*\",C2:C5)",
+          "=SUMIF(A2:A5,\"??-*\",C2:C5)+0"
+        ],
+        "reject": [
+          {
+            "formula": "=SUM(C2:C5)",
+            "rule": "func-sumif",
+            "why": "the pattern never enters the formula"
+          },
+          {
+            "formula": "=COUNTIF(A2:A5,\"??-*\")",
+            "rule": "func-sumif",
+            "why": "the codes are counted rather than the amounts added"
+          },
+          {
+            "formula": "=SUMIF(A2:A5,\"*-1*\",C2:C5)",
+            "rule": "value",
+            "why": "only the rows whose digits hold a one are added"
+          },
+          {
+            "formula": "=SUMIF(A2:A4,\"??-*\",C2:C4)",
+            "rule": "value",
+            "why": "the last code is outside the range"
+          },
+          {
+            "formula": "=SUMIF(A2:A5,\"??-*\",B2:B5)",
+            "rule": "value",
+            "why": "the sum range holds regions rather than amounts"
+          },
+          {
+            "formula": "=SUMIF(C2:C5,\">100\",C2:C5)",
+            "rule": "require-ref",
+            "why": "the code column is never read"
+          },
+          {
+            "formula": "=SUMIF(A2:A5,\"??-*\",C2:C5)/0",
+            "rule": "error",
+            "why": "the total is then divided by zero"
+          },
+          {
+            "formula": "=SUMIF A2:A5,\"??-*\",C2:C5",
+            "rule": "syntax",
+            "why": "the arguments fall outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "schemaVersion": 2,
+  "seo": {
+    "title": "Wildcards in Excel criteria",
+    "description": "A question mark stands in for one character, a star for any run of them. Nor*, N* and North all select the same rows, because a criterion is a pattern."
+  },
+  "updated": "2026-10-31"
+}

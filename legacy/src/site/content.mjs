@@ -3,9 +3,21 @@
  * plus the navigation shape these pages need. URLs and prev/next belong to the renderer, so they are
  * derived here rather than baked into the package.
  */
-import { LEVELS, loadContent as loadFromPackage } from "./packages.mjs";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+
+import { LEVELS, loadArticles as loadArticlesFromPackage, loadContent as loadFromPackage } from "./packages.mjs";
 
 export { LEVELS };
+
+/**
+ * The notes, in slug order. The folder is optional: a site with no notes yet is a complete site, and a
+ * build that fails because a content folder is empty teaches nothing.
+ */
+export function loadArticles(contentDir) {
+  const dir = join(contentDir, "articles");
+  return existsSync(dir) ? loadArticlesFromPackage(dir) : [];
+}
 
 export function loadContent(contentDir) {
   const { track, exercises } = loadFromPackage(contentDir);

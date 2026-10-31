@@ -1,0 +1,152 @@
+{
+  "id": "34-index-and-match-summary",
+  "slug": "index-and-match-summary",
+  "level": 2,
+  "title": "INDEX and MATCH summary",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B6, return the commission rate for the units in B5 from the band table.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Units from",
+            "Rate"
+          ],
+          [
+            0,
+            0.02
+          ],
+          [
+            100,
+            0.04
+          ],
+          [
+            200,
+            0.06
+          ],
+          [
+            "Units sold",
+            150
+          ],
+          [
+            "Rate",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B6",
+      "expect": {
+        "value": 0.04
+      },
+      "require": [
+        {
+          "id": "func-index",
+          "func": "INDEX",
+          "minArgs": 2
+        },
+        {
+          "id": "func-match",
+          "func": "MATCH",
+          "minArgs": 3
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B5",
+      "rules": [
+        {
+          "id": "match-band",
+          "type": "matchType",
+          "func": "MATCH",
+          "arg": 3,
+          "values": [
+            1
+          ]
+        }
+      ],
+      "hints": {
+        "syntax": "=INDEX(B2:B4,MATCH(B5,A2:A4,1)): the range to read, then the row MATCH finds.",
+        "func-index": "INDEX turns the row number into the rate on that row.",
+        "func-match": "MATCH finds which band 150 falls in: the last starting point that is not above it.",
+        "match-band": "The band table is sorted from small to large on purpose, so this MATCH wants 1: approximate on a sorted column.",
+        "require-ref": "Take the units from B5 so a new total is a one-cell edit.",
+        "value": "150 is at or above 100 but below 200, so the second band applies and its rate is 0.04.",
+        "error": "A units figure below the first band start leaves MATCH with #N/A."
+      },
+      "fixtures": {
+        "accept": [
+          "=INDEX(B2:B4,MATCH(B5,A2:A4,1))",
+          "=index(b2:b4,match(b5,a2:a4,1))",
+          "=INDEX($B$2:$B$4,MATCH($B$5,$A$2:$A$4,1))",
+          "=INDEX(B2:B4,MATCH(B5,A2:A4,1))+0",
+          "=INDEX(B2:B4,MATCH(B5,A2:A4,1))*1",
+          "=ROUND(INDEX(B2:B4,MATCH(B5,A2:A4,1)),2)"
+        ],
+        "reject": [
+          {
+            "formula": "=INDEX(B2:B4,MATCH(B5,A2:A4,1)",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing computes"
+          },
+          {
+            "formula": "=MATCH(B5,A2:A4,1)",
+            "rule": "func-index",
+            "why": "answers 2, the band position, instead of the rate that position holds"
+          },
+          {
+            "formula": "=INDEX(B2:B4,2)",
+            "rule": "func-match",
+            "why": "the right rate, but the band is hardcoded rather than looked up"
+          },
+          {
+            "formula": "=INDEX(B2:B4,MATCH(B5,A2:A4,0))",
+            "rule": "match-band",
+            "why": "exact match on a band table, where 150 is not itself a starting point"
+          },
+          {
+            "formula": "=INDEX(B2:B4,MATCH(B5,A2:A4,1)+1)",
+            "rule": "value",
+            "why": "reads the band above the one 150 falls in"
+          },
+          {
+            "formula": "=INDEX(B2:B4,MATCH(150,A2:A4,1))",
+            "rule": "require-ref",
+            "why": "the units typed into the formula, so a new total never reaches the rate"
+          },
+          {
+            "formula": "=INDEX(B2:B4,MATCH(B5,A2:A4,1))/0",
+            "rule": "error",
+            "why": "a rate divided by zero returns #DIV/0!"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=INDEX(rates, MATCH(units, bands, 1))",
+    "explain": "This is the pair doing a job neither function could do alone. MATCH says 150 belongs to the band that starts at 100, and INDEX reads the rate on that row, 0.04. The third argument is 1 rather than 0 because a band table is sorted and read as ranges. You want the last starting point at or below the value, not an exact hit. That is the opposite of the price list in the last lesson, and knowing which of the two you are holding is the whole skill. A wrong third argument here does not error. It returns a plausible rate from a neighbouring band. Band tables are always written smallest first, so a rate pulled from a neighbouring row is a data-ordering bug wearing a formula costume.",
+    "errors": [
+      {
+        "code": "#N/A",
+        "text": "The value is below the first band start, so there is no band to read a rate from."
+      },
+      {
+        "code": "#REF!",
+        "text": "A row number of zero was handed to INDEX, which asks for the whole column instead of one rate."
+      }
+    ],
+    "atWork": "Commission or tax bands, where the rate changes at thresholds and the table is written smallest first.",
+    "outcome": "Read a rate from a sorted band table with INDEX and an approximate MATCH.",
+    "teaches": "INDEX and MATCH with bands",
+    "dataset": "Three commission bands",
+    "reference": "=INDEX(B2:B4,MATCH(B5,A2:A4,1))"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "INDEX MATCH with bands: read a rate",
+    "description": "MATCH with 1 finds the last band that starts at or below 150, and INDEX reads the 0.04 rate. A wrong mode returns a plausible rate from the wrong row."
+  }
+}

@@ -59,7 +59,7 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=ROUND(SUM(B2:B4)*1.08,2) — the arithmetic first, then how many decimals.",
+        "syntax": "=ROUND(SUM(B2:B4)*1.08,2): the arithmetic first, then how many decimals.",
         "func-round": "ROUND takes two arguments: the number, and the number of decimals. Without it the answer runs on for four decimals.",
         "func-sum": "Add the three line items with SUM rather than typing the total.",
         "require-ref": "The formula has to read the cost cells so next month's invoice changes the answer.",
@@ -137,7 +137,7 @@
   ],
   "docs": {
     "syntax": "=ROUND(number, num_digits)",
-    "explain": "The three line items are 1500.24, 1120.5 and 1500, which total 4120.74. Adding an 8% markup means multiplying by 1.08: 4120.74 × 1.08 = 4450.3992. ROUND with 2 decimals turns that into 4450.4 — note that the trailing zero is a formatting question, the stored value is 4450.4 either way. The important part is that ROUND changes the value, while formatting the cell only changes what you see: a total that looks like 4450.40 after formatting is still 4450.3992 in the sum of the next column, and that is where a penny appears in an invoice. A negative num_digits rounds to tens or hundreds, so ROUND(4450.3992,-2) gives 4500.",
+    "explain": "The three line items are 1500.24, 1120.5 and 1500, which total 4120.74. An 8% markup means multiplying by 1.08, and 4120.74 × 1.08 = 4450.3992. ROUND with 2 decimals turns that into 4450.4. The trailing zero is a display question, so the stored value is 4450.4 either way. The important part is that ROUND changes the value while formatting the cell only changes what you see. A total that looks like 4450.40 after formatting is still 4450.3992 in the next column's sum, and a penny appears in the invoice. A negative decimal count rounds to tens, so ROUND(4450.3992,-2) gives 4500.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -157,5 +157,10 @@
     "teaches": "ROUND",
     "dataset": "Cost sheet with markup",
     "reference": "=ROUND(SUM(B2:B4)*1.08,2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "ROUND in Excel: money to two decimals",
+    "description": "ROUND changes the stored value, formatting only changes what you see. A 4120.74 total with 8% markup stores 4450.3992 and rounds to 4450.4."
   }
 }

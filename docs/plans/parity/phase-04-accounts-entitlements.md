@@ -284,45 +284,22 @@ accuracy and rank — never email or username.
     Delivered in unit 1, and every later migration that added a table or a function extended it; see
     `tests/db/` for the current count.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [ ] Progress survives a device switch and a browser cache clear.
-- [ ] A test-mode subscription unlocks gated lessons within one webhook tick (<5 s).
-      *Half closed in unit 3h: the unlock itself is proved (`tests/db/stripe.spec.js` applies a real
-      `customer.subscription.created` and `is_entitled()` flips in the same transaction), but "test
-      mode" and "<5 s" need live keys and a running `stripe listen` — see the open rows.*
-- [ ] A refund revokes access on the next request.
-      *Closed in unit 3h at the database: `charge.refunded` marks the payment and revokes the plan, and
-      the very next `is_entitled()` answers false. The route-level round trip through Stripe waits on
-      test-mode keys.*
-- [ ] Revocation holds with a pre-existing access token: sign in and load a gated lesson, refund,
-      then re-request with the same token (no refresh) → blocked. This is the test that proves the
-      gate is the database check, not a JWT claim.
-      *Closed in unit 3h: the suite signs in once, applies the refund, and asks with the same token —
-      `is_entitled()` is the check, so no token refresh is needed for the answer to change. The proxy
-      half of the row was proved in unit 3e.*
-- [ ] A second device signed in before the purchase unlocks on its next request without a re-login.
-      *Closed in unit 3h: two tokens issued before the purchase, one `checkout.session.completed`
-      after it, both answer entitled with no sign-in in between.*
-- [ ] Free user is soft-prompted at lesson 4 and hard-gated at lesson 5; direct URL is blocked
-      server-side. *Half closed in unit 3e: the prompt and the wall are proved in a browser
-      (`e2e/paywall.spec.js`), and the server redirect is implemented and unit-proved
-      (`paywallDecision`, `proxy.js` probes) but only live with `PAYWALL=on`, which waits on item 6 —
-      without checkout it would dead-end thirteen drills.*
-- [ ] Deleting an account removes profile, progress, attempts, points, streaks, and the profile's
-      referral code; `payments`, `entitlements` and the certificate are retained in the documented
-      legal-retention form with the name anonymised — the retention list is written down, not implied.
-      *Half closed in unit 3f: the erase, the anonymisation, the retention list and the unlinked money
-      rows are proved (`tests/db/legal.spec.js`, `e2e/legal.spec.js`); two named things do not exist
-      to erase or retain — no `referral_code` column was ever written, and no `certificates` table
-      exists before phase 6. The plan's "purge job" is an immediate purge because there is no
-      scheduler; both are recorded as annotations in the unit log rather than ticked.*
-- [ ] RLS suite proves user A cannot read or write user B's rows, and cannot insert a completion for
-      themselves through PostgREST with their own JWT (15 assertions covering the policy set above).
-- [ ] Webhook replay of the same event produces no duplicate entitlement.
-      *Closed in unit 3h: the same event id delivers twice, the second answer is
-      `{applied: false, reason: "duplicate"}`, and the row counts do not move.*
-- [ ] No secret is present in the client bundle (`grep` gate in CI).
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p4-289 | Progress survives device switch and cache clear | Built, unproven | `tests/db/progress.spec.js` (server-side rows); no UI path | DB only | Build B1 |
+| p4-290 | Test-mode subscription unlocks within one webhook tick | Built, unproven | `tests/db/stripe.spec.js:100` | DB only | Build B1 |
+| p4-294 | Refund revokes access on the next request | Built, unproven | `tests/db/stripe.spec.js:176` | DB only | Build B1 |
+| p4-298 | Revocation holds with a pre-existing access token | Built, unproven | `tests/db/stripe.spec.js:176` | DB only | Build B1 |
+| p4-304 | Second device signed in before purchase unlocks without re-login | Built, unproven | `tests/db/stripe.spec.js:129` | DB only | Build B1 |
+| p4-307 | Soft prompt at 4, hard gate at 5, direct URL blocked | Built, unproven | `lib/paywall.js` + `tests/paywall.test.js:49`; hard gate needs `PAYWALL=on` **and** accounts, which no run has | no enforced state | Build B1 |
+| p4-312 | Deleting an account removes profile, progress, attempts, points and streaks; payments, entitlements and the certificate are retained in the documented legal form | Built, unproven | `tests/db/institution.spec.js:148` (seat) and `tests/db/legal.spec.js` | DB only | Build B1 |
+| p4-320 | RLS proves A cannot read/write B, cannot insert a completion | Built, unproven | `tests/db/rls.spec.js:161` (M31 goes red) | DB only, ungated | Build B1 |
+| p4-322 | Webhook replay produces no duplicate entitlement | Built, unproven | `tests/db/stripe.spec.js:151` | DB only | Build B1 |
+| p4-325 | No secret in the client bundle (`grep` gate in CI) | Absent | `.github/workflows/ci.yml` has no such step; no script does it | n/a | Build B11 |
 
 ## Test plan
 
@@ -350,8 +327,11 @@ accuracy and rank — never email or username.
 
 ## Unit log
 
-Evidence for this phase lives here rather than in `reviews/`: no `reviews/phase-04-*-verification-plan.md`
-has been written yet, so this section is the record until one is.
+This section is the per-unit record: gate output, deviations, defects found, and the rows each unit
+left open. The rolled-up gate, with the rows that can and cannot be closed from this checkout in one
+table, is
+[`reviews/phase-04-accounts-entitlements-verification-plan.md`](reviews/phase-04-accounts-entitlements-verification-plan.md)
+— written after unit 3h, see the last entry below.
 
 ### 2026-10-30 — unit 1: schema, RLS and a live local stack (items 1 and 11)
 
@@ -1324,3 +1304,136 @@ when the deployment cannot take money, which is the state CI builds in.
 | A "Manage billing / cancel" button on `/account` posting to `/api/stripe/portal` | the endpoint is proved; the copy that says what cancelling does is not written |
 | Flipping `PAYWALL=on` | every row above, plus a decision that the wall should ship before live keys exist |
 | Stripe Tax registrations, test clocks, dunning settings | Stripe account state, not code |
+
+### 2026-11-03 — the phase-4 verification plan
+
+Eight units had landed and this document's own rule (`00-overview.md`: a review plan is written once a
+phase has more than one unit) had come due, so the rolled-up gate is now
+[`reviews/phase-04-accounts-entitlements-verification-plan.md`](reviews/phase-04-accounts-entitlements-verification-plan.md).
+Nothing in `app/`, `lib/`, `supabase/` or `tests/` changed for this entry.
+
+**Measured for the plan's baseline, all with no `.env.local`** (the state CI and a fresh clone are in):
+
+```
+$ npm run check
+ℹ tests 1374
+ℹ suites 153
+ℹ pass 1374
+ℹ fail 0
+content: 85 of 88 catalogued lessons, 16 groups, 149 screens, 1903 fixtures replayed
+✓ content passes — 885 accepted and 1018 rejected formulas agree with the grader
+built 105 pages (10535.2 kB of HTML+CSS)
+next routes: 105 prerendered pages match the shared templates
+verified 85 lesson pages, the index, the dashboard, the pricing page and 15 group pages — 4237 checks passed
+
+$ npx playwright test e2e/auth.spec.js e2e/paywall.spec.js e2e/legal.spec.js
+17 passed (3.7s)
+
+$ npx playwright test e2e/a11y.spec.js
+18 passed (9.7s)
+
+$ node --test tests/auth.test.js tests/stripe.test.js tests/paywall.test.js tests/legal.test.js \
+    tests/profile-rules.test.js tests/progress-sender.test.js tests/progress-sync.test.js \
+    tests/progress-migrate.test.js
+ℹ tests 164
+ℹ suites 37
+ℹ pass 164
+ℹ fail 0
+
+$ npm run db:check
+Applying migration 0001_accounts_schema.sql ... 0008_stripe_webhook.sql
+Seeding data from supabase/seed.sql...
+ℹ tests 129
+ℹ suites 33
+ℹ pass 129
+ℹ fail 0
+
+$ npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+Per-spec database counts, measured by running each file alone (TAP does not nest by file, so the
+combined run only reports the totals): rls 34, auth 18, progress 14, migrate 7, profile 16, legal 10,
+institution 13, stripe 17 — 129 over 33 suites, which agrees with the combined run.
+
+**What the plan adds beyond the unit log.** Fifteen gate rows instead of eleven units' worth of prose,
+separating the commands that run here from the four that cannot: live test-mode checkout, the `<5 s`
+unlock, a real cancellation through the portal, a second environment, and the `PAYWALL=on` flip. Two
+of the unit log's open rows are code-only — `/pricing` reading `?checkout=complete|cancelled` and a
+cancel button on `/account` — and the plan records them as **known-missing behaviour** rather than
+verification gaps, because a gate row for something that was never built would read as a failure.
+
+**Two facts the plan had to establish rather than assume**, both now in its baseline: all thirteen
+tables have row level security enabled (ten policies over eight tables; `entitlements`, `payments`,
+`stripe_events`, `progress_batches` and `institution_domains` are deny-all to every non-service role,
+by design), and no `lib/` module carries `import "server-only"` — the boundary holds today because
+only two lib modules are reachable from a `"use client"` file, which is why the plan's row 7 asserts
+the import set rather than a marker.
+
+### 2026-11-04 — unit 3i: the billing portal gets a button (item 6, follow-up)
+
+Unit 3h proved `/api/stripe/portal` as a route and left "a 'Manage billing / cancel' button on
+`/account`" open, because the button belongs with the copy that says what cancelling does. This unit
+writes both, and closes the code half of that row.
+
+**`app/account/page.js`** — an entitled account now renders a "Your plan" section between the sign-out
+form and "Your data": one paragraph (cancelling stops the next charge and keeps the period already
+paid for; a lifetime plan never renews so it has nothing to cancel) and a plain
+`<form action="/api/stripe/portal" method="post">`. It sits inside the `entitled` branch, so a free
+account never sees a button that cannot work, and it is a form rather than a fetch for the same reason
+the pricing page's checkout button is: the route answers with a `303`.
+
+**`app/api/stripe/portal/route.js`** — the route already redirected for
+`application/x-www-form-urlencoded` callers, and it now distinguishes one *earlier*: an account with no
+`stripe_customer_id` (a lifetime purchase, an institutional seat, or a free account that reached the
+URL by hand) used to receive a JSON `409` in the browser. A form post is now answered `303` to
+`/account`; the API answer is still `409 no_billing_account`, because a caller that asked for JSON
+should keep getting JSON. The content-type check is computed once (`isForm`) and used by both
+branches.
+
+**Not a refactor:** no `server-only`, no new dependency, no change to how a portal session is created,
+no change to `portalForm`, no copy on the pricing page.
+
+```
+$ node --test tests/stripe.test.js
+ℹ tests 36
+ℹ suites 8
+ℹ pass 36
+ℹ fail 0
+
+$ npx playwright test
+82 passed (15.1s)
+
+$ npm run vendor:check
+vendor: 25 files match manifest.json
+```
+
+The three standing gates, unchanged except for the four new tests:
+
+```
+ℹ tests 1378
+ℹ suites 154
+ℹ pass 1378
+ℹ fail 0
+content: 85 of 88 catalogued lessons, 16 groups, 149 screens, 1903 fixtures replayed
+✓ content passes — 885 accepted and 1018 rejected formulas agree with the grader
+built 105 pages (10535.2 kB of HTML+CSS)
+next routes: 105 prerendered pages match the shared templates
+verified 85 lesson pages, the index, the dashboard, the pricing page and 15 group pages — 4237 checks passed
+```
+
+`built 105 pages (10535.2 kB)` and `verified … 4237 checks` are byte-identical to the plan-writing
+run, which is the point: nothing was added to the static build, so `/pricing` and every lesson page
+are untouched.
+
+**Tests added** to `tests/stripe.test.js` (32 → 36): the form post is separated from the API call and
+still redirects; the page posts the portal form; the form is behind the `entitled` branch; and the copy
+says what cancelling does and what a lifetime plan means.
+
+**Still open, and why.** `/pricing` reading `?checkout=complete|cancelled` is not this kind of edit:
+`/pricing` is one of the 105 pages the static build emits and `next:check` compares fragment for
+fragment, so the receipt has to exist in both renderers, and the static page ships no JavaScript — a
+client-side note would be a new asset and new bytes on a page whose budget is asserted. That is a
+decision about the static build, not a defect in the Next route. The `feedback` row's
+`return=representation` question is the same shape: a decision about whether the dialog ever shows the
+stored row, not a missing assertion.

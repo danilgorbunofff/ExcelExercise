@@ -11,6 +11,9 @@
 
 .site {
   display: flex;
+  /* Brand, counter and badge are all nowrap-ish at 320px on `/flashcards` (98 + 64 + 113 + gaps and
+     padding = 339px). The row wraps instead of pushing the document 2px wide. */
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--s-3);
   max-width: var(--shell);
@@ -23,6 +26,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
+  min-height: 44px;
   text-decoration: none;
 }
 
@@ -82,12 +86,24 @@
   font-size: var(--fs-meta);
 }
 
+/* A colophon, so three ways out rather than twelve — and still 44px each, on every viewport, because
+   small print is not an excuse for a small target. */
 .foot a {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
   text-decoration-color: var(--jade-7);
 }
 
 /* The feedback button reads as the link beside it, because that row is a row of small ways out. */
 .foot-feedback {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   border: 0;
   background: none;
@@ -318,6 +334,14 @@
     position: sticky;
     top: var(--s-5);
     order: 0;
+    /* The rail is the whole lesson map — eighty-eight rows — and a sticky box taller than the viewport
+       never sticks: it scrolls away and leaves the page five screens long. Capping it at the viewport
+       makes the sticky real and gives the list its own scroll, so the drill stays the only thing the
+       page has to scroll for. */
+    max-height: calc(100vh - var(--s-5) * 2);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
   }
 }
 
@@ -368,6 +392,7 @@
 }
 
 .rail-item {
+  position: relative;
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr) 14px;
   align-items: baseline;
@@ -387,11 +412,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* The row's 8px padding belonged to the row, not to the anchor, so the band above and below a title
+   did nothing: the anchor measured 24px inside a 41px row, and pointing at the edge of a row missed.
+   The overlay puts the anchor's hit area over the whole row without touching the grid, so the numbers
+   keep their baseline. A 44px floor on all eighty-eight rows would make the list 3,872px tall inside
+   its capped rail — four and a half screens of scrolling — so a mouse gets the full ~35px row, which
+   clears WCAG's 24px target-size minimum, and a touch pointer gets 44px from the branch below. */
 .rail-link {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-block: 3px;
   color: var(--text-muted);
   font-size: var(--fs-meta);
   line-height: 1.4;
   text-decoration: none;
+}
+
+.rail-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 .rail-link:hover {
@@ -433,11 +475,15 @@
   }
 
   .rail-item {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 30px;
-    padding: 2px var(--s-1);
+    /* The chip is the target on a phone, and this strip is how a phone user moves through the track:
+       44px square, because a thumb has no cursor. */
+    min-width: 44px;
+    min-height: 44px;
+    padding: 2px var(--s-2);
     border: 1px solid var(--line);
     border-radius: var(--r-1);
     box-shadow: none;
@@ -453,18 +499,35 @@
     color: var(--text);
   }
 
+  /* Below the two-column breakpoint the rail is a horizontal strip of number chips: the chip is the
+     target, the title stays in the accessible name. The anchor is stretched over the whole chip instead
+     of being clipped to a 1x1 box — clipping it left the number a decorative span and the link
+     untappable, which is why the 85-lesson map could not be used on a phone at all. The negative inset
+     reaches past the chip's 1px border: anchored at 0 the anchor inherits the padding box and measures
+     42px, two short of the 44 it promises. */
   .rail-link {
     position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
+    inset: -1px;
+    width: auto;
+    height: auto;
+    margin: 0;
     overflow: hidden;
-    clip-path: inset(50%);
+    clip-path: none;
     white-space: nowrap;
+    text-indent: -100%;
   }
 
   .rail-tick {
     margin-left: 2px;
+  }
+}
+
+/* The same 44px row for a touch pointer on a wide screen. A mouse can land on a 35px row and WCAG's
+   AA target size asks no more than 24, but a tablet in landscape is still a thumb, and eighty-eight
+   rows of 44px in a rail that now scrolls itself costs the page nothing. */
+@media (min-width: 1024px) and (pointer: coarse) {
+  .rail-item {
+    min-height: 44px;
   }
 }
 
@@ -506,6 +569,46 @@
   color: var(--text);
 }
 
+/* The landing page's proof sheet: a real drill, shown where a stranger lands. The promise above it is
+   a claim, and a claim about a spreadsheet means nothing without the spreadsheet. The width is capped
+   to the two columns this lesson actually has: stretched to the page it reads as filler, sized to its
+   content it reads as a sheet. */
+.proof {
+  max-width: var(--artifact);
+  margin: var(--s-5) 0 0;
+}
+
+/* The whole grid is the point, so the drill's 60vh scroll ceiling comes off, and the card's own
+   border already draws the line the head closes. */
+.proof .sheet {
+  max-height: none;
+  border-top: 0;
+}
+
+.proof-formula {
+  flex: 1;
+  min-width: 0;
+  padding: 0 var(--s-2);
+  align-self: center;
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proof-note {
+  margin-top: var(--s-2);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.proof-note code {
+  color: var(--text);
+  font-weight: 500;
+}
+
 .task {
   max-width: 62ch;
   padding: var(--s-4);
@@ -529,9 +632,27 @@
   margin: 0;
 }
 
+/*
+ * A figure is drawn at its own scale rather than the card's. The shipped SVGs are 464 and 524 units
+ * wide, and a phone card is about 290, so fitting them shrinks the body text to under 8 px; below the
+ * figure's own width the card scrolls sideways instead. `max-content` is the image's intrinsic width,
+ * so each figure keeps its scale without a number per asset. The region takes focus because a box
+ * only a trackpad can scroll is not reachable at all, and the swipe stays inside it at either end.
+ */
+.picture-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.picture-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .picture-img {
   display: block;
   width: 100%;
+  min-width: max-content;
   height: auto;
   border: 1px solid var(--line);
   border-radius: var(--r-1);
@@ -843,6 +964,16 @@
   white-space: nowrap;
 }
 
+/* The grid is the product, so on a touch screen its cells are thumb targets before they are
+   spreadsheet rows: 44px instead of 32. A mouse keeps the denser grid, which is the point of a mouse.
+   It has to sit after the rule it overrides: a media query is not specificity, and an earlier copy of
+   this branch higher up the file lost to the plain `.sheet-grid .cell` height above. */
+@media (pointer: coarse) {
+  .sheet-grid .cell {
+    height: 44px;
+  }
+}
+
 .sheet-grid .cell.num {
   text-align: right;
 }
@@ -884,10 +1015,13 @@
 
 /* ── Formula bar ───────────────────────────────────────────────────────── */
 
+/* The bar is the row a learner types into, so the box that takes the click has to be 44px tall on its
+   own. A fixed height of 44px minus the 1px rule left the input one pixel short of its neighbours, so
+   the height is a floor and the input states the same floor. */
 .formula-bar {
   display: flex;
   align-items: stretch;
-  height: 44px;
+  min-height: 44px;
   border-top: 1px solid var(--line);
   background: var(--surface);
 }
@@ -920,6 +1054,7 @@
 .formula-input {
   flex: 1;
   min-width: 0;
+  min-height: 44px;
   padding: 0 var(--s-2);
   border: 0;
   background: transparent;
@@ -929,8 +1064,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A placeholder is text a learner has to read to know what the bar wants; sand-9 measured 3.3:1 on
+   the surface, under the 4.5:1 the rest of the page meets. The muted token is the lightest step that
+   clears it. */
 .formula-input::placeholder {
-  color: var(--sand-9);
+  color: var(--text-muted);
   font-style: italic;
 }
 
@@ -946,17 +1084,21 @@
 
 /* ── Buttons ───────────────────────────────────────────────────────────── */
 
+/* One fill, one outline. A page that uses the same black rectangle for "do the thing" and
+   "go somewhere else" asks the eye to rank two identical weights, so the outline is the default and
+   `.btn-primary` (and the drill's own Check) is the only black. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--s-1);
-  height: 36px;
+  height: auto;
+  min-height: 44px;
   padding: 0 var(--s-4);
-  border: 1px solid var(--btn-bg);
+  border: 1px solid var(--line-strong);
   border-radius: var(--r-1);
-  background: var(--btn-bg);
-  color: var(--btn-text);
+  background: transparent;
+  color: var(--text);
   font-size: var(--fs-ui);
   font-weight: 500;
   line-height: 1.2;
@@ -965,9 +1107,9 @@
 }
 
 .btn:hover {
-  background: var(--sand-11);
-  border-color: var(--sand-11);
-  color: var(--sand-1);
+  background: var(--surface-sunk);
+  border-color: var(--text);
+  color: var(--text);
 }
 
 .btn:active {
@@ -980,19 +1122,39 @@
   flex: none;
 }
 
-/* Deliberately under 44 px: it sits inside the bar's own height, and WCAG's AA target size asks for
-   24 px, which 32 clears with room to spare. */
+/* It keeps the filled black because in the formula bar it is the only action — the outline is for
+   pages that offer a real alternative. The bar is a floor of 44px plus its 1px rule, so the button
+   fills the row without growing it: the primary action of the drill screen gets the same 44px floor
+   as every other button instead of the 32px stub it used to be. */
 .btn-check {
   align-self: center;
   margin: 0 var(--s-1) 0 var(--s-2);
-  height: 32px;
+  height: 44px;
   padding: 0 var(--s-3);
+  border-color: var(--btn-bg);
+  background: var(--btn-bg);
+  color: var(--btn-text);
+}
+
+.btn-check:hover {
+  border-color: var(--sand-11);
+  background: var(--sand-11);
+  color: var(--sand-1);
 }
 
 .btn-primary {
   height: 44px;
   padding: 0 var(--s-5);
+  border-color: var(--btn-bg);
+  background: var(--btn-bg);
+  color: var(--btn-text);
   font-size: var(--fs-body);
+}
+
+.btn-primary:hover {
+  border-color: var(--sand-11);
+  background: var(--sand-11);
+  color: var(--sand-1);
 }
 
 .btn[aria-disabled="true"] {
@@ -1080,6 +1242,16 @@
   margin-top: var(--s-2);
   color: var(--text-muted);
   font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The server's award, added after the verdict is on the page. `--ok` is the darkened jade that
+   clears 4.5:1 on `--ok-bg`, so it reads at meta size without borrowing the head's weight. */
+.feedback-reward {
+  margin-top: var(--s-2);
+  color: var(--ok);
+  font-size: var(--fs-meta);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1450,6 +1622,9 @@
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
+  /* A table that will not break a long code inside a cell sets a min width the page cannot shrink,
+     and the whole document then scrolls sideways on a phone. */
+  overflow-wrap: anywhere;
 }
 
 .error-table thead th {
@@ -1461,7 +1636,6 @@
 .error-table tbody th {
   width: 92px;
   font-weight: 400;
-  white-space: nowrap;
 }
 
 .error-table tbody th code {
@@ -1471,6 +1645,199 @@
   padding: 0;
   border: 0;
   background: none;
+}
+
+/* ── Projects ──────────────────────────────────────────────────────────── */
+
+/* The brief a project opens with. A drill's task is the first thing on the page; a project needs the
+   reading that says what the file is before a number is asked for, so it sits above the sheet card. */
+.project-brief {
+  margin-bottom: var(--s-6);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface-sunk);
+}
+
+.brief-title {
+  margin-bottom: var(--s-4);
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+}
+
+.brief-steps {
+  display: grid;
+  gap: var(--s-4);
+  counter-reset: brief;
+  padding: 0;
+  list-style: none;
+}
+
+.brief-steps > li {
+  position: relative;
+  counter-increment: brief;
+  padding-left: var(--s-6);
+}
+
+.brief-steps > li::before {
+  content: counter(brief);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: var(--s-5);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.brief-heading {
+  margin-bottom: var(--s-1);
+  font-family: var(--font-ui);
+  font-size: var(--fs-ui);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brief-body {
+  max-width: var(--prose);
+  color: var(--text-muted);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+}
+
+/* The project shelf: four cards, in the order they climb, with the gate marked where it is. */
+.project-list {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 768px) {
+  .project-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.project-card {
+  display: grid;
+  align-content: start;
+  gap: var(--s-2);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+
+.project-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* The title carries the link, not the card: one focus ring, one name in the accessibility tree, and a
+   tap target that is the thing the reader was reading. */
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.project-link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--jade-8);
+  text-underline-offset: 0.18em;
+}
+
+.project-outcome {
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+  line-height: 1.55;
+}
+
+.project-note {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-foot {
+  max-width: var(--prose);
+  margin-top: var(--s-6);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  line-height: 1.6;
+}
+
+/* ── Breadcrumbs ──────────────────────────────────────────────────────── */
+
+/*
+ * One line, above the page head, saying where the page sits. It is the only navigation a lesson has
+ * besides the pager, so it links rather than labels: the group hub is the page that ranks for the
+ * skill, and 88 lessons pointing at their own hub is what makes that hub worth crawling.
+ */
+.crumbs {
+  margin-bottom: var(--s-4);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crumbs li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.crumbs li + li::before {
+  content: "/";
+  color: var(--line-strong);
+}
+
+.crumbs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-muted);
+  text-decoration-color: var(--jade-7);
+}
+
+.crumbs a:hover {
+  color: var(--text);
+}
+
+.crumbs [aria-current="page"] {
+  overflow: hidden;
+  max-width: 28ch;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Pager ─────────────────────────────────────────────────────────────── */
@@ -1489,6 +1856,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-1);
+  min-height: 44px;
   max-width: 42ch;
   text-decoration: none;
   color: var(--text);
@@ -1537,7 +1905,50 @@
 
 /* ── Track index ───────────────────────────────────────────────────────── */
 
+/*
+ * The front door fits one screen: the promise and one action on the left, the real spreadsheet it is
+ * promising on the right. Below 1024px the proof stacks under the copy instead of shrinking into a
+ * thumbnail nobody can read.
+ */
+.hero {
+  display: grid;
+  gap: var(--s-6);
+  padding-top: var(--s-7);
+}
+
+.hero .lede {
+  margin-top: var(--s-3);
+}
+
+/* The promise reads as a paragraph, not as the width of a laptop. */
+.hero-copy {
+  max-width: var(--prose);
+}
+
+.hero .proof {
+  margin-top: 0;
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) var(--artifact);
+    gap: var(--s-8);
+    align-items: start;
+  }
+}
+
+/* The one fact line under the CTA: what is free, and that nothing leaves the browser. */
+.facts {
+  margin-top: var(--s-3);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+
 .cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
   margin-top: var(--s-5);
 }
 
@@ -1549,7 +1960,7 @@
 
 /* Filled by the client on a second visit; invisible until there is something to say. */
 .track-progress {
-  max-width: 380px;
+  max-width: var(--artifact);
   margin-top: var(--s-4);
 }
 
@@ -1571,17 +1982,22 @@
   gap: var(--s-2);
 }
 
+/* One column of text with the counter in the gutter, rather than a two-cell grid. A grid puts each
+   *child* of the `<li>` in its own cell, so a `<li><strong>title</strong> — outcome</li>` line — every
+   row of the two drill rosters on /pricing — ran its description through the 24px counter cell one
+   word per line, which is how a 3-item list became a 34,600px page. */
 .how-steps li {
   counter-increment: step;
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  gap: var(--s-2);
+  position: relative;
+  padding-left: calc(24px + var(--s-2));
   font-size: var(--fs-ui);
   line-height: 1.55;
 }
 
 .how-steps li::before {
   content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: var(--fs-meta);
@@ -1593,14 +2009,165 @@
   font-size: var(--fs-meta);
 }
 
+/*
+ * The same three steps on the front door, as one strip under the hero. /pricing keeps the list form,
+ * where each set of steps explains its own price and needs its own heading. Here they are one line of
+ * the page's story, so the left rule becomes a top rule and the three become columns.
+ */
+.how-strip {
+  max-width: var(--shell);
+  margin-top: var(--s-8);
+  padding: var(--s-5) 0 0;
+  border-top: 1px solid var(--line);
+  border-left: 0;
+}
+
+.how-strip .how-steps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-2) var(--s-5);
+  margin-top: var(--s-3);
+}
+
+/*
+ * The page's menu. The site has no header navigation, so every destination the footer used to carry in
+ * two right-aligned rows lives here instead: inside `--prose`, as one wrapping line of links that reads
+ * as the end of the page rather than a second header. It carries no rule of its own — the footer's
+ * hairline sits below it, and two dividers 96px apart is one divider too many.
+ */
+.ways {
+  max-width: var(--prose);
+  margin-top: var(--s-8);
+}
+
+.ways-title {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-weight: 500;
+}
+
+.ways-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-5);
+  margin-top: var(--s-1);
+  font-size: var(--fs-ui);
+}
+
+.ways-list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration-color: var(--jade-7);
+}
+
+/* Related drills stack, because each row is a drill name followed by the skill it teaches and the two
+   only scan as a pair when they sit on one line. */
+.ways-list-links {
+  flex-direction: column;
+  gap: 0;
+}
+
+.ways-note {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  margin-left: var(--s-1);
+}
+
+/*
+ * The two catalogue pages (`/excel-exercises`, `/about`) are plain stacks of `<section>`: a question,
+ * its answer, the next section. Nothing between them carried a margin, so every heading sat flush on
+ * the block above it. One rhythm, applied by depth, fixes both pages without touching a layout.
+ */
+.hub > section {
+  margin-top: var(--s-8);
+}
+
+.hub section > p + p {
+  margin-top: var(--s-3);
+}
+
+.hub section > h3 {
+  margin-top: var(--s-5);
+}
+
+.hub section > h3 + p {
+  margin-top: var(--s-2);
+}
+
+/* The roster rows on /pricing are links whose 19px line box is the whole target. Inline padding lifts
+   the painted box to 25px without touching layout or eating into the row gap. */
+.how-steps a {
+  padding-block: 3px;
+}
+
+/*
+ * The curriculum. One head with the trial rule and the reader's own progress, then three levels as
+ * native disclosures. `<details>` costs no JavaScript, keeps the disclosure arrow and the keyboard
+ * behaviour the platform already guarantees, and — the reason it is here — keeps all 88 lesson links
+ * in the document while only one list is on screen.
+ */
+.curriculum {
+  margin-top: var(--s-8);
+}
+
+.curriculum-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3) var(--s-6);
+  margin-bottom: var(--s-4);
+}
+
+.curriculum-intro .gate-note {
+  margin-top: var(--s-2);
+}
+
+/* Hidden by the client until there is something to report: a first-time reader gets no progress
+   chrome at all rather than a rail pinned at zero. */
+.curriculum-head .track-progress {
+  flex: 0 1 260px;
+  margin-top: 0;
+}
+
 .level {
   margin-top: var(--s-8);
 }
 
-.level h2 {
+/* Inside the curriculum the levels are rows of one stack, not three separate sections: the summary's
+   hairline and the row hairlines are the same line. */
+.curriculum .level {
+  margin-top: 0;
+}
+
+.level-sum {
   display: flex;
   align-items: baseline;
   gap: var(--s-3);
+  min-height: 48px;
+  padding: var(--s-2);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  list-style: none;
+}
+
+.level-sum::-webkit-details-marker {
+  display: none;
+}
+
+.level-sum:hover {
+  background: var(--surface-sunk);
+}
+
+.level-sum .level-chevron {
+  flex: none;
+  align-self: center;
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+.level[open] .level-sum .level-chevron {
+  transform: rotate(90deg);
 }
 
 .level-count {
@@ -1615,6 +2182,13 @@
 .lesson-list {
   margin-top: var(--s-3);
   border-top: 1px solid var(--line);
+}
+
+/* The summary already draws the level's closing hairline, so the list starts flush under it: two
+   hairlines 12px apart would read as a gap that means nothing. */
+.curriculum .lesson-list {
+  margin-top: 0;
+  border-top: 0;
 }
 
 .lesson-row {
@@ -1698,15 +2272,7 @@
   height: 14px;
 }
 
-.row-teaches {
-  color: var(--text-muted);
-}
-
 @media (max-width: 767px) {
-  .row-teaches {
-    display: none;
-  }
-
   .lesson-link {
     grid-template-columns: 26px minmax(0, 1fr);
     gap: var(--s-2);
@@ -1720,18 +2286,50 @@
 
   .foot {
     margin-top: var(--s-8);
+    /* Two lines, not a stack of rows. The 44px height each link carries is what makes them thumb
+       targets, so they can stay inline and wrap; forcing them full width would rebuild the wall this
+       footer just lost. */
     flex-direction: column;
+    gap: var(--s-1);
+  }
+
+  /* The primary action of a drill is 32px tall on every viewport; on a phone it grows to a thumb
+     target and the formula bar grows with it. Button labels stop being unbreakable here too: a
+     46-character CTA cannot fit 390px in one line and used to push the page 70px wide. */
+  .btn {
+    height: auto;
+    min-height: 44px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .formula-bar {
+    min-height: 52px;
   }
 
   .page-head {
     padding-top: var(--s-6);
+  }
+
+  .hero {
+    padding-top: var(--s-6);
+  }
+
+  /* One column of steps: three 13-19 word steps cannot share 358px without becoming a ladder of
+     two-word lines. */
+  .how-strip .how-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .curriculum-head .track-progress {
+    flex: 0 1 100%;
   }
 }
 
 /* ── Dashboard ─────────────────────────────────────────────────────────── */
 
 .dash-pulse {
-  max-width: 420px;
+  max-width: var(--artifact);
   margin-top: var(--s-6);
 }
 
@@ -1756,15 +2354,10 @@
   line-height: 1.5;
 }
 
-.dash-next {
-  max-width: var(--prose);
-  margin-top: var(--s-7);
-  padding-left: var(--s-5);
-  border-left: 2px solid var(--line-strong);
-}
-
+/* The page's only primary action. It sits in the progress block rather than in a section of its own,
+   so "how far along" and "what to open" read as one answer instead of two stacked introductions. */
 .dash-next-cta {
-  margin-top: var(--s-3);
+  margin-top: var(--s-4);
 }
 
 .dash-next-why {
@@ -1787,6 +2380,9 @@
 /* The group heading opens that group's own page, so the underline appears on approach rather than
    sitting under every heading on the dashboard. */
 .dash-group-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: inherit;
   text-decoration: none;
 }
@@ -1802,16 +2398,61 @@
   text-underline-offset: 0.18em;
 }
 
+/* The 16 groups are one stack of disclosures, not 16 sections with air between them: the summary's
+   hairline and the row hairlines are the same line, the way the curriculum does it on the home page. */
+.dash-groups {
+  margin-top: var(--s-8);
+}
+
+.dash-groups .dash-group {
+  margin-top: 0;
+  scroll-margin-top: var(--s-6);
+}
+
+/* The summary is the whole row, so the 48px it stands in is the click target. */
+.dash-groups .level-sum {
+  align-items: center;
+  padding: var(--s-1) var(--s-2);
+}
+
+/* The platform's heading levels are for the document, not for a 16-row index: the group title wears the
+   same size as the home page's level rows, as an <h2> because that is what it is in this outline. */
+.dash-groups .level-sum h2 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-h3);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.dash-groups .level-chevron {
+  color: var(--text-muted);
+}
+
+.dash-groups .dash-group[open] .level-chevron {
+  transform: rotate(90deg);
+}
+
+.dash-groups .lesson-list {
+  margin-top: 0;
+  border-top: 0;
+}
+
 .dash-group {
   margin-top: var(--s-8);
   scroll-margin-top: var(--s-6);
 }
 
-.dash-group-head {
+/* The one thing behind a group's disclosure that is not a drill: the group has a page of its own. */
+.dash-group-about {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-3);
+  padding: 0 var(--s-2);
+}
+
+.dash-group-about .dash-group-link {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--fs-meta);
 }
 
 .dash-group-count {
@@ -1861,6 +2502,12 @@
   color: var(--text);
 }
 
+/* A missing badge means "not started", and 88 identical grey pills cannot out-inform the empty column
+   they fill. The slot stays in the DOM; only the default state is silent. */
+.lesson-row[data-badge="not_started"] .badge-pill {
+  display: none;
+}
+
 .dash-recent-section {
   margin-top: var(--s-8);
 }
@@ -1908,13 +2555,6 @@
   white-space: nowrap;
 }
 
-.dash-recent-empty {
-  padding: var(--s-3) 0;
-  border-bottom: 1px solid var(--line);
-  color: var(--text-muted);
-  font-size: var(--fs-ui);
-}
-
 .dash-reset {
   max-width: var(--prose);
   margin-top: var(--s-8);
@@ -1929,11 +2569,6 @@
 }
 
 @media (max-width: 767px) {
-  .dash-group-head {
-    flex-direction: column;
-    gap: var(--s-1);
-  }
-
   .dash-recent-link {
     flex-direction: column;
     gap: 0;
@@ -1966,4 +2601,273 @@
   .sheet-grid .cell {
     transition: background-color var(--dur-1) var(--ease);
   }
+}
+
+/* ── Function notes ───────────────────────────────────────────────────── */
+
+/* A note is read, not operated, so it gets the measure and nothing else: no card, no shadow, no
+   tinted panel. The headings carry the structure and the whitespace does the separating. */
+.note {
+  max-width: var(--prose);
+  font-size: var(--fs-body);
+  line-height: 1.65;
+}
+
+.note h2 {
+  margin-top: var(--s-8);
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.note h2:first-child {
+  margin-top: 0;
+}
+
+.note h3 {
+  margin-top: var(--s-5);
+  font-size: var(--fs-h3);
+  line-height: 1.35;
+}
+
+.note p,
+.note ul {
+  margin-top: var(--s-3);
+}
+
+.note ul {
+  padding-left: var(--s-5);
+}
+
+.note li + li {
+  margin-top: var(--s-1);
+}
+
+.note a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* The syntax line under the title. One formula, monospaced, on its own; it is the thing the reader
+   came for, so it does not share a paragraph with prose. */
+pre.syntax,
+.note pre.syntax {
+  margin: var(--s-4) 0 0;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface-sunk);
+  color: var(--text);
+  font-size: var(--fs-ui);
+  overflow-x: auto;
+}
+
+.article-toc {
+  margin-bottom: var(--s-6);
+  padding: 0 0 0 var(--s-4);
+  border-left: 1px solid var(--line);
+}
+
+.article-toc .article-toc-title {
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+
+.article-toc-list {
+  margin: var(--s-2) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-ui);
+}
+
+.article-toc-list a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* A wide table is a table on a laptop and a horizontal scroll on a phone; the page never scrolls
+   sideways because of one. */
+.table-wrap {
+  margin-top: var(--s-3);
+  overflow-x: auto;
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-ui);
+}
+
+.md-table th,
+.md-table td {
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.md-table thead th {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* The drill the note ends in. It sits inside the prose rather than beside it: the reader has just
+   been told to practise, and this is where the practising happens. */
+.article-drill {
+  margin-top: var(--s-6);
+  padding: var(--s-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface-sunk);
+}
+
+.article-drill .article-drill-title {
+  margin-top: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  line-height: 1.3;
+}
+
+.article-drill-prompt {
+  margin-top: var(--s-2);
+  font-size: var(--fs-ui);
+}
+
+.article-drill-form {
+  margin-top: var(--s-4);
+}
+
+.article-drill-label {
+  display: block;
+  margin-bottom: var(--s-1);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+
+.article-drill-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-1);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-ui);
+}
+
+.article-drill-input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.article-drill-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+
+.article-hint,
+.article-drill-feedback {
+  font-size: var(--fs-ui);
+}
+
+.article-hint {
+  margin-top: var(--s-3);
+  color: var(--text-muted);
+}
+
+/* The slot is reserved whether or not there is a message: a feedback line that appears and
+   disappears moves the buttons under the reader's pointer. */
+.article-drill-feedback {
+  min-height: 44px;
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+}
+
+.article-drill-feedback[data-tone="ok"] {
+  color: var(--ok);
+}
+
+.article-drill-feedback[data-tone="err"] {
+  color: var(--err);
+}
+
+.article-drill-feedback[data-tone="warn"] {
+  color: var(--warn);
+}
+
+.article-drill-solution {
+  margin-top: var(--s-3);
+  font-size: var(--fs-ui);
+}
+
+.article-drill-solution summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.article-drill-solution summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.article-drill-solution pre {
+  margin-top: var(--s-2);
+  padding: var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--surface);
+  overflow-x: auto;
+}
+
+.article-drill-more {
+  margin-top: var(--s-3);
+  font-size: var(--fs-ui);
+}
+
+/* The hub's list of notes: a list, because that is what it is. */
+.article-list {
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.article-card {
+  position: relative;
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+/* The title anchor fills the card, so the whole row is the target. */
+.article-card-title::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.article-card-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  line-height: 1.3;
+}
+
+.article-card-note {
+  margin-top: var(--s-1);
+  max-width: var(--prose);
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
 }

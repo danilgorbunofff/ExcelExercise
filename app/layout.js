@@ -7,10 +7,19 @@ const { config } = loadSite();
 
 export const metadata = {
   metadataBase: new URL(config.baseUrl),
-  title: { default: config.name, template: `%s — ${config.name}` },
+  title: { default: config.name, template: `%s · ${config.name}` },
   description: "Zero-signup, in-browser Excel practice drills with deterministic grading.",
-  other: { "color-scheme": "light" },
+  other: { "color-scheme": "light dark" },
   icons: { icon: [{ url: "/assets/favicon.svg", type: "image/svg+xml" }] },
+};
+
+/** `themeColor` moved out of `metadata` in Next 14; the light/dark pair is the same one the static
+ *  head writes from `config.themeColor`, so the mobile browser bar matches the page in both themes. */
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: config.themeColor.light },
+    { media: "(prefers-color-scheme: dark)", color: config.themeColor.dark },
+  ],
 };
 
 export default function RootLayout({ children }) {

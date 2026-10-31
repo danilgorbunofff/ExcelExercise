@@ -12,15 +12,35 @@
       "grid": {
         "startCell": "A1",
         "rows": [
-          ["First", "Last"],
-          ["Ada", "Lovelace"],
-          ["Grace", "Hopper"],
-          ["Full name", null]
+          [
+            "First",
+            "Last"
+          ],
+          [
+            "Ada",
+            "Lovelace"
+          ],
+          [
+            "Grace",
+            "Hopper"
+          ],
+          [
+            "Full name",
+            null
+          ]
         ]
       },
       "answerCell": "B4",
-      "expect": { "value": "Ada Lovelace" },
-      "require": [{ "id": "func-concat", "func": "CONCAT", "minArgs": 2 }],
+      "expect": {
+        "value": "Ada Lovelace"
+      },
+      "require": [
+        {
+          "id": "func-concat",
+          "func": "CONCAT",
+          "minArgs": 2
+        }
+      ],
       "forbid": [],
       "requireRef": "A2",
       "rules": [],
@@ -82,7 +102,7 @@
   ],
   "docs": {
     "syntax": "=CONCAT(text1, [text2], ...) and =text1 & text2",
-    "explain": "The full name is three pieces in order: Ada, a space, and Lovelace. CONCAT takes them as arguments and glues them together, so =CONCAT(A2,\" \",B2) answers Ada Lovelace. The space is the piece people forget, because CONCAT(A2,B2) answers AdaLovelace, which looks like a name and is not one. The & operator does exactly the same join and is shorter to type — =A2&\" \"&B2 — and both forms answer the same text; this drill is graded on CONCAT because that is the function it names. Whatever you use, the pieces come from cells, so changing the row changes the answer without touching the formula.",
+    "explain": "The full name is three pieces in order: Ada, a space, and Lovelace. CONCAT takes them as arguments and glues them together, so =CONCAT(A2,\" \",B2) answers Ada Lovelace. The space is the piece people forget, because CONCAT(A2,B2) answers AdaLovelace, which looks like a name and is not one. The & operator does the same join and is shorter to type, so =A2&\" \"&B2 answers the same text. This drill is graded on CONCAT because that is the function it names. Either way the pieces come from cells, so changing the row changes the answer without touching the formula.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -98,5 +118,10 @@
     "teaches": "CONCAT and &",
     "dataset": "Two names in two columns",
     "reference": "=CONCAT(A2,\" \",B2)"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "CONCAT and & in Excel: join two cells",
+    "description": "Ada, a space, then Lovelace is the full name. CONCAT glues the pieces in order, the & operator joins them the same way, and the space is the part left out."
   }
 }

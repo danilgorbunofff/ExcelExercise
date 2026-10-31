@@ -1,0 +1,249 @@
+{
+  "id": "62-isblanks-and-isnumbers",
+  "slug": "isblanks-and-isnumbers",
+  "level": 3,
+  "title": "ISBLANK, ISNUMBER, ISTEXT: reading a cell's type",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B2, answer TRUE when A3 is empty.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Value",
+            "Answer"
+          ],
+          [
+            12,
+            null
+          ],
+          [
+            "text",
+            null
+          ],
+          [
+            null,
+            null
+          ],
+          [
+            true,
+            null
+          ],
+          [
+            4.5,
+            null
+          ],
+          [
+            "n/a",
+            null
+          ],
+          [
+            "Empty?",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": false
+      },
+      "reference": "=ISBLANK(A3)",
+      "require": [
+        {
+          "id": "func-isblank",
+          "func": "ISBLANK",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A3",
+      "rules": [],
+      "hints": {
+        "syntax": "=ISBLANK(A3): one cell in the parentheses, no comparison needed.",
+        "func-isblank": "A test that asks what kind of value is in a cell is what the IS functions are for.",
+        "require-ref": "Point at the cell the question names rather than a different row of the list.",
+        "value": "A3 holds the word text, so ISBLANK answers FALSE.",
+        "error": "Arithmetic on a logical value cannot be divided by zero without an error."
+      },
+      "fixtures": {
+        "accept": [
+          "=ISBLANK(A3)",
+          "=isblank(a3)",
+          "=ISBLANK($A$3)",
+          "=ISBLANK(A$3)",
+          "=ISBLANK($A3)",
+          "=IsBlank(A3)"
+        ],
+        "reject": [
+          {
+            "formula": "=A3=\"\"",
+            "rule": "func-isblank",
+            "why": "comparing to an empty string answers FALSE here but is not a type test"
+          },
+          {
+            "formula": "=ISBLANK(A4)",
+            "rule": "require-ref",
+            "why": "A4 is the empty cell, which is not the one the question names"
+          },
+          {
+            "formula": "=ISTEXT(A3)",
+            "rule": "func-isblank",
+            "why": "that asks whether the cell holds text, and it answers TRUE"
+          },
+          {
+            "formula": "=ISBLANK(A3)=FALSE",
+            "rule": "value",
+            "why": "the cell is not empty, so flipping the answer makes it TRUE"
+          },
+          {
+            "formula": "=ISBLANK(A3)/0",
+            "rule": "error",
+            "why": "a logical value divided by zero leaves #VALUE! in the cell"
+          },
+          {
+            "formula": "=ISBLANK A3",
+            "rule": "syntax",
+            "why": "the cell reference sits outside the parentheses"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In B2, answer TRUE when A7 holds a number.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Value",
+            "Answer"
+          ],
+          [
+            12,
+            null
+          ],
+          [
+            "text",
+            null
+          ],
+          [
+            null,
+            null
+          ],
+          [
+            true,
+            null
+          ],
+          [
+            4.5,
+            null
+          ],
+          [
+            "n/a",
+            null
+          ],
+          [
+            "A number?",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B2",
+      "expect": {
+        "value": false
+      },
+      "reference": "=ISNUMBER(A7)",
+      "require": [
+        {
+          "id": "func-isnumber",
+          "func": "ISNUMBER",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "A7",
+      "rules": [],
+      "hints": {
+        "syntax": "=ISNUMBER(A7): the result is a logical value, not the value itself.",
+        "func-isnumber": "Asking whether a cell holds a number is the job of ISNUMBER, not of a comparison.",
+        "require-ref": "Test the cell that holds n/a instead of the list as a whole.",
+        "value": "A7 holds the text n/a, so ISNUMBER answers FALSE.",
+        "error": "Arithmetic on a logical value cannot be divided by zero without an error."
+      },
+      "fixtures": {
+        "accept": [
+          "=ISNUMBER(A7)",
+          "=isnumber(a7)",
+          "=ISNUMBER($A$7)",
+          "=ISNUMBER(A$7)",
+          "=ISNUMBER($A7)",
+          "=IsNumber(A7)"
+        ],
+        "reject": [
+          {
+            "formula": "=ISNUMBER(A7)=FALSE",
+            "rule": "value",
+            "why": "the cell holds text, so flipping the test answers TRUE"
+          },
+          {
+            "formula": "=ISNUMBER(A2)",
+            "rule": "require-ref",
+            "why": "A2 holds 12, a different cell from the one the question is about"
+          },
+          {
+            "formula": "=ISTEXT(A7)",
+            "rule": "func-isnumber",
+            "why": "that is the opposite test, and it answers TRUE for n/a"
+          },
+          {
+            "formula": "=\"FALSE\"",
+            "rule": "func-isnumber",
+            "why": "the word FALSE is text, not the logical value the cell should hold"
+          },
+          {
+            "formula": "=ISNUMBER(A7)/0",
+            "rule": "error",
+            "why": "a logical value divided by zero leaves #VALUE! in the cell"
+          },
+          {
+            "formula": "=ISNUMBER A7",
+            "rule": "syntax",
+            "why": "the cell reference sits outside the parentheses"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=ISBLANK(cell), =ISNUMBER(cell), =ISTEXT(cell) return a logical value",
+    "explain": "The IS functions answer a different kind of question from a comparison. They ask not whether a value is large enough, but what kind of value it is. ISBLANK is TRUE only for a cell with nothing in it. That is not the same as a cell holding an empty string left behind by a formula: that one is text of length zero, and ISBLANK says FALSE. ISNUMBER is TRUE for dates and times as well as ordinary numbers, because Excel stores both as serial numbers, and FALSE for anything typed with letters. ISTEXT is its mirror. All of them return true logical values, so they plug straight into IF, AND and conditional formatting. None of them needs a comparison around it. Writing =ISBLANK(A4)=TRUE works, but adds a second comparison to a value that was already Boolean. In this drill A3 holds the word text, so ISBLANK answers FALSE and so does ISNUMBER. Two different questions can share an answer without being interchangeable. The second screen tests a cell holding the text n/a, where ISNUMBER answers FALSE and ISTEXT answers TRUE. Counting blanks is the everyday use. COUNTIF with an empty criterion counts empty strings differently from cells that were never filled, and the IS functions are how you tell the two apart.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "A logical result was used in arithmetic that cannot accept it."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function name was misspelled."
+      },
+      {
+        "code": "#N/A",
+        "text": "Not an error of these functions, but the value a lookup returns when nothing matches."
+      }
+    ],
+    "atWork": "Finding the rows where a due date was never entered instead of comparing to an empty string.",
+    "outcome": "Tell an empty cell from a text cell and a number, and read the answer as a logical value.",
+    "teaches": "ISBLANK, ISNUMBER and ISTEXT as type tests that return logical values",
+    "dataset": "One column mixing numbers, text, a logical value and a blank",
+    "reference": "=ISBLANK(A3)"
+  },
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "ISBLANK, ISNUMBER and ISTEXT in Excel",
+    "description": "The IS functions ask what kind of value a cell holds, not how big it is. ISBLANK is FALSE for a formula returning an empty string, since that is text."
+  }
+}

@@ -2,17 +2,20 @@
 
 import { useActionState } from "react";
 
+import { t } from "../../legacy/src/site/messages.mjs";
+
 import { sendMagicLink, signIn } from "../auth/actions.js";
-import { ErrorText, Field, OkText, Submit } from "../auth/ui.js";
+import { FocusedError } from "../auth/error-text.js";
+import { Field, OkText, Submit } from "../auth/ui.js";
 
 export function LoginForm({ next, disabled }) {
   const [state, action, pending] = useActionState(signIn, {});
   return (
     <form action={action} noValidate>
       <input type="hidden" name="next" value={next} />
-      <ErrorText>{state?.error}</ErrorText>
+      <FocusedError>{state?.error}</FocusedError>
       <Field
-        label="Email"
+        label={t("auth.login.email")}
         name="email"
         type="email"
         autoComplete="email"
@@ -20,7 +23,7 @@ export function LoginForm({ next, disabled }) {
         disabled={disabled}
       />
       <Field
-        label="Password"
+        label={t("auth.login.password")}
         name="password"
         type="password"
         autoComplete="current-password"
@@ -29,7 +32,7 @@ export function LoginForm({ next, disabled }) {
         disabled={disabled}
       />
       <Submit pending={pending} disabled={disabled}>
-        Sign in
+        {t("auth.login.submit")}
       </Submit>
     </form>
   );
@@ -42,10 +45,10 @@ export function MagicLinkForm({ next, disabled }) {
   return (
     <form action={action} noValidate className="auth-magic">
       <input type="hidden" name="next" value={next} />
-      <ErrorText>{state?.error}</ErrorText>
+      <FocusedError>{state?.error}</FocusedError>
       <OkText>{state?.ok}</OkText>
       <Field
-        label="Email me a sign-in link instead"
+        label={t("auth.login.magic.label")}
         name="email"
         type="email"
         autoComplete="email"
@@ -53,7 +56,7 @@ export function MagicLinkForm({ next, disabled }) {
         disabled={disabled}
       />
       <Submit pending={pending} disabled={disabled}>
-        Send link
+        {t("auth.login.magic.submit")}
       </Submit>
     </form>
   );

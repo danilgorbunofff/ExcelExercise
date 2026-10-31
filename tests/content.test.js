@@ -97,7 +97,7 @@ function declaredFunctions(exercise) {
     ...exercise.require.map((rule) => rule.func),
     ...exercise.forbid.map((rule) => rule.func),
     ...exercise.rules.map((rule) => rule.func),
-  ];
+  ].filter((func) => func !== undefined);
 }
 
 describe("content: track", () => {

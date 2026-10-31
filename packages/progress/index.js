@@ -195,3 +195,44 @@ export function summarise({ plan, progress = null, now = Date.now() }) {
     rows,
   };
 }
+
+/**
+ * Union of what this browser kept and what the server holds, for the signed-in reader.
+ *
+ * The server wins on conflict: it is the only store that saw every device, and a browser that finished
+ * a drill before signing in has already been migrated into it. A row that exists only locally is kept
+ * — a drill finished while signed out on this device is still a drill finished, and dropping it would
+ * make the page disagree with the learner's memory. `changed` is what tells the island whether a
+ * repaint is worth it, so a second browser does not flicker an identical record.
+ *
+ * @param {{done: Record<string, object>, tries: Record<string, number>, unlocked?: boolean}} local
+ * @param {{done?: Record<string, object>, tries?: Record<string, number>}} remote
+ * @returns {{progress: typeof local, changed: boolean}}
+ */
+export function mergeProgress(local, remote) {
+  const merged = {
+    ...local,
+    done: { ...local.done },
+    tries: { ...local.tries },
+    unlocked: local.unlocked === true,
+  };
+  let changed = false;
+
+  for (const [id, entry] of Object.entries(remote?.done ?? {})) {
+    const mine = merged.done[id];
+    const same = Boolean(mine) && mine.at === entry.at && mine.tries === entry.tries && mine.helped === entry.helped;
+    if (!same) changed = true;
+    merged.done[id] = { at: entry.at, tries: entry.tries, helped: entry.helped };
+    delete merged.tries[id];
+  }
+
+  for (const [id, tries] of Object.entries(remote?.tries ?? {})) {
+    if (merged.done[id]) continue;
+    if (tries > (merged.tries[id] ?? 0)) {
+      merged.tries[id] = tries;
+      changed = true;
+    }
+  }
+
+  return { progress: merged, changed };
+}

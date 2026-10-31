@@ -1,0 +1,298 @@
+{
+  "id": "55-countifs-several-conditions",
+  "slug": "countifs-several-conditions",
+  "level": 3,
+  "title": "COUNTIFS: several conditions",
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In D9, count the North orders that are still open with one function taking two conditions.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Order",
+            "Region",
+            "Status",
+            "Units"
+          ],
+          [
+            "SO-1001",
+            "North",
+            "Open",
+            5
+          ],
+          [
+            "SO-1002",
+            "South",
+            "Open",
+            3
+          ],
+          [
+            "SO-1003",
+            "North",
+            "Closed",
+            4
+          ],
+          [
+            "SO-1004",
+            "East",
+            "Open",
+            2
+          ],
+          [
+            "SO-1005",
+            "North",
+            "Open",
+            6
+          ],
+          [
+            "SO-1006",
+            "South",
+            "Closed",
+            1
+          ],
+          [
+            "SO-1007",
+            "North",
+            "Open",
+            8
+          ],
+          [
+            "North & open",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D9",
+      "expect": {
+        "value": 3
+      },
+      "reference": "=COUNTIFS(B2:B8,\"North\",C2:C8,\"Open\")",
+      "require": [
+        {
+          "id": "func-countifs",
+          "func": "COUNTIFS",
+          "minArgs": 4
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=COUNTIFS(range 1, condition 1, range 2, condition 2): both conditions must hold.",
+        "func-countifs": "COUNTIF takes one condition and COUNTIFS takes as many as the question needs.",
+        "require-ref": "Point at the region column in the grid rather than typing the regions into the formula.",
+        "value": "Rows 2, 6 and 8 are North and open, so the count is 3.",
+        "error": "A division by zero anywhere in the formula returns #DIV/0! instead of a count."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTIFS(B2:B8,\"North\",C2:C8,\"Open\")",
+          "=countifs(b2:b8,\"north\",c2:c8,\"open\")",
+          "=COUNTIFS($B$2:$B$8,\"North\",$C$2:$C$8,\"Open\")",
+          "=COUNTIFS(B2:B8,\"North\",C2:C8,\"Open\")+0",
+          "=COUNTIFS(B2:B8,\"North\",C2:C8,\"Open\")*1",
+          "=COUNTIFS(C2:C8,\"Open\",B2:B8,\"North\")"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTIF(B2:B8,\"North\")",
+            "rule": "func-countifs",
+            "why": "one condition only, so the closed North order is counted too and the answer is 4"
+          },
+          {
+            "formula": "=COUNTIFS(B2:B8,\"North\")",
+            "rule": "func-countifs",
+            "why": "a COUNTIFS with no second pair is a COUNTIF wearing the wrong name"
+          },
+          {
+            "formula": "=COUNTIFS(B2:B8,\"North\",C2:C8,\"Closed\")",
+            "rule": "value",
+            "why": "the opposite status, so only row 3 counts and the answer is 1"
+          },
+          {
+            "formula": "=COUNTIFS(B3:B8,\"North\",C3:C8,\"Open\")",
+            "rule": "require-ref",
+            "why": "the ranges start on row 3, so row 2 drops out of the count"
+          },
+          {
+            "formula": "=COUNTIFS(B2:B8,\"North\",C2:C8,\"Open\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=COUNTIFS(B2:B8 \"North\",C2:C8,\"Open\")",
+            "rule": "syntax",
+            "why": "the missing comma jams a range and a condition into one argument"
+          },
+          {
+            "formula": "=SUMPRODUCT((B2:B8=\"North\")*(C2:C8=\"Open\"))",
+            "rule": "func-countifs",
+            "why": "the right number 3, but this lesson is a COUNTIFS drill"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "In D9, count the open orders that came to more than 5 units.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Order",
+            "Region",
+            "Status",
+            "Units"
+          ],
+          [
+            "SO-1001",
+            "North",
+            "Open",
+            5
+          ],
+          [
+            "SO-1002",
+            "South",
+            "Open",
+            3
+          ],
+          [
+            "SO-1003",
+            "North",
+            "Closed",
+            4
+          ],
+          [
+            "SO-1004",
+            "East",
+            "Open",
+            2
+          ],
+          [
+            "SO-1005",
+            "North",
+            "Open",
+            6
+          ],
+          [
+            "SO-1006",
+            "South",
+            "Closed",
+            1
+          ],
+          [
+            "SO-1007",
+            "North",
+            "Open",
+            8
+          ],
+          [
+            "Open & over 5 units",
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "answerCell": "D9",
+      "expect": {
+        "value": 2
+      },
+      "reference": "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\")",
+      "require": [
+        {
+          "id": "func-countifs",
+          "func": "COUNTIFS",
+          "minArgs": 4
+        }
+      ],
+      "forbid": [],
+      "requireRef": "D2",
+      "rules": [],
+      "hints": {
+        "syntax": "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\"): the comparison goes in quotes.",
+        "func-countifs": "Two conditions on the same table is exactly what COUNTIFS is for.",
+        "require-ref": "Compare the threshold against the units column of the grid, not a typed list of numbers.",
+        "value": "Rows 6 and 8 are open and above 5 units, so the count is 2.",
+        "error": "A formula that divides by zero returns #DIV/0! instead of a count."
+      },
+      "fixtures": {
+        "accept": [
+          "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\")",
+          "=countifs(c2:c8,\"open\",d2:d8,\">5\")",
+          "=COUNTIFS($C$2:$C$8,\"Open\",$D$2:$D$8,\">5\")",
+          "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\")+0",
+          "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\")*1",
+          "=COUNTIFS(D2:D8,\">5\",C2:C8,\"Open\")"
+        ],
+        "reject": [
+          {
+            "formula": "=COUNTIF(D2:D8,\">5\")",
+            "rule": "func-countifs",
+            "why": "one condition only, so the closed 8-unit order is counted too and the answer is 3"
+          },
+          {
+            "formula": "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">=5\")",
+            "rule": "value",
+            "why": "at least 5 pulls in row 2 as well, which is 5 units and not more"
+          },
+          {
+            "formula": "=COUNTIFS(C2:C8,\"Closed\",D2:D8,\">5\")",
+            "rule": "value",
+            "why": "the wrong status, so only the closed 8-unit order counts and the answer is 1"
+          },
+          {
+            "formula": "=COUNTIFS(C3:C8,\"Open\",D3:D8,\">5\")",
+            "rule": "require-ref",
+            "why": "the ranges start on row 3, so the first order is never counted"
+          },
+          {
+            "formula": "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\")/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=COUNTIFS(C2:C8,\"Open\",D2:D8,\">5\"",
+            "rule": "syntax",
+            "why": "the closing parenthesis is missing"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=COUNTIFS(criteria_range1, criteria1, [criteria_range2, criteria2], ...)",
+    "explain": "COUNTIF counts the cells that meet one condition. COUNTIFS counts the rows where every condition is true at the same time, and the two are not interchangeable. The arguments alternate range, condition, range, condition, and each range has to be the same size and shape. Otherwise the ranges slide against each other and the count drifts. In this drill the region column must say North and the status column must say Open, which leaves rows 2, 6 and 8 and answers 3. The closed North order in row 3 is the one people lose by using COUNTIF and only asking for North, which would answer 4. The second screen moves one condition from text to a comparison: the order must be open and the units must be over 5. Row 2 at exactly 5 is excluded, so the answer is 2. Conditions stay as typed text or comparisons in quotes, they are case-insensitive on text, and every extra condition narrows the count rather than widening it. When you need OR instead of AND, that is two COUNTIFS calls added together, not one call with two conditions.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "One of the criteria ranges did not have the same shape as the others."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The count was divided by zero before it reached the cell."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The function was typed as COUNTIF, which takes one range and one condition."
+      }
+    ],
+    "atWork": "Counting open tickets in one region, and counting orders above a credit limit before dispatching.",
+    "outcome": "Count the rows that satisfy two conditions at once instead of filtering the table first.",
+    "teaches": "COUNTIFS with two condition pairs, text and comparison criteria",
+    "dataset": "Ticket list by region, status and unit count",
+    "reference": "=COUNTIFS(B2:B8,\"North\",C2:C8,\"Open\")"
+  },
+  "schemaVersion": 2,
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "COUNTIFS in Excel: several conditions",
+    "description": "COUNTIF counts cells that match one condition, COUNTIFS counts rows where every condition holds. Each extra range must match in size, or the count drifts."
+  }
+}

@@ -62,15 +62,19 @@ interactive widget they do not have.
 8. **Measurement hook.** Each article emits `article_view` and `article_drill_start` (phase 10 wires
    transport) so we can see which articles convert.
 
-## Acceptance criteria
+## Acceptance criteria — evidence table (2026-10-31)
 
-- [ ] 44 articles live, each with a unique title and description and a working embedded drill.
-- [ ] Zero orphan pages; every CTA resolves; link lint green.
-- [ ] Lighthouse SEO ≥ 95 on 3 sample articles; no CLS from the drill island.
-- [ ] Every article is reachable from a hub within 2 clicks.
-- [ ] Sitemap matches the route list exactly (count assertion in CI).
-- [ ] JSON-LD validates in the Rich Results test for one Article and one FAQPage.
-- [ ] An article page loads in < 100 KB JS before the drill is interacted with.
+Rewritten as an evidence table on **2026-10-31** from the checklist it replaces. Verdicts, witnesses and the build items (B1–B14) are defined in [`reviews/completeness-2026-10-31.md`](reviews/completeness-2026-10-31.md). A row marked **Proven** names a witness this review re-ran: a `path:line` inside a test that executed (the strongest), a `gate:<script>` the review ran green, or an `artifact:<path>` whose existence is the whole claim (a document, a config file). No row is left grey.
+
+| ID | Criterion | Verdict | Witness | State exercised | Decision |
+| --- | --- | --- | --- | --- | --- |
+| p7-67 | Eight notes live, unique title/description, working drill | Proven | `e2e/article.spec.js:16,28,53` | browser | — |
+| p7-69 | Zero orphan pages, link lint green | Proven | `tests/build.test.js:441` (M22 → "internal links point at pages that are not built") | build | — |
+| p7-70 | Lighthouse SEO ≥ 95 on three articles | Absent | no Lighthouse config, no CI step | n/a | Build B2 |
+| p7-71 | Every note reachable in two clicks, sibling links between notes | Built, unproven | `e2e/article.spec.js:16` proves hub → note; no sibling-link assertion exists | half the claim unexercised | Build B6 |
+| p7-72 | Sitemap matches the route list exactly (118 over 120) | Proven | `tests/metadata-routes.test.js:31` (M9) | route — counts moved; invariant holds | — |
+| p7-73 | JSON-LD validates in the Rich Results test | Built, unproven | `tests/build.test.js:309` parses it; `e2e/article.spec.js:38` reads it; no external validation recorded | claim admits it | Defer: external validator; one manual run on the launch checklist |
+| p7-75 | Note ships one module, drill island ~3 KB | Proven | `e2e-static/static-drill.spec.js:115`; `tests/articles.test.js:52` | browser | — |
 
 ## Test plan
 
@@ -90,3 +94,95 @@ interactive widget they do not have.
 | Thin/duplicate content penalty | each article has original examples and an interactive element |
 | Scope creep into a CMS | MDX in git, reviewed in PRs |
 | Writing bottleneck | template + one worked example; 2–3 articles per author-day |
+
+---
+
+## As built
+
+The phase shipped as the smaller, stricter half of the plan above: the engine, the gate and eight
+notes. Everything below is what actually exists, and why it differs from the brief.
+
+### What is live
+
+| Surface | Address | What it is |
+|---|---|---|
+| Notes hub | `/excel-functions` | every note, plus the "practise it" and "common questions" blocks |
+| Note | `/excel-functions/<slug>` | prose, syntax, one drill, related links, `Article` + `BreadcrumbList` |
+| Lesson SEO fields | every `exercises/*.json` | `seo.title`, `seo.description`, `updated`, rewritten for all 88 |
+| Group hubs | `/learn/groups/<id>` | indexable, `LearningResource` + `ItemList` + `BreadcrumbList` |
+| Sitemap | `/sitemap.xml` | 118 URLs: 88 lessons, 10 groups, 5 static, 8 notes, home and the hub |
+
+The eight notes are `vlookup`, `if`, `sum`, `countif`, `sumif`, `index-match`, `xlookup`, `trim` — the
+functions the plan's own intent order names first. Each is 816–921 words.
+
+### Deviations, recorded rather than silently taken
+
+- **44 articles became 8, and `/blog` was not built.** The plan's 44 assumed a writing budget this
+  phase did not have. Eight notes on the functions people search for by name is the honest starting
+  point, and the hub is a listing with a job of its own (it groups what exists and sends people to the
+  drills), so a second `/blog` index would only be a duplicate of it with less to say. The engine takes
+  more notes with no code change: drop a `.md` file in `legacy/content/articles/`.
+- **`/excel-shortcuts` was not built.** Shortcut guides need shortcut content, and the curriculum has
+  none yet. A hub for two pages would be a page written for a keyword, not for a reader.
+- **No MDX.** Notes are markdown parsed by `packages/content/markdown.js`, a deliberate subset: `##`,
+  `###`, paragraphs, `- ` lists, pipe tables. An MDX compiler would put a JSX pipeline in a build whose
+  whole argument is that the prose is server-rendered text, and it would let HTML into pages where the
+  only interactive element is meant to be the drill.
+- **`FAQPage` and `HowTo` are never emitted.** Google retired both rich results (FAQ rich results were
+  removed on 2026-05-07, `HowTo` earlier). Marking a note as either would be a claim no result can use
+  and a maintenance cost with no upside. The types that are emitted: `Organization` and `WebSite` on
+  the home page, `Course` for the track, `LearningResource` and `ItemList` on group pages and the notes
+  hub, `Article` and `BreadcrumbList` on a note.
+- **`LearningResource` carries fewer properties than planned.** `heading`, `hasPart` and
+  `numberOfCredits` were dropped: the first two duplicate structure the page already states in HTML,
+  and the third is a course-credit claim a browser drill cannot honestly make.
+- **The drill is one screen, not two or three.** `prepareArticlePage` takes `screens[0]` of the lesson
+  the note names. A note that recorded progress across two screens would make the dashboard and the
+  lesson disagree about how far someone is, and the note's CTA is "do the whole drill" anyway.
+- **The frontmatter keys are not the plan's.** `lessonId` (a number) became `exercise` (the published
+  slug), `faq[]` became prose questions on the hub, and `related[]` became links computed from the
+  lesson's group plus the sibling notes. A hand-maintained `related[]` list is a link that rots the
+  first time a lesson is renamed; the computed one cannot.
+- **Link lint is a function, not a graph script.** `servedPaths(lessons, articles)` returns the paths
+  the site emits and the note gate checks every site-absolute link against it. No separate crawler, no
+  network, and it fails in `npm test` rather than in CI's second stage.
+- **The measurement hook is an event, not a beacon.** The plan asked for `article_view` and
+  `article_drill_start`. There is no transport until phase 10, so the island dispatches
+  `article-drill:check` and `article-drill:hint` `CustomEvent`s with the slug, the verdict rule and the
+  attempt count. Phase 10 listens; nothing in the island changes.
+- **Both builds serve the notes.** `legacy/src/site/article-page.mjs` renders them for the static
+  build, `app/excel-functions/` renders the same module for Next. `npm run next:build` prerenders 120
+  pages and `npm run next:check` compares the routes to `indexablePaths`, so a note that is written but
+  not routed fails a command rather than shipping as a 404.
+
+### The trap worth knowing
+
+A note's `exercise:` is the **published slug**, not the lesson file name. The file is
+`83-clean-up-an-imported-list.json`; the lesson publishes at `clean-up-an-imported-list`. The wrong
+form still parses, still renders, and silently loses the drill — which is exactly what happened to the
+TRIM note, and why `tests/articles.test.js` asserts the shipped pages contain a drill and an exercise
+link instead of trusting the parser.
+
+### What gates it
+
+| Command | Covers |
+|---|---|
+| `npm run content:copy` | wording rules for all 88 lessons and the group intros |
+| `npm run content:articles` | the note gate: shape, lengths, drill link, served paths, duplicates, wording |
+| `npm test` | 1684 tests, including `tests/articles.test.js` and `tests/seo.test.js` |
+| `npm run verify` | 4869 build assertions over the static pages, notes included |
+| `npx playwright test e2e/article.spec.js` | 5 browser tests: hub links, JSON-LD, grading, hint on the second miss, 44 px targets, no side scroll at 390 px |
+| `npx playwright test --project=static` | the same drill, graded on the static deployable, with no failed request for the island module |
+
+The copy gate blocks nothing today: its remaining output is 36 long-sentence and 9 mean-sentence
+warnings, all in lesson prose. Long sentences are warnings on purpose — a rule that fails the build
+over a 33-word sentence pushes writers toward choppy fragments, which reads worse than the sentence
+it replaced. The 21 worst offenders were split by hand instead, which is why the count fell from 58.
+
+### Still open, and human
+
+- Search Console verification and the first impression report.
+- Rich Results Test on one note and one lesson.
+- Lighthouse SEO and performance on three notes.
+- Share cards checked in a real social preview tool.
+- The other 36 notes the plan asked for.

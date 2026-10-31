@@ -1,0 +1,168 @@
+{
+  "id": "88-sort-and-spilled-ranges",
+  "slug": "sort-and-spilled-ranges",
+  "level": 3,
+  "title": "SORT and spilled ranges",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "In B8, return the name of the rep with the highest score from A2:B7, ranking the table with SORT before you pick a cell.",
+      "reference": "=INDEX(SORT(A2:B7,2,-1),1,1)",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Rep",
+            "Score"
+          ],
+          [
+            "Ada",
+            88
+          ],
+          [
+            "Mia",
+            95
+          ],
+          [
+            "Oz",
+            72
+          ],
+          [
+            "Ivy",
+            91
+          ],
+          [
+            "Sam",
+            61
+          ],
+          [
+            "Lena",
+            80
+          ],
+          [
+            "Top scorer",
+            null
+          ]
+        ]
+      },
+      "answerCell": "B8",
+      "expect": {
+        "value": "Mia"
+      },
+      "require": [
+        {
+          "id": "func-sort",
+          "func": "SORT",
+          "minArgs": 1
+        },
+        {
+          "id": "func-index",
+          "func": "INDEX",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "=INDEX(SORT(A2:B7,2,-1),1,1): SORT builds the ranked block, INDEX picks one cell from it.",
+        "func-sort": "Sorting is the point of this lesson. Reading the answer off the screen does not survive next month's update.",
+        "func-index": "SORT returns a whole block of rows. INDEX is how you ask that block for its first row and first column.",
+        "require-ref": "Point SORT at the table starting at row 2 so the check can see the scores column.",
+        "value": "The cell you picked is not the top of the ranking. Check the sort order and which row of the sorted block you asked for.",
+        "error": "#VALUE! here means the sort index is outside the table width, or INDEX was given one argument instead of a row and a column."
+      },
+      "fixtures": {
+        "accept": [
+          "=INDEX(SORT(A2:B7,2,-1),1,1)",
+          "=index(sort(a2:b7,2,-1),1,1)",
+          "=INDEX(SORT($A$2:$B$7,2,-1),1,1)",
+          "=INDEX(SORT(A2:B7,2,-1),1,1)&\"\"",
+          "=INDEX(SORT(A2:B7,+2,-1),1,1)",
+          "=INDEX(SORT(A2:B7,2,-1),+1,1)"
+        ],
+        "reject": [
+          {
+            "formula": "=SORT(A2:B7,2,-1)",
+            "rule": "func-index",
+            "why": "ranks the table correctly but returns the whole block, so the answer cell holds a spilled range instead of one name"
+          },
+          {
+            "formula": "=INDEX(SORT(A2:B7,2,1),1,1)",
+            "rule": "value",
+            "why": "sorts ascending, so the first row is the lowest score"
+          },
+          {
+            "formula": "=INDEX(SORT(A2:B7,1,-1),1,1)",
+            "rule": "value",
+            "why": "sorts by the rep name instead of the score"
+          },
+          {
+            "formula": "=INDEX(SORT(A2:B7,2,-1),2,1)",
+            "rule": "value",
+            "why": "picks the second row of the ranking, not the first"
+          },
+          {
+            "formula": "=INDEX(A2:B7,3,1)",
+            "rule": "func-sort",
+            "why": "hard-codes the row Mia happens to sit on today"
+          },
+          {
+            "formula": "=MAX(B2:B7)",
+            "rule": "func-sort",
+            "why": "returns the score 95 rather than the name attached to it"
+          },
+          {
+            "formula": "=INDEX(SORT(A2:B7,3,-1),1,1)",
+            "rule": "error",
+            "why": "the sort index is outside the two-column table, so SORT reports #VALUE!"
+          },
+          {
+            "formula": "=INDEX(SORT(A3:B7,2,-1),1,1)",
+            "rule": "require-ref",
+            "why": "starts below the table and never looks at the scores column from row 2"
+          },
+          {
+            "formula": "=INDEX(SORT(A2:B7,2,-1),1,1",
+            "rule": "syntax",
+            "why": "unclosed INDEX bracket"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=SORT(array, [sort_index], [sort_order], [by_col])",
+    "explain": "SORT returns a new block of rows in the order you ask for without touching the source table. The second argument names the column to sort on, so 2 means the score column, and the third argument takes 1 for ascending or -1 for descending. Six reps sit in rows 2 to 7 with scores of 88, 95, 72, 91, 61 and 80. Sorting on column 2 descending puts Mia's 95 on the first row, Ivy's 91 on the second and Sam's 61 last. SORT on its own spills that whole ranked block, and a block is not a single answer. INDEX pulls one cell out of it: row 1, column 1 is the name at the top. That two-step shape is the reusable pattern, because changing row 1 to row 2 gives the runner-up without a second formula. Two limits bite in practice. The sort index counts columns inside the array, not columns on the sheet, so 3 on a two-column table returns #VALUE!. The spill also needs empty cells below it, or Excel reports #SPILL!.",
+    "errors": [
+      {
+        "code": "#VALUE!",
+        "text": "The sort index is larger than the array is wide, or INDEX was given a row but no column."
+      },
+      {
+        "code": "#SPILL!",
+        "text": "The ranked block has nowhere to land because a cell below the formula is already occupied."
+      },
+      {
+        "code": "#N/A",
+        "text": "The sort index points at a column the array does not have."
+      },
+      {
+        "code": "#NAME?",
+        "text": "The workbook predates dynamic arrays, so SORT is not recognised at all."
+      }
+    ],
+    "atWork": "Top customer, worst-performing line, latest invoice: ranking a small table and reading one cell is a daily question that a filter cannot answer.",
+    "outcome": "Rank a table with a formula and pull one cell out of the ranked block.",
+    "teaches": "SORT",
+    "dataset": "Sales rep scoreboard",
+    "reference": "=INDEX(SORT(A2:B7,2,-1),1,1)"
+  },
+  "seo": {
+    "title": "SORT in Excel, then INDEX one cell out",
+    "description": "SORT ranks a block in the order you ask for without touching the source. INDEX then pulls one cell, so row 1 is the top and row 2 the runner-up."
+  },
+  "updated": "2026-10-31"
+}

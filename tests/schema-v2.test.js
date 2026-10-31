@@ -128,15 +128,42 @@ describe("lesson schema v2", () => {
         "level",
         "schemaVersion",
         "screens",
+        "seo",
         "slug",
         "title",
+        "updated",
       ]);
+      assert.equal(lesson.seo, null, "a v1 fixture has no search metadata");
+      assert.equal(lesson.updated, null, "and no date to claim");
       assert.equal(lesson.prompt, undefined);
       assert.equal(lesson.answerCell, undefined);
     });
   });
 
   describe("a v2 lesson", () => {
+    it("carries the search metadata the copy gate and the sitemap read", () => {
+      const lesson = normalizeLesson(
+        v2({
+          seo: { title: "SUMIF: total one region", description: "Add the rows one region owns." },
+          updated: "2026-10-31",
+        }),
+        FILE,
+      );
+
+      assert.deepEqual(lesson.seo, { title: "SUMIF: total one region", description: "Add the rows one region owns." });
+      assert.equal(lesson.updated, "2026-10-31");
+    });
+
+    it("refuses search metadata it could not publish", () => {
+      const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+
+      throws(v2({ seo: { description: "No title here." } }), /seo\.title must be a non-empty string/);
+      throws(v2({ seo: "SUMIF" }), /seo must be an object/);
+      throws(v2({ seo: { title: "x".repeat(61) } }), /seo\.title is 61 characters, limit is 60/);
+      throws(v2({ updated: "31/10/2026" }), /must be written YYYY-MM-DD/);
+      throws(v2({ updated: "2026-13-45" }), /is not a real date/);
+    });
+
     it("reads screens from a file with no per-screen field at the top level", () => {
       const lesson = normalizeLesson(v2(), FILE);
 
@@ -461,6 +488,23 @@ describe("lesson schema v2", () => {
     it("is not read on a v1 lesson, whose docs block is the lesson's", () => {
       // The flat drill *is* the screen, so its `docs` is the block `validateDocs` already read.
       assert.equal(normalizeLesson(V1, FILE).screens[0].docs, undefined);
+    });
+  });
+
+  describe("a screen that asks about a date", () => {
+    const pinned = (today) => v2({ screens: [screenFrom(V1, today === undefined ? {} : { today })] });
+    const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+
+    it("carries the day it pinned, so TODAY answers the same on every run", () => {
+      const lesson = normalizeLesson(pinned("2024-03-15"), FILE);
+      assert.equal(lesson.screens[0].today, "2024-03-15");
+      assert.equal(normalizeLesson(pinned(undefined), FILE).screens[0].today, undefined);
+    });
+
+    it("rejects a day written any other way", () => {
+      throws(pinned("15/03/2024"), /screens\[0\]\.today must be a date written YYYY-MM-DD/);
+      throws(pinned("2024-3-5"), /screens\[0\]\.today must be a date written YYYY-MM-DD/);
+      throws(pinned(20240315), /screens\[0\]\.today must be a date written YYYY-MM-DD/);
     });
   });
 

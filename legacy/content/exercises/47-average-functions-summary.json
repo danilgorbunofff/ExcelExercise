@@ -1,0 +1,261 @@
+{
+  "id": "47-average-functions-summary",
+  "slug": "average-functions-summary",
+  "level": 2,
+  "title": "Average functions summary",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "formula-1",
+      "type": "formula",
+      "prompt": "Put the average of the two best times into C2, taking the values from the unsorted column.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Swimmer",
+            "Seconds",
+            "Top-two average"
+          ],
+          [
+            "Ada",
+            58,
+            null
+          ],
+          [
+            "Ben",
+            61,
+            null
+          ],
+          [
+            "Cleo",
+            55,
+            null
+          ],
+          [
+            "Dev",
+            57,
+            null
+          ],
+          [
+            "Eli",
+            50,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 59.5
+      },
+      "reference": "=(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2",
+      "require": [
+        {
+          "id": "func-large",
+          "func": "LARGE",
+          "minArgs": 2
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "Two LARGE calls and an average: =(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2.",
+        "func-large": "LARGE gives you one position at a time, so ask for two of them and average the pair.",
+        "require-ref": "Both LARGE calls read the same range, B2:B6, so no time is typed into the formula.",
+        "value": "The two best are 61 and 58, and their average is 59.5.",
+        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+      },
+      "fixtures": {
+        "accept": [
+          "=(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2",
+          "=(large(b2:b6,1)+large(b2:b6,2))/2",
+          "=(LARGE($B$2:$B$6,1)+LARGE($B$2:$B$6,2))/2",
+          "=(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2+0",
+          "=(LARGE(B2:B6,1)+LARGE(B2:B6,2))*1/2",
+          "=(MAX(B2:B6)+LARGE(B2:B6,2))/2"
+        ],
+        "reject": [
+          {
+            "formula": "=AVERAGE(B2:B6)",
+            "rule": "func-large",
+            "why": "the average of all five, 56.2, which includes the slow times"
+          },
+          {
+            "formula": "=MAX(B2:B6)",
+            "rule": "func-large",
+            "why": "only the single best time, 61, so nothing has been averaged"
+          },
+          {
+            "formula": "=(LARGE(B3:B6,1)+LARGE(B3:B6,2))/2",
+            "rule": "require-ref",
+            "why": "Ben and Dev only, so the best two of the team are not in the range"
+          },
+          {
+            "formula": "=LARGE(B2:B6,2)",
+            "rule": "value",
+            "why": "the second best alone, 58, rather than the average of the pair"
+          },
+          {
+            "formula": "=(LARGE(B2:B6,2)+LARGE(B2:B6,3))/2",
+            "rule": "value",
+            "why": "the second and third best, 57.5, which leaves the winner out"
+          },
+          {
+            "formula": "=(LARGE(B2:B6,1)+LARGE(B2:B6,2))/0",
+            "rule": "error",
+            "why": "dividing by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=LARGE(B2:B6 1)",
+            "rule": "syntax",
+            "why": "the missing comma leaves LARGE with one unusable argument"
+          }
+        ]
+      }
+    },
+    {
+      "id": "formula-2",
+      "type": "formula",
+      "prompt": "Put the place the middle time earns into C2, so the row shows where the median sits.",
+      "grid": {
+        "startCell": "A1",
+        "rows": [
+          [
+            "Swimmer",
+            "Seconds",
+            "Median's place"
+          ],
+          [
+            "Ada",
+            58,
+            null
+          ],
+          [
+            "Ben",
+            61,
+            null
+          ],
+          [
+            "Cleo",
+            55,
+            null
+          ],
+          [
+            "Dev",
+            57,
+            null
+          ],
+          [
+            "Eli",
+            50,
+            null
+          ]
+        ]
+      },
+      "answerCell": "C2",
+      "expect": {
+        "value": 3
+      },
+      "reference": "=RANK(MEDIAN(B2:B6),B2:B6)",
+      "require": [
+        {
+          "id": "func-rank",
+          "func": "RANK",
+          "minArgs": 2
+        },
+        {
+          "id": "func-median",
+          "func": "MEDIAN",
+          "minArgs": 1
+        }
+      ],
+      "forbid": [],
+      "requireRef": "B2",
+      "rules": [],
+      "hints": {
+        "syntax": "One function inside another: =RANK(MEDIAN(B2:B6),B2:B6).",
+        "func-median": "The middle time is the median, and it is a value in the list, not a place in it.",
+        "func-rank": "Once you have the middle time, RANK turns it into a place.",
+        "require-ref": "Both functions read B2:B6, so the comparison stays inside the team.",
+        "value": "The median of the five times is 57, and 57 is third from the top.",
+        "error": "Dividing by zero leaves #DIV/0! in the cell instead of a place."
+      },
+      "fixtures": {
+        "accept": [
+          "=RANK(MEDIAN(B2:B6),B2:B6)",
+          "=rank(median(b2:b6),b2:b6)",
+          "=RANK(MEDIAN($B$2:$B$6),$B$2:$B$6)",
+          "=RANK(MEDIAN(B2:B6),B2:B6)+0",
+          "=RANK(MEDIAN(B2:B6),B2:B6)*1",
+          "=RANK(MEDIAN(B$2:B$6),B$2:B$6)"
+        ],
+        "reject": [
+          {
+            "formula": "=MEDIAN(B2:B6)",
+            "rule": "func-rank",
+            "why": "the middle time itself, 57, rather than the place it earns"
+          },
+          {
+            "formula": "=RANK(AVERAGE(B2:B6),B2:B6)",
+            "rule": "func-median",
+            "why": "the mean, 56.2, which is not a time in the list and has no place"
+          },
+          {
+            "formula": "=RANK(B2,B2:B6)",
+            "rule": "func-median",
+            "why": "Ada's own place, 2 — nothing has been asked about the middle of the list"
+          },
+          {
+            "formula": "=RANK(MEDIAN(B2:B6),B2:B6)/0",
+            "rule": "error",
+            "why": "division by zero, so the cell holds #DIV/0!"
+          },
+          {
+            "formula": "=RANK(MEDIAN(B2:B6),B2:B6",
+            "rule": "syntax",
+            "why": "the closing bracket is missing, so nothing runs"
+          },
+          {
+            "formula": "=RANK(MEDIAN(B3:B6),B3:B6)",
+            "rule": "require-ref",
+            "why": "the range leaves out B2, so the median is of four swimmers rather than five"
+          },
+          {
+            "formula": "=RANK(MEDIAN(B2:B6),B2:B6)*2",
+            "rule": "value",
+            "why": "twice the place, 6, which is outside a list of five"
+          }
+        ]
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "=RANK(MEDIAN(range), range) and =(LARGE(range,1)+LARGE(range,2))/2",
+    "explain": "A summary statistic answers a question, and most real questions need two of them joined together. The average of the best two times is not a function Excel has. It is LARGE asked twice and divided by two, and reading it as a sentence is the skill this lesson teaches. The second screen nests MEDIAN inside RANK, so the answer is a place rather than a value. The middle time is 57, and the place that time earns is 3. Nesting works because every function returns a value another function can consume, and the trace is read inside-out. MEDIAN finishes, then RANK uses what it returned. The trap is that a mean of a subset can produce a number that exists nowhere in the data, so it has no place, no row and no format to inherit. Averaging the top two gives 59.5, which is not a swim time at all. Watch the ranges. Two LARGE calls pointing at different ranges silently average two different groups, which is the most common way a hand-built summary goes quietly wrong.",
+    "errors": [
+      {
+        "code": "#NUM!",
+        "text": "A LARGE position went past the end of the range, so there is no value to include."
+      },
+      {
+        "code": "#N/A",
+        "text": "RANK was asked about a number that does not appear in the range, as a mean of a subset never will."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "One of the nested arguments was text that cannot be read as a number."
+      }
+    ],
+    "atWork": "A selection report that averages a team's best two results, and a review sheet that shows where the median case sits in the ranked list.",
+    "outcome": "Join two summary functions into one answer, reading the nesting inside-out.",
+    "teaches": "MEDIAN, LARGE and RANK combined",
+    "dataset": "One team's swim times summarised two ways",
+    "reference": "=(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2"
+  },
+  "updated": "2026-10-31",
+  "seo": {
+    "title": "Combine Excel summary functions",
+    "description": "LARGE asked twice and halved gives the average of the best two times. Nest MEDIAN inside RANK and the answer is a place. Read the trace inside-out."
+  }
+}

@@ -29,7 +29,7 @@ and Phase 2 builds five screen types, all five of which a shipped lesson now ren
 | Phase | Doc | Assessment | Blocking gap that a machine cannot close |
 |---|---|---|---|
 | 0 — Port shell | [show](./phase-00-port-shell-verification-plan.md) | **Solid**, one accounting hole | No preview deploy; "bundle size documented" was measured as static bytes only |
-| 1 — Content factory | [show](./phase-01-content-factory-verification-plan.md) | **Solid tooling / High Risk on scope** | 16 of 88 lessons; 9 of 16 groups have drills |
+| 1 — Content factory | [show](./phase-01-curriculum-verification-plan.md) | **Solid tooling / High Risk on scope** | 16 of 88 lessons; 9 of 16 groups have drills |
 | 2 — Exercise engine | [show](./phase-02-exercise-engine-verification-plan.md) | **Solid engine / coverage closed** | The manual shortcut matrix and workbook-in-Excel behaviour: both have production pages now, but no machine can stand in for three real keyboards or for Excel |
 | 3 — Dashboard | [show](./phase-03-dashboard-verification-plan.md) | **Solid**, two recorded deviations | No server-side progress and no `/api/feedback` — a product decision, recorded |
 
@@ -167,3 +167,142 @@ Each phase file has the same three sections: **Assessment**, **Critical Failure 
 **Verification Gate** — a command-by-command checklist where each row says what to expect and what
 a failure means. Run the gate chain above first; if it is green, the per-phase gates tell you which
 parts of it carry the proof and which claims rest on a recorded deviation instead of a test.
+
+## Re-measured after the content push (2026-10-30)
+
+The tables above are the verification run's measurements and stay as written. This is the same gate
+chain re-run after the last 72 lessons were authored, from `/Users/danil/Desktop/excelsupreme` on
+branch `phase-0-port-shell`:
+
+| # | Command | Measured 2026-10-30 |
+|---|---|---|
+| 1 | `npm run vendor:check` | `vendor: 25 files match manifest.json` |
+| 2 | `npm test` (inside `npm run check`) | `ℹ tests 1565`, `ℹ suites 199`, `ℹ pass 1565`, `ℹ fail 0` |
+| 3 | `npm run content:check` | `content: 88 of 88 catalogued lessons, 16 groups, 152 screens, 1946 fixtures replayed` then `✓ content passes — 903 accepted and 1043 rejected formulas agree with the grader` |
+| 4 | `npm run next:build` | `built 109 pages (11223.7 kB of HTML+CSS)` |
+| 5 | `npm run next:check` | `next routes: 109 prerendered pages match the shared templates` |
+| 6 | `node legacy/src/verify.mjs` | `verified 88 lesson pages, the index, the dashboard, the pricing page and 16 group pages — 4378 checks passed` |
+| 7 | `npx playwright test` | `112 passed (23.9s)` |
+
+Phase 1's scope risk is therefore closed: 88 of 88 slots authored, 16 of 16 groups with drills, 0
+`planned`. The "Stop before content authoring" section above is history — it described the tree before
+the push. What remains red in the whole plan is unchanged and still not a machine's to close:
+
+- Phase 0: no preview deploy, and the bundle figure is still static bytes rather than a measured
+  network waterfall.
+- Phase 2: the manual shortcut matrix across three real keyboards, and workbook behaviour in Excel
+  itself.
+- Phase 3: no server-side progress and no `/api/feedback` — a recorded product decision, not a defect.
+
+One operational trap found while re-running row 7, worth keeping next to the gate: a `.env.local`
+carrying `NEXT_PUBLIC_SUPABASE_*` is inlined by `next build`, so the browser suite — whose specs
+assert the *supported unconfigured* accounts state — fails 14 tests that have nothing to do with the
+change being verified. `npm run check` stays green either way, which is what makes it easy to miss.
+`.env.example` now says so.
+
+Closed after that re-measurement, same day: phase 2's gate row 9, the `picture` screen's legibility on
+a phone. A figure is now drawn at its own scale inside a focusable scroll box rather than shrunk to
+293 px, which moved exactly one row of the table above — `11223.7` → `11224.8` kB of HTML+CSS, the CSS
+that carries the new box. The other six stayed put in a full re-run: `1565` unit tests, `88 of 88`
+lessons with `1946` fixtures and `903`/`1043` verdicts, `109` pages and `109` routes, `4378` checks,
+`111 passed`, `25` vendor files. See `reviews/phase-02-exercise-engine-verification-plan.md` row 9 for
+the before/after measurements.
+
+Then phase 3's gate rows 6 and 7, the two that had been parked on "needs a human". Row 6 was not a
+gap at all: `e2e/dashboard.spec.js` "a lesson finished on its own page shows up here" now reloads the
+drill page between the correct answer and `/learn`, so the count the dashboard shows is read out of a
+fresh document by a test rather than by a person. Row 7 needed a real test: `armReset` builds the
+wiped record as `{ ...emptyProgress(), unlocked: state.progress.unlocked === true }`, and the new
+"erasing progress does not put the walls back" seeds through a one-shot init script (a `sessionStorage`
+guard) so nothing re-writes the pre-reset record, clicks reset twice, asserts `done` is `{}` while
+`unlocked` is still `true`, then opens the last drill — behind the order gate *and* the paywall — and
+finds `#formula` visible with no `#paywall` in the DOM. It was mutation-checked before it was trusted:
+with `armReset` forced to `unlocked: false` it fails on `expect(stored.unlocked).toBe(true)`, so it
+proves the semantics rather than restating them. Only the browser count moved, `111` → `112`, here and
+in phase 3's row 2 (`18` → `19`); the rest of the chain was untouched in a full re-run.
+
+Two more rows came off the list without a new browser test, by proving the *manual* half was never a
+test. Phase 3 row 5 asked for a human in a private window; a probe in a fresh Playwright context (a
+private window by construction — no persisted profile, wiped on close) found `localStorage` working and
+`/learn` showing the ordinary note, so Chromium's private mode proves nothing about a *refusing* browser.
+The blocked-storage sentence is only reachable by making the probe throw, which both browser tests
+already do. Phase 5 row 16 was the opposite: it wanted a second click and nobody had given it one. On a
+build with the local Supabase project configured, a script drove a full ten-screen daily run through the
+UI and clicked *Lock in* twice on the last screen inside one `Promise.all`; the network log shows
+`answer posts: 10 unique screens: 10`, `duplicate screen posts: 0`, and a repeated `answer` POST with a
+different value returned the identical `{"answered":10,"correct":4,"accuracy":0.4,"ms":7680}`. Neither
+row needed code. What is left open is blocked on things this machine does not have: a deploy provider
+(phase 0 row 10), a person reading lessons against Excel (phase 1 row 7), three operating systems and
+real keyboards (phase 2 row 5), Excel itself (phase 2 row 6), Stripe keys (phase 4 rows 12–15), and a
+k6 script over a 10k board (phase 5 row 14).
+
+
+**The audit's fixes survive the content that came after them.** The ten design-remediation units were
+applied when 16 lessons existed; the corpus is now 88 lessons and 152 screens, so the guarantees were
+re-measured rather than assumed. On the built site served at 375 px — `/`, `/learn`, `/pricing`,
+`/group/lookup`, and drills 08, 86 and 88, chosen because 86–88 are the newest and were authored long
+after the styles were frozen — every text node with an explicit colour clears its size's contrast
+requirement (no node below 4.5:1, or 3:1 for large text), and `document.scrollingElement.scrollWidth`
+equals `clientWidth` on all seven, so nothing scrolls sideways. The sub-44 px targets that remain are
+the same set the audit accepted: the skip link (41 px tall, keyboard-only), the wordmark link (28 px
+tall inside its 44 px header row), the footer pair (`42 × 44` and `36 × 44`), the pricing roster links
+(25 px tall in a stacked list) and `/learn`'s group links (`153 × 24`). Each is at least 24 px in both
+axes, which is WCAG 2.2 AA 2.5.8's floor; the stricter 44 px house floor applies to the controls a
+learner drives a drill with, which is where unit 3 put it. No change was made on this pass — it is a
+measurement, and it is recorded so a future content push can repeat the same two numbers.
+
+## Unrouted surfaces and the coverage they were hiding (2026-12-01)
+
+Phase 6 shipped four pages that nothing links to from the shared chrome — `/projects`,
+`/learn/projects/[slug]`, `/datasets/[name]` — and closing them exposed a class of defect the
+existing suites could not see: pages reachable only by typing the URL had never been rendered at
+320 px or scanned for accessibility. Both holes are now covered, and the crawl that found them is
+recorded here because it produced one finding this plan cannot close.
+
+**Reflow.** `e2e/reflow.spec.js` went from 8 to 19 pages × 2 widths (320 and 390): `flashcards`,
+`daily`, `leaderboard`, `certificate`, a bogus `/verify/<id>`, `account`, `signup`, `reset`, one
+group page, `privacy`, `terms`, plus the two project URLs. It found two real overflows, both fixed:
+
+- `/learn/projects/ufo-dashboard` measured `332px in 320px`. `.error-table tbody th` carried
+  `white-space: nowrap` over an authored error row 504 px wide inside a 272 px column; the row
+  headers now wrap (`overflow-wrap: anywhere` on `.error-table th, .error-table td`).
+- `/flashcards` measured `322px in 320px`. `header.site` is a non-wrapping flex row and the
+  flashcard count adds a third `white-space: nowrap` item (`.badge`, 113 px), so 339 px of content
+  had to fit in 320. `.site` now wraps; it only wraps when it has to, so nothing changes above
+  320.
+
+**Accessibility.** `e2e/a11y.spec.js` went from 24 to 26 tests: the project shelf and a project page
+scanned twice (on its first task, and again after a wrong answer has drawn the error table that
+caused the overflow above). Both are clean at `critical`/`serious` with no fix.
+
+**Reachability — closed by extending the footer, the site's only nav.** A crawl of every prerendered
+page's server HTML for `href="/…"` resolves every internal link; the only unresolved ones are
+`_next/static` chunks. But five surfaces had **no inbound link** anywhere, in server HTML or in the
+client-rendered dashboards: `/daily`, `/leaderboard`, `/flashcards`, `/certificate` and `/account` —
+and `/pricing` was reachable only from the two gate prompts the drill injects
+(`legacy/src/client/drill.js:1079` and `:1131`), which is why a server-side crawl missed it too.
+
+The fix is the smallest one that names them: the footer gains a `Pricing` link (both hosts — the static
+build has always emitted `/pricing`) and a second row of five, `.foot-apps`, holding the signed-in
+surfaces. That row is behind `appPagesAvailable`, the same host-availability flag `projectsAvailable`
+uses, because those pages need the server and the static build would otherwise ship five 404s; it is
+`true` on all eleven `renderChrome` call sites in `app/` and inherited by everything that renders
+through `AuthShell`. On a wide screen the row ends on the same right edge as the primary row and reads
+as one nav column (measured: both `right` edges at 1156px in a 1280px viewport); at 767px and below the
+footer is already a stack, so it left-aligns with 44px rows like every other footer link.
+
+It is proven rather than eyeballed. `e2e/routes.spec.js` gained "every way out in the footer is a page
+that exists": it renders `/`, collects every `href` in `footer.foot`, asserts the seven surfaces above
+are named, then requests each one and fails if any answers 4xx or 5xx — so a link that is added to the
+row and does not resolve fails a test rather than shipping. `e2e/reflow.spec.js` re-measured every
+surface at 320 and 390 with the row in place (`scrollWidth === clientWidth` throughout), and
+`e2e/a11y.spec.js` re-scanned the pages that now carry it. The three gates after the change:
+
+| Gate | After |
+|---|---|
+| `npm run check` | `tests 1611`, `suites 211`, `fail 0`; `88 of 88` lessons / `152` screens / `1946` fixtures; `903`/`1043` verdicts; `built 109 pages (11233.3 kB)` (was `11229.3`); `109` routes; `4378` checks |
+| `npx playwright test` | `127 passed (20.3s)` (was `126` — the footer test) |
+| `npm run vendor:check` | `vendor: 25 files match manifest.json` |
+
+Nothing else moved: the extra `Pricing` link is 40 bytes on each of the static build's 109 pages and is
+the whole of the byte delta.

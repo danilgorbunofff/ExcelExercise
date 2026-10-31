@@ -522,13 +522,15 @@ describe("content-lint: the catalog", () => {
   });
 
   it("asks for no copy from a group whose lessons are all still planned", () => {
+    // Every shipped group holds a published lesson, so the fixture is built: a group that only has
+    // planned slots must not be asked for an intro until one of those slots ships.
     let plannedGroup;
     const { report } = sandbox(({ content }) => {
-      const track = readJson(join(content, "track.json"));
-      plannedGroup = track.groups.find((group) => !track.lessons.some((entry) => entry.group === group.id && entry.id)).id;
+      plannedGroup = "spill";
       editTrack(content, (track) => ({
         ...track,
-        groups: track.groups.map((group) => (group.id === plannedGroup ? { id: group.id, title: group.title } : group)),
+        groups: [...track.groups, { id: plannedGroup, title: "Spilled ranges" }],
+        lessons: [...track.lessons, { title: "SPILL: the block belongs to the formula", level: 3, group: plannedGroup }],
       }));
     });
     assert.deepEqual(report.errors, []);
@@ -629,12 +631,29 @@ describe("content-lint: the authoring CLI", () => {
     }
   }
 
+  /**
+   * The shipped catalog has all 88 slots authored, so a test that scaffolds has to hand the CLI a
+   * planned slot first. It appends one to a group that exists, which keeps the denominator at
+   * `before.lessons.length` instead of pinning it to today's 88.
+   */
+  const addPlannedSlot = ({ content }) => {
+    const path = join(content, "track.json");
+    const track = readJson(path);
+    writeJson(path, {
+      ...track,
+      lessons: [...track.lessons, { title: "SPILL: the block belongs to the formula", level: 3, group: "arrays" }],
+    });
+  };
+
   it("scaffolds a lesson that passes the gate with no edits", () => {
     withSandbox(({ content, fixtures }) => {
       const before = readJson(join(content, "track.json"));
-      const slot = before.lessons.findIndex((entry) => !entry.id && entry.group === "lookup");
+      // The group is read from the catalog: earlier cohorts exhaust a group's planned slots, so naming
+      // one here would break the day its last slot ships.
+      const group = before.lessons.find((entry) => !entry.id && entry.group)?.group;
+      const slot = before.lessons.findIndex((entry) => !entry.id && entry.group === group);
       const number = nextNumber(content);
-      const created = run(["new", "--lesson", String(number), "--group", "lookup"], { content, fixtures });
+      const created = run(["new", "--lesson", String(number), "--group", group], { content, fixtures });
       assert.equal(created.status, 0, created.stdout + created.stderr);
       assert.match(created.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-[a-z0-9-]+\\.json`));
       assert.match(
@@ -645,7 +664,7 @@ describe("content-lint: the authoring CLI", () => {
       const track = readJson(join(content, "track.json"));
       const id = track.lessons[slot].id;
       assert.match(id, new RegExp(`^${number}-`), "the file is named after the number it was given");
-      assert.deepEqual(track.lessons[slot], { id, group: "lookup" }, "the slot became the authored lesson");
+      assert.deepEqual(track.lessons[slot], { id, group }, "the slot became the authored lesson");
 
       const lesson = readJson(lessonPath(content, id));
       assert.equal(lesson.schemaVersion, 2, "new lessons ship in the v2 shape");
@@ -665,8 +684,9 @@ describe("content-lint: the authoring CLI", () => {
       const screens = readdirSync(join(content, "exercises"))
         .filter((name) => name.endsWith(".json"))
         .reduce((sum, name) => sum + readJson(join(content, "exercises", name)).screens.length, 0);
-      assert.match(check.stdout, new RegExp(`content: ${number} of 88 catalogued lessons, 16 groups, ${screens} screens, `));
-    });
+      assert.match(check.stdout, new RegExp(`content: ${number} of ${before.lessons.length} catalogued lessons, `));
+      assert.match(check.stdout, new RegExp(`16 groups, ${screens} screens, `));
+    }, addPlannedSlot);
   });
 
   it("takes the next free number when --lesson is omitted, and refuses one that skips it", () => {
@@ -678,8 +698,10 @@ describe("content-lint: the authoring CLI", () => {
 
       const bare = run(["new"], { content, fixtures });
       assert.equal(bare.status, 0, bare.stdout + bare.stderr);
-      assert.match(bare.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-what-a-formula-actually-does\\.json`));
-    });
+      // The slug comes from the slot the scaffold takes, which moves as earlier cohorts ship, so the
+      // file name is asserted by number only.
+      assert.match(bare.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-[a-z0-9-]+\\.json`));
+    }, addPlannedSlot);
   });
 
   it("refuses a group the catalog does not have", () => {
@@ -709,7 +731,8 @@ describe("content-lint: the authoring CLI", () => {
   it("previews a lesson as its page will read it", () => {
     withSandbox(({ content, fixtures }) => {
       const number = nextNumber(content);
-      const created = run(["new", "--lesson", String(number), "--group", "lookup"], { content, fixtures });
+      const group = readJson(join(content, "track.json")).lessons.find((entry) => !entry.id && entry.group)?.group;
+      const created = run(["new", "--lesson", String(number), "--group", group], { content, fixtures });
       assert.equal(created.status, 0, created.stdout + created.stderr);
       const published = Number(/published as lesson (\d+) of/.exec(created.stdout)[1]);
       const preview = run(["preview", "--lesson", String(number)], { content, fixtures });
@@ -719,7 +742,7 @@ describe("content-lint: the authoring CLI", () => {
       assert.match(preview.stdout, /answer B4 · grid A1:B4/);
       assert.match(preview.stdout, /✓ =SUM\(B2:B3\)\s+accepted/);
       assert.match(preview.stdout, /· =SUM\(120,180\)\s+rejected \(require-ref\)/);
-    });
+    }, addPlannedSlot);
   });
 
   it("previews a shipped lesson from its inline fixtures", () => {

@@ -6,9 +6,12 @@
 import { expect, test } from "@playwright/test";
 
 import { passGate, seedBefore } from "../lib/seed.js";
-import { loadSite } from "../lib/site.js";
+import { freeDrill, loadSite } from "../lib/site.js";
 
 const LESSONS = loadSite().index.length;
+/** The opening intro drill: the free half is the three intro lessons, so this one has no gate in
+ *  front of it and the literals below are hand-computed against `what-a-formula-actually-does`. */
+const FREE = freeDrill();
 
 const ANSWER_CELL = ".cell[data-cell='B5']";
 
@@ -34,25 +37,35 @@ async function check(page, formula) {
 }
 
 test("a correct formula is accepted and reported", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
   await expect(page.locator("#feedback-head")).toHaveText("Correct");
-  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 3580.");
+  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 35.");
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-correct/);
+  // Only a rejection marks the bar; a verdict that is not one leaves it out of the invalid state.
+  await expect(page.locator("#formula")).not.toHaveAttribute("aria-invalid", "true");
 });
 
 test("a wrong total keeps the SUM and names the value rule", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
   await check(page, "=SUM(B2:B3)");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await expect(page.locator("#feedback-head")).toHaveText("Not the answer");
   await expect(page.locator("#feedback-body")).toHaveText(
-    "Your formula returns 2650, but this lesson expects 3580.",
+    "Your formula returns 21, but this lesson expects 35.",
   );
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-wrong/);
+  // The verdict is a live region, so it is announced once; the flag is what is still there when a
+  // screen reader user comes back to the bar and asks what it holds.
+  await expect(page.locator("#formula")).toHaveAttribute("aria-invalid", "true");
+
+  // And the retry clears it — the old verdict no longer describes what is in the bar.
+  await check(page, "=SUM(B2:B4)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+  await expect(page.locator("#formula")).not.toHaveAttribute("aria-invalid", "true");
 
   // Time on task is reported twice: for the drill and for the screen that spent it. The second cannot
   // exceed the first, and neither can be negative.
@@ -64,21 +77,105 @@ test("a wrong total keeps the SUM and names the value rule", async ({ page }) =>
 });
 
 test("the missing function is rejected before the value is even considered", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
-  await check(page, "=B2+B3");
+  await check(page, "=B2+B3+B4");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await expect(page.locator("#feedback-body")).toContainText("This lesson is about SUM");
   await expect(page.locator("#feedback-head")).not.toHaveText("Correct");
 });
 
 test("a formula that cannot be read points at the character", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
   await check(page, "=SUM(B2:B4");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await expect(page.locator("#feedback-head")).toHaveText("The formula cannot be read");
   await expect(page.locator(".feedback-caret")).toBeVisible();
+});
+
+test("a lesson the record already holds reads as a revisit, not as a first attempt", async ({ page }) => {
+  // The completed record is what makes this lesson done; arriving with it is the whole test. The page
+  // must say so instead of greeting a second visit with a first attempt's congratulations.
+  await page.addInitScript((lessonId) => {
+    window.localStorage.setItem(
+      "es.progress",
+      JSON.stringify({
+        v: 1,
+        done: { [lessonId]: { at: "2026-01-01T00:00:00.000Z", tries: 1, helped: false } },
+        tries: {},
+        unlocked: false,
+      }),
+    );
+  }, FREE.exercise.id);
+
+  await openDrill(page, FREE.slug);
+  const feedback = page.locator("#feedback");
+  await expect(feedback).toHaveClass(/is-revisit/);
+  // A revisit is not a verdict, so it is not dressed as one.
+  await expect(feedback).not.toHaveClass(/is-correct|is-wrong/);
+  await expect(page.locator("#feedback-head")).toHaveText("Already solved");
+  await expect(page.locator("#feedback-body")).toContainText(
+    "The answer is in the bar and in the cell — edit either one to practise it again.",
+  );
+  await expect(page.locator("#feedback .feedback-meta")).toContainText("On your record since");
+  // The answer is handed back rather than asked for again.
+  await expect(page.locator("#formula")).toHaveValue("=SUM(B2:B4)");
+  await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-correct/);
+
+  // Answering again is still graded, and says what it is: a second solve, not a first one.
+  await check(page, "=SUM(B2:B4)");
+  await expect(feedback).toHaveClass(/is-correct/);
+  await expect(page.locator("#feedback .feedback-meta")).toHaveText(
+    "Solved again — this lesson was already on your record.",
+  );
+});
+
+test("the award the server reports lands in the finished verdict, above the way out", async ({ page }) => {
+  // The sender is the only thing that knows the page's origin, so the event it dispatches is faked
+  // here — what is under test is the drill's half: that the line appears, where, and for whom.
+  const reward = (lessonId) =>
+    page.evaluate(
+      ([id]) =>
+        document.dispatchEvent(
+          new CustomEvent("es:reward", { detail: { lessonId: id, points: { awarded: 12 }, streak: { current: 3 } } }),
+        ),
+      [lessonId],
+    );
+
+  await openDrill(page, FREE.slug);
+
+  // Nothing is paid for a miss, and there is no verdict to decorate before one is given.
+  await reward(FREE.exercise.id);
+  await expect(page.locator(".feedback-reward")).toHaveCount(0);
+
+  await check(page, "=SUM(B2:B3)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
+  await reward(FREE.exercise.id);
+  await expect(page.locator(".feedback-reward")).toHaveCount(0);
+
+  await check(page, "=SUM(B2:B4)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
+  // A batch for another lesson is another page's award.
+  await reward(FREE.next.id);
+  await expect(page.locator(".feedback-reward")).toHaveCount(0);
+
+  await reward(FREE.exercise.id);
+  const line = page.locator("#feedback .feedback-reward");
+  await expect(line).toHaveText("+12 points · 3-day streak");
+  // The next drill is what the panel ends on, so the award goes above it — and the reward does not
+  // take the focus the next link was given.
+  const order = await page.evaluate(() => {
+    const panel = document.getElementById("feedback");
+    return [...panel.children].map((child) => child.className);
+  });
+  expect(order.indexOf("feedback-reward")).toBeLessThan(order.findIndex((name) => name.includes("next-cta")));
+  await expect(page.locator("#feedback .next-cta")).toBeFocused();
+
+  // Replacing the verdict clears the award with it: it described the lesson that just ended.
+  await page.fill("#formula", "=SUM(B2:B3)");
+  await page.click("#check");
+  await expect(page.locator(".feedback-reward")).toHaveCount(0);
 });
 
 test("a multi-screen lesson walks to its picture screen and completes on typed text", async ({ page }) => {
@@ -118,6 +215,29 @@ test("a multi-screen lesson walks to its picture screen and completes on typed t
   await expect(page.locator("#screen-answer-cell")).toHaveText("the bar");
   await expect(page.locator("#formula")).toHaveAttribute("aria-label", "Your answer");
 
+  // A phone card is about 290 px wide and the shipped SVG is 524 units, so fitting it shrinks the
+  // figure's own text under 8 px. The figure keeps its scale instead and the card scrolls sideways,
+  // which only helps if the box is reachable and the arrows are not swallowed by the grid handler.
+  const desktop = page.viewportSize();
+  await page.setViewportSize({ width: 375, height: 800 });
+  const figure = page.locator("[data-screen='3'] .picture-scroll");
+  await expect(figure).toBeVisible();
+  await expect(figure).toHaveAttribute("tabindex", "0");
+  const [scrollWidth, clientWidth] = await figure.evaluate((node) => [node.scrollWidth, node.clientWidth]);
+  expect(scrollWidth).toBeGreaterThan(clientWidth);
+  expect(await picture.evaluate((img) => Math.round(img.getBoundingClientRect().width))).toBeGreaterThanOrEqual(
+    await picture.evaluate((img) => img.naturalWidth),
+  );
+  await figure.focus();
+  // `html` scrolls smoothly, so the focus jump can still be moving when the first press lands: press
+  // until the box moves instead of assuming which press is the one that counts.
+  for (let step = 0; step < 6 && (await figure.evaluate((node) => node.scrollLeft)) === 0; step += 1) {
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(150);
+  }
+  await expect.poll(() => figure.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
+  await page.setViewportSize(desktop);
+
   // A near miss is graded as text and nothing echoes the answer it wanted.
   await check(page, "C2:C6");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
@@ -152,29 +272,32 @@ function setHidden(page, hidden) {
 }
 
 test("the session clock stops while the tab is hidden", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
   const opened = await lastElapsed(page, "screen_view");
   expect(typeof opened).toBe("number");
 
-  // 1.3 s hidden, then 1.3 s in front of the learner: only one of those seconds is time on task.
+  // Four seconds hidden, then one in front of the learner. The gap between "the hidden time was not
+  // counted" and "it was" is four seconds wide, so a loaded parallel runner that stalls the tab for an
+  // extra second cannot turn an honest clock into a failure: counting the hidden time would report at
+  // least five, and the assertion refuses anything above three.
   await setHidden(page, true);
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(4000);
   await setHidden(page, false);
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(1000);
   await check(page, "=SUM(B2:B4)");
 
   const answered = await lastElapsed(page, "check_correct");
   expect(answered - opened).toBeGreaterThanOrEqual(1);
-  expect(answered - opened).toBeLessThan(2);
+  expect(answered - opened).toBeLessThanOrEqual(3);
 });
 
 test("progress survives a reload on the same device", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
 
   await page.reload();
-  await expect(page.locator(".rail-item[data-lesson='01-sum-basics']")).toHaveClass(/is-done/);
+  await expect(page.locator(`.rail-item[data-lesson='${FREE.exercise.id}']`)).toHaveClass(/is-done/);
   await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
 });
 
@@ -190,7 +313,7 @@ test("a drill in a browser that refuses storage warns before the work evaporates
       },
     });
   });
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
 
   await expect(page.locator("#rail-blocked")).toBeVisible();
   await expect(page.locator("#rail-blocked")).toHaveText(
@@ -202,7 +325,7 @@ test("a drill in a browser that refuses storage warns before the work evaporates
 });
 
 test("arrow keys move the selection and stop at the edge of the block", async ({ page }) => {
-  await openDrill(page, "sum-basics");
+  await openDrill(page, FREE.slug);
   const cell = (key) => page.locator(`.cell[data-cell='${key}']`);
   const selected = (key) => expect(cell(key)).toHaveAttribute("aria-selected", "true");
   /** Press a key on the cell that holds the selection, the way a learner's focus does. */
@@ -215,18 +338,19 @@ test("arrow keys move the selection and stop at the edge of the block", async ({
   await selected("B2");
 
   // Movement comes from the sheet model, so it walks the cells the page drew, not the DOM order.
-  expect(await press("ArrowRight", "B2")).toBe("C2");
-  expect(await press("ArrowDown", "C2")).toBe("C3");
-  expect(await press("ArrowLeft", "C3")).toBe("B3");
-  expect(await press("ArrowUp", "B3")).toBe("B2");
+  expect(await press("ArrowDown", "B2")).toBe("B3");
+  expect(await press("ArrowLeft", "B3")).toBe("A3");
+  expect(await press("ArrowUp", "A3")).toBe("A2");
+  expect(await press("ArrowRight", "A2")).toBe("B2");
 
-  // The block is A1:C5, so the selection stops at each edge instead of wrapping to the far side.
+  // The block is A1:B5, so the selection stops at each edge instead of wrapping to the far side.
+  expect(await press("ArrowRight", "B2")).toBe("B2");
   expect(await press("ArrowUp", "B2")).toBe("B1");
   expect(await press("ArrowUp", "B1")).toBe("B1");
   expect(await press("ArrowLeft", "B1")).toBe("A1");
   expect(await press("ArrowLeft", "A1")).toBe("A1");
-  expect(await press("End", "A1")).toBe("C1");
-  expect(await press("Home", "C1")).toBe("A1");
+  expect(await press("End", "A1")).toBe("B1");
+  expect(await press("Home", "B1")).toBe("A1");
   for (let step = 0; step < 4; step += 1) await press("ArrowDown", "A1");
   expect(await press("ArrowDown", "A5")).toBe("A5");
 

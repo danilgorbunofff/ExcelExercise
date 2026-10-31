@@ -49,6 +49,7 @@ export const catalogue = Object.freeze({
   "chrome.ways.account": "Your account",
   "chrome.ways.pricing": "Pricing",
   "chrome.ways.exercises": "All Excel exercises",
+  "chrome.ways.functions": "Excel functions",
 
   "auth.login.title": "Sign in",
   "auth.login.meta": "Sign in to keep your Excel drill progress across devices.",

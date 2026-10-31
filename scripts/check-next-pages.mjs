@@ -139,7 +139,9 @@ for (const entry of index) {
   checkPage({
     file: `learn/excel/${entry.slug}.html`,
     prepare: prepareExercisePage,
-    args: { config, track, index, entry, icons, clientAvailable },
+    // `articles` too: a lesson whose note exists carries the door to it, and a route that stopped
+    // passing the notes would lose that door without any other check noticing.
+    args: { config, track, index, entry, icons, clientAvailable, articles },
   });
   const html = existsSync(join(PAGES, `learn/excel/${entry.slug}.html`))
     ? readFileSync(join(PAGES, `learn/excel/${entry.slug}.html`), "utf8")

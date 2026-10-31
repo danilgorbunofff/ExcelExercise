@@ -57,10 +57,10 @@ describe("build", () => {
     const pages = htmlFiles(out).map((file) => file.slice(out.length + 1));
     const { index } = loadContent(join(ROOT, "legacy/content"));
     const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
-    // The index, the dashboard, the offer, the legal pages and the two hubs, plus one page per lesson
-    // and one per group.
+    // The index, the dashboard, the offer, the legal pages, the two hubs and the host's 404 document,
+    // plus one page per lesson and one per group.
     const articles = loadArticles(join(ROOT, "legacy/content"));
-    const expected = lessons.length + 7 + groupIds.length + (articles.length > 0 ? articles.length + 1 : 0);
+    const expected = lessons.length + 8 + groupIds.length + (articles.length > 0 ? articles.length + 1 : 0);
     assert.equal(pages.length, expected, `expected ${expected} pages, got ${pages.length}`);
     assert.ok(pages.includes("index.html"));
     assert.ok(pages.includes("learn/index.html"));
@@ -69,9 +69,23 @@ describe("build", () => {
     assert.ok(pages.includes("terms/index.html"));
     assert.ok(pages.includes("excel-exercises/index.html"));
     assert.ok(pages.includes("about/index.html"));
+    // Not part of the site: the page a static host serves for an address it cannot find.
+    assert.ok(pages.includes("404.html"));
     for (const exercise of lessons) assert.ok(pages.includes(`excel/${exercise.slug}.html`), `${exercise.slug} page is missing`);
     for (const id of groupIds) assert.ok(pages.includes(`learn/groups/${id}.html`), `${id} group page is missing`);
     assert.equal(summary.pages, expected);
+  });
+
+  it("introduces every page with a skip link that reads", () => {
+    // The template writes "Skip to the " once and the page supplies the noun, so a page that supplies
+    // "the error" makes the first control on the page read "Skip to the the error".
+    for (const file of htmlFiles(out)) {
+      const html = readFileSync(file, "utf8");
+      const label = html.match(/<a class="skip" href="#main">([^<]*)<\/a>/)?.[1];
+      assert.ok(label, `${file.slice(out.length + 1)} has no skip link`);
+      assert.match(label, /^Skip to the \S/, `${file.slice(out.length + 1)}: ${label}`);
+      assert.ok(!/\bthe the\b|\ba a\b/.test(label), `${file.slice(out.length + 1)}: ${label}`);
+    }
   });
 
   it("copies the assets the pages ask for", () => {

@@ -22,6 +22,7 @@ import { renderExercisePage } from "./site/exercise-page.mjs";
 import { renderIndexPage } from "./site/index-page.mjs";
 import { renderAboutPage, renderExercisesHub } from "./site/hub-page.mjs";
 import { renderLegalPage } from "./site/legal-page.mjs";
+import { renderNotFoundPage } from "./site/not-found-page.mjs";
 import { renderPricingPage } from "./site/pricing-page.mjs";
 import { dashboardGroups, renderDashboardPage } from "./site/dashboard-page.mjs";
 import { spreadsheet, workbookName } from "./xlsx.mjs";
@@ -72,7 +73,10 @@ function copyDir(from, to, { filter } = {}) {
 
 /** A page that loads a font, script or stylesheet from someone else is a page we do not ship. */
 export function assertSelfContained(html, config, label) {
-  const allowed = new Set([config.baseUrl, ...ALLOWED_ORIGINS]);
+  // `appUrl` is the sibling deployment of this same site (the Next host), named by the operator at
+  // build time — a link to it is a link to us. It is not a third party, and the gate is about third
+  // parties: fonts, scripts, trackers. Nothing is fetched from it either, only navigated to.
+  const allowed = new Set([config.baseUrl, ...ALLOWED_ORIGINS, ...(config.appUrl ? [config.appUrl] : [])]);
   const scheme = new URL(config.baseUrl).protocol;
   // `//host/x` fetches from host just as `https://host/x` does, so require the scheme to be
   // optional rather than absent from the match.
@@ -126,7 +130,19 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   // may not import the Next app's `lib/`. Checkout exists on this deployment when the secret key does;
   // `lib/stripe.js` stays the authority for how a session is actually built.
   const checkout = { enabled: Boolean((process.env.STRIPE_SECRET_KEY ?? "").trim()) };
-  const pricingHtml = renderPricingPage({ config, track, index, icons, checkout });
+  // This edition has no server. When `SITE_APP_URL` names the Next deployment, the pages that need one
+  // (account, certificate, signup, checkout) are linked there absolutely; when it does not, they are
+  // left out instead of shipped as links into a 404. One fact, read in three places.
+  const appHref = (path) => (config.appUrl ? `${config.appUrl}${path}` : null);
+  const pricingHtml = renderPricingPage({
+    config,
+    track,
+    index,
+    icons,
+    checkout,
+    signupHref: appHref("/signup?next=/pricing"),
+    checkoutAction: appHref("/api/stripe/checkout?plan=annual") ?? "/api/stripe/checkout?plan=annual",
+  });
   assertSelfContained(pricingHtml, config, "pricing/index.html");
   pages.push({ file: "pricing/index.html", html: pricingHtml });
 
@@ -144,13 +160,13 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   // The two pages a crawler is supposed to find, and the two a reader looks for before trusting a
   // refund term. They carry the footer's own links, so they are not orphaned.
   for (const kind of ["privacy", "terms"]) {
-    const html = renderLegalPage({ config, track, index, icons, kind });
+    const html = renderLegalPage({ config, track, index, icons, kind, accountHref: appHref("/account") });
     assertSelfContained(html, config, `${kind}/index.html`);
     pages.push({ file: `${kind}/index.html`, html });
   }
 
   for (const entry of index) {
-    const html = renderExercisePage({ config, track, index, entry, icons, clientAvailable });
+    const html = renderExercisePage({ config, track, index, entry, icons, clientAvailable, articles });
     assertSelfContained(html, config, `${entry.slug}.html`);
     pages.push({ file: `excel/${entry.slug}.html`, html });
   }
@@ -193,6 +209,12 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     }),
   );
   bytes += writeFile(join(dist, "robots.txt"), renderRobots({ config }));
+
+  // The host's not-found document. Written last in the HTML set because it is not part of the site:
+  // no sitemap entry, no `index.html` path, just the page a static host serves when it has nothing.
+  const notFoundHtml = renderNotFoundPage({ config, index, icons });
+  assertSelfContained(notFoundHtml, config, "404.html");
+  bytes += writeFile(join(dist, "404.html"), notFoundHtml);
 
   const fonts = copyDir(join(vendorDir, "fonts"), join(dist, "assets/fonts"), { filter: (name) => name.endsWith(".woff2") });
   if (fonts === 0) throw new Error("vendor/fonts is empty — the pages preload two faces from it");
@@ -269,7 +291,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
 
   const summary = {
     out: dist,
-    pages: pages.length,
+    pages: pages.length + 1, // the 404 document is written outside the site list
     lessons: exercises.length,
     cssSources: sources.map((file) => file.split("/").slice(-2).join("/")),
     fonts,

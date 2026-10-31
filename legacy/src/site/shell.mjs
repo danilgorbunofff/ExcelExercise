@@ -153,13 +153,21 @@ ${renderFeedbackDialog()}
  * the same fact for the signed-in surfaces: they need a server, so they exist only on the Next host,
  * and without the flag the static build would point its links at 404s. Availability is a host fact,
  * passed in, not probed.
+ *
+ * `appUrl` is the other half of that fact: when the static edition is deployed next to the Next app,
+ * the signed-in pages exist, just elsewhere — so the link is absolute rather than absent. Unset means
+ * this build is the whole site, which is the Next host and the local static preview.
  */
 export function renderWaysOut({
   variant = "home",
   projectsAvailable = false,
   appPagesAvailable = false,
+  appUrl = null,
 }) {
   const projects = projectsAvailable ? `\n        <li><a href="/projects">${t("chrome.ways.projects")}</a></li>` : "";
+  const elsewhere = (path) => (appPagesAvailable ? path : appUrl ? `${appUrl}${path}` : null);
+  const account = elsewhere("/account");
+  const certificate = elsewhere("/certificate");
   const items =
     variant === "dashboard"
       ? appPagesAvailable
@@ -167,14 +175,15 @@ export function renderWaysOut({
         <li><a href="/flashcards">${t("chrome.ways.flashcards")}</a></li>
         <li><a href="/daily">${t("chrome.ways.daily")}</a></li>
         <li><a href="/leaderboard">${t("chrome.ways.board")}</a></li>
-        <li><a href="/certificate">${t("chrome.ways.certificate")}</a></li>
-        <li><a href="/account">${t("chrome.ways.account")}</a></li>`
-        : `
+        <li><a href="${esc(certificate)}">${t("chrome.ways.certificate")}</a></li>
+        <li><a href="${esc(account)}">${t("chrome.ways.account")}</a></li>`
+        : `${account ? `\n        <li><a href="${esc(account)}">${t("chrome.ways.account")}</a></li>` : ""}
         <li><a href="/pricing">Pricing</a></li>`
       : `${projects}${
           appPagesAvailable ? `\n        <li><a href="/daily">${t("chrome.ways.daily")}</a></li>` : ""
-        }
+        }${certificate ? `\n        <li><a href="${esc(certificate)}">${t("chrome.ways.certificate")}</a></li>` : ""}
         <li><a href="/excel-exercises">${t("chrome.ways.exercises")}</a></li>
+        <li><a href="/excel-functions">${t("chrome.ways.functions")}</a></li>
         <li><a href="/pricing">${t("chrome.ways.pricing")}</a></li>`;
   const title = variant === "dashboard" && appPagesAvailable ? t("chrome.ways.tools") : t("chrome.ways.home");
   return `<nav class="ways" aria-labelledby="ways-heading">

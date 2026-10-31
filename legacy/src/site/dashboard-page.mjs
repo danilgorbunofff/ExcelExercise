@@ -240,7 +240,7 @@ ${renderGroups({ groups, icons })}
         <p class="gate-note" id="dash-reset-note" role="status" aria-live="polite"></p>
       </section>
 
-      ${renderWaysOut({ variant: "dashboard", projectsAvailable, appPagesAvailable })}
+      ${renderWaysOut({ variant: "dashboard", projectsAvailable, appPagesAvailable, appUrl: config.appUrl })}
 
       <script type="application/json" id="dashboard-data">${jsonScript(planPayload(index))}</script>
     </main>${island}`;

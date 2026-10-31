@@ -59,6 +59,18 @@ test("advertises no address that only redirects", async () => {
   }
 });
 
+test("every address it emits sits on SITE_URL's origin, and none on a laptop's", async () => {
+  // `SITE_URL` unset falls back to `localhost:4173`, which is how a canonical ends up pointing at a
+  // machine only the builder can reach. The guard in `scripts/check-origin.mjs` walks the built trees;
+  // this is the same promise one level earlier, where the URLs are generated.
+  const host = new URL(process.env.SITE_URL).host;
+  const urls = [robots().sitemap, ...sitemap().map((entry) => entry.url)];
+  for (const url of urls) {
+    assert.equal(new URL(url).host, host, `${url} is not on ${host}`);
+    assert.ok(!/localhost|127\.0\.0\.1/.test(url), `${url} names a laptop`);
+  }
+});
+
 test("dates every entry from the content, falling back to the build", async () => {
   for (const entry of sitemap()) {
     assert.match(String(entry.lastModified).slice(0, 10), /^\d{4}-\d{2}-\d{2}$/);

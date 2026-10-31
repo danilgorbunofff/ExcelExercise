@@ -1,5 +1,7 @@
 /**
- * A dependency-free static server for `legacy/dist`, used by the `static` Playwright project.
+ * A dependency-free static server for `legacy/dist`, used by the `static` Playwright project. It
+ * answers an unknown address with the build's own `404.html`, the way the real host does, so the
+ * reader's error page is testable rather than assumed.
  *
  * The port ships two deployables: the Next app (served by `next start`) and the static build. Until
  * this existed the static build was only HTML-crawled by `legacy/src/verify.mjs` — no browser ever
@@ -9,7 +11,7 @@
  *
  *   node scripts/serve-static.mjs [root] [port]
  */
-import { createReadStream, statSync } from "node:fs";
+import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize, sep } from "node:path";
 
@@ -46,6 +48,12 @@ const server = createServer((req, res) => {
   const { pathname } = new URL(req.url, `http://127.0.0.1:${port}`);
   const file = resolveFile(decodeURIComponent(pathname));
   if (!file) {
+    const notFound = join(root, "404.html");
+    if (existsSync(notFound)) {
+      res.writeHead(404, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+      createReadStream(notFound).pipe(res);
+      return;
+    }
     res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
     res.end("Not found");
     return;
@@ -58,7 +66,9 @@ const server = createServer((req, res) => {
 });
 
 server.listen(port, "127.0.0.1", () => {
-  console.log(`static: serving ${root} on http://127.0.0.1:${port}`);
+  // The bound port, not the requested one: `0` asks the kernel for a free port, and a test that has to
+  // learn the port from this line would otherwise be told to connect to port zero.
+  console.log(`static: serving ${root} on http://127.0.0.1:${server.address().port}`);
 });
 
 for (const signal of ["SIGINT", "SIGTERM"]) {

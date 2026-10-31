@@ -272,10 +272,41 @@ function renderBrief(brief) {
 }
 
 /**
+ * The way out of a drill into the written note that explains the function it uses, when one exists.
+ *
+ * The notes were published and linked from nowhere: they cross-linked each other and the hub listed
+ * them, but no lesson pointed at one, so a reader who wanted the why after the drill had to guess the
+ * address. This is the same `ways` block the pages already use for their menu, so it reads as part of
+ * the page rather than an advert, and it names the function as well as the note's title.
+ */
+function renderNoteDoor(article) {
+  if (!article) return "";
+  return `
+          <nav class="ways" aria-labelledby="note-heading">
+            <h2 class="ways-title" id="note-heading">Read the note</h2>
+            <ul class="ways-list">
+              <li><a href="/excel-functions/${esc(article.slug)}">${esc(article.title)}</a></li>
+            </ul>
+          </nav>`;
+}
+
+/**
  * The page as two pieces — `<main>` markup and the head metadata for it — so a host that renders its
  * own `<head>` can reuse both. `renderExercisePage` below wraps them in a full document.
+ *
+ * `articles` is the published note set; a drill whose slug is named by a note's `exercise` frontmatter
+ * gets that note as a footer door. Absent or empty means no door, which is what the note pages
+ * themselves pass when they borrow a lesson's first screen.
  */
-export function prepareExercisePage({ config, track, index, entry, icons = {}, clientAvailable = false }) {
+export function prepareExercisePage({
+  config,
+  track,
+  index,
+  entry,
+  icons = {},
+  clientAvailable = false,
+  articles = [],
+}) {
   const { exercise } = entry;
   const screen = screenAt(exercise);
   const screens = exercise.screens;
@@ -287,6 +318,7 @@ export function prepareExercisePage({ config, track, index, entry, icons = {}, c
   const description = clampDescription(exercise.seo?.description ?? exercise.docs.outcome);
   const group = entry.group ? track.groups.find((candidate) => candidate.id === entry.group) ?? null : null;
   const groupCount = group ? index.filter((item) => item.group === group.id).length : 0;
+  const note = articles.find((article) => article.exercise === entry.slug) ?? null;
 
   const body = `<main class="shell" id="main">
       <div class="page-head">
@@ -328,6 +360,8 @@ export function prepareExercisePage({ config, track, index, entry, icons = {}, c
           ${renderPager({ entry, icons })}
 
           ${renderRelated({ entry, index, track })}
+
+          ${renderNoteDoor(note)}
 
           ${renderGroupMore({ group, count: groupCount })}
         </div>

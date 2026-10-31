@@ -27,8 +27,22 @@ function renderDrills(entries, linked) {
   return entries.map((entry) => drillLine(entry, linked)).join("\n");
 }
 
-/** The pricing page as `<main>` markup plus its head metadata; see `prepareIndexPage` for why. */
-export function preparePricingPage({ config, track, index, icons = {}, checkout = { enabled: false } }) {
+/**
+ * The pricing page as `<main>` markup plus its head metadata; see `prepareIndexPage` for why.
+ *
+ * `signupHref` is where an account can be created. It defaults to this host's own `/signup`, and the
+ * static edition passes an absolute `appUrl` link or `null` — a build with no server and no sibling
+ * deployment to point at must not offer a button that leads to a 404, so it offers the free drill.
+ */
+export function preparePricingPage({
+  config,
+  track,
+  index,
+  icons = {},
+  checkout = { enabled: false },
+  signupHref = "/signup?next=/pricing",
+  checkoutAction = "/api/stripe/checkout?plan=annual",
+}) {
   const first = index[0];
   const free = index.filter((entry) => entry.free);
   const paid = index.filter((entry) => !entry.free);
@@ -37,18 +51,22 @@ export function preparePricingPage({ config, track, index, icons = {}, checkout 
   // has to be an argument and not a guess. When it is false the page says so, and the markup below is
   // byte-identical to the page that shipped before checkout existed.
   const cta = checkout.enabled
-    ? `<form class="cta-row" method="post" action="/api/stripe/checkout?plan=annual">
+    ? `<form class="cta-row" method="post" action="${esc(checkoutAction)}">
         <button class="btn btn-primary" type="submit">Pay ${esc(PRICE)}${inlineIcon(icons["arrow-right"], {
           size: 16,
         })}</button>
         <a class="btn" href="${esc(first.path)}">Do drill 1 · ${esc(first.exercise.title)}</a>
       </form>
       <p class="gate-note">Card payment through Stripe. Every paid drill opens the moment the payment clears, and you can cancel or ask for a refund from your account page.</p>`
-    : `<p class="cta-row">
-        <a class="btn btn-primary" href="/signup?next=/pricing">Create an account${inlineIcon(icons["arrow-right"], {
+    : `<p class="cta-row">${
+        signupHref
+          ? `
+        <a class="btn btn-primary" href="${esc(signupHref)}">Create an account${inlineIcon(icons["arrow-right"], {
           size: 16,
-        })}</a>
-        <a class="btn" href="${esc(first.path)}">Do drill 1 · ${esc(first.exercise.title)}</a>
+        })}</a>`
+          : ""
+      }
+        <a class="btn${signupHref ? "" : " btn-primary"}" href="${esc(first.path)}">Do drill 1 · ${esc(first.exercise.title)}</a>
       </p>
       <p class="gate-note">Checkout is not open yet. Until it opens, every paid drill opens free in this browser, no card, no account.</p>`;
 

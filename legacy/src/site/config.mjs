@@ -22,24 +22,36 @@ export function today(env = process.env) {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function siteConfig(env = process.env) {
-  const raw = env.SITE_URL?.trim() || FALLBACK_BASE_URL;
+/** A bare http(s) origin, or a refusal naming the variable. Both addresses are used the same way. */
+function originOf(raw, variable) {
   let parsed;
   try {
     parsed = new URL(raw);
   } catch {
-    throw new Error(`SITE_URL must be an absolute origin such as https://example.com, got "${raw}"`);
+    throw new Error(`${variable} must be an absolute origin such as https://example.com, got "${raw}"`);
   }
   if (!["http:", "https:"].includes(parsed.protocol)) {
-    throw new Error(`SITE_URL must be http or https, got "${raw}"`);
+    throw new Error(`${variable} must be http or https, got "${raw}"`);
   }
   if (parsed.search || parsed.hash || parsed.pathname !== "/") {
-    throw new Error(`SITE_URL must be a bare origin without a path, got "${raw}"`);
+    throw new Error(`${variable} must be a bare origin without a path, got "${raw}"`);
   }
+  return parsed.origin;
+}
+
+export function siteConfig(env = process.env) {
+  const raw = env.SITE_URL?.trim() || FALLBACK_BASE_URL;
+  const baseUrl = originOf(raw, "SITE_URL");
+  // The two deployables can sit on different hosts: the static edition has no server, so its
+  // account, certificate and checkout pages live on the Next deployment. Absent means "this build
+  // is the whole site" — the Next host, and the local static preview — so links stay relative.
+  const appRaw = env.SITE_APP_URL?.trim() || "";
+  const appUrl = appRaw ? originOf(appRaw, "SITE_APP_URL") : null;
 
   return {
     name: SITE_NAME,
-    baseUrl: parsed.origin,
+    baseUrl,
+    appUrl,
     pathPrefix: PATH_PREFIX,
     author: env.SITE_AUTHOR?.trim() || null,
     contact: env.SITE_CONTACT?.trim() || null,

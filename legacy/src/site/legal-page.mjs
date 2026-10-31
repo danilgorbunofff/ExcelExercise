@@ -87,8 +87,17 @@ function section(id, heading, html) {
   return `      <h2 id="${esc(id)}">${esc(heading)}</h2>\n${html}`;
 }
 
+/**
+ * The account page as prose: a link when the page exists on this host or on the sibling deployment,
+ * and plain words when it does not. The static edition passes `null` when it is deployed alone, so the
+ * policy never points at a 404.
+ */
+function accountPage(href) {
+  return href ? `<a href="${esc(href)}">account page</a>` : "account page";
+}
+
 /** The two documents, as data. The tests read these; nothing else needs to. */
-export function legalSections({ config, track }) {
+export function legalSections({ config, track, accountHref = "/account" }) {
   const free = track.freeLessonCount;
   const contact = config.contact
     ? `<a href="${esc(config.contact.startsWith("mailto:") ? config.contact : `mailto:${config.contact}`)}">${esc(
@@ -114,7 +123,7 @@ export function legalSections({ config, track }) {
             "Grading happens in your browser. Nothing you type into a cell is sent anywhere, and the drills work with JavaScript and no account.",
             "If you create an account, this site stores your progress so it follows you to another device. That is the only reason a server is involved.",
             "There are no analytics, no advertising and no third-party requests on this site. The only cookie is the one that keeps you signed in.",
-            `You can take everything out as one JSON file, and you can delete the account and the data behind it, from your <a href="/account">account page</a>.`,
+            `You can take everything out as one JSON file, and you can delete the account and the data behind it, from your ${accountPage(accountHref)}.`,
           ]),
         },
         {
@@ -167,7 +176,7 @@ export function legalSections({ config, track }) {
           id: "export",
           heading: "Taking your data out",
           html: paragraphs([
-            `Your <a href="/account">account page</a> has a download that returns everything in one JSON file: the profile, every progress row, every recorded attempt, points, streaks, and the entitlement and payment history. It is the same data the code reads, in a format you can diff.`,
+            `Your ${accountPage(accountHref)} has a download that returns everything in one JSON file: the profile, every progress row, every recorded attempt, points, streaks, and the entitlement and payment history. It is the same data the code reads, in a format you can diff.`,
             "The document also lists what would survive a deletion, so the copy in your hands and the copy on the server say the same thing.",
           ]),
         },
@@ -225,7 +234,7 @@ export function legalSections({ config, track }) {
           id: "price",
           heading: "Free drills, and the paid track",
           html: paragraphs([
-            `Drills 1–${free} are free forever: no account, no email, no expiry. Nothing in this repository moves them behind the wall.`,
+            `Drills 1 to ${free} are free forever: no account, no email, no expiry. Nothing in this repository moves them behind the wall.`,
             `The rest of the track is ${esc(PRICE)} for the whole thing, one payment, not one per drill, with a 100% refund guarantee and the option to cancel at any time.`,
             "Checkout is not open yet. Until it is, the paid drills open free in this browser, and the price above is what the page says rather than what it charges.",
           ]),
@@ -236,7 +245,7 @@ export function legalSections({ config, track }) {
           html: paragraphs([
             "Use an email address you can actually receive mail at, because that is how a password reset reaches you. One account per person.",
             "Keep your password to yourself; anyone holding it can read the progress on the account. If you think it has leaked, change it from the account page and sign the other device out.",
-            `You can delete the account whenever you like, without asking, from the <a href="/account">account page</a>.`,
+            `You can delete the account whenever you like, without asking, from the ${accountPage(accountHref)}.`,
           ]),
         },
         {
@@ -314,8 +323,8 @@ export function legalSections({ config, track }) {
 }
 
 /** One document per kind, as `<main>` markup plus the page metadata the shell reads. */
-export function prepareLegalPage({ config, track, index, kind }) {
-  const document = legalSections({ config, track })[kind];
+export function prepareLegalPage({ config, track, index, kind, accountHref = "/account" }) {
+  const document = legalSections({ config, track, accountHref })[kind];
   if (!document) throw new Error(`legal-page: unknown page "${kind}"`);
 
   const body = `<main class="shell" id="main">

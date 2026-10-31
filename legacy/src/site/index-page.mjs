@@ -175,7 +175,7 @@ ${renderProof({ entry: first })}      </div>
 ${renderLevels({ index, icons })}
       </section>
 
-      ${renderWaysOut({ projectsAvailable, appPagesAvailable })}
+      ${renderWaysOut({ projectsAvailable, appPagesAvailable, appUrl: config.appUrl })}
     </main>${clientAvailable ? '\n  <script type="module" src="/assets/client/drill.js"></script>' : ""}`;
 
   return {

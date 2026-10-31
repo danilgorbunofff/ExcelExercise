@@ -88,7 +88,7 @@ ${renderGroupCards({ groups })}
         <p>Checked properly. A formula that reaches the right number with the wrong function or the wrong range is rejected, and the reason you get names the rule it broke. The <a href="/about">about page</a> explains how that works.</p>
       </section>
 
-      ${renderWaysOut({ variant: "home", projectsAvailable, appPagesAvailable })}
+      ${renderWaysOut({ variant: "home", projectsAvailable, appPagesAvailable, appUrl: config.appUrl })}
     </main>`;
 
   return {
@@ -150,7 +150,7 @@ export function prepareAboutPage({ config, track, index, icons = {} }) {
         </ul>
       </section>
 
-      ${renderWaysOut({ variant: "home" })}
+      ${renderWaysOut({ variant: "home", appUrl: config.appUrl })}
     </main>`;
 
   return {

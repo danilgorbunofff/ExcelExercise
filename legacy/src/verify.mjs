@@ -396,7 +396,14 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
         "links into a drill the page does not open",
       );
     }
-    has(html, 'href="/signup?next=/pricing"', "pricing/index.html account link");
+    // The static edition has no server. A signup button is either an absolute link to the deployment
+    // that does, or absent; a relative one would be a 404 in a primary call to action.
+    ok(
+      !html.includes('href="/signup'),
+      "pricing/index.html signup link",
+      "is relative, but this build serves no signup page",
+    );
+    if (config.appUrl) has(html, `href="${config.appUrl}/signup?next=/pricing"`, "pricing/index.html signup target");
   }
 
   // --- privacy and terms ------------------------------------------------------------
@@ -410,7 +417,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
         h1: "<h1>What this site keeps, and what it never sees</h1>",
         retention: "Kept, unlinked from you:",
         browser: "<code>localStorage</code>",
-        export: 'href="/account"',
+        export: "account page",
         tracked: "no analytics script",
       },
     ],
@@ -420,7 +427,7 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
         h1: "<h1>The deal, in plain English</h1>",
         retention: "If it does not do what this page says it does, the remedy is a refund",
         browser: "Excel's formula rules vary by version and by locale",
-        export: 'href="/account"',
+        export: "account page",
         tracked: "not been reviewed by a lawyer",
       },
     ],
@@ -439,11 +446,19 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     for (const [label, probe] of [
       ["retention list", expected.retention],
       ["browser storage section", expected.browser],
-      ["account page link", expected.export],
+      ["account page", expected.export],
       ["honest disclosure", expected.tracked],
     ]) {
       has(html, probe, `${file} ${label}`);
     }
+    // Same rule as the signup button: the policy may describe the account page, but it must not link
+    // a reader of the static edition into a page this host does not have.
+    ok(
+      !html.includes('href="/account"'),
+      `${file} account link`,
+      "is relative, but this build serves no account page",
+    );
+    if (config.appUrl) has(html, `href="${config.appUrl}/account"`, `${file} account target`);
   }
 
   // --- sitemap and robots -----------------------------------------------------------
@@ -490,6 +505,19 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
 
   if (ok(existsSync(join(distDir, "robots.txt")), "robots.txt", "does not exist")) {
     has(read("robots.txt"), `Sitemap: ${config.baseUrl}/sitemap.xml`, "robots.txt");
+  }
+
+  // --- the 404 document ---------------------------------------------------------------
+  // A static host cannot improvise this page; if the file is missing the reader gets the host's own
+  // plain text and the site's chrome is gone. It is also the one page that must never be indexed,
+  // which is the difference between a 404 and a page pretending to be one.
+  if (ok(existsSync(join(distDir, "404.html")), "404.html", "does not exist")) {
+    const html = read("404.html");
+    has(html, '<header class="site"', "404.html header");
+    has(html, '<footer class="foot"', "404.html footer");
+    has(html, "<h1>", "404.html heading");
+    has(html, '<meta name="robots" content="noindex">', "404.html noindex");
+    has(html, 'href="/excel-exercises"', "404.html catalogue link");
   }
 
   // --- assets -----------------------------------------------------------------------

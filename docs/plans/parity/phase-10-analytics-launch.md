@@ -72,6 +72,63 @@ the new one without losing search rankings or a single learner's progress.
 10. **Rollback plan.** Feature flags per surface; DNS/alias switch back to `legacy/` documented with a
     tested command; database rollback is forward-only (migrations are additive).
 
+## As built — §8, indexability (2026-12-02)
+
+The sitemap and the 301 map are older than the site's current shape, so §8 is split: the parts that
+depend on the route list are in place, the parts that depend on a live origin are not.
+
+**Landed.** Both hosts publish a sitemap and a robots file from one source. `app/sitemap.js` and
+`legacy/src/site/assets.mjs` list home, `/privacy`, `/terms` and one entry per lesson — 91 URLs — and
+`legacy/src/verify.mjs`, `scripts/check-next-pages.mjs`, `tests/build.test.js` and `e2e/routes.spec.js`
+all assert that count and that each URL is a served page rather than a redirect. The 16 group pages are
+deliberately **out**: both hosts render them `noindex` (shown in the head and asserted by the crawl), so
+listing them would be the same lie as listing `/pricing`.
+
+`robots.txt` gained rules this session, so a search result cannot land on a surface that is nobody's
+business: `Disallow: /api/` (route handlers, JSON, no page) and `Disallow: /certificate` (a personal URL
+that embeds a credential id). Both hosts emit them — `app/robots.js` for Next and `renderRobots()` for
+the static build — and `e2e/routes.spec.js` additionally proves the two files cannot contradict each
+other: no URL in the sitemap may start with a disallowed prefix.
+
+The dashboard is deliberately **not** in that list, and it took a wrong turn to get here. The first cut
+of this change disallowed `/dashboard`, which is not a route in either host — the dashboard is served at
+`/learn` — so the rule named a 404 while the real dashboard stayed crawlable under its actual address.
+`/learn` is `noindex, follow`, and the two directives must not both be set for one URL: a `Disallow`
+stops the crawler before it can read the `noindex`, which is how a deleted page stays in the index.
+Fetchable plus `noindex` is the correct pairing. `tests/metadata-routes.test.js` now checks the rule
+against the app itself — every disallowed path must resolve to a `page.js` or a route handler — so a
+`Disallow` can no longer name a URL that does not exist.
+
+The same failure mode sits one level down, in the links themselves. `legacy/src/verify.mjs` asserts
+that the hrefs it cares about are *present*; nothing asserted that a present href *resolves*, so a
+footer or body link could point at a page the build never emitted and every gate would stay green.
+`tests/build.test.js` now walks all 109 emitted HTML files, resolves each internal `href` to a file
+(`target`, `target.html`, or `target/index.html`), and fails on any target that is not there. Two
+targets legitimately leave the static build for the app — `/account` and `/signup` — so they are
+listed, and the list is itself checked against `app/`: a route named there that the app does not
+serve fails the test. On the app side, `e2e/routes.spec.js` walks twelve surfaces (the index, the
+dashboard, a lesson, pricing, projects, flashcards, the daily challenge, the board, both auth screens
+and the legal pages), collects every internal href they render and requests each one. Both were proved
+red before they were trusted: a `/privacy-nope` footer href fails the build test, and a `/proof-nope`
+anchor in the auth shell fails the browser test with `"/proof-nope → 404"`. That is the `/dashboard`
+lesson applied where it does the most work, since a linked-but-missing page is the thing a crawler
+actually reports.
+
+One deviation from the list above, on purpose: `/verify` is **allowed**. The list was written before the
+certificate verifier existed as a public page; it is now the page an employer lands on to check a
+credential, so it is a page we want found. It is not personal — it takes an ID and returns a result.
+
+| Gate | Output |
+|---|---|
+| `npm run check` | `tests 1616`, `suites 211`, `fail 0`; `88 of 88 catalogued lessons, 16 groups, 152 screens, 1946 fixtures replayed`; `903 accepted and 1043 rejected`; `built 109 pages (11254.5 kB)`; `next routes: 109 prerendered pages match the shared templates`; `4378 checks passed` |
+| `npx playwright test` | `135 passed` |
+| `npm run vendor:check` | `25 files match manifest.json` |
+
+**Not landed, and why.** The 301 map from the 201 legacy HTML routes cannot be built here: `links.txt`
+does not exist in this checkout, and the redirect layer only means anything against a live origin with
+two deployments behind it. The launch checklist, Search Console submission, monitoring, backups and the
+restore drill are all operator tasks against infrastructure this checkout does not have.
+
 ## Acceptance criteria
 
 - [ ] Every event fires exactly once per action; duplicates dropped by `(session_id, event, ts)` key.

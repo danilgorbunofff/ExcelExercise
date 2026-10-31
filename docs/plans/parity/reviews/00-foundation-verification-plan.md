@@ -250,3 +250,59 @@ tall inside its 44 px header row), the footer pair (`42 × 44` and `36 × 44`), 
 axes, which is WCAG 2.2 AA 2.5.8's floor; the stricter 44 px house floor applies to the controls a
 learner drives a drill with, which is where unit 3 put it. No change was made on this pass — it is a
 measurement, and it is recorded so a future content push can repeat the same two numbers.
+
+## Unrouted surfaces and the coverage they were hiding (2026-12-01)
+
+Phase 6 shipped four pages that nothing links to from the shared chrome — `/projects`,
+`/learn/projects/[slug]`, `/datasets/[name]` — and closing them exposed a class of defect the
+existing suites could not see: pages reachable only by typing the URL had never been rendered at
+320 px or scanned for accessibility. Both holes are now covered, and the crawl that found them is
+recorded here because it produced one finding this plan cannot close.
+
+**Reflow.** `e2e/reflow.spec.js` went from 8 to 19 pages × 2 widths (320 and 390): `flashcards`,
+`daily`, `leaderboard`, `certificate`, a bogus `/verify/<id>`, `account`, `signup`, `reset`, one
+group page, `privacy`, `terms`, plus the two project URLs. It found two real overflows, both fixed:
+
+- `/learn/projects/ufo-dashboard` measured `332px in 320px`. `.error-table tbody th` carried
+  `white-space: nowrap` over an authored error row 504 px wide inside a 272 px column; the row
+  headers now wrap (`overflow-wrap: anywhere` on `.error-table th, .error-table td`).
+- `/flashcards` measured `322px in 320px`. `header.site` is a non-wrapping flex row and the
+  flashcard count adds a third `white-space: nowrap` item (`.badge`, 113 px), so 339 px of content
+  had to fit in 320. `.site` now wraps; it only wraps when it has to, so nothing changes above
+  320.
+
+**Accessibility.** `e2e/a11y.spec.js` went from 24 to 26 tests: the project shelf and a project page
+scanned twice (on its first task, and again after a wrong answer has drawn the error table that
+caused the overflow above). Both are clean at `critical`/`serious` with no fix.
+
+**Reachability — closed by extending the footer, the site's only nav.** A crawl of every prerendered
+page's server HTML for `href="/…"` resolves every internal link; the only unresolved ones are
+`_next/static` chunks. But five surfaces had **no inbound link** anywhere, in server HTML or in the
+client-rendered dashboards: `/daily`, `/leaderboard`, `/flashcards`, `/certificate` and `/account` —
+and `/pricing` was reachable only from the two gate prompts the drill injects
+(`legacy/src/client/drill.js:1079` and `:1131`), which is why a server-side crawl missed it too.
+
+The fix is the smallest one that names them: the footer gains a `Pricing` link (both hosts — the static
+build has always emitted `/pricing`) and a second row of five, `.foot-apps`, holding the signed-in
+surfaces. That row is behind `appPagesAvailable`, the same host-availability flag `projectsAvailable`
+uses, because those pages need the server and the static build would otherwise ship five 404s; it is
+`true` on all eleven `renderChrome` call sites in `app/` and inherited by everything that renders
+through `AuthShell`. On a wide screen the row ends on the same right edge as the primary row and reads
+as one nav column (measured: both `right` edges at 1156px in a 1280px viewport); at 767px and below the
+footer is already a stack, so it left-aligns with 44px rows like every other footer link.
+
+It is proven rather than eyeballed. `e2e/routes.spec.js` gained "every way out in the footer is a page
+that exists": it renders `/`, collects every `href` in `footer.foot`, asserts the seven surfaces above
+are named, then requests each one and fails if any answers 4xx or 5xx — so a link that is added to the
+row and does not resolve fails a test rather than shipping. `e2e/reflow.spec.js` re-measured every
+surface at 320 and 390 with the row in place (`scrollWidth === clientWidth` throughout), and
+`e2e/a11y.spec.js` re-scanned the pages that now carry it. The three gates after the change:
+
+| Gate | After |
+|---|---|
+| `npm run check` | `tests 1611`, `suites 211`, `fail 0`; `88 of 88` lessons / `152` screens / `1946` fixtures; `903`/`1043` verdicts; `built 109 pages (11233.3 kB)` (was `11229.3`); `109` routes; `4378` checks |
+| `npx playwright test` | `127 passed (20.3s)` (was `126` — the footer test) |
+| `npm run vendor:check` | `vendor: 25 files match manifest.json` |
+
+Nothing else moved: the extra `Pricing` link is 40 bytes on each of the static build's 109 pages and is
+the whole of the byte delta.

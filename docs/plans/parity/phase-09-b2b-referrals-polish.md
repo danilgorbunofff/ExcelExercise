@@ -80,12 +80,90 @@ activity table; a referral page. We add seat enforcement, CSV export and per-lea
 10. **Copy extraction.** All strings through a `t()` helper with an English catalogue; no behavioural
     change.
 
+### As built — 9A unit 7, dark mode (2026-12-02)
+
+Implemented as the plan asked: the token layer and nothing else. `legacy/src/styles/tokens.css` is the
+only file that changed for the palette, and no component learned that a second theme exists. One
+deviation from the wording above, recorded rather than hidden: the block is a
+`@media (prefers-color-scheme: dark)` rule rather than `[data-theme="dark"]`. A server-rendered page
+cannot select a theme by attribute without a script that runs before first paint, and this site ships
+none; the preference the OS already publishes needs no script and no flash. The `.dark` class hook the
+vendor scales answer to is kept, so a client that wants to pin a theme still can.
+
+What the swap is: the four Radix scales (`--sand-*`, `--jade-*`, `--amber-*`, `--red-*`) restated at
+their published dark steps. Because `--bg`, `--surface`, `--line`, `--text`, `--btn-bg`/`--btn-text`
+and the three state tints are all aliases into those scales, re-pointing the scales re-points every
+surface, and the ink button inverts on its own. Three tokens could not follow a scale and were given an
+explicit dark pair: `--ok` and `--warn` (hand-darkened for a 4.5:1 light tint; Radix's dark 11s are
+their dark pair) and `--shadow-1` (a shadow on a dark page has to be blacker than the page to read as
+lift), plus `--scrim`, which goes from a 45% green-black to a 62% black.
+
+`renderHead` and `app/layout.js` now declare `color-scheme: light dark` instead of `light`, so form
+controls and scrollbars follow the same choice as the palette.
+
+Proof:
+
+| Gate | Output |
+|---|---|
+| `npm run check` | `tests 1616`, `suites 211`, `fail 0`; `88 of 88 catalogued lessons, 16 groups, 152 screens, 1946 fixtures replayed`; `903 accepted and 1043 rejected`; `built 109 pages (11254.5 kB)`; `next routes: 109 prerendered pages match the shared templates`; `4378 checks passed` |
+| `npx playwright test` | `135 passed` (127 when 9A started) |
+| `npm run vendor:check` | `25 files match manifest.json` |
+
+The five browser tests, all with the harness emulating a dark-preferring OS:
+
+- `with the OS asking for dark › the page paints the dark palette instead of the light one` — asserts the
+  media query matches, the meta names both schemes, the painted background has luminance < 0.05 and the
+  text > 0.6. This is the test that fails if a component hard-codes a colour.
+- `… › the browser bar is painted to match the page, not left white` — the mobile half. Without a
+  `theme-color`, Android Chrome keeps its toolbar white, so a dark page opens under a bright band; both
+  schemes carry a value and the dark one is asserted to be the painted background.
+- `… › the muted ink still clears 4.5:1 against the page behind it` — arithmetic on the resolved
+  `--text-muted` and `--bg`, the pair a palette swap quietly ruins.
+- `… › the verdict, its hint and the highlighted cell survive the swap` — the miss tint, the hint and the
+  accepted tint, scanned in dark, because the state tints are the only place the two palettes disagree
+  about what "red enough" means.
+- `… › every page still passes with nothing to fix` — the same axe bar as light (zero critical/serious)
+  on twelve surfaces: index, dashboard, a group, a drill, pricing, projects, flashcards, daily,
+  leaderboard, privacy, terms, account.
+
+`e2e-static` gained two tests: the static deployable serves one concatenated stylesheet, so a build that
+dropped the media block would ship dark mode on the Next host and not on the static one. One reads the
+served bytes and asserts `--bg: #191918`, `--text: #eeeeec` and the `light dark` meta; the other asserts
+the two `theme-color` metas, which the static build writes into 109 heads from one template.
+
+The browser-bar colour is the one value a `<meta>` needs that a custom property cannot supply, so it is
+declared once as `config.themeColor` and read by both heads — `legacy/src/site/shell.mjs` for the static
+build, `export const viewport` in `app/layout.js` for Next. `tests/styles.test.js` compares both values
+against the two places `--sand-2` is declared (the vendor light scale and the tokens dark block), so the
+bar cannot drift from `--bg` without a test failing; `tests/build.test.js` asserts the metas reach the
+emitted HTML.
+
+Where the rest of 9A stands, so this section is not read as "9A shipped": unit 8 (the WCAG audit of
+the five core pages) is already covered continuously by the 30 axe tests in `e2e/a11y.spec.js`, which now run in both themes;
+unit 9 (print) is **blocked** — its acceptance is "the certificate prints on one page in A4 and Letter",
+and no certificate can be issued on a deployment with accounts unconfigured, which is every
+configuration this suite is allowed to run in (14 specs assert that state, so a seed that enabled
+accounts would break them). The chrome-stripping half of the print sheet is proven
+(`e2e/certificate.spec.js`); the one-page half needs a real credential and a database. Unit 10 (copy
+extraction) is not started: it touches every user-facing string in every template and earns nothing
+visible until a second language exists.
+
+Two things this unit did **not** do, deliberately: no theme toggle (the plan asks for
+`prefers-color-scheme`, and a toggle needs persistence and a first-paint script that this site has no
+infrastructure for), and no chart or image treatment — the only raster on a page is the workbook
+screenshot, which is a picture of Excel and stays light in both themes on purpose.
+
+
 ## Acceptance criteria
 
 **9A — launch polish**
 
-- [ ] Dark mode has zero contrast failures (axe + manual spot check on charts and badges).
-- [ ] axe: zero critical/serious on the five core pages in both themes.
+- [x] Dark mode has zero contrast failures (axe + manual spot check on charts and badges). — axe
+      reports no critical/serious node, and `color-contrast` is a serious finding, on twelve pages in
+      both themes; the muted-ink pair is additionally measured arithmetically at ≥ 4.5:1. "Charts" does
+      not exist: the only raster is the workbook screenshot.
+- [x] axe: zero critical/serious on the five core pages in both themes. — proven for all five (player,
+      dashboard, pricing, certificate state, verify) plus seven more, in light and in dark.
 - [ ] Certificate prints on one page in both A4 and Letter.
 - [ ] No hard-coded user-facing string remains outside the catalogue.
 

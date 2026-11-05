@@ -10,6 +10,8 @@
  * (`?plan=monthly`) answers 303 to Stripe, and a JSON post answers `{ url }`.
  */
 import { currentUser } from "../../../../lib/auth/server.js";
+import { entitledFor } from "../../../../lib/paywall.js";
+import { EVENTS, logEvent } from "../../../../lib/log-event.js";
 import { checkoutForm, priceFor, stripeConfig, stripePost } from "../../../../lib/stripe.js";
 
 function json(body, status) {
@@ -30,7 +32,7 @@ function planFrom(request, body) {
   const fromQuery = new URL(request.url).searchParams.get("plan");
   if (fromQuery) return fromQuery;
   if (body && typeof body === "object" && typeof body.plan === "string") return body.plan;
-  return "annual";
+  return "monthly";
 }
 
 export async function POST(request) {
@@ -40,7 +42,7 @@ export async function POST(request) {
   const contentType = request.headers.get("content-type") ?? "";
   const wantsForm = contentType.includes("application/x-www-form-urlencoded");
 
-  const { user } = await currentUser();
+  const { supabase, user } = await currentUser();
   if (!user) {
     // The pricing page's button is a plain form post, so a signed-out buyer gets the sign-up page and
     // comes back here — not a JSON error in a browser window.
@@ -51,6 +53,18 @@ export async function POST(request) {
       });
     }
     return json({ ok: false, error: "sign_in_required" }, 401);
+  }
+
+  // A second purchase of the same track is not an upgrade, it is a double charge. The database
+  // answers, because entitlement is a fact there and this route is reachable from any page.
+  if (await entitledFor(supabase, user)) {
+    // A refusal is worth a line: a buyer pressing a button that answers "you already own this" is
+    // either a page that hides the fact or a double-click, and both are diagnosable from a count.
+    logEvent(EVENTS.checkoutRefused, { plan: planFrom(request, null), reason: "already_entitled" });
+    if (wantsForm) {
+      return new Response(null, { status: 303, headers: { location: "/account", "cache-control": "no-store" } });
+    }
+    return json({ ok: false, error: "already_entitled" }, 409);
   }
 
   let body = null;
@@ -67,21 +81,28 @@ export async function POST(request) {
   const plan = planFrom(request, body);
   if (!priceFor(config, plan)) return json({ ok: false, error: "unknown_plan", plan }, 400);
 
+  logEvent(EVENTS.checkoutStarted, { plan, form_post: wantsForm });
+
   let form;
   try {
     form = checkoutForm({ config, plan, userId: user.id, email: user.email, origin: originFor(request) });
   } catch (err) {
     console.error(`api/stripe/checkout: ${err.message}`);
+    logEvent(EVENTS.checkoutFailed, { plan, reason: "checkout_unavailable" });
     return json({ ok: false, error: "checkout_unavailable" }, 500);
   }
 
   const result = await stripePost("/checkout/sessions", form, { config });
   if (!result.ok) {
     console.error(`api/stripe/checkout: ${result.error}`);
+    logEvent(EVENTS.checkoutFailed, { plan, status: result.status, reason: result.error });
     return json({ ok: false, error: result.error }, result.status);
   }
   const url = result.body?.url;
-  if (!url) return json({ ok: false, error: "stripe_returned_no_url" }, 502);
+  if (!url) {
+    logEvent(EVENTS.checkoutFailed, { plan, reason: "stripe_returned_no_url" });
+    return json({ ok: false, error: "stripe_returned_no_url" }, 502);
+  }
 
   if (wantsForm) {
     // 303, not 307: a form post must not be replayed at the Stripe URL by a refresh.

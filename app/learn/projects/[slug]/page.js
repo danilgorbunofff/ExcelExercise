@@ -5,6 +5,7 @@ import { renderChrome } from "../../../../legacy/src/site/shell.mjs";
 
 import { loadProjectTrack } from "../../../../lib/projects.js";
 import { loadSite } from "../../../../lib/site.js";
+import { socialImage, socialTwitter } from "../../../../lib/social.js";
 
 const { config, icons, clientAvailable, articles } = loadSite();
 const { track, index, entryFor } = loadProjectTrack();
@@ -29,8 +30,9 @@ export async function generateMetadata({ params }) {
       title: page.title,
       description: page.description,
       url: page.path,
+      images: [socialImage({ path: page.path, title: page.title })],
     },
-    twitter: { card: "summary" },
+    twitter: socialTwitter({ path: page.path, title: page.title }),
   };
 }
 
@@ -39,7 +41,7 @@ export default async function Project({ params }) {
   if (!entry) notFound();
 
   const { body, page } = prepareExercisePage({ config, track, index, entry, icons, clientAvailable, articles });
-  const { skip, header, footer } = renderChrome({ config, page });
+  const { skip, header, footer } = renderChrome({ config, page, appPagesAvailable: true, icons });
 
   return (
     <>

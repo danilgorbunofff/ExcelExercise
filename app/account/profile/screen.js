@@ -17,7 +17,7 @@ export async function ProfileScreen({ searchParams }) {
     return (
       <AuthCard title="Your profile">
         <Notice>{config.reason}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -45,8 +45,8 @@ export async function ProfileScreen({ searchParams }) {
       title={welcome && first ? "Finish your profile" : "Your profile"}
       lede={
         welcome && first
-          ? "One thing before your drills: pick the name other learners would see. You can change it any time."
-          : "Your username is how you are listed. Everything else is optional, and you can change it any time."
+          ? "Pick the name other learners will see. You can change it later."
+          : "Your username is how other learners see you. Everything else is optional, and you can change it later."
       }
     >
       <ProfileForm
@@ -55,7 +55,7 @@ export async function ProfileScreen({ searchParams }) {
           display_name: profile?.display_name ?? "",
           linkedin_url: profile?.linkedin_url ?? "",
         }}
-        notice={first ? "Your display name is still empty." : null}
+        notice={first ? "Add a display name if you want one." : null}
       />
       <Links
         items={
@@ -66,7 +66,7 @@ export async function ProfileScreen({ searchParams }) {
               ]
             : [
                 { href: "/account", label: "Your account" },
-                { href: "/learn", label: "Your drills" },
+                { href: "/learn", label: "Your exercises" },
               ]
         }
       />

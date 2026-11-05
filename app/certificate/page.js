@@ -48,7 +48,7 @@ function Held({ row, site }) {
   return (
     <>
       <p className="auth-lede">
-        Issued {formatIssued(row.issued_at) ?? "—"} for {row.lesson_count} lessons
+        Issued {formatIssued(row.issued_at) ?? "on an unrecorded date"} for {row.lesson_count} lessons
         {row.days_taken === null || row.days_taken === undefined ? "" : `, finished over ${row.days_taken} day${row.days_taken === 1 ? "" : "s"}`}.
       </p>
       <dl className="certificate-facts">
@@ -69,12 +69,12 @@ function Held({ row, site }) {
           so.
         </Notice>
       ) : (
-        <Notice>Anyone can check this credential without an account — that is what makes it worth showing.</Notice>
+        <Notice>Anyone can check this credential without an account, which is what makes it worth showing.</Notice>
       )}
       <Links
         items={[
           { href: `/verify/${row.credential_id}`, label: "Check the public record" },
-          { href: "/learn", label: "Your drills" },
+          { href: "/learn", label: "Your exercises" },
         ]}
       />
       <p className="certificate-print-url">Check this credential at {certificateUrl(site, row.credential_id)}</p>
@@ -82,8 +82,8 @@ function Held({ row, site }) {
       <p className="certificate-help">
         <a href={linkedInUrl({ credential: row.credential_id, issuedAt: row.issued_at, origin: site })} rel="noreferrer noopener" target="_blank">
           Add it to your LinkedIn profile
-        </a>{" "}
-        — LinkedIn asks for the name, the issuer and the credential URL, and this link fills all three in.
+        </a>{". "}
+        LinkedIn asks for the name, the issuer and the credential URL, and this link fills all three in.
       </p>
     </>
   );
@@ -95,7 +95,7 @@ async function CertificateScreen() {
     return (
       <AuthCard title="Certificate">
         <Notice>{config.reason}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -122,7 +122,7 @@ async function CertificateScreen() {
     return (
       <AuthCard title="Certificate">
         <Notice>Certificates cannot be issued on this deployment just now. Your progress is safe and unaffected.</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -159,10 +159,10 @@ async function CertificateScreen() {
           {state.missing.length === 1
             ? "One lesson is left."
             : `${state.missing.length} lessons are left.`}{" "}
-          A lesson counts the moment it is finished and you are signed in — the certificate is issued from that
+          A lesson counts the moment it is finished and you are signed in. The certificate is issued from that
           record, not from this browser.
         </Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -170,7 +170,7 @@ async function CertificateScreen() {
   return (
     <AuthCard
       title="Certificate"
-      lede={`Every one of the ${state.total} lessons is recorded as finished. Type your name twice — it is printed as written and cannot be changed afterwards.`}
+      lede={`Every one of the ${state.total} lessons is recorded as finished. Type your name twice. It is printed as written and cannot be changed afterwards.`}
     >
       <IssueForm suggested={user.user_metadata?.display_name ?? user.user_metadata?.full_name ?? ""} />
       <p className="certificate-help">
@@ -183,7 +183,7 @@ async function CertificateScreen() {
 
 export default function CertificatePage() {
   return (
-    <AuthShell counter="Certificate" skipLabel="certificate">
+    <AuthShell skipLabel="certificate">
       <Suspense fallback={<Loading />}>
         <CertificateScreen />
       </Suspense>

@@ -25,7 +25,7 @@ const MAX_LESSONS = 50;
  *
  * `lesson_progress` is self-read under RLS, so this is the learner's own row and nothing else. A
  * deployment without accounts, or a signed-out browser, contributes nothing here — the deck then relies
- * on `es.progress`, which is where the drill records a finished lesson for anyone.
+ * on `es.progress`, which is where the exercise records a finished lesson for anyone.
  */
 async function finishedLessons() {
   const config = await requestAuthConfig();
@@ -48,7 +48,7 @@ async function FlashcardsScreen() {
     return (
       <AuthCard title="Flashcards">
         <Notice>{flagCopy("flashcards")}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -63,18 +63,18 @@ async function FlashcardsScreen() {
       <Deck serverIds={ids} />
       <p>
         A card you grade <em>again</em> comes back at the start of your next session. A card you know
-        moves further out each time — a day, three days, then longer — and the schedule is kept in this
+        moves further out each time: a day, three days, then longer. The schedule is kept in this
         browser.
       </p>
-      <Links items={[{ href: "/learn", label: "Your drills" }]} />
+      <Links items={[{ href: "/learn", label: "Your exercises" }]} />
     </AuthCard>
   );
 }
 
 export default function FlashcardsPage() {
   return (
-    <AuthShell counter="Flashcards" skipLabel="flashcards">
-      <Suspense fallback={<Skeleton label="Shuffling your cards…" rows={6} />}>
+    <AuthShell skipLabel="flashcards">
+      <Suspense fallback={<Skeleton label="Shuffling your cards" rows={6} />}>
         <FlashcardsScreen />
       </Suspense>
     </AuthShell>

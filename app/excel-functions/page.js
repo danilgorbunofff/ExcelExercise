@@ -2,10 +2,11 @@ import { prepareFunctionsHub } from "../../legacy/src/site/article-page.mjs";
 import { renderChrome } from "../../legacy/src/site/shell.mjs";
 
 import { loadSite } from "../../lib/site.js";
+import { socialImage, socialTwitter } from "../../lib/social.js";
 
-const { config, track, index, icons, articles } = loadSite();
+const { config, track, index, icons, articles, formulas } = loadSite();
 
-const { page: meta } = prepareFunctionsHub({ config, track, index, articles, icons });
+const { page: meta } = prepareFunctionsHub({ config, track, index, articles, formulas, icons });
 
 export const metadata = {
   title: { absolute: "Excel functions, explained in plain words · " + config.name },
@@ -17,13 +18,14 @@ export const metadata = {
     title: "Excel functions, explained in plain words",
     description: meta.description,
     url: meta.path,
+    images: [socialImage({ path: meta.path, title: "Excel functions, explained in plain words" })],
   },
-  twitter: { card: "summary" },
+  twitter: socialTwitter({ path: meta.path, title: "Excel functions, explained in plain words" }),
 };
 
 export default function Functions() {
-  const { body, page } = prepareFunctionsHub({ config, track, index, articles, icons });
-  const { skip, header, footer } = renderChrome({ config, page });
+  const { body, page } = prepareFunctionsHub({ config, track, index, articles, formulas, icons });
+  const { skip, header, footer } = renderChrome({ config, page, appPagesAvailable: true, icons });
 
   return (
     <>

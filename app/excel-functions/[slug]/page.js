@@ -5,13 +5,16 @@ import { renderChrome } from "../../../legacy/src/site/shell.mjs";
 
 import { loadSite } from "../../../lib/site.js";
 
-const { config, track, index, icons, articles, entryFor, articleFor, articleDrillAvailable } = loadSite();
+const { config, track, index, icons, articles, formulas, entryFor, articleFor, articleDrillAvailable } =
+  loadSite();
 
 // Same reasoning as `app/learn/groups/[group]/page.js`: an unknown slug falls through to notFound()
 // rather than being prerendered, so a deleted note is a 404 and not a stale page.
 export function generateStaticParams() {
   return articles.map((article) => ({ slug: article.slug }));
 }
+
+import { socialImage, socialTwitter } from "../../../lib/social.js";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -22,6 +25,7 @@ export async function generateMetadata({ params }) {
     track,
     index,
     articles,
+    formulas,
     article,
     entry: entryFor(article.exercise),
     clientAvailable: articleDrillAvailable,
@@ -37,8 +41,9 @@ export async function generateMetadata({ params }) {
       description: page.description,
       url: page.path,
       modifiedTime: page.updated,
+      images: [socialImage({ path: page.path, title: page.title })],
     },
-    twitter: { card: "summary" },
+    twitter: socialTwitter({ path: page.path, title: page.title }),
   };
 }
 
@@ -52,11 +57,12 @@ export default async function Note({ params }) {
     track,
     index,
     articles,
+    formulas,
     article,
     entry: entryFor(article.exercise),
     clientAvailable: articleDrillAvailable,
   });
-  const { skip, header, footer } = renderChrome({ config, page });
+  const { skip, header, footer } = renderChrome({ config, page, appPagesAvailable: true, icons });
 
   return (
     <>

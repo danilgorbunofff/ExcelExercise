@@ -4,15 +4,15 @@
  *
  * `POST` has two bodies, because there are two things to say:
  *
- *   * `{ batch_id, events }` — the buffer the drill fills in memory. Every row is derived from those
+ *   * `{ batch_id, events }` — the buffer the exercise fills in memory. Every row is derived from those
  *     events (`lib/progress/derive.js`), so a browser cannot post itself a score.
  *   * `{ batch_id, lessons }` — the roll-up a signed-out browser kept in `es.progress`. It carries no
  *     screen visits, so it writes `lesson_progress` only and never `attempts` (`lib/progress/migrate.js`).
  *
- * Both are idempotent on the same batch id, both check the lesson ids against the catalog (the drill
+ * Both are idempotent on the same batch id, both check the lesson ids against the catalog (the exercise
  * track's and the project track's, which is `entryForLesson` below), and both
  * refuse rather than pretend: without accounts configured the answer is 503, and an anonymous request
- * is 401 — the drills keep working locally either way.
+ * is 401 — the exercises keep working locally either way.
  *
  * A batch that lands is also credited (phase 5): points per payable screen, and the streak on the
  * day's first completion. That happens after the write, in `lib/retention/write.js`, and a refusal

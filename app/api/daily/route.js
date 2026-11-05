@@ -5,7 +5,7 @@
  *
  *   * `{ action: "start" }` — creates (or resumes) the learner's run for their local day and returns the
  *     ten screens with every answer stripped. The run page never holds the key.
- *   * `{ action: "answer", screenId, value }` — grades one answer with the same grader the drills use,
+ *   * `{ action: "answer", screenId, value }` — grades one answer with the same grader the exercises use,
  *     stores the verdict, and closes the run when the ten screens are done or the fifteen minutes are.
  *
  * The screen id is checked against the day's stored challenge before it is looked up, so a request

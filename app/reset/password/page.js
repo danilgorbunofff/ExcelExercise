@@ -31,7 +31,7 @@ async function NewPasswordScreen() {
   if (!user) {
     return (
       <AuthCard title="Set a new password">
-        <Notice>Open the link from your email first — it is what proves the address is yours.</Notice>
+        <Notice>Open the link in your email first. It proves the address is yours.</Notice>
         <Links items={[{ href: "/reset", label: "Send me a new link" }]} />
       </AuthCard>
     );
@@ -46,8 +46,8 @@ async function NewPasswordScreen() {
 
 export default function NewPasswordPage() {
   return (
-    <AuthShell counter="Set a new password">
-      <Suspense fallback={<Skeleton label="Checking your link…" rows={2} />}>
+    <AuthShell >
+      <Suspense fallback={<Skeleton label="Checking your link" rows={2} />}>
         <NewPasswordScreen />
       </Suspense>
     </AuthShell>

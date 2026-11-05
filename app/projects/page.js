@@ -3,8 +3,9 @@ import { renderChrome } from "../../legacy/src/site/shell.mjs";
 
 import { loadProjectTrack } from "../../lib/projects.js";
 import { loadSite } from "../../lib/site.js";
+import { socialImage, socialTwitter } from "../../lib/social.js";
 
-const { config } = loadSite();
+const { config, icons } = loadSite();
 const { track, index } = loadProjectTrack();
 const { page } = prepareProjectsPage({ track, index });
 
@@ -18,13 +19,14 @@ export const metadata = {
     title: track.title,
     description: track.promise,
     url: page.path,
+    images: [socialImage({ path: page.path, title: track.title })],
   },
-  twitter: { card: "summary" },
+  twitter: socialTwitter({ path: page.path, title: track.title }),
 };
 
 export default function Projects() {
   const { body } = prepareProjectsPage({ track, index });
-  const { skip, header, footer } = renderChrome({ config, page });
+  const { skip, header, footer } = renderChrome({ config, page, appPagesAvailable: true, icons });
 
   return (
     <>

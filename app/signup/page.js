@@ -17,7 +17,7 @@ export const instant = false;
 
 export default function SignupPage({ searchParams }) {
   return (
-    <AuthShell counter={t("auth.signup.title")}>
+    <AuthShell >
       <Suspense fallback={<Loading />}>
         <SignupScreen searchParams={searchParams} />
       </Suspense>

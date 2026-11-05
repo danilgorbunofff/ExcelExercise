@@ -14,9 +14,9 @@ Rules the tests pin, because they are the ones a dashboard gets wrong:
 
 - **Badges have one precedence: `stale` > `needs_practice` > `complete` > `in_progress` > `not_started`.** A
   lesson is never two badges at once, so the page cannot show "Complete" and "Stale" side by side.
-- **`stale` beats `complete`.** A drill solved a month ago and never touched since is the thing to say
+- **`stale` beats `complete`.** An exercise solved a month ago and never touched since is the thing to say
   something about, even though it is, technically, done.
-- **The badge never invents data.** Everything comes from what the drill actually recorded: `done.at`,
+- **The badge never invents data.** Everything comes from what the exercise actually recorded: `done.at`,
   the tries frozen into the completion, and whether a hint was used. There is no per-lesson accuracy
   score to invent a badge from.
 - **`summarise` counts what is in the plan, not what is in storage.** A `done` entry for a lesson that

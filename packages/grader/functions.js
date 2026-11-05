@@ -250,7 +250,7 @@ function aggregateByCode(name, code, args) {
 const SERIAL_EPOCH = Date.UTC(1899, 11, 30);
 const MS_PER_DAY = 86_400_000;
 
-/** The clock a drill reads: pinned by the screen's `today`, otherwise this machine's clock. */
+/** The clock an exercise reads: pinned by the screen's `today`, otherwise this machine's clock. */
 function clockOf(ctx) {
   const pinned = ctx?.clock;
   return pinned instanceof Date && !Number.isNaN(pinned.getTime()) ? pinned : new Date();
@@ -779,7 +779,7 @@ export const FUNCTIONS = {
     return aggregateByCode("AGGREGATE", code, rest);
   },
 
-  /* Spilling functions. The drill grades one value, so these hand back a range value
+  /* Spilling functions. The exercise grades one value, so these hand back a range value
      that other functions read: =COUNTA(UNIQUE(...)), =INDEX(SORT(...),2). */
   UNIQUE: (args) => {
     const source = requireRange("UNIQUE", args[0], 1);
@@ -1101,7 +1101,7 @@ export const FUNCTIONS = {
   FLOOR: (args) => multipleRound("FLOOR", args[0], args[1], "down"),
   CEILING: (args) => multipleRound("CEILING", args[0], args[1], "up"),
 
-  // Dates answer with a serial number, so a drill can compare one to a number it was given.
+  // Dates answer with a serial number, so an exercise can compare one to a number it was given.
   TODAY: (_args, ctx) => daySerial(clockOf(ctx)),
   NOW: (_args, ctx) => serialOf(clockOf(ctx)),
   DATE: (args) => partsToSerial("DATE", args[0], args[1], args[2]),

@@ -52,10 +52,10 @@ export function badgeFor(progress, id, now = Date.now()) {
  * into describing the same state two different ways.
  */
 export function summaryLine({ completed, total, stale = 0, needsPractice = 0 }) {
-  if (total === 0) return "No drills are published yet.";
-  if (completed === 0) return "Nothing started yet. The first drill is one formula and about two minutes.";
+  if (total === 0) return "No exercises are published yet.";
+  if (completed === 0) return "Nothing started yet. The first exercise is one formula and about two minutes.";
   const remaining = Math.max(0, total - completed);
-  const parts = [remaining === 0 ? "Every drill is finished." : `${remaining} drill${remaining === 1 ? "" : "s"} to go.`];
+  const parts = [remaining === 0 ? "Every exercise is finished." : `${remaining} exercise${remaining === 1 ? "" : "s"} to go.`];
   if (stale > 0 && needsPractice > 0) parts.push(`${stale} going stale, ${needsPractice} wanting practice.`);
   else if (stale > 0) parts.push(`${stale} going stale.`);
   else if (needsPractice > 0) parts.push(`${needsPractice} wanting another look.`);
@@ -75,20 +75,21 @@ export function nextCopy({ next, nextReason }) {
   }
   const verb = nextReason === "resume" ? "Resume" : nextReason === "practice" ? "Revisit" : "Start";
   const why = {
-    start: "The first drill you have not finished.",
+    // Nothing to add on a fresh start: the label already names the exercise.
+    start: "",
     resume: "You have already had a go at this one, so it is the next thing to finish.",
-    practice: "Every drill is finished, and this is the one that has gone the coldest.",
+    practice: "Every exercise is finished, and this is the one that has gone the coldest.",
   };
-  return { label: `${verb} drill ${next.number} · ${next.title}`, why: why[nextReason] ?? "" };
+  return { label: `${verb} exercise ${next.number} · ${next.title}`, why: why[nextReason] ?? "" };
 }
 
 /**
- * Whether a drill is open yet. The track is in order: a lesson opens when every lesson before it is
+ * Whether an exercise is open yet. The track is in order: a lesson opens when every lesson before it is
  * finished, which makes the frontier the one that always is. A lesson already finished stays open
  * however far past the frontier it sits, because a learner who solved it has earned the revisit.
  *
  * `unlocked` is the local escape hatch: the whole track is in this browser's storage, so clearing the
- * browser would otherwise wall a returning learner behind drill 1 forever. One click on the gate sets
+ * browser would otherwise wall a returning learner behind exercise 1 forever. One click on the gate sets
  * it, and it never leaves the browser.
  *
  * An id the plan does not contain is open. Gating something the plan cannot see would turn a stale
@@ -200,8 +201,8 @@ export function summarise({ plan, progress = null, now = Date.now() }) {
  * Union of what this browser kept and what the server holds, for the signed-in reader.
  *
  * The server wins on conflict: it is the only store that saw every device, and a browser that finished
- * a drill before signing in has already been migrated into it. A row that exists only locally is kept
- * — a drill finished while signed out on this device is still a drill finished, and dropping it would
+ * an exercise before signing in has already been migrated into it. A row that exists only locally is kept
+ * — an exercise finished while signed out on this device is still an exercise finished, and dropping it would
  * make the page disagree with the learner's memory. `changed` is what tells the island whether a
  * repaint is worth it, so a second browser does not flicker an identical record.
  *

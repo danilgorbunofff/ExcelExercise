@@ -28,7 +28,7 @@ const STATIC_PAGE = resolve(ROOT, "legacy/dist/excel/sum-basics.html");
 
 // The two budgets, and why they are two. Phase 10 promises "JS < 150 KB gzip on the player route,
 // first-party only"; that is rule D, the JavaScript the Next route itself ships, which a browser
-// executes and nothing else. The drill engine is a separate promise with its own budget (rule B, the
+// executes and nothing else. The exercise engine is a separate promise with its own budget (rule B, the
 // static lesson page), because both builds load the same `/assets/client/drill.js` and it belongs to
 // neither router. Baselines are the measured values on 2026-10-31 with the headroom named beside them;
 // a budget is a regression alarm, not an aspiration, so it is set just above what ships today.
@@ -92,12 +92,12 @@ const show = (label, files) => {
   return [raw, zipped, files];
 };
 
-const drill = closure(resolve(ROOT, "legacy/dist/assets/client/drill.js"));
+const exercise = closure(resolve(ROOT, "legacy/dist/assets/client/drill.js"));
 const feedback = resolve(ROOT, "legacy/dist/assets/client/feedback.js");
 
 console.log("Static route — legacy/dist");
-const a = show("A  drill.js entry graph", drill);
-const b = show("B  lesson page (A + feedback.js)", [...drill, feedback]);
+const a = show("A  drill.js entry graph", exercise);
+const b = show("B  lesson page (A + feedback.js)", [...exercise, feedback]);
 measured.B = { files: b[2], zipped: b[1] };
 show("   /assets/styles.css", [resolve(ROOT, "legacy/dist/assets/styles.css")]);
 show("   lesson HTML", [STATIC_PAGE]);
@@ -129,8 +129,8 @@ const skipped = noModule ? resolve(ROOT, ".next/static", noModule.replace("/_nex
 const c = show("C  every chunk the HTML names", chunks);
 const d = show("D  C minus the noModule fallback (what Chromium runs)", chunks.filter((f) => f !== skipped));
 measured.D = { files: d[2], zipped: d[1] };
-const e = show("E  Next lesson page, executed (D + B)", [...chunks.filter((f) => f !== skipped), ...drill, feedback]);
-const f = show("F  Next lesson page, every named script (C + B)", [...chunks, ...drill, feedback]);
+const e = show("E  Next lesson page, executed (D + B)", [...chunks.filter((f) => f !== skipped), ...exercise, feedback]);
+const f = show("F  Next lesson page, every named script (C + B)", [...chunks, ...exercise, feedback]);
 show("   lesson CSS", named("css"));
 console.log(`   lesson HTML: ${Buffer.byteLength(html)} B raw / ${gzip(Buffer.from(html))} B gzip`);
 

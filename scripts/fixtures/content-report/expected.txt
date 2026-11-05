@@ -1,0 +1,11 @@
+content funnel — all fixture events
+log: 339 lines, 339 in window, 2 skipped
+
+metric                           value                     target    verdict
+exercise start rate              65.0% (104/160)           >= 25%    pass
+exercise completion rate         55.8% (58/104)            >= 50%    pass
+offer submit rate                1/12                      >= 3%     insufficient data
+pages with a real exercise       112 (86+8+12+6)           >= 50     pass
+organic clicks into an exercise  10 over 4 pages           >= 1      pass
+
+A rate needs 100 events in its denominator. Below that the counts are printed and no rate is.

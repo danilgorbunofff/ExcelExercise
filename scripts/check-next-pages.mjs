@@ -15,11 +15,16 @@ import { dashboardGroups, prepareDashboardPage } from "../legacy/src/site/dashbo
 import { prepareArticlePage, prepareFunctionsHub } from "../legacy/src/site/article-page.mjs";
 import { prepareExercisePage } from "../legacy/src/site/exercise-page.mjs";
 import { prepareIndexPage } from "../legacy/src/site/index-page.mjs";
+import { prepareFormulaPage, prepareFormulasHub } from "../legacy/src/site/formula-page.mjs";
 import { prepareAboutPage, prepareExercisesHub } from "../legacy/src/site/hub-page.mjs";
 import { prepareLegalPage } from "../legacy/src/site/legal-page.mjs";
 import { preparePricingPage } from "../legacy/src/site/pricing-page.mjs";
+import { prepareSearchPage } from "../legacy/src/site/search-page.mjs";
+import { prepareShortcutPage, prepareShortcutsHub } from "../legacy/src/site/shortcut-page.mjs";
 import { indexablePaths } from "../legacy/src/site/seo.mjs";
+import { CARD_PATH, cardKey } from "../legacy/src/site/social.mjs";
 import { loadSite } from "../lib/site.js";
+import { EXTRA } from "../app/sitemap.js";
 import nextConfig from "../next.config.mjs";
 
 const ROOT = process.cwd();
@@ -27,7 +32,20 @@ const PAGES = join(ROOT, ".next/server/app");
 
 // The same inputs the routes use, including the `/learn/excel/<slug>` path rewrite, so this compares
 // "what the route rendered" with "what the template says" rather than two different content models.
-const { config, track, index, icons, clientAvailable, dashboardAvailable, articles, entryFor, articleDrillAvailable } = loadSite();
+const {
+  config,
+  track,
+  index,
+  icons,
+  clientAvailable,
+  dashboardAvailable,
+  articles,
+  formulas,
+  shortcuts,
+  entryFor,
+  articleDrillAvailable,
+  clientAvailable: shortcutsAvailable,
+} = loadSite();
 
 const problems = [];
 let checked = 0;
@@ -49,6 +67,19 @@ function checkPage({ file, args, prepare }) {
   ];
   for (const [label, probe] of probes) {
     if (!html.includes(probe)) problems.push(`${file}: ${label} is missing`);
+  }
+  // The preview a link turns into. Next replaces metadata objects instead of merging them, so a page
+  // that sets `openGraph` without `images` drops the layout's card and ships a text-only preview — the
+  // exact failure this pair of assertions exists to catch.
+  const card = `${config.baseUrl}${CARD_PATH(cardKey(page.path))}`;
+  if (!html.includes(`property="og:image" content="${card}"`)) {
+    problems.push(`${file}: og:image is not ${card}`);
+  }
+  if (!html.includes('name="twitter:card" content="summary_large_image"')) {
+    problems.push(`${file}: twitter:card is not summary_large_image`);
+  }
+  if (!html.includes('rel="manifest" href="/manifest.webmanifest"')) {
+    problems.push(`${file}: the web app manifest is not linked`);
   }
   // A page the template gives no structured data to must not sprout one in the route either.
   if (!page.jsonLd && html.includes("application/ld+json")) {
@@ -90,12 +121,21 @@ function checkIsland(file) {
 
 checkIsland("learn.html");
 
-// The offer the drill's wall links to. `noindex` and out of the sitemap, so the assertion below — that
+// The offer the exercise's wall links to. `noindex` and out of the sitemap, so the assertion below — that
 // the sitemap matches `indexablePaths()` entry for entry — stays the proof that it did not leak in.
 checkPage({
   file: "pricing.html",
   prepare: preparePricingPage,
   args: { config, track, index, icons },
+});
+
+// Search: the box, the index it carries, and the list of every exercise under it. `checkPage` compares
+// the whole `<main>`, so a route that stopped passing the index would fail here rather than shipping a
+// box that searches nothing.
+checkPage({
+  file: "search.html",
+  prepare: prepareSearchPage,
+  args: { config, track, index, articles, icons, clientAvailable, appPagesAvailable: Boolean(config.appUrl) },
 });
 
 // The indexable pages that are not lessons. Their sitemap entries are asserted below against
@@ -155,13 +195,13 @@ for (const entry of index) {
 }
 
 // The function notes and the hub that lists them. A note borrows one lesson's first screen, so the
-// route has to find that lesson: a note whose drill silently disappeared renders a page that still
-// passes every other check, which is why the drill's payload is asserted here.
+// route has to find that lesson: a note whose exercise silently disappeared renders a page that still
+// passes every other check, which is why the exercise's payload is asserted here.
 if (articles.length > 0) {
   checkPage({
     file: "excel-functions.html",
     prepare: prepareFunctionsHub,
-    args: { config, track, index, articles, icons, clientAvailable: articleDrillAvailable },
+    args: { config, track, index, articles, formulas, icons, clientAvailable: articleDrillAvailable },
   });
 }
 
@@ -175,6 +215,7 @@ for (const article of articles) {
       track,
       index,
       articles,
+      formulas,
       article,
       entry: entryFor(article.exercise),
       clientAvailable: articleDrillAvailable,
@@ -182,11 +223,104 @@ for (const article of articles) {
   });
   const path = join(PAGES, file);
   const html = existsSync(path) ? readFileSync(path, "utf8") : "";
-  for (const [probe, label] of [
-    ['id="article-data"', "the drill payload the note grades against"],
-    ["/assets/client/article-drill.js", "the note drill script"],
-  ]) {
+  for (const [probe, label] of [["/assets/client/article-drill.js", "the note exercise script"]]) {
     if (html && !html.includes(probe)) problems.push(`${file}: ${label} is missing`);
+  }
+  // The route has to render one island per listed exercise, each with its own payload: a note that lists
+  // five exercises and ships one is a page whose practice section stops halfway, and a note whose islands
+  // share one payload grades four of them against the wrong screen.
+  const islands = (html.match(/class="article-drill"/g) ?? []).length;
+  if (html && islands !== article.drills.length) {
+    problems.push(`${file}: renders ${islands} exercise islands, the note lists ${article.drills.length}`);
+  }
+  for (let n = 1; n <= article.drills.length; n += 1) {
+    if (html && !html.includes(`id="article-data-${n}"`)) {
+      problems.push(`${file}: exercise ${n} has no payload to grade against`);
+    }
+  }
+}
+
+// The problem silo: a hub, one page per problem, and the same borrowed exercise a note gets. The island
+// count is asserted for the same reason it is on a note: a page that lists an exercise and ships no payload
+// grades nothing.
+if (formulas.length > 0) {
+  checkPage({
+    file: "formulas.html",
+    prepare: prepareFormulasHub,
+    args: { config, track, index, articles, formulas, icons, clientAvailable: articleDrillAvailable },
+  });
+}
+
+for (const formula of formulas) {
+  const file = `formulas/${formula.slug}.html`;
+  checkPage({
+    file,
+    prepare: prepareFormulaPage,
+    args: {
+      config,
+      track,
+      index,
+      articles,
+      formulas,
+      formula,
+      clientAvailable: articleDrillAvailable,
+    },
+  });
+  const path = join(PAGES, file);
+  const html = existsSync(path) ? readFileSync(path, "utf8") : "";
+  if (html && !html.includes("/assets/client/article-drill.js")) {
+    problems.push(`${file}: the problem exercise script is missing`);
+  }
+  const islands = (html.match(/class="article-drill"/g) ?? []).length;
+  if (html && islands !== formula.drills.length) {
+    problems.push(`${file}: renders ${islands} exercise islands, the page lists ${formula.drills.length}`);
+  }
+  for (let n = 1; n <= formula.drills.length; n += 1) {
+    if (html && !html.includes(`id="article-data-${n}"`)) {
+      problems.push(`${file}: exercise ${n} has no payload to grade against`);
+    }
+  }
+}
+
+// The shortcut silo: the hub with its filter box, and one page per family. The route passes
+// `lessonBase` because this app serves exercises at `/learn/excel/...`, so a page compared against a
+// template built with the static edition's base would differ on its practice button and its one prose
+// link — the exact drift this check exists to catch.
+if (shortcuts.length > 0) {
+  checkPage({
+    file: "shortcuts.html",
+    prepare: prepareShortcutsHub,
+    args: { config, track, index, shortcuts, clientAvailable: shortcutsAvailable },
+  });
+}
+
+for (const shortcut of shortcuts) {
+  const file = `shortcuts/${shortcut.slug}.html`;
+  const args = {
+    config,
+    track,
+    index,
+    shortcuts,
+    shortcut,
+    lessonBase: "/learn/excel",
+    clientAvailable: shortcutsAvailable,
+  };
+  checkPage({ file, prepare: prepareShortcutPage, args });
+  const path = join(PAGES, file);
+  const html = existsSync(path) ? readFileSync(path, "utf8") : "";
+  if (html && !html.includes("/assets/client/shortcuts.js")) {
+    problems.push(`${file}: the shortcut script is missing`);
+  }
+  // The keycaps and the table are the page. A route that shipped the markdown table instead would
+  // still pass the `<main>` comparison only if the template did too, so assert the shape here.
+  const platform = (html.match(/class="platform-tab"/g) ?? []).length;
+  if (html && platform !== shortcut.platforms.length) {
+    problems.push(`${file}: renders ${platform} platform tabs, the family offers ${shortcut.platforms.length}`);
+  }
+  for (const action of shortcut.rows) {
+    if (html && !html.includes(`<th scope="row">${action.action}</th>`)) {
+      problems.push(`${file}: row "${action.action}" is missing from the keys table`);
+    }
   }
 }
 
@@ -236,7 +370,9 @@ for (const [file, pattern] of [
       index,
       groups: dashboardGroups({ track, index }),
       articles: articles.map((article) => ({ path: `/excel-functions/${article.slug}`, updated: article.updated })),
-      extra: articles.length > 0 ? ["exercises", "functions", "about", "privacy", "terms"] : ["exercises", "about", "privacy", "terms"],
+      formulas: formulas.map((formula) => ({ path: `/formulas/${formula.slug}`, updated: formula.updated })),
+      shortcuts,
+      extra: EXTRA,
     }).map((item) => `${config.baseUrl}${item.path}`);
     if (locs.length !== expected.length) {
       problems.push(`${file}: lists ${locs.length} URLs, expected ${expected.length}`);

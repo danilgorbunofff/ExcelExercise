@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
- * `npm run stripe:seed` — create the three prices, and print the environment lines they produce.
+ * `npm run stripe:seed` — create the four prices, and print the environment lines they produce.
  *
  * Prices are data in Stripe, not in this repo, so the only thing that can be written down here is the
- * recipe: one product, three prices, and the ids that end up in `STRIPE_PRICE_*`. The script is
+ * recipe: one product, one price per term, and the ids that end up in `STRIPE_PRICE_*`. Three of them
+ * are on the pricing page (a month, six months, a year) and `lifetime` is kept because accounts bought
+ * that way still have to resolve their entitlement. The script is
  * idempotent by lookup rather than by id: it reuses a price whose `lookup_key` already matches, so a
  * second run does not litter the dashboard with a fourth and fifth price.
  *
@@ -17,11 +19,12 @@
 
 import { STRIPE_API, PLANS, VARIABLES, stripeConfig, stripePost } from "../lib/stripe.js";
 
-const PRODUCT = "Excel drills — the full track";
+const PRODUCT = "Excel exercises — the full track";
 const AMOUNTS = {
-  monthly: { amount: 999, currency: "usd", interval: "month", lookup: "excel-monthly" },
-  annual: { amount: 5999, currency: "usd", interval: "year", lookup: "excel-annual" },
-  lifetime: { amount: 19900, currency: "usd", interval: null, lookup: "excel-lifetime" },
+  monthly: { amount: 999, currency: "usd", interval: "month", intervalCount: 1, lookup: "excel-monthly" },
+  semiannual: { amount: 3999, currency: "usd", interval: "month", intervalCount: 6, lookup: "excel-semiannual" },
+  annual: { amount: 5999, currency: "usd", interval: "year", intervalCount: 1, lookup: "excel-annual" },
+  lifetime: { amount: 19900, currency: "usd", interval: null, intervalCount: 0, lookup: "excel-lifetime" },
 };
 
 const config = stripeConfig();
@@ -47,7 +50,7 @@ async function ensureProduct() {
   if (existing) return existing.id;
   const created = await stripePost(
     "/products",
-    { name: PRODUCT, description: "Sixty drills. One payment. Progress carries across devices." },
+    { name: PRODUCT, description: "Sixty exercises. One payment. Progress carries across devices." },
     { config },
   );
   if (!created.ok) throw new Error(created.error);
@@ -69,7 +72,12 @@ async function ensurePrice(productId, plan) {
     // the price's own metadata is for a human looking at the dashboard.
     "metadata[plan]": plan,
   };
-  if (PLANS[plan].recurring) form["recurring[interval]"] = wanted.interval;
+  if (PLANS[plan].recurring) {
+    // The count is what makes six months a single $39.99 charge instead of six $39.99 charges: Stripe
+    // bills `unit_amount` every `interval_count` intervals, and the checkout session cannot override it.
+    form["recurring[interval]"] = wanted.interval;
+    form["recurring[interval_count]"] = String(wanted.intervalCount);
+  }
   const created = await stripePost("/prices", form, { config });
   if (!created.ok) throw new Error(created.error);
   return created.body.id;

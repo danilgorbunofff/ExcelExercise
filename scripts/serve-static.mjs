@@ -5,7 +5,7 @@
  *
  * The port ships two deployables: the Next app (served by `next start`) and the static build. Until
  * this existed the static build was only HTML-crawled by `legacy/src/verify.mjs` — no browser ever
- * loaded one of its pages, so the browser-only parts (the drill's module graph, the storage probe,
+ * loaded one of its pages, so the browser-only parts (the exercise's module graph, the storage probe,
  * the keyboard loop) were unproven there. This serves the exact bytes `legacy/dist` contains, with
  * the extension-less `/excel/<slug>` shape the real host uses.
  *

@@ -46,6 +46,16 @@ jobs:
       - name: content factory gate
         run: npm run content:check
 
+      # The notes gate: every function page has its seven sections, its drills exist, and the prose
+      # reads like a person wrote it. Separate from the factory gate because it fails on different work.
+      - name: function notes gate
+        run: npm run content:articles
+
+      # The problem pages gate: every problem page has its four sections, a drill that exists, one
+      # link to a note and two to its neighbours, and prose a person would read to the end.
+      - name: problem pages gate
+        run: npm run content:formulas
+
       # The snapshot is recorded, never regenerated in CI: `npm run golden:update` is a deliberate
       # local action, so an updated snapshot has to arrive as a reviewable diff. `status --porcelain`
       # rather than `diff` so a newly added snapshot file counts as a change too.

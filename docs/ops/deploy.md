@@ -25,6 +25,93 @@ lived in one module.
 | Sign-in, sign-up, reset, `/account`, certificates, `/leaderboard`, `/daily`, `/flashcards`, checkout, portal | served | linked to the app when `SITE_APP_URL` is set |
 | Progress, entitlement, feedback rows | database | none: the page says so |
 
+## Hosting the two editions
+
+The plan of record is two projects on one platform: the app built with `npm run next:build` and served
+on Node, the static edition publishing `legacy/dist` to a subdomain, both answering extension-less URLs
+and a real 404. Two things that were assumptions about that shape until they were measured on a local
+build of `962b498`:
+
+- **The content ships with the app.** Every route's trace manifest under `.next/server/**/*.nft.json`
+  names the files it reads from `legacy/content/` — 119 of the 120 files there, the one miss being a
+  `.DS_Store`. That manifest is the list a Serverless host uploads, so the function that renders a
+  lesson carries the lesson, and no `outputFileTracingIncludes` is needed. The check to repeat after a
+  change to how content is loaded: `npm run next:build`, then
+  `grep -o legacy/content '.next/server/app/learn/excel/[lesson]/page.js.nft.json' | wc -l` — it
+  answers 119 today, and a zero means the tracer lost the directory: the lessons will 404 in
+  production while passing locally.
+- **`proxy.js` runs on Node, not the edge.** Next 16 defaults Proxy to the Node runtime and throws if
+  the file exports `runtime`. That is what keeps the middleware safe: it imports `lib/site.js`, so its
+  trace carries the whole content tree (859 kB — three quarters of an edge function's 1 MB ceiling, and
+  no ceiling worth naming on Node).
+
+Each build's `SITE_URL` is its own origin, so the two editions are each self-canonical. Making the
+static mirror the canonical copy of a lesson is a code change in the renderers, not a hosting setting;
+it is not part of this release.
+
+Both projects point at this repository, so there is one `vercel.json` at the root and both read it. It
+carries `cleanUrls` and nothing else — the two deployments differ in *how they are built*, and that
+belongs in each project's dashboard settings, not in a file they share. `tests/static-parity.test.js`
+fails if a build command or output directory is ever added to it, because that is how the app project
+would quietly start publishing `legacy/dist`.
+
+| Setting | App project | Static project |
+|---|---|---|
+| Root Directory | repo root | repo root |
+| Build Command | `npm run next:build` | `npm run build` |
+| Output Directory | (Next default) | `legacy/dist` |
+| Framework Preset | Next.js | Other |
+| Node Version | 24 | 24 |
+| `SITE_ENV` | `production` | `production` |
+| `SITE_URL` | app origin | static origin |
+| 404 document | `app/not-found.js` | `legacy/dist/404.html`, written by the build |
+
+Extension-less URLs come from `cleanUrls` for the static project, and from the Next router for the app.
+`legacy/dist/404.html` is what makes a wrong path a 404 with the site's own chrome rather than the
+host's plain text; the build writes it, and a missing one is a soft 200 the smoke cannot see.
+
+## What tells you it is down
+
+Two questions a launch has to answer before the first stranger arrives: *is it up*, and *what broke*.
+Neither is answered by the site itself, so both need something outside it.
+
+**Uptime — a monitor, not code.** `GET /api/health` answers `{"status":"ok","sha":"<commit>"}`. Point
+any monitor at it on a one-minute cadence and alert to an address a person actually reads:
+
+| Target | What a failure means |
+|---|---|
+| `/api/health` | the app is not answering, or the deploy lost its build |
+| `/` | the app answers but the front page throws |
+| `/learn/excel/<a lesson>` | the content tree did not travel with the deploy |
+| `/pricing` | the paywall payload or the offer failed to render — the revenue page |
+| the static origin's `/` | the mirror is down, which is separate from the app being down |
+
+Assert two things, not one: the status code **and** that `sha` equals the release commit. A host that
+serves a stale deployment answers 200 happily, and the whole point of the field is to catch that. The
+smoke already does this check once, by hand; the monitor does it forever.
+
+**Errors — a sink.** `instrumentation.js` exports Next's `onRequestError`, so every server-side failure
+(a render, a route handler, an action, the Proxy) becomes one sanitized JSON line; `app/api/report-error`
+does the same for errors the browser's boundary catches, which the server would otherwise never see.
+Set `ERROR_SINK_URL` and each record is also POSTed there. Unset is supported: the lines still reach
+the host's log viewer, which is a real but short-lived record — exit 137, a bad deploy and a copy of
+the log that outlives it are three different problems, and a sink is how the third one stops mattering.
+
+Three properties worth knowing, because they are why this can be switched on without fear:
+
+- **No person in the record.** The same rule as `log-event.js` drops addresses, tokens and identity
+  fields. `/privacy` says nothing joins these logs to an account, and this does not change that.
+- **It cannot hurt the site.** The forward has a two-second timeout, failures are swallowed, and past
+  sixty forwards in ten minutes (per instance) the record is logged but not sent — a render loop must
+  not become a denial of service on the sink.
+- **It is vendor-neutral.** A Slack webhook, a Better Stack source, or your own function all work,
+  because it is a URL and a JSON body rather than an SDK. `sendDefaultPii` and similar vendor settings
+  do not exist to get wrong here.
+
+The verification is not "the env var is set": fire one synthetic error (`curl -X POST` the route, or
+break a page in a preview) and watch it arrive; then stop the app and confirm the monitor alerts once
+and recovers once. Step 7d of `go-live-plan.md` holds the order.
+
 ## The environment each one needs
 
 The app refuses to pretend. `lib/auth/config.js` reports accounts as *off* unless the whole pair is
@@ -41,7 +128,8 @@ present, and `lib/paywall.js` treats enforcement as off unless there is a databa
 | `PAYWALL` | app | `on`/`1`/`true` enforces the lesson gate | Gate off: lessons are open, `/pricing` still sells |
 | `STRIPE_SECRET_KEY` | app | Checkout and portal | Checkout answers "not configured" |
 | `STRIPE_WEBHOOK_SECRET` | app | Signature check on `/api/stripe/webhook` | Webhook refuses every request |
-| `STRIPE_PRICE_MONTHLY` / `_ANNUAL` / `_LIFETIME` | app | Price ids sold on `/pricing` | That plan is not offered |
+| `STRIPE_PRICE_MONTHLY` / `_SEMIANNUAL` / `_ANNUAL` | app | Price ids sold on `/pricing` | That plan is not offered |
+| `STRIPE_PRICE_LIFETIME` | app | Only read when a one-off lifetime price is live; not one of the three `/pricing` sells | No lifetime plan |
 | `GIT_SHA` (or `VERCEL_GIT_COMMIT_SHA`) | app | Baked into `/api/health` | Health reports `git rev-parse --short HEAD`, else `unknown` |
 | `SITE_APP_URL` | static edition | Absolute account/certificate/signup/checkout links pointing at the app | The links are omitted: this build *is* the whole site |
 | `RELEASE_SHA` / `SMOKE_ORIGIN` | smoke only | Defaults for `--sha` / the origin argument | — |
@@ -71,9 +159,14 @@ Never put `SUPABASE_SERVICE_ROLE_KEY` or a Stripe secret in anything that starts
      `e2e-static/static-404.spec.js` is the proof, and the smoke below re-checks it in place.
 5. Run the smoke against both origins with the SHA from step 1:
    ```
-   npm run smoke -- https://www.example --sha "$(git rev-parse --short HEAD)"
-   npm run smoke -- https://static.example --sha "$(git rev-parse --short HEAD)"
+   npm run smoke -- https://www.example --sha "$(git rev-parse HEAD)"
+   npm run smoke -- https://static.example --sha "$(git rev-parse HEAD)"
    ```
+   Pass the **full** sha. The smoke compares it to `/api/health` for equality, and a Serverless host
+   bakes the whole 40-character `VERCEL_GIT_COMMIT_SHA` — a seven-character sha from
+   `--short` is a different string and fails the check on a perfectly good deploy. `GIT_SHA` wins over
+   `VERCEL_GIT_COMMIT_SHA` when both are set, so a host that only has short shas exported should bake
+   the short one and be smoked with the short one; what matters is that the same string is compared.
    The static edition has no `/api/health`, so the SHA check is skipped there with the reason
    printed — that is the only check it may skip.
 
@@ -187,5 +280,5 @@ receive a reply is worse than none.
 
 The feedback dialog posts to `POST /api/feedback` when the deployment has a service-role key, and says
 so ("a person reads these"). Without one the route answers 503 and the dialog falls back to the local
-queue with the copy that names it. `npm run db:check` is the only thing that proves the insert path
-end to end, and no gate runs it.
+queue with the copy that names it. `npm run db:check` proves the insert path end to end, and the `db`
+job in `.github/workflows/ci.yml` runs it on every push, against a real local stack.

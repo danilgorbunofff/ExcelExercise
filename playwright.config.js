@@ -52,7 +52,10 @@ export default defineConfig({
     },
     {
       name: "webkit",
-      testMatch: ["**/drill.spec.js", "**/keyboard.spec.js"],
+      // `certificate.spec.js` is here because H1 names three behaviours on Safari and the third is
+      // the print stylesheet. The spec asserts the sheet, not the PDF — `page.pdf()` is Chromium-only
+      // and that half of H7 lives in `e2e-accounts/certificate.spec.js` where it can run.
+      testMatch: ["**/drill.spec.js", "**/keyboard.spec.js", "**/certificate.spec.js"],
       use: { ...devices["Desktop Safari"] },
     },
     // The static build is the other deployable. It used to be HTML-crawled only, so nothing

@@ -63,7 +63,7 @@ previous release commit, `npm run next:build`, and start that artifact. Two rule
 - After any rollback, run the smoke twice — once at the restored origin, once at the origin that was
   bad — so the report says what the reader is actually served:
   ```bash
-  npm run smoke -- https://www.example --sha "$(git rev-parse --short HEAD)"
+  npm run smoke -- https://www.example --sha "$(git rev-parse HEAD)"
   ```
 
 ## Deciding, in the first five minutes

@@ -1,6 +1,7 @@
 # Excel Supreme
 
-A zero-signup, browser-only micro-learning site for Excel formulas. Sixteen exercises, each one a small
+A zero-signup, browser-only micro-learning site for Excel formulas. Eighty-six exercises in sixteen
+groups, each one a small
 spreadsheet with a single answer cell: the learner types a formula, a deterministic grader in the page
 says exactly what is wrong — wrong value, wrong function, malformed syntax, with a caret under the
 offending token.
@@ -43,9 +44,9 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules, the paywall, the legal pages | 794 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules, the paywall, the legal pages | 2,079 pass, 0 fail |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
-| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 30 pages, exit 0 |
+| `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 141 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |
 | `npm run content:fixtures -- --lesson 6` | Prints every fixture for one lesson with declared vs reported rule | one row per fixture, all `✓`/`·` |
 | `npm run content:new -- --lesson 17 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
@@ -53,17 +54,17 @@ while the port is in progress.
 | `npm run copy:site` | Renders every page, reads every module the site speaks through, and runs the lesson house style over the result | 0 findings, and a finding fails the command |
 | `npm run copy:site:write` | Regenerates `tests/golden/site-copy.json`, the inventory of every string the site says | diff reviewed like code |
 | `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
-| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 908 checks pass |
+| `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 6,326 checks pass |
 | `npm run check` | `test` + `content:check` + `copy:site` + the content gates + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run db:start` | Starts the local Supabase stack (schema, RLS, seed) from `supabase/` | `supabase status` reports every service healthy |
-| `npm run db:check` | `supabase db reset`, then the RLS, auth, data-rights, institutional-access and payment suites in `tests/db/` | 129 assertions pass, 0 fail |
+| `npm run db:check` | `supabase db reset`, then the RLS, auth, data-rights, institutional-access and payment suites in `tests/db/` | every assertion passes, 0 fail |
 | `npm run dev` | Build, then serve on port 4173 | `curl -I localhost:4173/excel/sum-basics` → 200 |
-| `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 30 prerendered pages, exit 0 |
-| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 30 pages match |
+| `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 139 prerendered pages, exit 0 |
+| `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 139 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
 | `npm run next:hot` | `next dev` alone, on top of whatever `legacy/dist` already holds; assumes `npm run build` has run once | `/learn/excel/sum-basics` renders, and no page reloads while you type |
-| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 82 tests pass |
+| `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 243 tests pass across five projects |
 
 **Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
 `SITE_URL`, which is what canonical links, the sitemap and the JSON-LD `@id`s are built from. Serve on
@@ -158,6 +159,7 @@ supabase/                 phase 4 schema, RLS policies, the profile trigger and 
 .env.example              the two public Supabase variables; copy to .env.local, both optional
 docs/phases/              the plan each phase was built from, with what was built and what changed
 docs/plans/parity/        the reference-parity program, one file per phase
+docs/ops/                 the go-live plan, the launch checklist and log, deploy, backup, rollback
 docs/content-authoring.md how to write, preview, fixture and gate a lesson
 docs/player-contract.md  the player's screen, score-loop, clock and event contract
 docs/screenshots/         the visual baseline: lesson 1 at 1440px and 375px
@@ -228,7 +230,7 @@ lesson and the dashboard behave exactly as before. Configure a project and those
 cp .env.example .env.local     # both variables are optional; unset is the supported default
 npm run db:start               # local Supabase on ports 54350–54359 (needs Docker or colima)
 npm run db:reset               # migrations + seed; run this after any migration change
-npm run db:check               # 129 assertions: RLS, sign-in and emailed links, the progress writer, the roll-up import, the profile columns, the export RPCs, the erase, the institution allowlist and the payment webhook
+npm run db:check               # RLS, sign-in and emailed links, the progress writer, the roll-up import, the profile columns, the export RPCs, the erase, the institution allowlist and the payment webhook
 ```
 
 `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read at build time for the browser
@@ -420,12 +422,22 @@ recorded completions. Twelve of the fourteen names in the vocabulary are emitted
   showing a fallback on a slow first visit.
 - **Fonts are not subset**; the vendored woff2 files carry full Latin coverage, which is the largest
   single share of the payload.
-- **Verified in Chrome only**, plus a manual Safari smoke test. No cross-browser matrix and no visual
-  regression service: `docs/screenshots/` is the baseline.
+- **Three browser engines, but not a cross-browser matrix.** Playwright runs Chromium everywhere and
+  adds Firefox and WebKit for the two specs where an engine actually disagrees — `drill.spec.js`
+  (selection and composition in the answer field) and `keyboard.spec.js` (focus order and chords).
+  That is not Safari and not Windows: H1 and H2 in `docs/ops/launch-checklist.md` are still open until
+  a person runs them, and there is no visual regression service — `docs/screenshots/` is the baseline.
 - **No analytics collector.** Events are buffered in memory and logged; attaching a provider later
   means forwarding `window.__esEvents`, not touching the exercise.
-- **Sixteen lessons.** Volume, not the engine, is the limit: the build, the grader and the client handle
-  any number of lessons listed in `track.json`.
+- **The two public write endpoints rate-limit in memory, per instance.** `POST /api/feedback` allows
+  twelve notes per address in ten minutes and `POST /api/report-error` thirty reports of at most 2 KB,
+  both counted in a process-local map. On a host that runs more than one instance the real ceiling is
+  the limit times the instance count, so these are anti-firehose valves, not a quota. That is a
+  deliberate trade: a database counter would put a write in front of every note and every browser
+  error, and both routes are a contact form rather than an authentication surface. A shared counter
+  is the change to make if abuse ever appears.
+- **Eighty-six lessons.** Volume, not the engine, is the limit: the build, the grader and the client
+  handle any number of lessons listed in `track.json`.
 
 ## Screenshots
 

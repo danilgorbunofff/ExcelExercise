@@ -217,9 +217,15 @@ async function checkHealth(origin, options, report) {
   if (!options.sha) {
     report.skip(`the release is the one that was deployed`, "no --sha given, so the reported sha is unchecked");
   } else if (health.sha !== options.sha) {
+    // A short sha against a host that bakes the full one is a comparison mistake, not a stale build;
+    // naming that here saves an operator from rolling back a release that is actually live.
+    const shortened =
+      health.sha.startsWith(options.sha) || options.sha.startsWith(health.sha);
     report.fail(
       `the release is the one that was deployed`,
-      `served ${health.sha}, deploy notes say ${options.sha}: the old build is still answering`,
+      shortened
+        ? `served ${health.sha}, deploy notes say ${options.sha}: same commit, different sha length — pass the full sha`
+        : `served ${health.sha}, deploy notes say ${options.sha}: the old build is still answering`,
     );
   } else {
     report.pass(`the release is the one that was deployed`, health.sha);

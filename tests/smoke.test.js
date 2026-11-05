@@ -247,6 +247,20 @@ describe("smoke — the ways a deploy goes wrong", () => {
     }
   });
 
+  // A serverless host bakes the whole 40-character commit sha; the operator's notes usually carry
+  // seven. That is the same release, and telling the operator "the old build is still answering"
+  // would send them to the rollback page over a typo in the command.
+  it("names a short sha checked against a full one as a length mistake, not a stale build", async () => {
+    const site = await fakeOrigin(healthy({ health: { status: "ok", sha: "abc1234def5678901234" } }));
+    try {
+      const { failures } = await smoke([site.origin, "--sha", "abc1234"]);
+      assert.match(failures.join("\n"), /same commit, different sha length — pass the full sha/);
+      assert.doesNotMatch(failures.join("\n"), /old build is still answering/);
+    } finally {
+      await site.close();
+    }
+  });
+
   it("fails when the health endpoint answers with something that is not a health report", async () => {
     const site = await fakeOrigin(healthy({ health: { status: "degraded" } }));
     try {

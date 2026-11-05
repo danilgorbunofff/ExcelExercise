@@ -48,7 +48,8 @@ test("a signed-out note reaches a person, and the dialog says it was sent", asyn
   await file(page, { text, at: route });
 
   await expect(page.locator("#feedback-done-note")).toContainText("Sent.");
-  await expect(page.locator("#feedback-done-note")).toContainText("a person reads these");
+  // Case-folded: the promise opens a sentence in the dialog, and the probe does not need its capital.
+  await expect(page.locator("#feedback-done-note")).toContainText(/a person reads these/i);
 
   // No queue: the local copy only exists when the post failed, and this one did not.
   const queue = await page.evaluate(() => JSON.parse(localStorage.getItem("es.feedback") ?? "[]"));

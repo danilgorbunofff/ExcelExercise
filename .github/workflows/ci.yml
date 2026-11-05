@@ -18,9 +18,13 @@ env:
   # `/api/health` echoes this, so a running deploy can be identified from the outside.
   GIT_SHA: ${{ github.sha }}
 
+# Every job pins the LTS image rather than `ubuntu-latest`. `latest` follows a pre-release during a
+# cycle, and its archive mirror is slow enough that `playwright install --with-deps` alone — before a
+# single test runs — spent the whole e2e budget fetching libavcodec and friends. The image a gate runs
+# on is part of the gate: a pinned one either works or fails the same way twice.
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     # Built as production, on the real origin, so the crawl below is checking the site a reader would
     # get rather than a laptop: a canonical that still says `localhost` fails `origin:check` here.
@@ -109,9 +113,11 @@ jobs:
           kill "$server"
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Three engines: the drill and the keyboard specs run on Firefox and WebKit as well as Chromium.
-    timeout-minutes: 25
+    # The browser and system dependencies are the bulk of this job's variance, so the budget leaves
+    # room for the install after a cold runner.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
@@ -150,7 +156,7 @@ jobs:
     # functions. It needs Docker, a real stack and a reset, so it is its own job rather than a step in
     # `check` — and it runs the accounts browser suite too, because those specs are the only place a
     # session, an entitlement and a certificate are proved together.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -198,7 +204,7 @@ jobs:
 
   static:
     # The static site keeps deploying on its own until phase 9 replaces it.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4

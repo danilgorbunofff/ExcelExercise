@@ -12,7 +12,7 @@ the next person reads it as evidence.
 
 | Field | Value |
 |---|---|
-| Release commit (full sha) | `d5d353e` — cut 2026-11-05 on `phase-0-port-shell`, 19 files. CI pending on this sha. |
+| Release commit (full sha) | `5e3a1b6f7644c803e84137c95c2f0a41d6eba24c` — cut 2026-11-05 on `phase-0-port-shell`, 23 files, +1450 −49 against `main`. Green on both CI runs on this sha: push `42103111994` and PR `42103114809`. |
 | Tag | none yet |
 | App origin | *not assigned* |
 | Static origin | *not assigned* |
@@ -23,10 +23,10 @@ the next person reads it as evidence.
 
 | Gate | Where it was proven | Date | By |
 |---|---|---|---|
-| `npm run check` on the release commit | | | |
-| `npm run review` — all four gates, `db` and `accounts` included | | | |
-| `npm run e2e:accounts` against the release candidate | | | |
-| Both editions built from the release commit with production `SITE_*` | | | |
+| `npm run check` on the release commit | CI `check` job, both runs on `5e3a1b6` — 139 pages prerendered, 86 lessons, 6326 content checks, byte budgets, origin and secret scans | 2026-11-05 | CI (`ubuntu-24.04`) |
+| `npm run review` — all four gates, `db` and `accounts` included | local, on `5e3a1b6` — eleven gates green; 78 of 78 proved witnesses re-ran, 158 Next and 138 static links answered 200; annex `docs/plans/parity/reviews/completeness-2026-11-05-gates.md` | 2026-11-05 | this machine |
+| `npm run e2e:accounts` against the release candidate | CI `db` job, both runs on `5e3a1b6` — 30 passed (22.7s on the push run, 29.2s on the PR run); also 30/30 locally | 2026-11-05 | CI (`ubuntu-24.04`) |
+| Both editions built from the release commit with production `SITE_*` | `npm run review`, whose build gate sets `SITE_ENV=production` and `SITE_URL=https://excelsupreme.com`; the budget, route, origin and secret gates then run against that pair | 2026-11-05 | this machine |
 | Restore rehearsal against a real project (`backup.md`) | | | |
 | Rollback rehearsal against the real host (`rollback.md`) | | | |
 | Error and uptime sink live, alert proven by a synthetic failure | | | |
@@ -43,7 +43,9 @@ What a machine has already proved, so the person signing knows what is actually 
   `certificate` specs; 23 passed). What remains is the Safari app and this Mac's print stack, not the
   code.
 - **H6** — `keyboard.spec.js` passes the whole first lesson with no mouse on Chromium, Firefox and
-  WebKit. What remains is a physical keyboard and a person who does not reach for the trackpad.
+  WebKit, and the walk was re-run thirty times on WebKit — sixty passes, no failure — after its tab
+  budget was fixed. What remains is a physical keyboard and a person who does not reach for the
+  trackpad.
 - **H7** — A4 and Letter are both measured against a sixty-character unbroken name, and `page.pdf()`
   is asserted to be a real, non-empty PDF with the verification URL on it. What remains is the OS
   print dialogue.
@@ -88,7 +90,9 @@ One entry per incident: what the reader saw, what was actually wrong, what was d
 
 | Time | Symptom | Cause | Undo used | Duration |
 |---|---|---|---|---|
-| | | | | |
+| 2026-11-05 | CI `e2e` cancelled at its 25-minute timeout having run **zero** tests, while `check`, `db` and `static` had already passed | `ubuntu-latest` resolved to pre-release `resolute`, and its `azure.archive.ubuntu.com` mirror stalled inside `playwright install --with-deps` — still on package 59 of the set when the budget ran out | none needed: every job pinned to `ubuntu-24.04`, `e2e` budget 25 → 35 min (`da278fc`) | one CI cycle |
+| 2026-11-05 | `e2e/keyboard.spec.js` failed on WebKit in the PR run and passed in the push run on the same sha; the walk reported `body` partway round, and the hint button looked like it would not expand | Not a product defect. `tabTo`'s fixed 30-press budget was smaller than the page's tab-stop count once the footer arrives (~22 anchors alone), and a return to `body` was read as stolen focus — but tabbing off the last control hands focus to WebKit's own chrome, which reports `body`. Separately, the `data-full` hydration signal fired one line before the formula bar was wired. | none needed: budget computed from the live tab-stop count, one wrap allowed and a second still fails, and `waitForClient` now waits for `#formula` enabled (`5e3a1b6`) | an evening |
+| 2026-11-05 | `npm run review` red: `p2-263 — e2e/keyboard.spec.js:67 is not inside any browser test that ran` | The fix above added lines above the first test, so a `path:line` witness in the parity docs came to point into a docstring. Adding lines to a cited test file invalidates every witness below the edit. | none needed: repointed `p2-263` to `:92` in the phase doc and in the review document; review then green | under five minutes |
 
 ## The first week
 

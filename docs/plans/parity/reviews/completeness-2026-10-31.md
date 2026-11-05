@@ -385,7 +385,7 @@ a real browser. Runtime evidence in this repo is genuine.
 | p2-256 | `showAnswerAfter` configurable and respected | Proven | `tests/client.test.js:603,612,618` | browser |
 | p2-260 | Workbook preview renders offline, no third-party request | Proven | `tests/build.test.js:363`; `e2e/a11y.spec.js:179` | browser |
 | p2-262 | axe: zero critical/serious on the player | Proven | `e2e/a11y.spec.js:83` | browser |
-| p2-263 | Keyboard-only learner completes a full lesson | Proven | `e2e/keyboard.spec.js:67` | browser |
+| p2-263 | Keyboard-only learner completes a full lesson | Proven | `e2e/keyboard.spec.js:92` | browser |
 | p2-265 | Timer pauses when the tab is hidden | Proven | `e2e/drill.spec.js` `setHidden` harness (line 265) | browser |
 
 ### 2.5 Phase 3 — dashboard and progression (16 rows)

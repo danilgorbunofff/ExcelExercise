@@ -13,16 +13,16 @@ records only what the gates did on this machine, at this commit.
 
 | Gate | What it proves | Result | Time |
 | --- | --- | --- | --- |
-| unit | the unit suite, with line coverage so a witness can be proved to have run | pass | 8s |
+| unit | the unit suite, with line coverage so a witness can be proved to have run | pass | 9s |
 | content | the content factory gate and the legal copy | pass | 0s |
-| build | both builds, as production on the shipped origin | pass | 5s |
+| build | both builds, as production on the shipped origin | pass | 6s |
 | budget | the byte budget | pass | 0s |
 | routes | routes match the templates | pass | 0s |
 | origin | no canonical on the fallback origin | pass | 0s |
 | secrets | no secret in either build | pass | 0s |
 | static | the static site crawls clean | pass | 0s |
-| browser | the browser suite | pass | 59s |
-| db | the database suite (the layer no other gate reaches) | pass | 47s |
+| browser | the browser suite | pass | 55s |
+| db | the database suite (the layer no other gate reaches) | pass | 45s |
 | accounts | the accounts browser suite | pass | 37s |
 
 ## The db gate's own list
@@ -101,7 +101,7 @@ Every spec in the directory is one the gate runs.
 | p2-256 | Proven | `tests/client.test.js:603,612,618` | yes: 3 test witnesses ran |
 | p2-260 | Proven | `tests/build.test.js:363`; `e2e/a11y.spec.js:179` | yes: 2 test witnesses ran |
 | p2-262 | Proven | `e2e/a11y.spec.js:83` | yes: 1 test witness ran |
-| p2-263 | Proven | `e2e/keyboard.spec.js:67` | yes: 1 test witness ran |
+| p2-263 | Proven | `e2e/keyboard.spec.js:92` | yes: 1 test witness ran |
 | p2-265 | Proven | `e2e/drill.spec.js:274` — `setHidden` harness | yes: 1 test witness ran |
 
 ### docs/plans/parity/phase-03-dashboard-progression.md

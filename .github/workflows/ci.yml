@@ -166,9 +166,13 @@ jobs:
       - name: postgres client
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
 
+      # Pinned, not `latest`. CLI 3.0.0 landed on 2 November and renamed `[inbucket]` to
+      # `[local_smtp]` in `supabase/config.toml`, so `latest` turned every run red on a config this
+      # repo has not migrated yet. The pin comes off with that migration, together with an upgrade of
+      # the version `npm run db:start` uses locally, which is still on the 2.x line.
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: "2.122.1"
 
       - name: start the stack
         run: supabase start

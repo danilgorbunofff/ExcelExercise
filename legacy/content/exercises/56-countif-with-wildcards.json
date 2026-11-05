@@ -65,11 +65,11 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNTIF(A2:A8,\"Widget*\"): the pattern travels inside the quotes.",
-        "func-countif": "The list is text, so it needs a function that counts matches rather than numbers.",
-        "require-ref": "Point at the product column so the pattern is matched against the grid.",
-        "value": "The star stands for the rest of the text, so all four Widget rows count: 4.",
-        "error": "A division by zero in the formula returns #DIV/0! instead of a count."
+        "syntax": "=COUNTIF(A2:A8,\"Widget*\"): the pattern sits inside the quotes.",
+        "func-countif": "The column is text, so the count has to come from matches rather than numbers.",
+        "require-ref": "Match the pattern against the product column itself, not against the answer cell.",
+        "value": "The star covers the rest of each name, so all four Widget rows count.",
+        "error": "Without quotes the pattern is read as a name, and the cell shows #NAME?."
       },
       "fixtures": {
         "accept": [
@@ -180,11 +180,11 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNTIF(A2:A8,\"*B\"): the star sits before the letter to stand for everything ahead of it.",
-        "func-countif": "Matching part of a name is a counting question, not a lookup.",
-        "require-ref": "Match the pattern against the product column of the grid.",
-        "value": "\"Widget B\", \"Gizmo B\" and \"Gadget B\" end in B, so the count is 3.",
-        "error": "A formula that divides by zero returns #DIV/0! instead of a count."
+        "syntax": "=COUNTIF(A2:A8,\"*B\"): the star goes in front of the letter.",
+        "func-countif": "Matching part of a name is still a counting question, not a lookup.",
+        "require-ref": "Point the pattern at column A, where the names live.",
+        "value": "Three names end in B: Widget B, Gizmo B and Gadget B.",
+        "error": "A star on the other end, B*, matches names beginning with B and counts 0 here."
       },
       "fixtures": {
         "accept": [
@@ -236,20 +236,20 @@
     }
   ],
   "docs": {
-    "syntax": "=COUNTIF(range, \"pattern*\") — * stands for any run of characters, ? for exactly one",
-    "explain": "Text criteria accept two wildcards, and they turn a counting question into a pattern question. The star stands for any number of characters, including none, so Widget* matches Widget A, Widget B, Widget C and Widget D but never a Gadget. The question mark stands for exactly one character, so SO-100? matches any order number one digit longer in that position. A pattern with no wildcard is an exact match, which is why COUNTIF on Widget alone answers zero rather than four. The cells hold Widget A, not Widget. Patterns are case-insensitive, so widget* and Widget* are the same test. The whole pattern must sit inside the quotes, or the function sees a range and a piece of text with no comma between them. In this drill the first screen counts four names starting with Widget and the second counts two names ending in B, where the star moves in front of the letter. The usual mistake is putting the star on the wrong end, which silently counts a different set of rows rather than failing loudly.",
+    "syntax": "=COUNTIF(range, \"pattern*\") counts the names that match; * stands for any run of characters and ? for exactly one",
+    "explain": "COUNTIF criteria accept two wildcards, and either one turns an exact match into a pattern. The star stands for any run of characters, including none, so Widget* covers Widget A, Widget B, Widget C and Widget D. The question mark stands for exactly one character, so Gadget? misses Gadget B because of the space.\n\nThe wildcards sit inside the quotes with the rest of the pattern. Widget* returns 4 here. Move the star to the front and *B returns 3, the three names ending in B: Widget B, Gizmo B and Gadget B.\n\nWithout a wildcard the criterion is the whole cell, so Widget on its own returns 0 because no cell holds that word. A star on the wrong end counts another set of rows and still returns a number that looks plausible.",
     "errors": [
       {
-        "code": "#VALUE!",
-        "text": "The pattern and a range were jammed into one argument by a missing comma."
-      },
-      {
-        "code": "#DIV/0!",
-        "text": "The count was divided by zero before it reached the cell."
-      },
-      {
         "code": "#NAME?",
-        "text": "COUNT was used on a text column, which counts numbers and answers zero."
+        "text": "A pattern typed without quotes, as in Widget*, is read as a name that does not exist."
+      },
+      {
+        "code": "Matches nothing",
+        "text": "An exact criterion that no cell holds, such as Widget on its own, returns 0 without a warning."
+      },
+      {
+        "code": "Wrong end",
+        "text": "A star on the wrong end counts another set of rows and still returns a plausible number."
       }
     ],
     "atWork": "Counting every product in one family, and counting records that share a code prefix or suffix.",

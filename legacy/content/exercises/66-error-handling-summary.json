@@ -70,12 +70,12 @@
       "requireRef": "A8",
       "rules": [],
       "hints": {
-        "syntax": "=IFERROR(value, value_if_error): two arguments, the second is the net.",
-        "func-iferror": "Any failure at all has to become the word no match, which is the wider net.",
-        "func-vlookup": "The price is in the second column of the table.",
-        "require-ref": "Read the code from the grid instead of typing it.",
-        "value": "Q-9 is not on the list, so the lookup fails with #N/A and the net catches it.",
-        "error": "IFERROR catches #DIV/0! as well, so a guarded division reports the net's word."
+        "syntax": "=IFERROR(value, value_if_error): the second argument is the net.",
+        "func-iferror": "The prompt wants any failure to become no match, and that takes the wider net.",
+        "func-vlookup": "The price is column 2 of the table.",
+        "require-ref": "Read the code from A8 so the answer follows the cell.",
+        "value": "Q-9 is not on the list, so the lookup fails and the net prints no match.",
+        "error": "The grader also rejects IFNA here: a column number past the last one raises #REF!, which the narrow net leaves on screen."
       },
       "fixtures": {
         "accept": [
@@ -198,11 +198,11 @@
       "requireRef": "B4",
       "rules": [],
       "hints": {
-        "syntax": "=IFERROR(B3/C3,\"no units\"): the division sits inside the net.",
-        "func-iferror": "A blank divisor raises #DIV/0!, and the net is what turns it into a word.",
-        "require-ref": "Divide the price in the grid by the units in the same row.",
-        "value": "The units cell on row 4 is empty, so the division fails and the answer is no units.",
-        "error": "IFNA would not help here: #DIV/0! is not #N/A, so the error escapes it."
+        "syntax": "=IFERROR(B4/C4,\"no units\"): the division sits inside the net.",
+        "func-iferror": "C4 is empty, so the division raises #DIV/0!, and the net is what turns that into words.",
+        "require-ref": "Divide the price in B4 by the units in C4, both read from the grid.",
+        "value": "Row 4 is C-3 at 30 with no units recorded, so the division fails and the answer is no units.",
+        "error": "Swapping in IFNA leaves #DIV/0! on screen, because the narrow net only answers #N/A."
       },
       "fixtures": {
         "accept": [
@@ -250,23 +250,23 @@
   ],
   "docs": {
     "syntax": "=IFERROR(value, fallback) catches everything; =IFNA(value, fallback) catches only #N/A",
-    "explain": "Two nets, two jobs. IFERROR evaluates its first argument and returns the second if any error at all comes back. That makes it the right choice when the question is whether a calculation worked. The failure might be a division by an empty cell, a lookup into a range that is not there, or text handed to arithmetic. IFNA is the narrower net. It returns the second argument only for #N/A, the error raised when a lookup or a match finds nothing, and lets every other error through. Choosing between them is a decision about what the sheet is going to say. A wide net makes the output tidy, and it also hides the bugs. A #REF! that should have been fixed at the source becomes a friendly word that looks like ordinary missing data. A narrow net keeps that distinction, at the cost of showing the rarer errors while the sheet is being built. In this drill the first screen prices Q-9, which is not on the list, so the wide net answers no match. The second divides a price by an empty units cell, where #DIV/0! is the error and IFNA would not have helped. Both screens put the net around the whole calculation rather than around one lookup, which is the shape that keeps working when the formula grows.",
+    "explain": "IFERROR returns its second argument whenever the first one fails, whatever the reason. IFNA returns the second argument only for #N/A. The wide net catches a missing code and a blank divisor; the narrow one catches the missing code and lets the rest show.\n\nThe first screen prices Q-9, which is not in A2:B7, so the lookup misses and the cell reads no match. The second divides B4 by an empty C4: 30 divided by a blank cell raises #DIV/0!, and IFNA would have left it standing.\n\nChoose the net by what the sheet should hide. A wide net keeps a report tidy and turns a broken reference into words that look like missing data. Put either net around the whole calculation, so whatever is added inside it later is covered too.",
     "errors": [
       {
-        "code": "#N/A",
-        "text": "What IFNA is for: the lookup found nothing."
-      },
-      {
         "code": "#DIV/0!",
-        "text": "A blank or zero divisor; IFERROR catches it, IFNA does not."
+        "text": "C4 is blank, so the division has no divisor; only the wide net answers it with words."
       },
       {
-        "code": "#REF!",
-        "text": "A reference outside the range; only the wide net catches it."
+        "code": "#N/A",
+        "text": "The lookup found no Q-9, the error IFNA is built to replace."
+      },
+      {
+        "code": "Hidden fault",
+        "text": "The wide net reports a broken reference as no match, so a real formula fault passes for absent data."
       }
     ],
-    "atWork": "Keeping a report tidy without hiding the broken references that need a real fix.",
-    "outcome": "Pick the wide or the narrow net deliberately, and put it around the whole calculation.",
+    "atWork": "A month-end report where missing codes and blank divisors both need a word, and a broken reference still needs finding.",
+    "outcome": "Choose the wide net or the narrow one on purpose, and wrap the whole calculation in it.",
     "teaches": "IFERROR versus IFNA on a missing lookup and on a division by a blank cell",
     "dataset": "Code, price and units table with one blank units cell",
     "reference": "=IFERROR(VLOOKUP(A8,A2:B7,2,FALSE),\"no match\")"

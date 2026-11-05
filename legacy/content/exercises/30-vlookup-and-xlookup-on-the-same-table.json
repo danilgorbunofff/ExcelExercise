@@ -75,12 +75,12 @@
         }
       ],
       "hints": {
-        "syntax": "VLOOKUP takes the value, the table, the column to return, and FALSE: =VLOOKUP(B6,A2:C5,3,FALSE).",
-        "func-vlookup": "VLOOKUP is the function this screen is practising; XLOOKUP is the same job with different arguments and gets its own screen.",
-        "exact-match": "The SKU list is not sorted, so the fourth argument has to be FALSE. Leaving it out searches the way an approximate match does and returns a neighbouring price.",
-        "require-ref": "Take the SKU from B6 so asking about another product is a one-cell edit.",
-        "value": "The third column of the matching row is the unit price. Counting from the SKU column, Product is 2 and Unit price is 3.",
-        "error": "A SKU that is not in the table returns #N/A rather than a blank or a zero."
+        "syntax": "=VLOOKUP(B6,A2:C5,3,FALSE): table, then column, then the match flag.",
+        "func-vlookup": "VLOOKUP is this screen's function; XLOOKUP gets the next one.",
+        "exact-match": "The SKU list is in no useful order, so FALSE is required. Left out, Excel approximates and returns a neighbouring price.",
+        "require-ref": "Take the SKU from B6, so another product is one cell away.",
+        "value": "Count from the SKU column: product is 2, price is 3. Column 2 would return Clamp.",
+        "error": "#N/A is a SKU the table does not hold. #REF! is a column number wider than A2:C5."
       },
       "fixtures": {
         "accept": [
@@ -190,11 +190,11 @@
       "requireRef": "B6",
       "rules": [],
       "hints": {
-        "syntax": "XLOOKUP takes the value, the column of values to search, and the column to return: =XLOOKUP(B6,A2:A5,C2:C5).",
-        "func-xlookup": "This screen is XLOOKUP's turn: the same table, but two ranges instead of a table plus a column number.",
-        "require-ref": "Take the SKU from B6 so the drill follows the sheet.",
-        "value": "XLOOKUP returns the cell in the third argument that sits on the same row as the match in the second.",
-        "error": "A SKU that is not in the searched column returns #N/A, the same failure VLOOKUP has."
+        "syntax": "=XLOOKUP(B6,A2:A5,C2:C5): search column, then answer column, with no number between them.",
+        "func-xlookup": "Same table, two ranges. There is no column to count and nothing to break when the sheet is reordered.",
+        "require-ref": "B6 again, so both screens answer the same question.",
+        "value": "The answer sits in the third argument, on the row where the match was found.",
+        "error": "A SKU outside A2:A5 gives #N/A, exactly as VLOOKUP would."
       },
       "fixtures": {
         "accept": [
@@ -248,19 +248,19 @@
   ],
   "docs": {
     "syntax": "=VLOOKUP(value, table, column, FALSE) · =XLOOKUP(value, search, return)",
-    "explain": "Both functions walk a column until they find the SKU, then return something from that row. VLOOKUP takes the whole table and a column number, so the price is 3 because the table starts at A and prices are in C. Change the table's start and the number silently means something else. XLOOKUP takes the searched column and the returned column separately, so the third argument names C2:C5 and there is no number to miscount. One thing VLOOKUP still needs spelling out is the FALSE for an exact match. That argument is not about addresses. It says whether a near miss counts as a match, and on a SKU column a near miss is a different product.",
+    "explain": "Both functions take the SKU in B6, which is CX-330, and return the price beside it. VLOOKUP wants the whole table A2:C5 plus a column number: 3 counts SKU, product, price and lands on 3.8. That number only means price while the table starts at column A.\n\nXLOOKUP names its two columns instead, A2:A5 to search and C2:C5 to return. Insert a column, move the price, and the formula still points at the price.\n\nThe fourth argument in VLOOKUP is the one that gets forgotten. FALSE makes a near miss fail rather than pass, and on a column of SKU codes a near miss is another product at another price.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The SKU is not in the searched column, which is a missing product rather than a broken formula."
+        "text": "The SKU is not in the searched column: a missing product, not a broken formula."
       },
       {
         "code": "#REF!",
-        "text": "The column number is larger than the table is wide, so there is no column to return from."
+        "text": "VLOOKUP's column number is wider than the table, so there is no column to return from."
       }
     ],
-    "atWork": "A price list pasted from a supplier, where the SKU column is the only thing you can rely on.",
-    "outcome": "Read a price off a table with either lookup function and know which argument does what.",
+    "atWork": "A supplier price list pasted into a sheet, where the SKU column is the only reliable key.",
+    "outcome": "Read a price with either lookup and know which argument does which job.",
     "teaches": "VLOOKUP and XLOOKUP side by side",
     "dataset": "Four products, one price column",
     "reference": "=VLOOKUP(B6,A2:C5,3,FALSE)"

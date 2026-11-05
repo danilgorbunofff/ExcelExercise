@@ -38,11 +38,11 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "LEN takes one thing to measure: =LEN(A2).",
-        "func-len": "LEN counts characters, so it answers how long the code is, not what it says.",
-        "require-ref": "Measure A2 rather than typing the code into the formula, so the count follows the cell.",
-        "value": "Count every character of Invoice 2026-03, the space between the word and the year included.",
-        "error": "LEN is not a number, so dividing it by another LEN returns a number; dividing by zero still returns #DIV/0!."
+        "syntax": "LEN takes one argument, the cell to measure: =LEN(A2).",
+        "func-len": "LEN answers how long the code is, not what it says.",
+        "require-ref": "Measure A2, not a typed copy of the code.",
+        "value": "Count every character of Invoice 2026-03, the space between word and year included.",
+        "error": "The grader wants the character count, so a total that skips the space reads 14 and fails."
       },
       "fixtures": {
         "accept": [
@@ -120,11 +120,11 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "LEFT takes the text and how many characters to keep: =LEFT(A2,3).",
-        "func-left": "LEFT cuts from the beginning of the text; RIGHT cuts from the end, which is the other end of this code.",
-        "require-ref": "Cut from A2 instead of typing the code, so the prefix follows the cell.",
-        "value": "Three characters from the left of Invoice 2026-03 are I, n and v.",
-        "error": "A negative character count is not a cut LEFT can make, so it returns #VALUE!."
+        "syntax": "=LEFT(A2,3): the text first, then the number of characters to keep.",
+        "func-left": "The prefix sits at the start, so LEFT is the cutter you want here.",
+        "require-ref": "Cut from A2, not from typed text.",
+        "value": "The first three characters of Invoice 2026-03 are I, n and v.",
+        "error": "A count of 4 returns Invo; the grader expects Inv."
       },
       "fixtures": {
         "accept": [
@@ -202,11 +202,11 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "RIGHT takes the text and how many characters to keep from the end: =RIGHT(A2,4).",
-        "func-right": "The year and month sit at the end of the code, so this is the end-cutter, not the start-cutter.",
-        "require-ref": "Cut from A2 rather than typing the code, so the answer follows the cell.",
-        "value": "The last four characters of Invoice 2026-03 are 6, -, 0 and 3.",
-        "error": "RIGHT cannot cut a negative number of characters, and it returns #VALUE! when asked."
+        "syntax": "=RIGHT(A2,4): the text first, then how many characters to keep from the end.",
+        "func-right": "The year and month sit at the end, so this calls for the end-cutter.",
+        "require-ref": "Take the code from A2.",
+        "value": "The last four characters are 6, -, 0 and 3.",
+        "error": "A count of 5 returns 026-03, which is the month plus one digit too many."
       },
       "fixtures": {
         "accept": [
@@ -254,19 +254,23 @@
   ],
   "docs": {
     "syntax": "=LEN(text), =LEFT(text, count), =RIGHT(text, count)",
-    "explain": "Invoice 2026-03 is fifteen characters, and that number is worth knowing before you cut anything. LEN(A2) reports 15 because it counts the space between the word and the year as a character like any other. LEFT(A2,3) keeps the first three and gives Inv, the document prefix. RIGHT(A2,4) keeps the last four and gives 6-03, the year without its century plus the month. Cutting by a fixed count works only when every code has the same shape. When a code arrives with a different prefix length, the count that was right for one row cuts the wrong characters off the next. That is when LEN and FIND start doing the work instead of a typed number.",
+    "explain": "LEN counts characters, spaces included. Invoice 2026-03 runs to 15: the seven letters, the space, four year digits, the hyphen and two month digits. Counting the space is what makes 15 right and 14 wrong.\n\nLEFT(A2,3) keeps the first three characters and returns Inv, the document prefix. RIGHT(A2,4) keeps the last four and returns 6-03, the final digit of the year, the hyphen and the month. Both take a count you supply, so neither knows anything about the code.\n\nA typed count is fine while every code has the same shape. The first code with a longer prefix gets cut in the wrong place, and LEFT returns something plausible instead of an error. That is the point at which FIND takes over the counting.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The character count was negative, so there is no left or right of a negative number of characters."
+        "text": "A negative count gives LEFT or RIGHT nothing to cut, so the cell shows #VALUE!."
+      },
+      {
+        "code": "Wrong cut",
+        "text": "A count that suits one code takes the wrong characters from a code of a different length."
       },
       {
         "code": "#NAME?",
-        "text": "A function was typed with a name the sheet does not know, as when LEN is spelled LN."
+        "text": "The function is spelled LN or LEF, and the sheet has nothing by that name to call."
       }
     ],
-    "atWork": "Splitting a supplier's reference code into the document type and the period it covers, so each part can be matched against its own list.",
-    "outcome": "Measure a string and cut fixed pieces off either end of it.",
+    "atWork": "Splitting a supplier reference into its document type and the period it covers.",
+    "outcome": "Measure a string, then cut fixed pieces from either end.",
     "teaches": "LEN, LEFT and RIGHT",
     "dataset": "One fifteen-character code",
     "reference": "=LEN(A2)"

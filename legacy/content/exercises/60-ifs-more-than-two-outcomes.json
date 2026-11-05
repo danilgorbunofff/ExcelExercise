@@ -53,11 +53,11 @@
       "requireRef": "B3",
       "rules": [],
       "hints": {
-        "syntax": "=IFS(test 1, result 1, test 2, result 2, ...): tests and results alternate.",
-        "func-ifs": "Nested IFs work too, but this lesson wants the function built for several outcomes.",
-        "require-ref": "Band the score in the grid rather than typing 78 into the formula.",
-        "value": "78 is under 80 but at least 70, so the third test wins and the answer is C.",
-        "error": "A test that divides by zero returns #DIV/0! instead of a band."
+        "syntax": "=IFS(test 1, result 1, test 2, result 2, ..., TRUE, fallback): the pairs are read top to bottom.",
+        "func-ifs": "Nested IFs would work, but this exercise wants the function built for several outcomes.",
+        "require-ref": "Band the score in B3 rather than typing 78.",
+        "value": "78 is under 80 and at least 70, so the third pair answers C.",
+        "error": "The band is right and then divided by zero, so the cell holds #DIV/0! where a letter belonged."
       },
       "fixtures": {
         "accept": [
@@ -151,11 +151,11 @@
       "requireRef": "B4",
       "rules": [],
       "hints": {
-        "syntax": "=IFS(test 1, result 1, test 2, result 2, TRUE, fallback): TRUE catches everything else.",
-        "func-ifs": "Three outcomes are two tests plus a fallback, which is what IFS reads best as.",
-        "require-ref": "Point at Cleo's score so the label follows the grid.",
-        "value": "85 is under 90 but at least 80, so the answer is Pass.",
-        "error": "A division by zero in a test returns #DIV/0! instead of a label."
+        "syntax": "=IFS(test 1, result 1, test 2, result 2, TRUE, fallback): three outcomes need two tests.",
+        "func-ifs": "Merit and Pass are two tests, and Resit is the fallback that catches everything lower.",
+        "require-ref": "Label Cleo's score from B4.",
+        "value": "85 is under 90 but at least 80, so the second pair returns Pass.",
+        "error": "A test that divides by zero stops the whole call with #DIV/0!, before any label is chosen."
       },
       "fixtures": {
         "accept": [
@@ -203,22 +203,22 @@
   ],
   "docs": {
     "syntax": "=IFS(test1, result1, test2, result2, ..., TRUE, fallback)",
-    "explain": "IF handles two outcomes, and the moment a question has three the nested IFs start multiplying parentheses until nobody can read them. IFS takes tests and results in pairs and returns the result of the first test that is TRUE. That is why the order of the pairs is the whole logic. Put the loosest test first and nothing else can ever be reached. A final pair of TRUE and a fallback is how a range that might be empty still returns something instead of #N/A. Leaving it out is the most common error with the function. In this drill Ben's 78 is tested against 90, then 80, then 70, and lands on C. Cleo's 85 in the second screen is labelled Pass, because Merit needs 90. Every test is a comparison on a cell in the grid, so changing a score re-bands the row without touching the formula. IFS is not available in very old versions of Excel, where nested IFs are the only route, so it is worth being able to read both forms.",
+    "explain": "IFS takes pairs of test and result and returns the result of the first test that comes out TRUE. Tests and results alternate, so three bands need three tests and three labels. The order of the pairs decides the answer, because the first match wins and nothing below it is read.\n\nBen's 78 fails 90 and fails 80, then lands on the 70 test, so B6 shows C. The second screen labels Cleo's 85 as Pass, since Merit needs 90. Raise the pass bar to 86 and her own score falls through to the fallback.\n\nClose the list with TRUE and a fallback, or a score under every test returns #N/A. Older versions of Excel have no IFS, so the same logic turns up as nested IFs, and those are worth being able to read.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "No test was TRUE and the formula had no TRUE fallback pair."
+        "text": "No test was TRUE and there was no TRUE fallback pair, so a score under the last band has nothing to return."
       },
       {
         "code": "#VALUE!",
-        "text": "A test did not produce a logical value, or the pairs were uneven."
+        "text": "The pairs are uneven and a test has no result of its own."
       },
       {
         "code": "#NAME?",
-        "text": "The function was typed as IFS in a version that does not have it."
+        "text": "The version of Excel in use has no IFS, or the name is mistyped."
       }
     ],
-    "atWork": "Banding scores, grades and service levels into labels without a lookup table.",
+    "atWork": "Banding scores or service levels into labels without a lookup table.",
     "outcome": "Read a score into one of several bands with a single ordered function.",
     "teaches": "IFS with ordered tests and a TRUE fallback pair",
     "dataset": "Four-name score sheet with bands to decide",
@@ -228,6 +228,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "IFS in Excel: more than two outcomes",
-    "description": "IFS takes tests and results in pairs and returns the first true one, so order carries the logic. Leave out the TRUE fallback and a missed band gives #N/A."
+    "description": "IFS is IF with more than two outcomes. It takes tests and results in pairs and returns the first true one, so order carries the logic."
   }
 }

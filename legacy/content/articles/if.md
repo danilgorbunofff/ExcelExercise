@@ -1,9 +1,9 @@
 ---
 title: IF in Excel, one test and two answers
 summary: IF runs a single comparison and returns one value when it is true and another when it is false. The order of the two results is the part people get wrong.
-description: How IF works in Excel with a pass or fail check, three worked examples, the four ways it goes wrong, and a drill that grades an exam column.
+description: How IF works in Excel with a pass or fail check, three worked examples, the four ways it goes wrong, and an exercise that grades an exam column.
 function: IF
-exercise: if-pass-fail
+drills: if-pass-fail, and-or-not-combining-tests, ifs-more-than-two-outcomes
 syntax: =IF(logical_test, value_if_true, value_if_false)
 updated: 2026-02-14
 ---
@@ -60,9 +60,21 @@ The swapped-branches row is worth a second look because the sheet still looks ri
 
 The `#VALUE!` row is the other frequent one, and it usually comes from imported data. A score pasted from another system can arrive as text, and any comparison against a number then fails. `ISNUMBER` tells you which it is, and `VALUE` converts a text number back to a real one.
 
+## Alternatives
+
+`=IFS(B2 >= 90, "A", B2 >= 80, "B", TRUE, "C")` replaces a chain of nested IFs and reads top to bottom, which is why Excel 2019 and later ship it. Each pair is a test and its answer, and the last `TRUE` catches everything left over.
+
+`=SWITCH(B2, "N", "North", "S", "South", "other")` does the same job when the test is equality against a short list rather than a set of ranges. `=LOOKUP(B2, {0, 80, 90}, {"C", "B", "A"})` is the older form that still works everywhere, including a file that has to open in Excel 2016.
+
+## Other apps
+
+Google Sheets has IF with the same three arguments, so `=IF(B2 >= 50, "Pass", "Fail")` behaves the same on both sides. Its IFS arrived earlier than Excel's and returns an error instead of an empty cell when no test matches, which is a difference worth knowing before a column is compared.
+
+VBA has no IF worksheet function worth calling, because `IIf(B2 >= 50, "Pass", "Fail")` evaluates both branches before it picks one. A branch that divides by zero raises an error even when the test is false, so a plain `If ... Then ... Else` block is the safer route.
+
 ## Practice
 
-The drill below shows a short exam table and asks for the pass or fail word for one row. Type the formula with the comparison, the word for passing and the word for failing, in that order, then press Check. If the message says the result is FALSE, the third argument is missing; if it says `#NAME?`, a word is missing its quotes.
+The exercise below shows a short exam table and asks for the pass or fail word for one row. Type the formula with the comparison, the word for passing and the word for failing, in that order, then press Check. If the message says the result is FALSE, the third argument is missing; if it says `#NAME?`, a word is missing its quotes.
 
 ## Questions
 

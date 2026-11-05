@@ -5,19 +5,23 @@
   "title": "A commission sheet that updates itself",
   "docs": {
     "syntax": "=sales*VLOOKUP(sales,tiers,2,TRUE) reads the rate the sales figure has reached",
-    "explain": "A commission sheet is the smallest real model in the workbook: an input column, a lookup table that someone else owns, and an answer that has to follow both. The lookup here is deliberately the approximate kind. Its fourth argument is TRUE, which tells VLOOKUP to stop at the largest tier that is not bigger than the sales figure. So 4200 lands on the 4000 tier and the rate comes back as five per cent. That is the behaviour a banded rate table needs, and it is the reason the table is sorted by the tier floor rather than by anything else. Writing the rate as a number inside the formula works today and breaks the first time finance moves a tier, which is why the reject list carries it. The rate is read, not remembered. The second screen asks for the rate alone, so the learner separates the lookup from the multiplication. That shows the formula has two independent halves, one reading a table and one doing arithmetic on the result.",
+    "explain": "The fourth argument of VLOOKUP decides how it matches. With TRUE, it walks down column A, stops at the largest tier floor the sales figure has reached, and returns the rate beside it. Sales of 4200 reach the 4000 floor, so the rate comes back at five per cent.\n\nIn C2 that rate multiplies the sales figure, so Ana's commission is 210. The second screen asks for the rate alone, 0.05, so the lookup and the multiplication come apart into two steps. Keep the rate in the table: 0.05 typed into a formula works today and breaks the next time finance moves a tier.\n\nThe table has to stay sorted by tier floor, lowest first, because TRUE reads down the column and stops at the last floor it passes. An unsorted table returns a rate from the wrong band and shows no error. Lock the reference as $A$7:$B$9 so the formula fills down the commission column without drifting.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The rate table is asked for an exact match, so a sales figure between tiers finds nothing."
+        "text": "The fourth argument is FALSE, so VLOOKUP looks for a row equal to 4200 and finds none."
       },
       {
         "code": "#REF!",
-        "text": "The column number points past the last column of the rate table."
+        "text": "The column number points past the second column of the rate table."
+      },
+      {
+        "code": "Wrong band",
+        "text": "The tier floors are out of order, so TRUE stops at the wrong floor and reads the wrong rate."
       }
     ],
-    "atWork": "Paying commission from a banded rate table that finance maintains separately.",
-    "outcome": "Read a banded rate with an approximate VLOOKUP and multiply it by the sales figure.",
+    "atWork": "Paying commission from a banded rate table that finance maintains below the data.",
+    "outcome": "Read a rate from a banded table, then multiply it by the sales figure.",
     "teaches": "VLOOKUP in approximate mode as a rate band, composed with multiplication",
     "dataset": "Three sellers beside a three-band rate table below the data",
     "reference": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2)"
@@ -93,11 +97,11 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2): the sales figure, the table, column two, approximate.",
-        "func-vlookup": "The rate lives in the table below the data, so it has to be looked up.",
-        "require-ref": "The sales figure is in B2.",
-        "value": "4200 reaches the five per cent band, and five per cent of 4200 is 210.",
-        "error": "An exact match would find no tier at 4200 and return #N/A."
+        "syntax": "=ROUND(B2*VLOOKUP(B2,$A$7:$B$9,2,TRUE),2): sales, table, rate column, approximate.",
+        "func-vlookup": "The rate comes from the table below the data, so read it there.",
+        "require-ref": "Start from the sales figure in B2.",
+        "value": "4200 sits in the five per cent band, and five per cent of 4200 is 210.",
+        "error": "The grader reports an error when FALSE asks for an exact 4200."
       },
       "fixtures": {
         "accept": [
@@ -212,11 +216,11 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=VLOOKUP(B2,$A$7:$B$9,2,TRUE): the sales figure, the table, the rate column, approximate.",
-        "func-vlookup": "The band comes from the table, so the answer is a lookup.",
+        "syntax": "=VLOOKUP(B2,$A$7:$B$9,2,TRUE) returns the rate and stops there.",
+        "func-vlookup": "Column two holds the rates; column one holds the tier floors.",
         "require-ref": "The sales figure is in B2.",
-        "value": "4200 has passed the 4000 floor, so the five per cent band applies.",
-        "error": "Asking for an exact match at 4200 finds nothing and returns #N/A."
+        "value": "4200 is past the 4000 floor, so the band pays 0.05.",
+        "error": "Excel shows #N/A here, and an exact match at 4200 is what causes it."
       },
       "fixtures": {
         "accept": [

@@ -5,7 +5,7 @@
   "title": "A monthly close checklist in formulas",
   "docs": {
     "syntax": "=IF(variance=0,\"ready\",\"check\") flags one check; =COUNTIF(range,\"<>0\") counts the rest",
-    "explain": "A close checklist is a list of reconciliations, and every line of it ends in the same question: does this variance come to zero. Reading four variances by eye is fine and reading forty is not. So the sheet should answer the question rather than display the number and let a person decide. IF is the tool for one row. Compare the variance to zero and return a word rather than a number, because words are what a checklist is read for. The second screen counts the rows that still have a variance, and the criterion to use is the not-equal one, written as a string. That detail is worth its own screen because it is the criterion people get wrong. A comparison has to be quoted, and the value inside it stays a number. Together the two screens are the shape every close sheet converges on: one column that says whether a line is ready and one cell that says how many lines are not. Neither of them asks the reader to look at the variance column again.",
+    "explain": "IF tests a condition and returns one of two values, so a checklist row can answer in words. The formula =IF(B2=0,\"ready\",\"check\") reads the variance and gives ready at zero, check at anything else. Four variances can be read by eye; forty cannot.\n\nThe bank row sits at zero, so it reads ready, and so does payroll. Accruals at 12.5 and prepaids at -3 come back as check. The second screen counts the rows still out with COUNTIF(B2:B5,\"<>0\"), and the answer is 2.\n\nThe criterion goes in quotes because it is text, and the zero inside the quotes stays a number. Drop the third argument and the failing row shows FALSE, which reads as a fault in the formula. Both outcomes belong in the call.",
     "errors": [
       {
         "code": "#DIV/0!",
@@ -13,11 +13,15 @@
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled, so the sheet has nothing to call."
+        "text": "The function is typed as IF or COUNTIF with a letter missing, so Excel finds nothing to run."
+      },
+      {
+        "code": "Wrong flag",
+        "text": "The two branches are swapped, so a variance of zero reads check."
       }
     ],
-    "atWork": "Turning a column of close variances into a ready or check flag and a count.",
-    "outcome": "Flag one reconciliation from its variance, then count the rows that are still out.",
+    "atWork": "Turning a column of close variances into a ready or check flag, then counting the rest.",
+    "outcome": "Flag a reconciliation from its variance, then count the rows still out.",
     "teaches": "IF returning a word instead of a number, then COUNTIF with a not-equal criterion",
     "dataset": "Four close reconciliations, each with a variance to judge",
     "reference": "=IF(B2=0,\"ready\",\"check\")"
@@ -73,11 +77,11 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=IF(B2=0,\"ready\",\"check\"): the test, the answer when it holds, the answer when it does not.",
-        "func-if": "The cell has to choose between two words, which is what IF does.",
+        "syntax": "=IF(B2=0,\"ready\",\"check\"): the test, then the word for each outcome.",
+        "func-if": "One cell has to choose between two words, which is IF's work.",
         "require-ref": "The variance is in B2.",
-        "value": "The bank variance is zero, so the status is ready.",
-        "error": "A divide by zero inside the test never reaches the words."
+        "value": "The bank variance is zero, so the status reads ready.",
+        "error": "Divide the variance by zero and the grader reports an error before either word appears."
       },
       "fixtures": {
         "accept": [
@@ -177,11 +181,11 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=COUNTIF(B2:B5,\"<>0\"): the variance column, then the not-equal criterion in quotes.",
-        "func-countif": "Counting rows that meet a criterion is COUNTIF's job.",
-        "require-ref": "The variance column is B2:B5.",
-        "value": "Accruals and prepaids are out, so two rows have a variance.",
-        "error": "A criterion that cannot be read as a comparison gives #VALUE!."
+        "syntax": "=COUNTIF(B2:B5,\"<>0\"): the variance column, then the quoted criterion.",
+        "func-countif": "Counting rows that meet a condition is what COUNTIF does.",
+        "require-ref": "The variances run down B2:B5.",
+        "value": "Accruals and prepaids are out, so the count is two.",
+        "error": "A formula that divides by zero is what the grader's error rule catches here."
       },
       "fixtures": {
         "accept": [

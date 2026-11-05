@@ -62,11 +62,11 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "Start with = and close every bracket: =COUNTA(UNIQUE(A2:A7)).",
-        "func-unique": "UNIQUE is the whole point of this lesson. Counting rows by hand works once and breaks the moment a delivery is added.",
-        "require-ref": "Point UNIQUE at the courier column A2:A7; the deliveries in column B are a different question.",
-        "value": "That is not the number of couriers. UNIQUE hands back a block of cells, so it needs COUNTA around it to turn that block into a count.",
-        "error": "#NAME? means the Excel version does not know UNIQUE, and #N/A means no value was left to return. #VALUE! with two arguments usually means by_col or exactly_once was given something other than TRUE or FALSE."
+        "syntax": "=COUNTA(UNIQUE(A2:A7)): one pair of brackets for UNIQUE, one for COUNTA.",
+        "func-unique": "UNIQUE collapses the six courier rows to the distinct names. Counting them by hand works once, then a new delivery arrives.",
+        "require-ref": "Point UNIQUE at the courier column A2:A7. The deliveries in B2:B7 are six different numbers.",
+        "value": "That is not the number of couriers. UNIQUE hands back a block of cells, and COUNTA is what turns the block into 3.",
+        "error": "#NAME? means this Excel build has no UNIQUE. #N/A means exactly_once left nothing to return, and #VALUE! means the third argument was not TRUE or FALSE."
       },
       "fixtures": {
         "accept": [
@@ -124,27 +124,23 @@
   ],
   "docs": {
     "syntax": "=UNIQUE(array, [by_col], [exactly_once])",
-    "explain": "UNIQUE reads a range and returns a block of cells holding one copy of each distinct value, in the order it first met them. Six deliveries sit in A2:A7, Swift appears three times, Nordic twice and Crane once, so UNIQUE(A2:A7) spills three rows: Swift, Nordic, Crane. That spill is the catch, because a block of cells is not a number. Wrapping it in COUNTA counts the rows the block occupies, which is why the finished formula is =COUNTA(UNIQUE(A2:A7)) and not =UNIQUE(A2:A7). The third argument, exactly_once, flips the meaning. Set it to TRUE and only the values that appear exactly once come back, which here would leave Crane alone. The answer sits in B8, below the range on purpose. A spill that tries to grow into an occupied cell returns #SPILL! instead of pushing the neighbouring data aside.",
+    "explain": "UNIQUE reads a range and returns one copy of each distinct value, in the order it first met them. In A2:A7, Swift appears three times, Nordic twice and Crane once, so UNIQUE(A2:A7) gives Swift, Nordic, Crane.\n\nThe exercise wants a count, so the block is wrapped: =COUNTA(UNIQUE(A2:A7)) counts the rows it occupies and returns 3 in B8. The third argument, exactly_once, changes the meaning. Set it to TRUE and only values that appear a single time come back, which here leaves Crane alone.\n\nA block needs empty cells to land in. If one of them is already occupied, the formula returns #SPILL! and names the cell in the way. Excel leaves the neighbouring data where it is. UNIQUE alone needs three rows here, so leave a few blanks under anything that returns a block.",
     "errors": [
       {
         "code": "#SPILL!",
-        "text": "The block cannot grow; something is already sitting where the second row of results needs to go."
+        "text": "The result needs three rows and one of them holds something else, so Excel stops and names the cell in the way."
       },
       {
         "code": "#N/A",
-        "text": "exactly_once found nothing that appears a single time, so the block would be empty."
+        "text": "exactly_once returned nothing because no courier appears a single time, leaving the block empty."
       },
       {
         "code": "#NAME?",
-        "text": "The Excel version predates dynamic arrays, so UNIQUE is not recognised at all."
-      },
-      {
-        "code": "#VALUE!",
-        "text": "by_col or exactly_once was given a value other than TRUE or FALSE."
+        "text": "The workbook's version of Excel predates dynamic arrays, so UNIQUE does not exist there."
       }
     ],
-    "atWork": "Deduplicating a supplier or courier list is the first job in any reconciliation, and building a validation list that survives new rows is the second.",
-    "outcome": "Count the distinct values in a column without retyping the list.",
+    "atWork": "A courier list that grows every week, and the dropdown fed from it without retyping the names.",
+    "outcome": "Count the distinct couriers in a column without retyping the list.",
     "teaches": "UNIQUE",
     "dataset": "Courier delivery log",
     "reference": "=COUNTA(UNIQUE(A2:A7))"

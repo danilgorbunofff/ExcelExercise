@@ -5,19 +5,23 @@
   "title": "TEXTBEFORE and TEXTAFTER: split on a delimiter",
   "docs": {
     "syntax": "=TEXTBEFORE(text,\"-\") keeps what precedes the delimiter; =TEXTAFTER keeps what follows",
-    "explain": "Splitting a cell on a separator used to be a LEFT and a FIND glued together. TEXTBEFORE and TEXTAFTER do that job in one call each, and they name the two halves explicitly so the formula reads like the sentence that asked for it. The delimiter is a piece of text, not a position. That is the change that matters: the formula keeps working when the prefix grows from three letters to five, and on rows where the code is a different length. Each function answers the half on its side of the delimiter and drops the delimiter itself. Where the text holds no delimiter at all, both raise #N/A rather than guessing. That is a feature: a code that does not fit the pattern is a row you want to see fail, not a row that quietly returns an empty answer. The two screens split the same order codes in opposite directions, so the learner writes both halves and sees that neither needs a position number anywhere.",
+    "explain": "TEXTBEFORE and TEXTAFTER split a cell on a delimiter, one function per side. You name the delimiter as a piece of text, so no position number appears anywhere in the formula. Each returns the half on its side and drops the delimiter itself.\n\nThe formula =TEXTBEFORE(A2,\"-\") returns ORD from the code ORD-4471, and TEXTAFTER with the same arguments returns 4471. Move both formulas to a column of five-letter prefixes and they keep working, because the delimiter still marks the join.\n\nWhen the delimiter is missing, both functions return #N/A instead of inventing a half. A code that does not fit the pattern is exactly the row you want to see fail, since a blank answer would hide it. Read the error as a prompt to clean that row, not as a fault in the formula.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The text holds no copy of the delimiter, so there is nothing to split on."
+        "text": "The cell holds no copy of the delimiter, so there is no place to split."
       },
       {
-        "code": "#VALUE!",
-        "text": "The instance number is not a number, so the split cannot be placed."
+        "code": "#NAME?",
+        "text": "The workbook was built in an Excel version older than the one that added these functions."
+      },
+      {
+        "code": "Swapped halves",
+        "text": "The two functions differ by one word, and the wrong one returns the other half of the code."
       }
     ],
     "atWork": "Separating an order prefix from its number without counting characters.",
-    "outcome": "Split a code on its delimiter into the part before it and the part after it.",
+    "outcome": "Split a code at its delimiter, taking either the part before or the part after.",
     "teaches": "TEXTBEFORE and TEXTAFTER naming the delimiter instead of a position",
     "dataset": "Order codes: a three-letter prefix, a hyphen, a number",
     "reference": "=TEXTBEFORE(A2,\"-\")"
@@ -65,10 +69,10 @@
       "requireRef": "A2",
       "hints": {
         "syntax": "=TEXTBEFORE(A2,\"-\"): the code, then the delimiter in quotes.",
-        "func-textbefore": "The prefix is everything before the hyphen, which is exactly what TEXTBEFORE answers.",
+        "func-textbefore": "The prefix is everything before the hyphen, which is what TEXTBEFORE answers.",
         "require-ref": "The order code is in A2.",
         "value": "Everything before the hyphen is ORD.",
-        "error": "A delimiter the code does not hold gives #N/A."
+        "error": "A code with no hyphen returns #N/A, and the grader reports it as an error rather than a wrong value."
       },
       "fixtures": {
         "accept": [
@@ -171,10 +175,10 @@
       "requireRef": "A2",
       "hints": {
         "syntax": "=TEXTAFTER(A2,\"-\"): the code, then the delimiter in quotes.",
-        "func-textafter": "The number is everything after the hyphen, which is exactly what TEXTAFTER answers.",
+        "func-textafter": "The number sits after the hyphen, which is TEXTAFTER's half.",
         "require-ref": "The order code is in A2.",
         "value": "Everything after the hyphen is 4471.",
-        "error": "A delimiter the code does not hold gives #N/A."
+        "error": "The grader looks for TEXTAFTER, so TEXTBEFORE returns ORD and fails the function rule."
       },
       "fixtures": {
         "accept": [

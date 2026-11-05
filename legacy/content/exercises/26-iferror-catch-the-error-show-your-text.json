@@ -49,11 +49,11 @@
       "requireRef": "A4",
       "rules": [],
       "hints": {
-        "syntax": "IFERROR takes the thing that might fail, then what to show instead: =IFERROR(lookup, \"no price\").",
-        "func-iferror": "IFERROR wraps the lookup and supplies the words; the lookup on its own returns #N/A and the cell reads as an error.",
-        "require-ref": "Ask about the SKU in A4 instead of typing TX-109, so the question can be changed in one cell.",
-        "value": "TX-109 is not in the list, so the cell should read the fallback text the prompt asks for.",
-        "error": "IFERROR catches errors inside it, not errors you make outside it: adding one to the fallback text still returns #VALUE!."
+        "syntax": "Two arguments with a comma between: =IFERROR(what might fail, what to show instead).",
+        "func-iferror": "The lookup on its own returns #N/A in B5. IFERROR wraps that call and supplies the words.",
+        "require-ref": "Ask for the code held in A4, so a different SKU changes the answer.",
+        "value": "TX-109 is not in A2:B3, so B5 should hold the fallback text the prompt names, not the error.",
+        "error": "IFERROR ends at its closing bracket. Anything added outside it works on the text, and #VALUE! comes back."
       },
       "fixtures": {
         "accept": [
@@ -106,19 +106,23 @@
   ],
   "docs": {
     "syntax": "=IFERROR(value, value_if_error)",
-    "explain": "The list holds TX-101 and TX-102, and A4 asks about TX-109, so the lookup finds nothing and returns #N/A. IFERROR takes two arguments: the calculation that might fail, and what to show when it does. Wrapped around the lookup, the cell reads no price, which is a sentence someone can act on. IFERROR catches every error type, not only a missed lookup. #REF!, #VALUE! and #DIV/0! all get the same fallback, which is convenient and can hide a real mistake: a broken reference now looks like a missing price. It only protects what is inside it, so arithmetic done outside the wrapper can still return an error.",
+    "explain": "IFERROR takes two arguments: the calculation that might fail, and what to show when it does. Anything that goes wrong inside the first argument is replaced by the second. Here the lookup on TX-109 finds nothing in A2:B3 and would return #N/A, so the cell reads no price instead.\n\nIFERROR catches every error the same way, which is wider than a lookup miss. A reference that no longer points anywhere, or arithmetic on text, gets the same two words as a code that is simply absent. A broken formula then reads like missing data.\n\nPut the guard around the part that can fail. The SKU is read from A4, so a different code changes the answer without touching the formula. Arithmetic left outside the IFERROR still returns an error instead of text.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "A lookup found nothing and no fallback was supplied, so the cell shows the error rather than a sentence."
+        "text": "The lookup finds nothing and no fallback is supplied, so the cell shows the error instead of words."
       },
       {
         "code": "#VALUE!",
-        "text": "Arithmetic was done on the fallback text after IFERROR had already returned it."
+        "text": "A number is added to the fallback text outside the wrapper, so the whole cell turns into #VALUE!."
+      },
+      {
+        "code": "Masked fault",
+        "text": "The same fallback answers a broken reference too, so a formula fault prints as a missing price and nobody looks."
       }
     ],
-    "atWork": "A price sheet shared with a customer, where a discontinued SKU has to read as missing rather than showing an error code.",
-    "outcome": "Replace an error with text you chose, and know what that hides.",
+    "atWork": "A price list sent to a customer, where a discontinued code has to read as missing instead of #N/A.",
+    "outcome": "Replace a failed lookup with words you chose, and know which faults those words will hide.",
     "teaches": "IFERROR",
     "dataset": "Two prices and a missing SKU",
     "reference": "=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),\"no price\")"

@@ -82,12 +82,13 @@
         }
       ],
       "hints": {
-        "syntax": "=VLOOKUP(D2,A2:C6,3,FALSE): what to find, where to look, which column, and how to match.",
-        "func-vlookup": "Look the value up with VLOOKUP instead of reading the salary off the screen and typing it.",
-        "exact-match": "Add FALSE (or 0) as the fourth argument. Without it Excel uses an approximate match and can return a different employee's salary.",
-        "require-ref": "Point the formula at the ID and the table so it still works when the payroll file changes.",
-        "value": "The right employee, the wrong column: salary is the third column of A:C, not the second.",
-        "error": "#REF! means the column number reaches past the table: A:C holds three columns, so 4 fails. #VALUE! means the second argument is not a range of cells, and #N/A means the ID was not found in the first column."
+        "syntax": "Four arguments, in this order: the ID, the table A2:C6, the column number 3, and FALSE. =VLOOKUP(D2,A2:C6,3,FALSE).",
+        "func-vlookup": "VLOOKUP does the work here: the grader wants the function, not the number copied out of C5.",
+        "exact-match": "Add FALSE (or 0) as the fourth argument. Left out, Excel uses approximate match, which on this ID column returns a neighbouring employee's salary.",
+        "require-ref": "Point at D2 and at the table, so the answer moves when the payroll file moves.",
+        "value": "Right employee, wrong column: the salary is column 3 of A:C. Column 2 holds the name.",
+        "error": "#REF! means the column number runs past A:C, which has three columns. #N/A means the ID was not found; #VALUE! means the second argument is not a range.",
+        "hardcoded": "The answer only survives while Dee is on 54000, so the figure was typed in. Let VLOOKUP fetch it and a pay rise follows."
       },
       "fixtures": {
         "accept": [
@@ -148,30 +149,47 @@
             "formula": "=VLOOKUP(D2,A2:C6,3,FALSE",
             "rule": "syntax",
             "why": "unclosed bracket"
+          },
+          {
+            "formula": "=IF(VLOOKUP(D2,A2:C6,3,FALSE)=54000,54000,0)",
+            "rule": "hardcoded",
+            "why": "compares the salary against the typed 54,000, so a pay rise returns 0"
           }
         ]
-      }
+      },
+      "variants": [
+        {
+          "id": "c5-up",
+          "cells": {
+            "C5": 54100
+          },
+          "expect": {
+            "value": 54100
+          },
+          "why": "Dee goes from 54,000 to 54,100, so the lookup has to return the new salary"
+        }
+      ]
     }
   ],
   "docs": {
     "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
-    "explain": "VLOOKUP finds a value in the first column of a table and returns something from the same row. The ID E-104 sits in D2, searching A2:A6 finds it on the fourth data row, and the salary in the third column of A:C is 54000. So =VLOOKUP(D2,A2:C6,3,FALSE) returns 54000. The fourth argument decides everything. FALSE, or 0, means exact match or #N/A. TRUE, or leaving it out, means approximate, and approximate matching on an unsorted table returns the nearest value it stumbled across instead of an error. That is how a lookup returns a plausible but wrong salary. Reach for the exact form by default.",
+    "explain": "VLOOKUP reads down the first column of a table until it finds the lookup value, then returns the cell in that row at the column number you name. The ID in D2 is E-104, which sits in row 5. Column 3 of that row holds 54000, so the formula =VLOOKUP(D2,A2:C6,3,FALSE) returns 54000.\n\nThe fourth argument decides the mode. FALSE, or 0, asks for an exact hit and gives #N/A when the ID is absent. TRUE, or nothing at all, matches approximately: it stops on the last row it passed, so an ID column can return another employee's salary without an error.\n\nWrite FALSE every time on an ID column. Left out, the match is the silent kind, and a wrong salary looks like a right one until payroll disagrees.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The ID is not in the first column, often because of a trailing space or because the ID is stored as a number and you searched for text."
+        "text": "The ID is missing from the first column, often because it carries a trailing space or is stored as a number rather than text."
       },
       {
         "code": "#REF!",
-        "text": "The column number is wider than the table, for example 4 when A:C only holds three columns."
+        "text": "The column number is wider than the table: 4 applied to A:C, which holds three columns."
       },
       {
         "code": "#VALUE!",
         "text": "The second argument is not a range of cells, or the column number is zero."
       }
     ],
-    "atWork": "Payroll, price lists, product codes: any time two exports have to be joined by a key, this is the formula. Learning the exact-match form first is what stops the recurring 'VLOOKUP returns the wrong value' ticket.",
-    "outcome": "Pull a value out of a table by its ID, exact match only.",
+    "atWork": "Payroll runs, price lists and product feeds: two exports joined by a key, one of them read for a figure.",
+    "outcome": "Pull a salary out of a table by its ID, with the exact-match flag written out.",
     "teaches": "VLOOKUP",
     "dataset": "Employee directory",
     "reference": "=VLOOKUP(D2,A2:C6,3,FALSE)"

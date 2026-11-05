@@ -1,9 +1,10 @@
 /**
  * The notes gate.
  *
- * `articles.js` decides whether a note *parses*; this decides whether it can ship: the exercise it
- * borrows exists and can actually be drilled, the frontmatter fits a search result, the prose has no
- * marketing vocabulary or generator punctuation, and no two notes are the same note twice.
+ * `articles.js` decides whether a note *parses*; this decides whether it can ship: every drill it
+ * borrows exists and can actually be drilled (all of them, not just the first), the frontmatter fits a
+ * search result, the prose has no marketing vocabulary or generator punctuation, no two notes are the
+ * same note twice, and a note still on the old single `exercise:` key says so out loud.
  *
  * It collects rather than throws, and it reports every note with its numbers, because a rewrite in
  * progress is not a broken build. `--strict` is what CI runs.
@@ -34,7 +35,11 @@ export function articleFields(article) {
   for (const block of article.blocks) {
     if (block.type === "p") fields.push({ field: "paragraph", text: block.text, prose: true });
     else if (block.type === "h2" || block.type === "h3") fields.push({ field: "heading", text: block.text, prose: true });
-    else if (block.type === "list") fields.push({ field: "list", text: block.items.join("\n"), prose: true });
+    else if (block.type === "list") {
+      // One field per item: joined with a newline, five short bullets read as one 60-word paragraph and
+      // the shape rules fire on the list itself rather than on an item that ran long.
+      block.items.forEach((item, position) => fields.push({ field: `list[${position + 1}]`, text: item, prose: true }));
+    }
     else if (block.type === "table") {
       const rows = [block.header, ...block.rows].map((row) => row.join(" "));
       fields.push({ field: "table", text: rows.join("\n"), prose: false });
@@ -72,16 +77,31 @@ function checkArticle(article, { where, lessons, rules, push }) {
     });
   }
 
-  const lesson = lessons.find((entry) => entry.slug === article.exercise);
-  if (lesson && !(lesson.screens ?? []).length) {
+  if (article.legacyExercise) {
     push({
-      rule: "no-drill",
-      severity: "error",
+      rule: "legacy-field",
+      severity: "warn",
       field: "exercise",
       where,
-      message: `"${article.exercise}" has no screen, so the note ships without the drill it promises`,
-      excerpt: null,
+      message: `"exercise:" is the old single-drill key; list the note's drills as "drills: ${article.exercise}, ..."`,
+      excerpt: `exercise: ${article.exercise}`,
     });
+  }
+
+  // Every drill, not just the first: an island with no screen is a form under a prompt with nothing to
+  // grade against, and it is the third drill that tends to be the slug nobody checked.
+  for (const slug of article.drills) {
+    const lesson = lessons.find((entry) => entry.slug === slug);
+    if (lesson && !(lesson.screens ?? []).length) {
+      push({
+        rule: "no-drill",
+        severity: "error",
+        field: "drills",
+        where,
+        message: `"${slug}" has no screen, so the note ships without the drill it promises`,
+        excerpt: null,
+      });
+    }
   }
 
   for (const field of articleFields(article)) {
@@ -94,16 +114,20 @@ function checkArticle(article, { where, lessons, rules, push }) {
  * The addresses the static build serves, which is the URL space a note is written in. The Next deploy
  * rewrites lesson paths at the seam; a note is authored once, so it links to the canonical static one.
  */
-export function servedPaths(lessons, articles) {
+export function servedPaths(lessons, articles, formulas = [], shortcuts = []) {
   return new Set([
     "/",
     "/excel-exercises",
     "/excel-functions",
+    "/formulas",
+    "/shortcuts",
     "/about",
     "/privacy",
     "/terms",
     ...lessons.map((lesson) => `/excel/${lesson.slug}`),
     ...articles.map((article) => `/excel-functions/${article.slug}`),
+    ...formulas.map((formula) => `/formulas/${formula.slug}`),
+    ...shortcuts.map((shortcut) => `/shortcuts/${shortcut.slug}`),
   ]);
 }
 

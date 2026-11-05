@@ -15,7 +15,16 @@ import { join } from "node:path";
 
 import { loadContent, revealOf } from "../content/index.js";
 import { SCHEMA_VERSION } from "../content/schema.js";
-import { grade, normaliseAnswer } from "../grader/index.js";
+import {
+  buildCells,
+  compareToExpected,
+  evaluateFormula,
+  formatValue,
+  grade,
+  normaliseAnswer,
+  parse,
+  referencesCell,
+} from "../grader/index.js";
 import { isReserved, parseChord, parsePress } from "../keys/index.js";
 
 /** The phase-1 floor. Twelve is the number the plan asks for; six is the number CI refuses to go under. */
@@ -60,6 +69,8 @@ function advertisedRules(screen) {
   const rules = new Set(UNIVERSAL_RULES);
   for (const rule of [...screen.require, ...screen.forbid, ...screen.rules]) rules.add(rule.id);
   if (screen.requireRef !== undefined) rules.add("require-ref");
+  // A screen with variants can report a typed-in answer, so its fixtures have to prove it does.
+  if (screen.variants !== undefined) rules.add("hardcoded");
   return rules;
 }
 
@@ -170,6 +181,68 @@ function checkFixtures(screen, source, { label, where, report, stats }) {
   for (const rule of advertisedRules(screen)) {
     if (!reached.has(rule)) {
       report.error(where, `${label}never exercises the "${rule}" failure, so that path ships untested`);
+    }
+  }
+}
+
+/**
+ * The anti-hardcoding pass, checked against the reference it was authored from.
+ *
+ * Three ways a variant is well-formed and still useless: it changes cells the reference never reads
+ * (blind), the reference cannot survive its own change (unpassable), or it expects the same answer as
+ * the unchanged table (inert — a typed-in number would pass it). All three are errors, because a
+ * variant that proves nothing is content that looks like coverage and is not.
+ */
+function checkVariants(lesson, screen, { label, where, report }) {
+  const { variants } = screen;
+  if (screen.type !== "formula" || variants === undefined) return;
+
+  const reference = screen.reference ?? lesson.docs.reference;
+  let ast;
+  try {
+    ast = parse(reference);
+  } catch {
+    // A reference that cannot be parsed is already reported where references are validated.
+    return;
+  }
+  const base = buildCells(screen);
+  const tolerance = screen.expect.tolerance ?? 1e-9;
+
+  for (const variant of variants) {
+    const at = `${label}variants.${variant.id}`;
+    const changed = Object.keys(variant.cells);
+    if (!changed.some((key) => referencesCell(ast, key))) {
+      report.error(
+        where,
+        `${at} changes ${changed.join(", ")} and ${reference} reads none of them, so the variant proves nothing`,
+      );
+      continue;
+    }
+
+    let produced;
+    try {
+      produced = evaluateFormula(reference, { ...base, ...variant.cells }, { today: screen.today });
+    } catch (error) {
+      report.error(
+        where,
+        `${at} makes its own reference ${reference} stop with ${error.code ?? error.message}, so no answer can pass it`,
+      );
+      continue;
+    }
+
+    if (!compareToExpected(produced, variant.expect.value, variant.expect.tolerance ?? tolerance)) {
+      report.error(
+        where,
+        `${at} expects ${formatValue(variant.expect.value)}, but ${reference} returns ${formatValue(produced)} on it`,
+      );
+      continue;
+    }
+
+    if (compareToExpected(produced, screen.expect.value, tolerance)) {
+      report.error(
+        where,
+        `${at} expects ${formatValue(variant.expect.value)}, the same answer as the unchanged table, so a typed-in number would pass it`,
+      );
     }
   }
 }
@@ -435,6 +508,7 @@ export function lintContent(contentDir, { fixturesDir } = {}) {
 
       checkPrompt(screen, { label, where: file, report, seenPrompts });
       checkLinks({ prompt: screen.prompt, hints: screen.hints }, "screen", { label, where: file, report, routes });
+      checkVariants(lesson, screen, { label, where: file, report });
     });
 
     checkLinks(lesson.docs, "docs", { label: "", where: file, report, routes });

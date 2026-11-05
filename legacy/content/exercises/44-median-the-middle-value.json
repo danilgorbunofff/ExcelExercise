@@ -62,9 +62,9 @@
       "hints": {
         "syntax": "MEDIAN takes the whole range: =MEDIAN(B2:B6).",
         "func-median": "A mean moves when one reading moves; the middle of the list does not, and that is a different function.",
-        "require-ref": "Read the readings from B2:B6 rather than listing them in the formula.",
+        "require-ref": "Read the readings from B2:B6 instead of listing them in the formula.",
         "value": "Sorted, the five readings are 12, 14, 15, 18, 19: the middle one is 15.",
-        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+        "error": "#NUM! means the range held no numbers, so there was no middle to take. Check that it covers column B and not the reading labels in column A."
       },
       "fixtures": {
         "accept": [
@@ -173,7 +173,7 @@
         "func-median": "An even count has no single middle element, and MEDIAN handles that for you.",
         "require-ref": "Read all six readings from the sheet so a new one is picked up automatically.",
         "value": "The middle two are 15 and 18, so the median is the half-way value, 16.5.",
-        "error": "Dividing by zero leaves #DIV/0! in the cell instead of a median."
+        "error": "A word typed inside the brackets gives #VALUE!. Readings left blank in the grid are skipped quietly."
       },
       "fixtures": {
         "accept": [
@@ -221,22 +221,22 @@
   ],
   "docs": {
     "syntax": "=MEDIAN(range)",
-    "explain": "AVERAGE adds everything and divides by the count, so one extreme value moves the answer as far as its own size deserves. MEDIAN sorts the values in its head and returns the one in the middle. Half the data sits above it and half below, so a single wild reading cannot shift it at all. That is the whole reason the function exists. Salaries, house prices and response times are all published as medians, because the mean of a skewed list describes almost nobody. With an odd count the answer is a real member of the list. With an even count there is no middle element, so MEDIAN returns the average of the two that straddle the middle. 15 and 18 give 16.5, a number that may not appear in the data at all. Blanks and text are ignored rather than counted as zero, which makes MEDIAN safe over a column that is still being filled. If every value is text or the range is empty, the result is `#NUM!`.",
+    "explain": "MEDIAN returns the middle value once the numbers are put in order. Half the readings sit above it and half below, so one extreme figure barely moves it. With an odd count the answer is one of the values on the sheet.\n\nThe first screen has five readings, 12, 18, 14, 19 and 15, which sort to 12, 14, 15, 18 and 19, so the answer is 15. The second screen adds a reading of 40, and the mean over the six climbs to 19.67. MEDIAN returns 16.5 instead, the half-way point between 15 and 18.\n\nBlanks and text are ignored rather than counted as zero, so MEDIAN copes with a column that is still being filled. Point at the range and not at the six figures, or the next reading gets left out.",
     "errors": [
       {
         "code": "#NUM!",
-        "text": "The range holds no numbers, so there is no middle value to return."
+        "text": "The range holds no numbers at all, so there is no middle value to report."
       },
       {
         "code": "#VALUE!",
-        "text": "A value was passed as text that cannot be read as a number, so it cannot join the sort."
+        "text": "A word was passed as an argument, as in =MEDIAN(\"n/a\"), so it cannot join the sort."
       },
       {
-        "code": "#DIV/0!",
-        "text": "The median was divided by zero somewhere downstream, so the cell reports that instead."
+        "code": "Wrong middle",
+        "text": "A range that stops one row short changes the answer: five readings give 15 where six give 16.5."
       }
     ],
-    "atWork": "A report of audit readings where one late-night outlier should not move the typical figure, and a salary band published as a median rather than a mean.",
+    "atWork": "An audit report where one late-night reading should not move the typical figure, and salary bands quoted as medians.",
     "outcome": "Summarise a list with a middle value that an outlier cannot drag.",
     "teaches": "MEDIAN, and why it differs from AVERAGE",
     "dataset": "Five and six audit readings with one outlier",

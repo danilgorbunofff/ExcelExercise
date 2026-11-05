@@ -51,11 +51,11 @@
       "rules": [],
       "hints": {
         "syntax": "DATEDIF wants a start, an end and a unit: =DATEDIF(B2,TODAY(),\"M\").",
-        "func-datedif": "The age is a distance between two dates, and DATEDIF is the function that measures one.",
-        "func-today": "The end of the interval is today, so ask the clock rather than typing 15 March.",
-        "require-ref": "Read the opened date from B2 so the second policy follows without editing.",
-        "value": "January 2022 to March 2024 is 26 whole months: DATEDIF stops at the last completed month.",
-        "error": "Reversed dates make the interval negative, and DATEDIF refuses that with #NUM!."
+        "func-datedif": "The age is a distance, so DATEDIF measures it and M keeps the whole months.",
+        "func-today": "Ask TODAY for the end of the interval instead of typing 15 March.",
+        "require-ref": "Read the opened date from B2, so POL-1042 needs no edit.",
+        "value": "January 2022 to March 2024 is 26 complete months; the half-finished March is left out.",
+        "error": "A start date after today returns #NUM!, so check which argument holds the opened date."
       },
       "fixtures": {
         "accept": [
@@ -141,11 +141,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "EOMONTH takes the starting date and a count of months: =EOMONTH(B2,1).",
-        "func-eomonth": "One month after March is April, and the payment date is April's last day, not April's first.",
-        "require-ref": "Read the issued date from B2 rather than typing the serial, so the row keeps following the invoice.",
-        "value": "EOMONTH(B2,1) with B2 in March lands on 30 April 2024, serial 45412: a 0 would give 31 March.",
-        "error": "Dividing by zero anywhere in the formula replaces the date with #DIV/0!."
+        "syntax": "EOMONTH takes a date and a month offset: =EOMONTH(B2,1).",
+        "func-eomonth": "An offset of 1 lands on April, and EOMONTH returns April's last day.",
+        "require-ref": "Read the issued date from B2, so the payment date follows the invoice.",
+        "value": "1 March plus one month ends on 30 April 2024, serial 45412. An offset of 0 would give 31 March.",
+        "error": "An offset of 13 still returns a date, so a payment a year out is a wrong offset rather than an error."
       },
       "fixtures": {
         "accept": [
@@ -193,7 +193,7 @@
   ],
   "docs": {
     "syntax": "=EOMONTH(start, months) with =DATEDIF(start, end, unit)",
-    "explain": "This is the lesson where the date functions stop being separate tricks. The age column asks the clock what today is, then measures a distance from it in whole months. It combines TODAY, which you cannot type in twice and get right twice, with DATEDIF, which counts completed months and stops before the partial one. The payment column asks a different question: not how far apart two dates are, but where the edge of a month falls. EOMONTH answers it, and its second argument is a month offset. 0 is the end of this month, 1 the end of next month, and -1 the end of last month. Both formulas return a serial, so both can be arithmetic operands. Add a term length to a date to get a due date, subtract one serial from another to get days. The recurring mistake is confusing the offset with the unit. EOMONTH counts months, DATEDIF counts whatever unit you name, and DAYS counts days only.",
+    "explain": "Three functions cover most date work. TODAY returns the current day, DATEDIF measures a distance in whole units, and EOMONTH lands on the last day of a month. Each returns a serial, so each can feed the next formula.\n\nThe first screen ages a policy opened in January 2022 against a clock pinned to 15 March 2024, and asks for whole months: DATEDIF stops at 26. The second pays an invoice dated 1 March on the last day of the following month, which is 30 April, serial 45412. EOMONTH's second argument is a month offset, not a unit.\n\nKeep the offset and the unit apart: EOMONTH's 1 moves one month forward and DATEDIF's \"M\" counts whole months. A wrong offset still returns a date and a wrong unit still returns a number, so compare the answer with the calendar.",
     "errors": [
       {
         "code": "#NUM!",
@@ -201,22 +201,22 @@
       },
       {
         "code": "#NUM!",
-        "text": "EOMONTH was asked for a month offset that lands outside the range of serials, such as a year before 1900."
+        "text": "EOMONTH was asked for an offset that lands outside the range of serials, such as a date before 1900."
       },
       {
         "code": "#VALUE!",
         "text": "A date argument arrived as text that cannot be read as a date, so there is no serial underneath it."
       }
     ],
-    "atWork": "A policy register that ages every open record against today, and an invoice log that pays on the last working day of the following month, both without a single hand-typed date.",
-    "outcome": "Combine today, a distance and a month edge in formulas that keep working tomorrow.",
+    "atWork": "A policy register aged against today, and an invoice log that pays on the last day of the following month.",
+    "outcome": "Combine today's date, a distance and a month edge in formulas that still work tomorrow.",
     "teaches": "TODAY, DATEDIF and EOMONTH together",
     "dataset": "A policy register and an invoice payment log",
     "reference": "=DATEDIF(B2,TODAY(),\"M\")"
   },
   "updated": "2026-10-31",
   "seo": {
-    "title": "Excel date functions: TODAY, DATEDIF, EOMONTH",
+    "title": "TODAY, DATEDIF and EOMONTH in Excel",
     "description": "TODAY says what day it is, DATEDIF counts completed months up to it, and EOMONTH finds the edge of a month. The offset and the unit are not the same thing."
   }
 }

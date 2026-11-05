@@ -8,7 +8,7 @@
     {
       "id": "formula-1",
       "type": "formula",
-      "prompt": "In C2, work out how many days INV-1041 has been open, counting up to the day this drill pins as today (15 March 2024).",
+      "prompt": "In C2, work out how many days INV-1041 has been open, counting up to the day this exercise pins as today (15 March 2024).",
       "today": "2024-03-15",
       "grid": {
         "startCell": "A1",
@@ -59,12 +59,12 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "TODAY takes no arguments, but it still needs the brackets: =TODAY()-B2.",
-        "func-today": "Ask Excel for the current date rather than typing one in: the column has to be right tomorrow as well.",
-        "require-ref": "Subtract the date in B2 so the next invoice is one copy away.",
-        "no-now": "NOW carries the time of day as well, which leaves a fraction of a day on the answer. TODAY is the whole number this column wants.",
-        "value": "45366 minus 45352 is 14: check that you subtracted B2, the date raised, and not a neighbouring row.",
-        "error": "Dividing by zero comes back as #DIV/0! rather than a number of days: drop that part of the formula."
+        "syntax": "TODAY takes no arguments but keeps the empty brackets: =TODAY()-B2.",
+        "func-today": "Ask the clock for today rather than typing 15 March, because the column has to be right tomorrow as well.",
+        "require-ref": "Subtract the raised date in B2, so the next invoice needs a copy of the formula rather than new numbers.",
+        "no-now": "NOW carries the time of day, which leaves a fraction on the answer; TODAY is the whole number this column wants.",
+        "value": "45366 minus 45352 is 14. A different figure usually means the reference slipped to a neighbouring row.",
+        "error": "#VALUE! means B2 holds the raised date as text, so TODAY has nothing numeric to subtract."
       },
       "fixtures": {
         "accept": [
@@ -118,7 +118,7 @@
     {
       "id": "formula-2",
       "type": "formula",
-      "prompt": "In B3, return the hour the stamp in B2 was taken at, with the drill's clock pinned to 14:30.",
+      "prompt": "In B3, return the hour the stamp in B2 was taken at, with the exercise's clock pinned to 14:30.",
       "today": "2024-03-15T14:30",
       "grid": {
         "startCell": "A1",
@@ -152,11 +152,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "HOUR takes one date number and answers 0 to 23: =HOUR(B2).",
-        "func-hour": "HOUR reads the part of the number after the decimal point, which is where the time of day lives.",
-        "require-ref": "Read B2 rather than retyping the stamp.",
-        "value": "The stamp is 45366.604166667: the 45366 is the day and the .604 is the time. HOUR of it must land between 0 and 23.",
-        "error": "HOUR over text returns #VALUE!, and over a plain day number it answers 0."
+        "syntax": "HOUR takes one date number and returns 0 to 23: =HOUR(B2).",
+        "func-hour": "The day sits left of the decimal point and the time right of it; HOUR reads the right-hand part.",
+        "require-ref": "Read the stamp in B2, since a retyped serial cannot carry the fraction exactly.",
+        "value": "45366.604166667 is 15 March 2024 at 14:30, so the hour is 14 and not 604.",
+        "error": "Text in B2 gives #VALUE!, and a plain day number with no fraction gives 0 because there is no time to read."
       },
       "fixtures": {
         "accept": [
@@ -210,23 +210,23 @@
   ],
   "docs": {
     "syntax": "=TODAY()   =NOW()   =HOUR(date number)",
-    "explain": "TODAY and NOW are the only functions in Excel that change without a cell changing. They read the clock of the machine the workbook is open on. A sheet recalculated tonight holds a different answer from this morning, and a copy emailed to another timezone can disagree with itself. TODAY answers with the day as a whole number, 45366 on 15 March 2024. NOW answers with the day plus everything since midnight, carried in the fraction after the decimal point, so 14:30 that day is 45366.604166667. Excel calls them volatile: they recalculate on every edit, even when nothing they read has moved. A workbook full of them is slower than one that writes the date into a cell once and points at it. The everyday pattern is a subtraction, where TODAY minus a raised date gives the days a job has been open. The trap is using NOW for it, which leaves a fraction of a day on an answer that should be whole. The second screen pulls that fraction apart. HOUR, MINUTE and SECOND read out of a date number the same way they read out of a typed time, because Excel stores both as one number.",
+    "explain": "TODAY and NOW read the clock of the machine the workbook is open on, so their answer can change when nothing in the sheet has. TODAY returns the day as a whole serial, 45366 on 15 March 2024. NOW returns that day with the time since midnight in the fraction, so 14:30 is 45366.604166667. Both recalculate on every edit; Excel calls functions that do this volatile.\n\nThis sheet asks for days open, which is a subtraction. TODAY minus the raised date in B2 gives 14 for INV-1041. The second screen pulls the hour out of a stamp, because HOUR reads the fraction rather than the day. Building the first column on NOW leaves part of a day on the count.\n\nReach for TODAY when the answer is a date and NOW when the time of day matters. Volatile formulas recalculate on every edit, so a large sheet full of them is slower than one that reads a typed date from a single cell.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A date function was handed text that is not a date number: HOUR over a label, or a subtraction with a text date in it."
-      },
-      {
-        "code": "#NUM!",
-        "text": "The date maths ran out of range, which happens when a subtraction crosses back before the first date this workbook can hold."
+        "text": "HOUR was given a label rather than a date number, or the raised date in B2 was stored as text."
       },
       {
         "code": "#NAME?",
-        "text": "TODAY or NOW typed without the brackets, so Excel reads the word rather than running the function."
+        "text": "TODAY or NOW typed without the empty brackets, so Excel reads the name as an unknown word."
+      },
+      {
+        "code": "Fraction of a day",
+        "text": "NOW keeps the time in the decimal, so a days-open column built on it shows 14.6 for a job that is 14 days old."
       }
     ],
-    "atWork": "An ageing report that says how many days each invoice has been open, refreshed by opening the file rather than by someone typing today's date into a cell. Plus a log row stamped with NOW, so the time of day survives alongside the date.",
-    "outcome": "Tell the difference between today's date and this moment, and read the time of day out of a date number.",
+    "atWork": "An ageing report that counts days open each time the file is opened, and a log line stamped with the moment it was written.",
+    "outcome": "Tell today's date from this moment, and read the clock out of a date number.",
     "teaches": "TODAY, NOW and HOUR",
     "dataset": "Invoices dated by day, and one log stamp timed to the minute",
     "reference": "=TODAY()-B2"

@@ -62,10 +62,10 @@
       "rules": [],
       "hints": {
         "syntax": "Start with = and close the bracket: =COUNT(B2:B7).",
-        "func-count": "COUNT answers how many numbers there are; SUM answers how much they add up to, which is a different question.",
+        "func-count": "COUNT answers how many numbers there are. SUM answers how much they add to, which is another question.",
         "require-ref": "Point COUNT at B2:B7. Numbers typed into the formula stop matching the sheet the moment a sample is re-measured.",
-        "value": "That is not how many numbers the column holds. Read down B2:B7 and ask of each cell whether it is a number.",
-        "error": "COUNT of a range never fails on text, but dividing its answer by zero returns #DIV/0!, and a call with no argument at all returns #VALUE!."
+        "value": "The count is short. Read down B2:B7 and ask of each cell whether Excel holds it as a number.",
+        "error": "A range that reaches B8 includes the formula itself, so Excel answers with a circular reference."
       },
       "fixtures": {
         "accept": [
@@ -118,19 +118,23 @@
   ],
   "docs": {
     "syntax": "=COUNT(value1, [value2], ...)",
-    "explain": "Column B mixes things up on purpose: 12.5 in B2, the words n/a in B3, 8.2 in B4, an empty cell in B5, 15 in B6 and the text 7 in B7. COUNT walks the range and counts only the cells Excel holds as numbers, so it answers 3: the 12.5, the 8.2 and the 15. The n/a is text and is skipped. The blank in B5 is nothing at all. The 7 in B7 is text because it was typed with an apostrophe or pasted from a system that sends everything as text. It looks like a number and Excel does not treat it as one. SUM over the same range answers 35.7, so a count that comes back short is the fastest way to find cells that arrived as text.",
+    "explain": "COUNT answers one thing about a range: how many of its cells hold a number. Text, blanks and logical values are passed over without complaint. This column returns 3, from the 12.5 in B2, the 8.2 in B4 and the 15 in B6.\n\nThe cells that do not count are the ones worth a look. B3 holds the text n/a, B5 is empty, and B7 holds a 7 that Excel keeps as text: it looks like a number and is not one. SUM over the same range returns 35.7, so the two readings of the column already disagree.\n\nA count that comes back short is the quickest signal that some figures arrived as text. Set the column to left align and the numbers will shift, leaving the text where it was. COUNT never reports those cells; it just leaves them out.",
     "errors": [
       {
-        "code": "#DIV/0!",
-        "text": "The count was divided by zero, usually because a formula was filled into a row whose divisor is still empty."
+        "code": "One short",
+        "text": "A reading stored as text is skipped without a warning, so the count lands below the figures you can see."
       },
       {
-        "code": "#VALUE!",
-        "text": "COUNT was called with no argument at all, as in =COUNT(). It needs at least one range or value to look at."
+        "code": "Circular",
+        "text": "A range that reaches B8 includes the cell holding the formula, so Excel reports a circular reference."
+      },
+      {
+        "code": "#REF!",
+        "text": "The range points at a row or a column that has since been deleted, leaving nothing to inspect."
       }
     ],
-    "atWork": "Importing a supplier's stock file, where some quantities arrive as text and a count that disagrees with the row total is how you find them.",
-    "outcome": "Count the cells that hold real numbers, and know why the total looks one short.",
+    "atWork": "Importing a supplier's stock file, where some quantities arrive as text. The count tells you how many rows to fix before the file is usable.",
+    "outcome": "Count the cells that hold real numbers, and read a short count as evidence of text.",
     "teaches": "COUNT",
     "dataset": "Readings with text and blanks",
     "reference": "=COUNT(B2:B7)"

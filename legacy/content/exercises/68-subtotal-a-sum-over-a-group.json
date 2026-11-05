@@ -5,19 +5,23 @@
   "title": "SUBTOTAL: one function number, six answers",
   "docs": {
     "syntax": "=SUBTOTAL(function-number, range) with 9 (or 109) for SUM, 4 for MAX, 5 for MIN, 2 for COUNT",
-    "explain": "SUBTOTAL looks like a strange function the first time you meet it, because the first argument is a number rather than a range. That number chooses which of eleven ordinary functions to run over the range that follows. Nine is SUM, one is AVERAGE, two is COUNT, four is MAX, five is MIN. The hundreds versions do the same thing and also skip rows hidden by hand. The reason it exists is lists that get filtered. A plain SUM keeps adding the rows the filter has hidden. A subtotal is built to be recalculated against whatever is visible, which is why the total row of a filtered table is a SUBTOTAL. In this drill nothing is hidden, so nine and one hundred and nine give the same answer. That is worth knowing: the difference only shows up once rows disappear. The two screens use the same range and different function numbers, so the only thing that changes the answer is the number in the first position. That is the habit to build. Read the number before the range, because it says what the answer is going to be.",
+    "explain": "SUBTOTAL opens with a number instead of a range. That number chooses which of the built-in functions runs: 9 adds, 1 averages, 2 counts, 4 takes the largest. The range follows it. On this sheet =SUBTOTAL(9,B2:B4) adds the three prices to 35, and the second screen swaps in 4 for a maximum of 20.\n\nThe number exists for filtered lists. A filter hides rows, a plain SUM keeps adding them, and a SUBTOTAL recalculates against the rows that remain. Numbers from 101 to 111 go further and skip rows hidden by hand, so 9 and 109 agree here only because nothing is hidden.\n\nBoth screens point at the same three cells, so the first argument is the only difference between them, and it moves the answer from 35 to 20. Read that number before the range: it decides whether the range is being added or searched for its largest value.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The function number is missing, so the range is read as the number."
+        "text": "The first argument is missing or is not one of the numbers SUBTOTAL recognises, so nothing says what to calculate."
       },
       {
         "code": "#REF!",
-        "text": "A subtotal inside its own range would count itself twice."
+        "text": "The range was deleted, so the reference no longer points at any cells."
+      },
+      {
+        "code": "Wrong total",
+        "text": "The number says COUNT or MAX while the question asked for a sum, and the answer measures something else."
       }
     ],
     "atWork": "The total row under a table that gets filtered during a review meeting.",
-    "outcome": "Read the function number first and get the sum, the count or the largest value.",
+    "outcome": "Read the function number first, so one range can be added or searched for its largest value.",
     "teaches": "SUBTOTAL's function number choosing SUM, MAX and COUNT over the same range",
     "dataset": "Stock list with a total row that needs a subtotal",
     "reference": "=SUBTOTAL(9,B2:B4)"
@@ -79,10 +83,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SUBTOTAL(9,B2:B4): the number comes first, then the range.",
-        "func-subtotal": "The question asks for the total that survives a filter, and that is SUBTOTAL.",
+        "func-subtotal": "Nine is the SUM inside SUBTOTAL, which is what the total row of a filtered table needs.",
         "require-ref": "The range is the price column of the table.",
         "value": "Ten plus five plus twenty is 35.",
-        "error": "Dividing the total by zero replaces it with #DIV/0!."
+        "error": "The total is being divided by zero, which turns it into #DIV/0!."
       },
       "fixtures": {
         "accept": [
@@ -183,10 +187,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SUBTOTAL(4,B2:B4): four is MAX, and the range follows it.",
-        "func-subtotal": "The largest value comes from the number the function is given, not from MAX.",
+        "func-subtotal": "MAX is not called by name here: the number in front of the range selects it.",
         "require-ref": "The prices live in B2:B4.",
         "value": "The largest of ten, five and twenty is 20.",
-        "error": "Dividing the answer by zero replaces it with #DIV/0!."
+        "error": "The answer is then divided by zero, so the cell returns #DIV/0!."
       },
       "fixtures": {
         "accept": [

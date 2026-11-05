@@ -64,12 +64,12 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=LEFT(B2,FIND(\"-\",B2)-1): FIND locates the dash, LEFT takes everything before it.",
-        "func-left": "LEFT takes the characters from the start of the text; it needs to know how many.",
-        "func-find": "FIND tells you where the dash is, so LEFT does not have to hard-code the length of the prefix.",
-        "require-ref": "Read the reference from B2 instead of typing the text into the formula.",
-        "value": "Close: the off-by-one is the usual culprit. FIND(\"-\",B2) returns 4, the dash itself, so LEFT needs 3 characters, not 4.",
-        "error": "#VALUE! means FIND could not see the dash at all: check the cell reference and that the dash is in quotes. #NAME? means a function name is misspelled, and LEFT needs no dot and no space."
+        "syntax": "=LEFT(B2,FIND(\"-\",B2)-1): FIND finds the dash, LEFT keeps what precedes it.",
+        "func-left": "LEFT works from the first character and needs a count of how many to keep.",
+        "func-find": "FIND supplies that count, so the prefix length never gets typed in.",
+        "require-ref": "Read B2; the other references are there for comparison.",
+        "value": "FIND returns 4, the dash position, so LEFT needs 3 characters. One more keeps the dash.",
+        "error": "The grader will say off by one when the dash survives: the answer is ORD, not ORD-."
       },
       "fixtures": {
         "accept": [
@@ -137,23 +137,23 @@
   ],
   "docs": {
     "syntax": "=LEFT(text, FIND(delimiter, text) - 1)",
-    "explain": "The reference in B2 is ORD-2024-0917. FIND(\"-\",B2) scans from the left and returns 4, the position of the first dash, because counting starts at 1. That 4 is one more than the prefix is long, since the dash is not part of it. So the formula subtracts 1 and LEFT takes the first 3 characters: O, R and D, giving ORD. The result is text, which is why it will not match the number 3 without care. The pattern works for any delimiter and any prefix length. LEFT(B2,3) would have worked today and broken on INV-2024-0612, where the shorter prefix leaves the numbers misaligned.",
+    "explain": "FIND reports where a character sits inside a string, and LEFT takes a given number of characters from the start. Joined, they cut a prefix of any length off a code. The reference in B2 is ORD-2024-0917, so FIND(\"-\",B2) returns 4, counting from one.\n\nThe dash is not part of the prefix, so the length is 4 minus 1. The formula =LEFT(B2,FIND(\"-\",B2)-1) returns ORD in B6, and the minus one is the only thing keeping the dash out. Type the position FIND gave you and the answer comes back as ORD-.\n\nLEFT(B2,3) gives the same answer on every row of this sheet, which is why it feels safe. It breaks the first time a code arrives with a four-letter prefix, and nothing warns you. FIND keeps the formula tied to the dash instead.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "FIND did not find the dash at all: it raises #VALUE! rather than returning 0."
+        "text": "The search string is absent from the cell, and FIND raises #VALUE! rather than returning 0."
       },
       {
         "code": "Off by one",
-        "text": "LEFT(B2,FIND(\"-\",B2)) returns \"ORD-\" with the dash still attached."
+        "text": "LEFT(B2,FIND(\"-\",B2)) keeps the dash, so the answer reads ORD- instead of ORD."
       },
       {
-        "code": "#VALUE!",
-        "text": "A negative length, which happens when the delimiter is the very first character and the subtraction reaches 0."
+        "code": "No FIND",
+        "text": "LEFT(B2,3) answers ORD here and drops the first letter of a four-letter prefix."
       }
     ],
-    "atWork": "Reference ids, ticket keys, SKU families: anywhere a code carries meaning in its prefix, this pair pulls it out without a helper column and without hard-coded positions.",
-    "outcome": "Split a reference into parts with LEFT and FIND.",
+    "atWork": "Reference ids, ticket keys and SKU families: LEFT and FIND pull a coded prefix out without a helper column.",
+    "outcome": "Pull a prefix of any length out of a code with LEFT and FIND.",
     "teaches": "LEFT and FIND",
     "dataset": "Order log",
     "reference": "=LEFT(B2,FIND(\"-\",B2)-1)"
@@ -161,6 +161,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "LEFT and FIND in Excel: pull out a prefix",
-    "description": "FIND locates the dash and LEFT takes everything before it. FIND returns 4, so the length is 3 and the answer is ORD, not the whole reference."
+    "description": "FIND locates the dash and LEFT takes the text before it. FIND returns 4, so the length is 3 and the answer is ORD, not the whole reference."
   }
 }

@@ -66,10 +66,10 @@
       "rules": [],
       "hints": {
         "syntax": "MODE takes the whole list: =MODE(B2:B7).",
-        "func-mode": "Neither the middle nor the biggest value is the frequent one: this is a function about repeats.",
+        "func-mode": "Neither the middle nor the biggest value answers this: the frequent one does.",
         "require-ref": "Read the tickets from B2:B7 so a new ticket joins the answer on its own.",
-        "value": "Three tickets are size 3, so 3 is the most common value.",
-        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+        "value": "Three tickets are size 3 and two are size 5, so the most common size is 3.",
+        "error": "#N/A says no size repeats. It describes the list, not a broken formula."
       },
       "fixtures": {
         "accept": [
@@ -180,10 +180,10 @@
       "rules": [],
       "hints": {
         "syntax": "MODE wants one range and nothing else: =MODE(B2:B8).",
-        "func-mode": "Boxes of 2 appear three times, more often than any other count.",
-        "require-ref": "Read the stores from B2:B8 rather than listing the counts.",
-        "value": "The median is 4 and the mode is 2: the most common value is not the middle one.",
-        "error": "Dividing by zero leaves #DIV/0! instead of a size."
+        "func-mode": "MODE counts repeats, so it can return 2 while the median of the same column sits at 4.",
+        "require-ref": "Read the stores from B2:B8 instead of listing the counts.",
+        "value": "Sorted, the seven counts run 2, 2, 2, 4, 7, 9 and 9: the median is 4 and the mode is 2.",
+        "error": "#VALUE! comes up only when a word is typed inside the brackets. Blank cells are skipped, so a half-filled column still answers."
       },
       "fixtures": {
         "accept": [
@@ -231,22 +231,22 @@
   ],
   "docs": {
     "syntax": "=MODE(range)",
-    "explain": "Mean and median both answer what is typical by size. MODE answers what is typical by frequency, which is a different question. It is the right one whenever the values are categories wearing numbers: shoe sizes, ticket sizes, pack counts, the number of boxes a shop orders. The answer is a value that occurs in the list, which is why a mode is easy to explain to a room and a mean often is not. Two limits matter. A list where every value occurs once has no mode at all, and Excel says `#N/A` rather than inventing one. A list with two equally frequent values is also ambiguous. Classic MODE returns the one that appears first in the data. The newer MODE.MULT returns all of them, so a tie is a decision you should make explicitly rather than inherit. MODE ignores blanks and text, counts only numbers, and will not tell you how often the mode occurs. Pair it with COUNTIF when the frequency itself belongs in the report.",
+    "explain": "MODE looks for the value that occurs most often and gives back one of the values on the sheet, not a figure built from them. That makes it the summary for numbers that are really categories, such as shoe sizes and pack counts. Blank cells and text are skipped.\n\nIn the first grid, 3 appears three times and 5 twice, so the answer is 3. The second grid has 2 three times and 9 twice, so the answer is 2, while the median of that same column is 4.\n\nTwo values with the same count leave a choice. Classic MODE returns whichever appears first in the data, and MODE.MULT returns both, so decide which one the report means. COUNTIF supplies the count itself when the frequency belongs on the page.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "No value occurs more than once, so there is no mode to report."
+        "text": "No value repeats, so there is no mode. A list of unique ticket sizes always lands here."
       },
       {
         "code": "#VALUE!",
-        "text": "The range holds no numbers at all, so there is nothing to count."
+        "text": "A word was passed as an argument in its own right, as in =MODE(\"S\"), where a range would have ignored it."
       },
       {
-        "code": "#DIV/0!",
-        "text": "The mode was divided by zero downstream, so that error is what the cell shows."
+        "code": "Tie at the top",
+        "text": "Two sizes share the highest count, and MODE reports whichever it met first, so the number moves when the rows are reordered."
       }
     ],
-    "atWork": "A support desk sizing its ticket categories, and a warehouse that stocks the box count each shop orders most often.",
+    "atWork": "A support desk sizing its ticket categories, and a warehouse stocking the box count each shop orders most often.",
     "outcome": "Find the value that repeats most often, which is neither the biggest nor the middle.",
     "teaches": "MODE, and how it differs from MEDIAN",
     "dataset": "Support ticket sizes and box counts per store",

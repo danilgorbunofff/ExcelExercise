@@ -58,10 +58,10 @@
       "rules": [],
       "hints": {
         "syntax": "Start with = and close the bracket: =COUNTA(B2:B6).",
-        "func-counta": "The dates sit in a text column, so counting numbers finds none of them; COUNTA counts anything that is not blank.",
-        "require-ref": "Point COUNTA at B2:B6 rather than pasting the three dates in: the sheet has to stay the source of the answer.",
-        "value": "That is not how many steps are dated. Three of the five cells in B2:B6 hold a date and two are empty.",
-        "error": "COUNTA of a range never fails on text; dividing its answer by zero returns #DIV/0!."
+        "func-counta": "The dates sit in a text column, so COUNT finds no numbers at all. COUNTA counts anything that is not blank.",
+        "require-ref": "Point COUNTA at B2:B6. Pasting the three dates in would freeze the count at the progress of the day you wrote it.",
+        "value": "Two of the five cells are empty, so the answer is the other three.",
+        "error": "One of these cells may hold a space rather than a date, which COUNTA counts as done."
       },
       "fixtures": {
         "accept": [
@@ -114,19 +114,23 @@
   ],
   "docs": {
     "syntax": "=COUNTA(value1, [value2], ...)",
-    "explain": "Column B holds three dates and two empty cells. COUNT would look for numbers, find none and answer 0, because these entries arrived as text rather than as dates. COUNTA answers a different question: how many cells hold something, anything. It returns 3. On a checklist the difference is the whole point. An empty cell means the step has not happened yet, so counting the filled ones is how you report progress. If a step gets a space typed into it, COUNTA counts that space as progress while COUNT still says 0. A progress bar that reads high sends you looking for stray spaces.",
+    "explain": "COUNTA counts the cells in a range that hold something, whatever it is: a date, a word, a space. Only empty cells are left out. Three of the five cells in B2:B6 hold a date, so the answer is 3.\n\nCOUNT asks the narrower question and returns 0 on this column, because the dates sit in it as text rather than as date values. On a checklist the empty cells carry the meaning: each one is a step nobody has started, and the filled ones are the progress report.\n\nA cell holding a single space counts as filled. Clean the stray spaces out of a checklist and the total drops to the number of steps really finished.",
     "errors": [
       {
-        "code": "#DIV/0!",
-        "text": "The count was divided by zero, usually because the sharing formula ran on an empty progress column."
+        "code": "Counts spaces",
+        "text": "A cell with a space typed into it counts as filled, so progress rises without any work being done."
       },
       {
-        "code": "#VALUE!",
-        "text": "COUNTA was called with no argument at all. It needs at least one range or value to inspect."
+        "code": "Wrong function",
+        "text": "COUNT over B2:B6 answers 0, because it looks for numbers and the dates are text."
+      },
+      {
+        "code": "#NAME?",
+        "text": "COUNTA typed with an extra letter is not a function Excel knows, so the cell shows an error."
       }
     ],
-    "atWork": "A launch checklist where the empty cells are the steps still to do, and the count of dated ones is what the status deck reports.",
-    "outcome": "Count filled cells, dates and labels included, so a checklist reports real progress.",
+    "atWork": "A launch checklist where each empty cell is a step still to do and the dated ones are what the status deck reports.",
+    "outcome": "Count filled cells rather than numbers, so a checklist reports real progress.",
     "teaches": "COUNTA",
     "dataset": "A five-step checklist",
     "reference": "=COUNTA(B2:B6)"

@@ -65,11 +65,11 @@
       "requireRef": "B8",
       "rules": [],
       "hints": {
-        "syntax": "=AND(test 1, test 2): every test has to be TRUE for the answer to be TRUE.",
-        "func-and": "Two conditions joined by AND need the AND function; a single comparison cannot hold both.",
-        "require-ref": "Point at the total and at the units column rather than typing the numbers.",
-        "value": "The total is 150 and the smallest item is 18, so both tests hold and the answer is TRUE.",
-        "error": "A division by zero inside a test returns #DIV/0! instead of TRUE or FALSE."
+        "syntax": "=AND(test 1, test 2): the answer is TRUE only when both tests are.",
+        "func-and": "The question joins two conditions with and, so it needs AND.",
+        "require-ref": "Read the total from B8 and the units from B2:B7.",
+        "value": "The total is 150 and the smallest item is 18, so both tests hold and the cell should say TRUE.",
+        "error": "One division by zero inside a test leaves #DIV/0!, and no TRUE or FALSE ever appears."
       },
       "fixtures": {
         "accept": [
@@ -175,11 +175,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=OR(test 1, test 2): one TRUE is enough for the answer to be TRUE.",
-        "func-or": "Either test alone is enough, which is what OR is for; AND would demand both.",
-        "require-ref": "Read the units column so the smallest item is found rather than assumed.",
-        "value": "Bolt has 18 units, under 20, so the first test is already TRUE and the answer is TRUE.",
-        "error": "A division by zero inside a test returns #DIV/0! instead of TRUE or FALSE."
+        "syntax": "=OR(test 1, test 2): one TRUE is enough.",
+        "func-or": "The question says or, so either test passing should make the answer TRUE.",
+        "require-ref": "Look through the units column for the smallest item and read the total from B8.",
+        "value": "Bolt has 18 units, under 20, so the first test already makes the answer TRUE.",
+        "error": "The grader calls this one a formula that stops with an error: a test was divided by zero, so no verdict arrives."
       },
       "fixtures": {
         "accept": [
@@ -227,22 +227,22 @@
   ],
   "docs": {
     "syntax": "=AND(test1, test2, ...) needs every test; =OR(...) needs one; =NOT(test) flips it",
-    "explain": "A single comparison answers one question, and most decisions ask several at once. AND joins tests and answers TRUE only when all of them hold. OR answers TRUE when any one of them does, and NOT flips a single logical value. All three take logical tests rather than numbers, so each argument is a comparison. A bare number is treated as TRUE when it is not zero, which is a quiet way to write a test that always passes. In this drill the stock list has a total of 150 and a smallest item of 18 units. =AND(B8>100,MIN(B2:B7)>=15) is TRUE, and OR with the same two tests is also TRUE. That is exactly why picking the wrong one changes nothing on this data and everything on the next sheet. The second screen asks whether any item is under 20 or the total is over 200. The first test is already TRUE, so the answer is TRUE. The usual mistake is reaching for AND when the question says or. The second is testing an empty column, because the range was typed rather than read.",
+    "explain": "AND, OR and NOT take logical tests and return a single TRUE or FALSE. AND needs every argument to hold and OR needs one, while NOT flips the value it is given. Each argument is normally a comparison, though a bare number counts as TRUE unless it is zero.\n\nOn this sheet the total is 150 and the smallest item is 18. Both tests in =AND(B8>100,MIN(B2:B7)>=15) hold, so the cell answers TRUE. The second screen asks whether any item is under 20 or the total is over 200, and Bolt's 18 settles it on the first test alone.\n\nMost mistakes here come from choosing between AND and OR. On data like this either function answers TRUE, so a wrong choice stays hidden until a month when the two tests disagree.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "An argument was text where a logical test was expected."
-      },
-      {
-        "code": "#DIV/0!",
-        "text": "One of the tests divided by zero before it could be judged."
+        "text": "An argument is text where a logical test belongs, as when a word reaches AND without quotes."
       },
       {
         "code": "#NAME?",
-        "text": "The function name was misspelled, so no test was run."
+        "text": "A function name is mistyped, so no test runs at all."
+      },
+      {
+        "code": "One test only",
+        "text": "A formula holding a single comparison looks complete but skips the second condition, so a short item still passes."
       }
     ],
-    "atWork": "Flagging a restock only when the total is thin and no single item can cover it.",
+    "atWork": "Marking a month for restock only when the stock total is low and one line has run short.",
     "outcome": "Combine several tests into one answer, and choose AND or OR to match the question.",
     "teaches": "AND and OR over comparison arguments, and what a bare number argument means",
     "dataset": "Stock list with a total row and a smallest item",

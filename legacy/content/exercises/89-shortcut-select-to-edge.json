@@ -1,0 +1,55 @@
+{
+  "id": "89-shortcut-select-to-edge",
+  "slug": "shortcut-select-to-edge",
+  "level": 1,
+  "title": "Select to the edge of a block",
+  "schemaVersion": 2,
+  "screens": [
+    {
+      "id": "chord-1",
+      "type": "chord",
+      "prompt": "From A2 of a price list that runs down to A40, select every row to the last filled cell with one chord, without dragging.",
+      "keys": ["mod+shift+down"],
+      "hints": {
+        "value": "One modifier extends the selection and the other stops it at the last filled cell, so the answer holds two modifiers and one arrow."
+      }
+    },
+    {
+      "id": "sequence-1",
+      "type": "sequence",
+      "prompt": "Keep row 1 in view while you scroll, using the ribbon's access keys one press at a time.",
+      "steps": ["alt", "w", "f", "r"],
+      "hints": {
+        "value": "Alt opens the ribbon key tips, then the View tab, then Freeze Panes, then the top-row option inside it."
+      }
+    }
+  ],
+  "docs": {
+    "syntax": "Mod + Shift + Down",
+    "explain": "Shift extends a selection, and Ctrl or Command turns the arrow key from one step into a jump to the end of the filled block. Pressed together in A2 of a list that runs to A40, they select A2 to A40 in one move. Windows and the Mac disagree only about the modifier: Ctrl on one, Command on the other.\n\nThe selection stops at the first empty cell, so a blank row in the middle of the data ends it early. That is the failure worth knowing about. Select from the top, look at where the highlight stopped, and extend again from there.\n\nThe second exercise takes the ribbon route instead. Alt shows the key tips, W picks the View tab, F opens Freeze Panes and R freezes the top row. That way is slower than the mouse, and it is also the one you can repeat from memory without hunting for the ribbon.",
+    "errors": [
+      {
+        "code": "Stopped early",
+        "text": "The selection ended above row 40 because a cell in the column is empty. The arrow keys read blanks as the end of the block."
+      },
+      {
+        "code": "Too far",
+        "text": "The selection ran to the last cell in the sheet, which means the arrow key was pressed once the block had already ended. Press the reverse arrow to pull it back."
+      },
+      {
+        "code": "One cell only",
+        "text": "The chord was pressed without Shift, so the active cell moved to the edge of the block and nothing was selected."
+      }
+    ],
+    "atWork": "Every cleanup, sort and format you run on a column starts with selecting it. Two keys beat four thousand rows of dragging, and they still work when the list grows.",
+    "outcome": "Select a whole column of data with two keys instead of the mouse.",
+    "teaches": "Shift + modifier + arrow keys",
+    "dataset": "Price list, 40 rows",
+    "reference": "Mod+Shift+Down"
+  },
+  "updated": "2026-02-24",
+  "seo": {
+    "title": "Select to the edge of a block in Excel",
+    "description": "Select every row of a list with one chord, then freeze a header row with the ribbon's access keys. Two presses, graded as you make them."
+  }
+}

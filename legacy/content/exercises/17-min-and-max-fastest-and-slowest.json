@@ -58,7 +58,7 @@
         "func-min": "The fastest lap is the smallest number in the column. MIN finds it; AVERAGE answers 60.65, which is not a lap anybody ran.",
         "require-ref": "Point MIN at B2:B5. Lap times typed into the formula freeze at today's numbers and stop moving when a lap is re-run.",
         "value": "That is not the fastest lap. A range that stops early or starts late hides the runner who was quicker.",
-        "error": "MIN reads numbers inside a range and skips the labels beside them, but text handed to MIN on its own returns #VALUE!, and any division by zero returns #DIV/0!."
+        "error": "#VALUE! appears when a word is passed straight in, as =MIN(\"Fastest\"). Labels sitting inside a range are skipped without complaint."
       },
       "fixtures": {
         "accept": [
@@ -161,7 +161,7 @@
         "func-max": "The slowest lap is the largest number in the column. MAX finds it; MIN answers the other end of the same four laps.",
         "require-ref": "Point MAX at B2:B5, because a slowest time typed in stops updating the moment the race is re-run.",
         "value": "That is not the slowest lap. A range that stops early leaves out the runner who took longest.",
-        "error": "MAX skips the labels in column A, but text handed to MAX on its own returns #VALUE!, and any division by zero returns #DIV/0!."
+        "error": "MAX returns #REF! when the range points at cells that have been deleted. Check that the reference still covers B2:B5."
       },
       "fixtures": {
         "accept": [
@@ -214,18 +214,22 @@
   ],
   "docs": {
     "syntax": "=MIN(number1, ...) for the smallest, =MAX(number1, ...) for the largest",
-    "explain": "The sheet lists four runners and the lap each one ran: 61.2 seconds in B2, 58.4 in B3, 63.9 in B4 and 59.1 in B5. Read in order, the smallest is Ben's 58.4, so MIN over B2:B5 answers 58.4. The largest is Cai's 63.9, so MAX over the same range answers 63.9. Neither function sorts anything or cares which row a time sits in, which is why the sheet can record laps in the order people finish. The four times total 242.6 and average 60.65, a time nobody ran. MIN and MAX name the two runners who stood out.",
+    "explain": "MIN returns the smallest number in a range and MAX the largest. The four laps are 61.2 in B2, 58.4 in B3, 63.9 in B4 and 59.1 in B5, so MIN over B2:B5 gives Ben's 58.4 and MAX gives Cai's 63.9. Neither function sorts the sheet or cares which row a time sits in.\n\nThis exercise asks for the fastest lap on one screen and the slowest on the other. Fastest is the smallest number, so both answers come from the same four cells with the function swapped. The average of the four is 60.65, a time nobody ran, and it answers neither question.\n\nPoint both formulas at B2:B5 instead of typing the four times. A re-run lap then changes the answer, and a range that stops a row early hides the runner who was quicker.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "Text was handed to MIN or MAX as the argument itself, as in =MIN(Fastest). A range that holds labels is fine, because the labels sit in column A while the numbers sit in column B."
+        "text": "A word was passed as an argument in its own right, as in =MIN(Fastest), so there is no number to compare."
+      },
+      {
+        "code": "#REF!",
+        "text": "The range names cells that were deleted with their rows or their sheet, so MIN has nothing left to read."
       },
       {
         "code": "#DIV/0!",
-        "text": "The fastest or slowest time was divided by zero, usually because a formula was filled down into a row whose divisor is still empty."
+        "text": "One cell inside the range already holds that error, and MIN passes it back instead of the fastest lap."
       }
     ],
-    "atWork": "Race results, delivery times and monthly closes, where the question is almost always who was quickest or slowest rather than what the average was.",
+    "atWork": "Race results and delivery logs, where the question is who came first or last, and the average never answers it.",
     "outcome": "Return the smallest or largest number in a range without sorting the sheet first.",
     "teaches": "MIN and MAX",
     "dataset": "Four runners' lap times",

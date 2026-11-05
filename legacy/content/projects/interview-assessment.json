@@ -7,15 +7,15 @@
   "brief": [
     {
       "heading": "The file",
-      "body": "interview-assessment.xlsx holds one sheet, Orders, with twelve orders booked in the first quarter. Columns A to F are the order number, the date, the rep, the region, the units and the unit price; column G is the discount as a fraction, and column H is Net, a formula that multiplies units by price, takes the discount off and rounds to two decimals."
+      "body": "interview-assessment.xlsx holds one sheet, Orders, with twelve orders booked in the first quarter. Columns A to F are the order number, the date, the rep, the region, the units and the unit price. Column G is the discount as a fraction. Column H is Net, a formula that multiplies units by price, takes the discount off and rounds to two decimals."
     },
     {
       "heading": "The work",
-      "body": "You are doing the take-home half of an interview: a workbook lands, and you have twenty minutes to say what the quarter was worth and who produced it. Rows 15 to 18 are a report block — revenue, order count, mean order and the largest order. Everything below them is a question an interviewer would ask out loud, and the sheet has to answer each one without a new helper column."
+      "body": "You are doing the take-home half of an interview. A workbook lands, and you have twenty minutes to say what the quarter was worth and who produced it. Rows 15 to 18 are a report block for revenue, order count, mean order and largest order. Everything below them is a question an interviewer would ask aloud, and the sheet answers each one without a new helper column."
     },
     {
       "heading": "What the interviewer checks",
-      "body": "Not whether you can sum a column, but whether you notice that Net is already net. Summing the discount column tells you nothing about revenue; the money given away is what the gross would have been minus what was actually booked. Two of the eight tasks need exactly that distinction."
+      "body": "Not whether you can sum a column, but whether you notice that Net is already net. Summing the discount column tells you nothing about revenue; the money given away is what the gross would have been minus what was booked. Two of the eight tasks need exactly that distinction."
     }
   ],
   "dataset": {
@@ -48,7 +48,7 @@
   },
   "docs": {
     "syntax": "=ROUND(SUM(H2:H13),2), =ROUND(SUMPRODUCT(E2:E13,F2:F13),2)-B15",
-    "explain": "The Net column already has the discount applied, so revenue is SUM of H and nothing else. Gross revenue is the units times price column multiplied row by row, which is SUMPRODUCT, and the money given away is that gross minus the net you just summed — which is why the formula starts with SUMPRODUCT and ends by subtracting B15. COUNTA over the date column counts orders, AVERAGE divided by twelve gives the mean order, and MAX names the single best one. Every other task is a subset of those columns: filter by region or by rep, then add.",
+    "explain": "The Net column already has the discount applied, so revenue is SUM of H and nothing else. Gross revenue multiplies units by price row by row, which is SUMPRODUCT, and the money given away is that gross minus the net you just summed. That is why the answer starts with SUMPRODUCT and ends by subtracting B15.\n\nCOUNTA over the date column counts orders, AVERAGE divided by twelve gives the mean order, and MAX names the single best one. Every other task works on a subset of those columns: filter by region or by rep, then add.",
     "atWork": "A take-home assessment and a real quarterly review ask the same thing: what came in, from whom, and what did we give up to get it. Gross, net and discount are three different numbers and confusing any two of them is the most common spreadsheet error in commercial reporting.",
     "outcome": "Report a quarter's revenue, its gross, and the money the discounts cost.",
     "teaches": "Gross versus net, and grouped totals",
@@ -72,7 +72,7 @@
       "prompt": "What net revenue did the quarter book? B15 holds it.",
       "answers": ["13715.6", "13,715.6", "13715.60"],
       "hints": {
-        "value": "B15 is ROUND(SUM(H2:H13),2). Column H is already net of discount — do not take anything off again."
+        "value": "B15 is ROUND(SUM(H2:H13),2). Column H is already net of discount, so do not take anything off again."
       }
     },
     {
@@ -108,7 +108,7 @@
       "prompt": "Which rep closed the largest single order? B18 is that order's value.",
       "answers": ["Diaz"],
       "hints": {
-        "value": "B18 is MAX of H. Find that value in column H and read the rep in column C — not the rep with the highest total."
+        "value": "B18 is MAX of H. Find that value in column H and read the rep in column C, not the rep with the highest total."
       }
     },
     {

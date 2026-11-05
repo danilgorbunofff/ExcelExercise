@@ -5,19 +5,23 @@
   "title": "Text search summary",
   "docs": {
     "syntax": "=MID(text,FIND(\"-\",text)+1,4) finds the separator then slices after it; criteria take patterns",
-    "explain": "This screen is the two halves of text work in one place. The first half is a slice placed relative to a separator: FIND reports where the hyphen sits, one is added because the digits begin after it, and MID reads from there. Nothing in that formula is a typed number that depends on this particular table, which is what separates a formula from a transcription. The second half is the pattern in a criterion, where a star does the work that a whole list of region names would otherwise do. Both halves appear because real sheets mix them: an imported column arrives as one long string, and the reporting column beside it asks how many rows fit a pattern. The detail that trips people is that the two techniques answer different kinds of question. The slice returns a piece of text and has to be pinned to a position; the pattern returns a number and does not care where anything sits. Reading both off one table, as this screen does, makes the distinction concrete rather than theoretical.",
+    "explain": "Two techniques meet on this table. The first places a slice relative to a separator. FIND reports where the hyphen sits, one is added to step past it, and MID reads four characters from there. Nothing in that formula is a typed position that depends on this table.\n\nThe second is a pattern in a criterion. AVERAGEIFS with \"N*\" picks the three North rows, and the amounts come to 380 across them, so the average rounds to 126.7. The pattern answers a question about rows, not about positions.\n\nEach half fails differently. A missing hyphen breaks the slice with #VALUE!, while a pattern that matches no rows leaves AVERAGEIFS with nothing to divide and returns #DIV/0!. Checking which error you got tells you which half went wrong.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A position argument is not a number, or the text being searched for is absent."
+        "text": "FIND cannot see the hyphen in the code, so the MID call receives no start position."
       },
       {
         "code": "#DIV/0!",
-        "text": "The pattern matches no rows, so there is nothing to average."
+        "text": "No row matches the pattern, so AVERAGEIFS has no numbers to average."
+      },
+      {
+        "code": "Wrong slice",
+        "text": "Dropping the plus one returns -104, which is four characters starting at the hyphen."
       }
     ],
-    "atWork": "Slicing a code around its separator and totalling rows that fit one pattern.",
-    "outcome": "Combine FIND with MID for a slice, and a wildcard criterion for a matching total.",
+    "atWork": "Slicing a code around its separator and averaging the rows that fit one pattern.",
+    "outcome": "Combine FIND with MID for a slice, and a wildcard criterion for a filtered average.",
     "teaches": "MID driven by FIND beside a wildcard criterion, on one table",
     "dataset": "Code, region and amount columns, sliced and matched",
     "reference": "=MID(A2,FIND(\"-\",A2)+1,4)"
@@ -85,10 +89,10 @@
       "hints": {
         "syntax": "=MID(A2,FIND(\"-\",A2)+1,4): FIND locates the hyphen, MID reads from just after it.",
         "func-mid": "The digits are a slice of the code, so MID reads them.",
-        "func-find": "The hyphen moves between rows, so FIND works out where it sits.",
+        "func-find": "The hyphen sits in a different place on each row, so FIND works it out.",
         "require-ref": "The code is in A2.",
         "value": "The hyphen is third, so the four digits start at four.",
-        "error": "If the code held no hyphen, FIND would fail with #VALUE!."
+        "error": "Dropping the plus one returns -104, and the grader expects 1042."
       },
       "fixtures": {
         "accept": [
@@ -194,11 +198,11 @@
       ],
       "requireRef": "C2",
       "hints": {
-        "syntax": "=ROUND(AVERAGEIFS(C2:C5,B2:B5,\"N*\"),1): the averages first, the pattern last.",
-        "func-averageifs": "A conditional average is AVERAGEIFS' job.",
-        "require-ref": "The amounts are in C2:C5.",
-        "value": "380 across three rows is 126.66..., which rounds to 126.7.",
-        "error": "Averaging the region column has no numbers to average."
+        "syntax": "ROUND wraps the average, so the pattern sits inside the AVERAGEIFS call and the digits come last.",
+        "func-averageifs": "A conditional average is AVERAGEIFS' job: the amounts first, the condition second.",
+        "require-ref": "The amounts to average are in C2:C5.",
+        "value": "380 across three rows is 126.66, which rounds to 126.7.",
+        "error": "Averaging the region column puts text where numbers belong, so the cell shows #DIV/0!."
       },
       "fixtures": {
         "accept": [

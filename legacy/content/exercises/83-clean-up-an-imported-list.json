@@ -5,18 +5,22 @@
   "title": "Clean up an imported list",
   "docs": {
     "syntax": "=PROPER(TRIM(text)) tidies spacing and case; nest SUBSTITUTE and LOWER for a key",
-    "explain": "An imported list arrives with the problems of wherever it came from: padding spaces, doubled spaces inside names, and inconsistent capitalisation. None of those are visible in a wide column, and all of them break a lookup later. MATCH does not ignore a trailing space, and it would rather return an error than a near miss. Cleaning is therefore not cosmetic work. It is the step that makes the rest of the workbook correct. The order matters more than the functions do. TRIM first, because it removes the padding and collapses the runs of spaces inside a string to one. Then the case function, because the words are now the right shape to capitalise. Swapping that order mostly works and teaches the wrong lesson, so the reject list carries it. The second screen builds a key, which is the same cleaning followed by replacing the space with a separator. It nests all three: trim, substitute, lower. Once a key column exists, two lists that spell a name differently join on it, and that is what the whole exercise is for.",
+    "explain": "TRIM removes padding at both ends of the text and collapses runs of spaces inside it to one. PROPER then capitalises the first letter of each word. Nested as PROPER(TRIM(A2)), they turn the padded, shouted name in A2 into Ana Lopez.\n\nThe order matters more than the functions do. PROPER applied to doubled spaces tidies the case and leaves the spaces in place, so the cleaned name still fails a lookup. MATCH does not ignore a trailing space, and it returns #N/A for a name that looks identical on screen.\n\nThe second screen builds a match key from the same text. TRIM goes first, SUBSTITUTE swaps the one remaining space for a dot, and LOWER flattens the case to ana.lopez. A key column is what lets two lists that spell a name differently join on one cell.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A function is given a range instead of a single cell, so it has no one text to clean."
+        "text": "A function is handed a whole range instead of one cell, so there is no single string to clean."
       },
       {
         "code": "#NAME?",
         "text": "The function name is misspelled, so the sheet has nothing to call."
+      },
+      {
+        "code": "Doubled dot",
+        "text": "SUBSTITUTE runs before TRIM and every run of spaces becomes a run of dots in the key."
       }
     ],
-    "atWork": "Turning an imported, inconsistently spaced name column into something a lookup can match.",
+    "atWork": "An imported name column that has to match another list before anything joins to it.",
     "outcome": "Tidy spacing and case with TRIM and PROPER, then build a lower-case key from the same text.",
     "teaches": "TRIM before PROPER, then TRIM, SUBSTITUTE and LOWER nested into a match key",
     "dataset": "Imported names with padding, doubled spaces and mixed case",
@@ -74,11 +78,11 @@
       "requireRef": "A2",
       "hints": {
         "syntax": "=PROPER(TRIM(A2)): trim the spacing, then capitalise the words.",
-        "func-trim": "The cell is padded and doubled up, so the spaces have to go first.",
+        "func-trim": "The cell is padded and doubled up, so the spaces go first.",
         "func-proper": "Each word has to be capitalised rather than shouted.",
         "require-ref": "The imported name is in A2.",
         "value": "Padding and doubled spaces collapse, and the words become Ana Lopez.",
-        "error": "Cleaning a whole column at once gives no single text to clean."
+        "error": "#VALUE! means the function was handed a whole range, so there is no single string to trim."
       },
       "fixtures": {
         "accept": [
@@ -184,12 +188,12 @@
       "requireRef": "A2",
       "hints": {
         "syntax": "=LOWER(SUBSTITUTE(TRIM(A2),\" \",\".\")): trim, replace the space, then lower-case.",
-        "func-trim": "The doubled spaces would otherwise become doubled dots.",
-        "func-substitute": "The remaining single space is swapped for a dot.",
-        "func-lower": "The name is shouted, so the key has to be lower-cased.",
-        "require-ref": "The imported name is in A2.",
+        "func-trim": "Trim first, or the doubled spaces turn into doubled dots.",
+        "func-substitute": "The one space left between the names is swapped for a dot.",
+        "func-lower": "The name is shouted in the source, so the key is lower-cased.",
+        "require-ref": "The imported name is in A2, at the top of the column.",
         "value": "Ana Lopez becomes ana.lopez once the padding is gone.",
-        "error": "A whole column of imported names gives no single text to clean."
+        "error": "If the key comes out with two dots, SUBSTITUTE ran before TRIM rather than after it."
       },
       "fixtures": {
         "accept": [

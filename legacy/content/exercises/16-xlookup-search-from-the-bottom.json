@@ -62,11 +62,11 @@
       "requireRef": "A7",
       "rules": [],
       "hints": {
-        "syntax": "Start with = and close every bracket: =XLOOKUP(A7,A2:A6,B2:B6,,0,-1).",
-        "func-xlookup": "XLOOKUP takes six arguments here: the key, the keys, the prices, the text to show when nothing matches, the match mode, and the search direction.",
-        "require-ref": "Point the first argument at the cell holding the SKU. Typing the SKU into the formula answers for one row and freezes the moment the cell changes.",
-        "value": "That is the first entry for the SKU, not the latest one. Search mode 1 walks the keys from the top down, and the log appends, so the newest entry is the last match.",
-        "error": "Read the code: #N/A means the key was not found in the range you searched, and #VALUE! means the key range and the price range are different sizes, so there is no row to pair with."
+        "syntax": "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1): two empty slots before the search direction.",
+        "func-xlookup": "Six arguments: the key, the keys, the prices, the text for a miss, the match mode, and the search direction.",
+        "require-ref": "Point at A7 rather than typing the SKU, so the row above and the row below behave the same.",
+        "value": "That is the first entry, 19.99. Search mode 1 starts at the top, and the newest entry is the last match.",
+        "error": "#N/A means the key is not in A2:A6. #VALUE! means the key range and the price range are different sizes."
       },
       "fixtures": {
         "accept": [
@@ -180,11 +180,11 @@
       "requireRef": "A8",
       "rules": [],
       "hints": {
-        "syntax": "Start with = and close every bracket: =XLOOKUP(A8,A2:A6,B2:B6,,0,-1).",
-        "func-xlookup": "XLOOKUP takes six arguments here: the key, the keys, the prices, the text to show when nothing matches, the match mode, and the search direction.",
-        "require-ref": "Point the first argument at the cell holding the SKU. Typing the SKU into the formula answers for one row and freezes the moment the cell changes.",
-        "value": "That is the first entry for the SKU, not the latest one. Search mode 1 walks the keys from the top down, and the log appends, so the newest entry is the last match.",
-        "error": "Read the code: #N/A means the key was not found in the range you searched, and #VALUE! means the key range and the price range are different sizes, so there is no row to pair with."
+        "syntax": "=XLOOKUP(A8,A2:A6,B2:B6,,0,-1): only the first argument moves down a row.",
+        "func-xlookup": "The same six arguments as the row above, and the same two empty slots.",
+        "require-ref": "A8 holds TX-102, which appears in rows 2 and 6.",
+        "value": "The first TX-102 is 14, in row 3. Working from the bottom, the last one is 16.25.",
+        "error": "Read the code before editing: #N/A is a key outside the range, #VALUE! is a size mismatch between the two ranges."
       },
       "docs": {
         "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
@@ -255,25 +255,25 @@
         "B2:B6"
       ],
       "hints": {
-        "value": "The third argument is the range XLOOKUP reads the answer from, so it covers the price column's data rows. Rows 2 to 6 hold the log; row 7 is where the answer goes."
+        "value": "The third argument names the column the answer comes from. The log runs from row 2 to row 6 in column B, and the answer goes in row 7."
       }
     }
   ],
   "docs": {
     "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])",
-    "explain": "The log is append-only, so the newest price for a SKU is the last row that names it. Search mode -1 walks the key column from the bottom up until the first match. TX-101 appears in rows 2 and 4, and the answer is row 4's 21.5. With the default search mode the same formula answers 19.99, a real price from a real row, wrong only because it is the wrong day's price. The fourth and fifth arguments are skipped with empty commas, because there is no missing-value text and the match stays exact. So the search direction is the sixth argument and cannot be moved. A sorted log with VLOOKUP approximate match, or a MAXIFS over the date column, reaches the same number, but both depend on an order the sheet has to keep. This one reads the order the sheet already has.",
+    "explain": "The log is append-only, so the newest price for a SKU is the last row that names it. Search mode -1 walks the key column from the bottom until it finds one. TX-101 sits in rows 2 and 4, so the answer is the 21.5 in row 4.\n\nThe fourth and fifth arguments are skipped with empty commas, which puts -1 in the sixth slot. With the default direction the same formula returns 19.99: a real price from a real row, wrong only because it is the older entry.\n\nOther routes reach 21.5 too, but each needs a sorted column or a date to compare against. This argument asks nothing of the sheet beyond the order it already has.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The key is not in the range XLOOKUP searched, which happens when the key range points at the price column or stops before the last row."
+        "text": "The key is not in the searched range, which happens when the range points at the price column or stops before the last row."
       },
       {
         "code": "#VALUE!",
-        "text": "The key range and the return range are different sizes, so a row in one has nothing to pair with in the other."
+        "text": "The key range and the price range are different sizes, so a row in one has no partner in the other."
       }
     ],
-    "atWork": "Price logs, stock movements and status changes where the same key is written again on a later date, so the newest row wins.",
-    "outcome": "Return the newest entry for a key in an append-only log without sorting or filtering it first.",
+    "atWork": "Price logs, stock movements and status changes where a key is written again later, and the newest row wins.",
+    "outcome": "Return the latest entry for a repeated key without sorting the log first.",
     "teaches": "XLOOKUP",
     "dataset": "Activity log with repeat SKUs",
     "reference": "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)"

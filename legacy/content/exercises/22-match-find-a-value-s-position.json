@@ -67,12 +67,12 @@
         }
       ],
       "hints": {
-        "syntax": "MATCH takes the value, the list to search, and the match type: =MATCH(B6,A2:A5,0).",
-        "func-match": "MATCH returns a position inside the list you give it, not the value in the next column; that is what INDEX does with the number.",
-        "match-exact": "The month list is not sorted, so the third argument has to be 0 for an exact match. Leaving it out searches an unsorted list and gives an answer you cannot trust.",
-        "require-ref": "Take the month from B6 instead of typing Mar, so asking about April is a one-cell edit.",
-        "value": "Counting from Jan as 1, Mar is the third month in the list.",
-        "error": "If the month is not in the searched range at all, MATCH returns #N/A: the position of nothing does not exist."
+        "syntax": "=MATCH(B6,A2:A5,0): the month to find, the list to search, then the match type.",
+        "func-match": "MATCH hands back a count of cells, 3. The units in B4 are INDEX's job.",
+        "match-exact": "Leave the third argument out and MATCH treats the month list as sorted. Jan, Feb, Mar, Apr is calendar order, so the answer cannot be trusted.",
+        "require-ref": "Take the month from B6. Typing Mar into the formula means April needs an edit to the formula, not the sheet.",
+        "value": "Jan is 1, Feb is 2, Mar is 3. Counting starts at the top of A2:A5, not the top of the sheet.",
+        "error": "A month that is not in A2:A5 returns #N/A. With the third argument at 0, MATCH will not guess at a nearest row."
       },
       "fixtures": {
         "accept": [
@@ -120,19 +120,23 @@
   ],
   "docs": {
     "syntax": "=MATCH(lookup_value, lookup_array, [match_type])",
-    "explain": "MATCH answers a question about position: given a value, where does it sit in this list, counting from 1? The list runs Jan, Feb, Mar, Apr in A2:A5 and B6 asks about Mar, so MATCH reports 3. The third argument decides how hard MATCH looks. 0 demands an exact match. 1 accepts the largest value less than or equal to the target and needs the list sorted ascending. -1 does the mirror image on a descending list. This list is alphabetical rather than sorted by any rule MATCH can use, so 1 is a coin flip that lands on 3 today. Once MATCH has the number, INDEX turns it back into a value from another column, which is the pair the next lesson uses.",
+    "explain": "MATCH counts how far down a list a value sits. The months in A2:A5 run Jan, Feb, Mar, Apr, and B6 holds Mar, so MATCH returns 3. That 3 is a position inside A2:A5, which is row 4 on the sheet.\n\nThe third argument decides how much tolerance MATCH allows. A zero asks for an exact match and is the safe choice here, because Jan to Apr is calendar order and approximate search assumes ascending sort. Set 1 and MATCH returns the last entry it judges to be at or below the value.\n\nA month that is not in the list returns #N/A. There is no position for a value the list does not hold, so anything built on MATCH fails visibly. INDEX, in the next exercise, takes this 3 and reads the third cell of another column.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The value is not in the searched range, so there is no position to report."
+        "text": "No cell in A2:A5 holds the month, so MATCH has no position to return."
       },
       {
         "code": "#VALUE!",
-        "text": "The match type was text, or the searched range was given as a single value instead of a row or column."
+        "text": "The searched range was a block rather than one row or column, or the match type was text."
+      },
+      {
+        "code": "Wrong row",
+        "text": "The match type was left out or set to 1, so MATCH searched a calendar-order list as though it were ascending and picked a neighbouring month."
       }
     ],
-    "atWork": "Building the row number that INDEX needs for a two-way lookup, without hard-coding row 3 into the formula.",
-    "outcome": "Find where a value sits in a list, ready to feed INDEX.",
+    "atWork": "Feeding a row number to INDEX without typing 3 into the formula by hand.",
+    "outcome": "Find where a value sits in a list, counting the first cell as 1.",
     "teaches": "MATCH",
     "dataset": "Four months and their units",
     "reference": "=MATCH(B6,A2:A5,0)"

@@ -5,19 +5,23 @@
   "title": "A headcount and payroll summary",
   "docs": {
     "syntax": "=SUMPRODUCT(heads,salaries) totals a payroll; divide by SUM(heads) for the cost per head",
-    "explain": "A payroll summary is two columns that only mean something together. Headcount on its own says how many people a team has; salary on its own says what one seat costs. Multiply them row by row and you have the payroll that team represents, and that row-by-row multiplication is exactly what SUMPRODUCT does in one call. The alternative, a helper column of headcount times salary and a SUM underneath, is what most sheets do. It works until someone sorts half the helper column, and doing it in one formula removes that failure. The second half of the lesson is the cost per head, which is the payroll divided by the total headcount rather than the average of the salary column. That distinction is the whole point. Averaging salaries treats a team of one and a team of three as equally important, while dividing by the headcount weighs them the way the money does. Two screens, the payroll and then the cost per head, put the two figures side by side on one table.",
+    "explain": "SUMPRODUCT multiplies two ranges row by row, then adds the products. Given heads in B2:B5 and salaries in C2:C5, each team's headcount pairs with that team's salary before anything is summed. Three heads at 45000 come to 135000, and the four rows come to 345000.\n\nThe second screen divides that payroll by the total headcount, eight, and rounds: 345000 across eight heads is 43125. The divisor is SUM(B2:B5), so a team of three carries three times the weight of a team of one. Averaging the salary column gives 44000, a figure nobody on the sheet is paid.\n\nBoth ranges need the same shape; one that starts a row late pairs each salary with the wrong headcount, and the total still looks plausible. The divisor comes from the heads column: COUNT(B2:B5) counts four rows and would put the cost at 86250.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The two ranges given to SUMPRODUCT do not have the same shape."
+        "text": "The two ranges are different shapes, so the rows cannot be paired."
       },
       {
         "code": "#DIV/0!",
-        "text": "The headcount total is zero, so there is nothing to divide by."
+        "text": "The headcount total is zero and the cost per head divides by it."
+      },
+      {
+        "code": "Wrong divisor",
+        "text": "The divisor counts rows instead of heads, so four teams divide a payroll built on eight."
       }
     ],
-    "atWork": "Costing a payroll from headcount and salary columns that change every month.",
-    "outcome": "Total a payroll with SUMPRODUCT, then divide by the headcount for the cost per head.",
+    "atWork": "Costing a monthly payroll from headcount and salary columns that both move.",
+    "outcome": "Total a payroll across two columns, then divide it by the headcount.",
     "teaches": "SUMPRODUCT pairing headcount with salary, then a per-head ratio over it",
     "dataset": "Four teams with headcount and salary, summarised two ways",
     "reference": "=SUMPRODUCT(B2:B5,C2:C5)"
@@ -78,11 +82,11 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=SUMPRODUCT(B2:B5,C2:C5): the headcount column, then the salary column.",
-        "func-sumproduct": "Each row is headcount times salary, and the rows are then added.",
+        "syntax": "=SUMPRODUCT(B2:B5,C2:C5): the heads, then the salaries.",
+        "func-sumproduct": "Each row is headcount times salary, and the products are added.",
         "require-ref": "The headcount column is B2:B5.",
-        "value": "135000 + 76000 + 82000 + 52000 is 345000.",
-        "error": "Two ranges of different shapes cannot be paired row by row."
+        "value": "135000 + 76000 + 82000 + 52000 comes to 345000.",
+        "error": "Ranges of unequal length cannot be paired row by row, so Excel returns #VALUE!."
       },
       "fixtures": {
         "accept": [
@@ -137,7 +141,7 @@
       "rules": [],
       "forbid": [],
       "id": "formula-2",
-      "prompt": "In D2, round the payroll cost of one head to a whole number.",
+      "prompt": "In D2, work out the payroll cost of one head, rounded to a whole number.",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -192,12 +196,12 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),0): the payroll over the headcount, rounded.",
-        "func-sumproduct": "The numerator is headcount times salary, added across rows.",
-        "func-sum": "The denominator is the total headcount, which is a plain sum of the column.",
-        "require-ref": "The headcount column is B2:B5.",
-        "value": "345000 across eight heads is 43125 each.",
-        "error": "A zero headcount total leaves nothing to divide by."
+        "syntax": "=ROUND(SUMPRODUCT(B2:B5,C2:C5)/SUM(B2:B5),0): payroll over heads, rounded.",
+        "func-sumproduct": "The numerator is the payroll total from the first screen.",
+        "func-sum": "The denominator adds the heads column rather than counting its rows.",
+        "require-ref": "Read the heads from B2:B5 in both halves.",
+        "value": "345000 divided by eight heads comes to 43125.",
+        "error": "The grader rejects COUNT as the divisor; 345000 over four is 86250."
       },
       "fixtures": {
         "accept": [

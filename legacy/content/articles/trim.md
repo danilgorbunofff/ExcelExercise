@@ -1,9 +1,9 @@
 ---
-title: TRIM in Excel, remove the spaces that break a lookup
+title: TRIM in Excel, remove the breaking spaces
 summary: TRIM removes spaces from the ends of a cell and collapses doubled spaces inside it. Imported lists arrive full of them, and they are the usual reason two values that look identical do not match.
-description: How TRIM works in Excel, why a trailing space breaks MATCH and VLOOKUP, three worked examples, what TRIM does not fix, and a cleanup drill.
+description: How TRIM works in Excel, why a trailing space breaks MATCH and VLOOKUP, three worked examples, what TRIM does not fix, and a cleanup exercise.
 function: TRIM
-exercise: clean-up-an-imported-list
+drills: clean-up-an-imported-list, substitute-replace-one-piece-of-text, upper-lower-and-proper
 syntax: =TRIM(text)
 updated: 2026-02-14
 ---
@@ -59,9 +59,21 @@ The non-breaking space is the one that wastes an afternoon. It arrives from web 
 
 The text-number problem is the other trap. A key column built with TRIM cannot be summed, because every result is text. Keep the cleaned key in its own column and leave the original numbers alone, rather than overwriting a data column with formulas that change its type.
 
+## Alternatives
+
+`=CLEAN(A2)` removes the non-printing characters that TRIM leaves alone, and an imported list usually needs both: `=TRIM(CLEAN(A2))`. CLEAN has been in Excel for decades, so the pair is safe in any file.
+
+`=SUBSTITUTE(A2, CHAR(160), " ")` is the fix when the space is a non-breaking one, because TRIM does not treat that character as a space at all. Excel 365 adds `=TEXTSPLIT(` and `=TEXTBEFORE(`, which help when text has to be cut into columns rather than cleaned.
+
+## Other apps
+
+Google Sheets has TRIM, and it collapses the doubled spaces inside the text too, so `=TRIM(A2)` gives the same answer on both sides. Sheets' `CLEAN` removes a slightly different set of characters, which is worth checking before a column is compared across the two products.
+
+VBA reaches TRIM as `Trim(Range("A2").Value)`, and that one only strips spaces from the ends. The worksheet function is `WorksheetFunction.Trim`, and the two are not the same function under the same name.
+
 ## Practice
 
-The drill below shows an imported name with padding and doubled spaces, and asks for it cleaned and properly capitalised. Type the formula, then press Check. The expected answer is the name itself, so a result with the double space in it means TRIM is missing, and a result in capitals means PROPER is.
+The exercise below shows an imported name with padding and doubled spaces, and asks for it cleaned and properly capitalised. Type the formula, then press Check. The expected answer is the name itself, so a result with the double space in it means TRIM is missing, and a result in capitals means PROPER is.
 
 ## Questions
 

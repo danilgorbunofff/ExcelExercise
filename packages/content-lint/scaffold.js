@@ -132,8 +132,10 @@ function skeleton({ id, slug, level, title }) {
     ],
     docs: {
       syntax: "=SUM(number1, [number2], ...)",
+      // Two paragraphs, because the gate refuses a one-block explanation and the scaffold has to pass
+      // the same check a written lesson does before anyone edits it.
       explain:
-        "Replace this scaffold: the drill here totals B2:B3, and it is the smallest lesson that passes the gate, so the answer, the requirement and both fixture lists already agree with the grader. Write three to five sentences that say what the formula does to this data, why the range stops where it does, and what changes when a month is added. Keep the arithmetic in the explanation, not only the name of the function.",
+        "Replace this scaffold. The drill here totals B2:B3, and it is the smallest lesson that passes the gate, so the answer, the requirement and both fixture lists already agree with the grader.\n\nWrite three to five sentences that say what the formula does to this data, why the range stops where it does, and what changes when a month is added. Keep the arithmetic in the explanation, not only the name of the function.",
       errors: [
         {
           code: "#VALUE!",
@@ -164,8 +166,12 @@ export function scaffoldLesson({ contentDir, lesson, group }) {
     const match = NUMBERED.exec(entry.id);
     if (match) used.add(Number(match[1]));
   }
-  let next = 1;
-  while (used.has(next)) next += 1;
+  // A number is the order the lesson was written in, so a hole left by a deleted lesson is not filled:
+  // the next file continues from the highest number in the catalog, which keeps the folder sorted by
+  // creation instead of by coincidence.
+  let next = 0;
+  for (const number of used) if (number > next) next = number;
+  next += 1;
 
   if (lesson !== undefined && lesson !== null) {
     if (!/^\d+$/.test(String(lesson))) {
@@ -173,7 +179,7 @@ export function scaffoldLesson({ contentDir, lesson, group }) {
     }
     if (Number(lesson) !== next) {
       throw new Error(
-        `lesson ${lesson} cannot be created — ${next} is the next free number, because ids are dense and follow the order lessons were written in`,
+        `lesson ${lesson} cannot be created — ${next} is the next free number, because ids follow the order lessons were written in`,
       );
     }
   }

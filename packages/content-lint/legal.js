@@ -47,9 +47,12 @@ const ROUTES = ["app/privacy/page.js", "app/terms/page.js"];
 
 const text = (html) =>
   html
-    // A block end is a sentence end: without this, a stripped `<dl>` reads as one 133-word sentence.
-    .replace(/<\/(p|li|dd)>/g, ". ")
+    // A block end is a sentence end: without this, a stripped `<dl>` reads as one 133-word sentence. A
+    // term is a block of its own, and it starts lower case, so it needs the boundary before the detail.
+    .replace(/<\/(p|li|dd|dt)>/g, ". ")
     .replace(/<[^>]+>/g, " ")
+    // A block that already ended in a full stop leaves ".." behind, which is not a boundary to split at.
+    .replace(/\.\s*\./g, ".")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")

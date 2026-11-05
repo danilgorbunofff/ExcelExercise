@@ -56,7 +56,7 @@
       "rules": [],
       "hints": {
         "syntax": "=SUM(B$2:B2): the start is pinned, the end moves as the formula fills down.",
-        "func-sum": "A running total is a SUM whose range grows; this drill wants the function.",
+        "func-sum": "A running total is a SUM whose range grows; this exercise wants the function.",
         "require-ref": "Point at the units column so the range grows with the rows.",
         "value": "Monday alone is 12; nothing has been added to it yet.",
         "error": "A division by zero never reaches a total."
@@ -206,22 +206,22 @@
   ],
   "docs": {
     "syntax": "=SUM(B$2:B2) filled down a column",
-    "explain": "A running total is one formula copied down a column, and the whole trick is which half of the range is pinned. SUM(B$2:B2) locks the row of the start cell and leaves the column free. Filling down turns the second half into B3, B4 and so on while the start stays at row 2. The row 2 figure is 12, row 3 is 20, row 4 is 35, and each one is the sum of everything above it rather than a fresh total. If both halves are pinned the formula stops growing and every row repeats the first total. If neither is pinned the start walks down with the fill and each row reports only itself. That is why a running total is worth teaching as a reference problem rather than a function problem. SUM is trivial here, and the money is in the dollar signs. The same shape works for a running balance, a cumulative percentage or a year-to-date column. It survives rows being inserted, because the range is built from cells rather than typed numbers.",
+    "explain": "A running total is one formula filled down a column, and the work is in the dollar signs. The formula =SUM(B$2:B2) locks the row of the start cell and leaves its column free. Filled down, it turns the second half into B3, B4 and beyond while the start stays at row 2.\n\nRow 2 reads 12, row 3 reads 20, row 4 reads 35, and each is everything above it rather than a fresh total. Pin both halves and every row repeats the first figure; pin neither and each row reports only itself.\n\nThe same shape carries a cash book balance, a cumulative percentage or a year-to-date column. It also survives inserted rows, because the range is built from cells rather than typed numbers.",
     "errors": [
       {
-        "code": "#DIV/0!",
-        "text": "A division by zero in the formula stops it before a total is produced."
-      },
-      {
-        "code": "#VALUE!",
-        "text": "The range reaches a text cell that the formula tries to add directly."
+        "code": "Wrong total",
+        "text": "Pinning both halves of the range freezes it, so every row repeats the first total. Only the start row takes the dollar sign."
       },
       {
         "code": "#REF!",
-        "text": "The pinned start row was deleted, so the range has nothing to begin at."
+        "text": "A filled-down range names rows outside the sheet, usually after the start cell was deleted."
+      },
+      {
+        "code": "#VALUE!",
+        "text": "A cell in the growing range holds text. Summing a column that mixes headings and numbers returns this."
       }
     ],
-    "atWork": "A cash book with a running balance, and a project plan with a cumulative percentage complete.",
+    "atWork": "A cash book with a running balance, and a project plan with cumulative percentage complete.",
     "outcome": "Build a running total that can be filled down without editing each row.",
     "teaches": "SUM with a mixed reference that grows as the formula is filled down",
     "dataset": "Daily units and a week of activity",

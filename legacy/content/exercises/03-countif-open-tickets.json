@@ -70,11 +70,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "The criteria is text, so it needs quotes: =COUNTIF(B2:B9,\"Open\").",
-        "func-countif": "COUNTIF counts the rows that match a condition. COUNT cannot help you here: it counts numbers, and the status column is text.",
-        "require-ref": "The first argument has to be the status column itself, not the answer.",
-        "value": "One of the four Open rows is being missed. Check the range reaches the last ticket, and that \"Open\" is quoted exactly as it appears.",
-        "error": "#VALUE! here almost always means the criteria lost its quotes, so Excel tried to read Open as a cell name. Wrap the word in double quotes and keep the range as B2:B9."
+        "syntax": "The criterion is text, so it goes in quotes: =COUNTIF(B2:B9,\"Open\").",
+        "func-countif": "COUNTIF counts the rows that match a condition. COUNT only counts numbers, and this column holds words.",
+        "require-ref": "The first argument points at the status column, not at the answer cell.",
+        "value": "The count is short by one. Check that the range reaches B9, where the last ticket sits.",
+        "error": "Unquoted criteria is read as a name, so the cell shows #NAME? instead of a number."
       },
       "fixtures": {
         "accept": [
@@ -157,23 +157,23 @@
   ],
   "docs": {
     "syntax": "=COUNTIF(range, criteria)",
-    "explain": "COUNTIF walks a range and counts the cells that meet one condition. Eight tickets sit in B2:B9 with five statuses, and exactly four of them read \"Open\", so COUNTIF(B2:B9,\"Open\") returns 4. Text conditions need quotation marks because the criteria is a string. A number does not: COUNTIF(B2:B9,4) counts cells equal to four. Criteria also accept comparisons and wildcards written as text, so \">=5\", \"<>Closed\" and \"T-10*\" all work. COUNTIF ignores case, which surprises anyone expecting \"open\" and \"Open\" to count separately.",
+    "explain": "COUNTIF reads a range and counts the cells that meet one condition. Text criteria go in quotes, so =COUNTIF(B2:B9,\"Open\") returns 4: four of the eight statuses read Open. A number needs no quotes, while \">=5\" and \"<>Closed\" keep theirs because a comparison is still text.\n\nThis sheet holds eight tickets with four different statuses, and the answer sits under the last of them. The range has to reach B9. Stop at B8 and the count comes back as 3, one short, with no error to mark the ticket you missed.\n\nCase does not matter, so \"open\" and \"Open\" land in the same count. Wildcards work inside the criteria as well: \"O*\" also returns 4 here, and \"T-10*\" tested against column A would count all eight tickets.",
     "errors": [
       {
-        "code": "#VALUE!",
-        "text": "The first argument is a single value instead of a range, or the criteria is missing its quotes."
-      },
-      {
         "code": "#NAME?",
-        "text": "COUNTIFF or COUNITF: a doubled letter is enough to lose the function."
+        "text": "An unquoted criterion such as COUNTIF(B2:B9,Open) sends Excel looking for a name called Open, and there is none."
       },
       {
-        "code": "Off-by-one",
-        "text": "A range that stops at B8 misses the last ticket, which is the most common reason a count is short by exactly one."
+        "code": "One short",
+        "text": "A range that stops at B8 counts three Open tickets and reports nothing wrong."
+      },
+      {
+        "code": "#REF!",
+        "text": "The range points at cells that have been deleted since, so there is nothing left to count."
       }
     ],
-    "atWork": "Support queues, stock levels, failed payments: counting rows that match one condition is the most-used formula in any operations role, and the one most often done by scrolling and counting instead.",
-    "outcome": "Count the rows that meet a single condition.",
+    "atWork": "Support queues and stock rooms run on this count: how many tickets are open, how many lines are short. It is just as often tallied by eye, one screen at a time.",
+    "outcome": "Count the rows that meet one condition, and get the edges of the range right.",
     "teaches": "COUNTIF",
     "dataset": "Support ticket log",
     "reference": "=COUNTIF(B2:B9,\"Open\")"

@@ -327,7 +327,7 @@ a real browser. Runtime evidence in this repo is genuine.
 | p0-43 | Grader extracted with zero logic edits | Proven | `tests/grader.test.js:458` (M2) | n/a |
 | p0-50 | Content package extracted | Proven | `npm run content:check` (M17, M18) | n/a |
 | p0-59 | Routes wired to the same templates | Proven | `e2e/routes.spec.js:67`; `next:check` 120 pages | browser |
-| p0-77 | Redirect map for legacy URLs | Proven | `e2e/routes.spec.js:25,31` | browser (301) |
+| p0-77 | Redirect map for legacy URLs | Proven | `e2e/routes.spec.js:30,31` | browser (301) |
 | p0-82 | 404 reuses chrome + config | Proven | `e2e/dashboard.spec.js:225` | browser |
 | p0-91 | CI runs three jobs | Proven | `.github/workflows/ci.yml` (jobs `check`, `e2e`, `static`) | n/a — note: no db job |
 | p0-99 | Playwright suite against Next + static | Proven | 153 passed; `e2e-static/static-drill.spec.js:33` | browser |
@@ -705,7 +705,7 @@ defects. Corrections, not re-scoring to taste:
 | --- | --- | --- | --- |
 | p3-185 | Built, unproven | **Proven** | The criterion's analogue in a site with no progress fetch is a browser that denies `localStorage`, and `e2e/dashboard.spec.js:175` drives exactly that, asserting the printed note at line 185. The Step 2 verdict checked for a failing *fetch* that the architecture does not have. |
 | p9-284 | Built, unproven | **Proven** | Step 3 printed the certificate under A4 and under Letter and asserted one page in both: `screenshots/2026-10-31/next/12-print-a4.png`, `12-print-letter.png`, plus `tests/client.test.js:330`. |
-| p10-137 | Absent | **Proven, criterion rewritten** | "All 201 legacy HTML routes return a single 301" describes an architecture this site does not have and should not: the legacy pages are *served*, not redirected. The outcome the criterion exists for — every legacy address resolves to exactly one live page — is proven by `e2e/routes.spec.js:25,31` plus the static crawl. The 301 count was wrong (D8), not the capability. |
+| p10-137 | Absent | **Proven, criterion rewritten** | "All 201 legacy HTML routes return a single 301" describes an architecture this site does not have and should not: the legacy pages are *served*, not redirected. The outcome the criterion exists for — every legacy address resolves to exactly one live page — is proven by `e2e/routes.spec.js:30,31` plus the static crawl. The 301 count was wrong (D8), not the capability. |
 
 The corrected counts: **78 Proven, 29 Built-unproven, 25 Absent, 1 Obsolete** of 133.
 

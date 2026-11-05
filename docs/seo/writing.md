@@ -24,12 +24,12 @@ Each lesson has five short blocks. Keep them in this order and do not let one ab
 |---|---|---|
 | `seo.title` | what a search result shows | 18–60 characters, names the function and the job |
 | `seo.description` | what a search result shows under the title | 70–155 characters, answers "is this the page I want" |
-| `docs.explain` | the mechanism, with the numbers from the drill | 80–130 words, no more |
-| `docs.errors` | the errors this drill actually produces | one sentence each, naming the cause |
+| `docs.explain` | the mechanism, with the numbers from the exercise | 80–130 words, no more |
+| `docs.errors` | the errors this exercise actually produces | one sentence each, naming the cause |
 | `docs.atWork` | where this shows up in a real file | one or two sentences, concrete job |
 | `docs.outcome` | what the reader can do afterwards | one sentence, starts with a verb |
 
-`docs.explain` earns its length by using the drill's own numbers. "SUM(B2:B4) returns 3580 because
+`docs.explain` earns its length by using the exercise's own numbers. "SUM(B2:B4) returns 3580 because
 1200 + 1450 + 930 = 3580" is teaching. "SUM is a versatile function that lets you add numbers" is not.
 
 ## Sentences
@@ -98,13 +98,13 @@ Before a batch of lessons is called finished:
 A note (`legacy/content/articles/<function>.md`) is the page that answers "what does VLOOKUP do". It
 is not a lesson: a lesson asks you to write a formula for a task, and a note explains a function you
 may already suspect is the one you need. The two link in one direction — the note borrows one screen
-from the lesson as its drill, and the drill links back to the whole exercise.
+from the lesson as its exercise, and the exercise links back to the whole exercise.
 
 Five sections, in this order, because the gate counts them:
 
 | Section | What it holds |
 |---|---|
-| `## What it does` | the mechanism in two or three sentences, using the drill's own numbers |
+| `## What it does` | the mechanism in two or three sentences, using the exercise's own numbers |
 | `## Syntax` | the argument order, and which argument people get wrong |
 | `## Example N` (2 to 4) | a small pipe table and one line saying what the result is |
 | `## What goes wrong` | the errors this function actually produces, one row each with a cause and a fix |
@@ -113,12 +113,12 @@ Five sections, in this order, because the gate counts them:
 - 700 to 1400 words. Under 700 the note duplicates the lesson; over 1400 it stops being a reference.
 - `title` names the function, `description` is 70 to 155 characters, `updated` is `YYYY-MM-DD`.
 - `function:` is the Excel name and has to be unique across notes. `exercise:` is the **slug** of the
-  lesson the drill comes from, not the file name — `83-clean-up-an-imported-list.json` publishes at
-  `clean-up-an-imported-list`, and the numbered form silently loses the drill.
+  lesson the exercise comes from, not the file name — `83-clean-up-an-imported-list.json` publishes at
+  `clean-up-an-imported-list`, and the numbered form silently loses the exercise.
 - One example table per note at minimum. A table is the cheapest way to show a range and its answer
   without a screenshot nobody can read on a phone.
 
-Run `npm run content:articles` after writing. It checks the sections, the lengths, the drill link and
+Run `npm run content:articles` after writing. It checks the sections, the lengths, the exercise link and
 every site path the note points at, then runs the same sentence and wording rules as the lessons. A
 note whose prose reads like a landing page fails here before it fails in review.
 
@@ -126,4 +126,4 @@ note whose prose reads like a landing page fails here before it fails in review.
 
 Nothing in this document can be automated past the gate. Before a batch ships, read one page with a
 real question in mind and one with a phone in hand, and open the page with JavaScript disabled: the
-drill is the only part that needs it, and the prose has to stand without it.
+exercise is the only part that needs it, and the prose has to stand without it.

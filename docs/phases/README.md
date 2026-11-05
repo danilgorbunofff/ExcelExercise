@@ -30,6 +30,11 @@ the shell port, curriculum and content factory, exercise engine, dashboard, acco
 retention, credentials and projects, SEO, the SQL track, B2B/referrals, and launch. It supersedes the
 shortcut-drill and lifetime-pricing non-goals in phase 7.
 
+Content work is planned separately, in [`docs/plans/content/`](../plans/content/00-overview.md): an
+overview plus five phase plans — variant grading, the 7-part article template, the problem silo,
+workbooks and shortcuts, and markup plus measurement — and the external ideas this project has
+deliberately rejected. All five are shipped, and each file ends with the gate it passed.
+
 ## Progress
 
 - [x] **1 — grader core.** `src/grader/` (address, errors, tokenize, parse, values, functions,

@@ -1,6 +1,6 @@
 # Excel Supreme
 
-A zero-signup, browser-only micro-learning site for Excel formulas. Sixteen drills, each one a small
+A zero-signup, browser-only micro-learning site for Excel formulas. Sixteen exercises, each one a small
 spreadsheet with a single answer cell: the learner types a formula, a deterministic grader in the page
 says exactly what is wrong — wrong value, wrong function, malformed syntax, with a caret under the
 offending token.
@@ -33,6 +33,7 @@ npm run verify          # build, then assert the emitted HTML is really complete
 npm run check           # all of it, including the Next.js build
 npm run dev             # build, then serve legacy/dist at http://localhost:4173
 npm run next:dev        # the Next.js shell on http://localhost:3000
+npm run next:hot        # the same, without the production build — use this while editing
 npm run e2e             # build, then drive the shell in a real browser (Playwright)
 ```
 
@@ -49,9 +50,11 @@ while the port is in progress.
 | `npm run content:fixtures -- --lesson 6` | Prints every fixture for one lesson with declared vs reported rule | one row per fixture, all `✓`/`·` |
 | `npm run content:new -- --lesson 17 --group lookup` | Fills the first planned slot in that group with a v2 skeleton that already passes the gate | file created, `content:check` still exits 0 |
 | `npm run content:preview -- --lesson 13` | Prints a lesson the way its page reads: prompt, grid, docs, hints, fixtures | one screen, one row per fixture |
+| `npm run copy:site` | Renders every page, reads every module the site speaks through, and runs the lesson house style over the result | 0 findings, and a finding fails the command |
+| `npm run copy:site:write` | Regenerates `tests/golden/site-copy.json`, the inventory of every string the site says | diff reviewed like code |
 | `npm run catalog:reference` | Prints the reference mirror's categories next to our 16 catalog groups | a coverage table; skips cleanly when `reference/` is absent |
 | `npm run verify` | Build, then read `legacy/dist/` the way a crawler would | 908 checks pass |
-| `npm run check` | `test` + `content:check` + `next:build` + `next:check` + `verify` | the one command to run before shipping |
+| `npm run check` | `test` + `content:check` + `copy:site` + the content gates + `next:build` + `next:check` + `verify` | the one command to run before shipping |
 | `npm run vendor:check` | Re-hash every vendored file against `legacy/vendor/manifest.json` | 25 files match |
 | `npm run db:start` | Starts the local Supabase stack (schema, RLS, seed) from `supabase/` | `supabase status` reports every service healthy |
 | `npm run db:check` | `supabase db reset`, then the RLS, auth, data-rights, institutional-access and payment suites in `tests/db/` | 129 assertions pass, 0 fail |
@@ -59,6 +62,7 @@ while the port is in progress.
 | `npm run next:build` | Builds `legacy/dist/`, copies its assets to `public/assets/`, then `next build` | 30 prerendered pages, exit 0 |
 | `npm run next:check` | Compares every prerendered Next page against the shared template fragments | 30 pages match |
 | `npm run next:dev` | The same build, then `next dev` on port 3000 | `/learn/excel/sum-basics` renders |
+| `npm run next:hot` | `next dev` alone, on top of whatever `legacy/dist` already holds; assumes `npm run build` has run once | `/learn/excel/sum-basics` renders, and no page reloads while you type |
 | `npm run e2e` | `next:build`, then Playwright against `next start` on port 4174 | 82 tests pass |
 
 **Port note.** 4173 is not arbitrary: `legacy/src/site/config.mjs` falls back to `http://localhost:4173` as
@@ -76,7 +80,7 @@ Deploying is `npm run build` plus uploading `legacy/dist/`. There is no server-s
 app/                      the ported Next.js shell, built beside the static site (phase 0)
   layout.js page.js       shared document head/body; the index route
   globals.css             imports the 14 stylesheets in the same order the static build concatenates
-  learn/page.js           the dashboard route: counts, badges and the up-next drill, noindex
+  learn/page.js           the dashboard route: counts, badges and the up-next exercise, noindex
   learn/excel/[lesson]/   the lesson route: 16 prerendered slugs from generateStaticParams
   api/health/route.js     status plus the deploy SHA
   login/ signup/ reset/   the auth routes: five forms, all noindex, all working with no env set
@@ -89,7 +93,7 @@ app/                      the ported Next.js shell, built beside the static site
   auth/                   shared card/field/notice markup, the six server actions, the link callback
   error.js not-found.js   the two boundaries: a render error, and a 404 that still looks like the site
   sitemap.js robots.js    Metadata routes: every served URL, and the crawler policy that points at them
-e2e/                      Playwright: the index, the drill loop, the URL contract, axe, the auth pages
+e2e/                      Playwright: the index, the exercise loop, the URL contract, axe, the auth pages
 .github/workflows/ci.yml  three jobs: unit + build gates, the browser suite, and the static site
 lib/
   site.js                 loads config + validated content + icons once, from legacy/, for the routes
@@ -191,28 +195,32 @@ here; yours has 0.`).
 ### The dashboard
 
 `/learn` answers one question — what do I do next — and `packages/progress` is the only thing that
-decides the answer. `summarise({ plan, progress, now })` reads the same `es.progress` record the drill
-writes and returns the counts, the up-next drill, the groups in track order and the last five finished;
+decides the answer. `summarise({ plan, progress, now })` reads the same `es.progress` record the exercise
+writes and returns the counts, the up-next exercise, the groups in track order and the last five finished;
 `badgeFor` owns the precedence — stale (finished ≥14 days ago) beats needs practice (solved with a hint,
 or after two misses) beats complete, in progress, not started.
 
-Badges are not accuracy: the record has no per-screen score, so "needs practice" is a signal the drill
+Badges are not accuracy: the record has no per-screen score, so "needs practice" is a signal the exercise
 already stored rather than a percentage invented from attempts. The page is server-rendered with every
 row at `not_started` and the island paints the truth, so a browser without JavaScript reads the syllabus
 and the no-JS learner is neither tracked nor lied to. Both builds mark it `noindex` and both gates assert
 it is absent from the sitemap: what a crawler would index is one browser's zeroes.
 
-Gating is the order gate plus `freeLessonCount` (`track.json`, 3 today). Drills 1–3 are free, the fourth
-opens on one click (`grace_start`), and the rest sit behind the trial gate or a purchase — the boundary
-and its walls are described under [Accounts](#accounts-phase-4-in-progress). Clearing a browser loses
-the record, which is why the whole track can always be unlocked in one click and why the account is what
-carries progress to another device.
+Gating is a curated free set plus the order gate (`freeLessons` in `track.json`, ten ids today, six at
+level 1 and one at level 3 so the free half shows what the track becomes). Everything in it is open and
+stays open, in any order: the free ten are a tour `/start` lists, not a prefix of the catalog, so the
+order gate only holds the paid track — a free exercise whose catalog predecessor is paid still walks.
+The one nominated prompt exercise (`promptLesson`) opens on a single free pass (`grace_start`) and is
+exempt from the order gate too, because it is the door into the paid half; the rest are the wall — the
+boundary and its walls are described under [Accounts](#accounts-phase-4-in-progress). Clearing a browser
+loses the record, which is why the whole track can always be unlocked in one click and why the account is
+what carries progress to another device.
 
 ---
 
 ## Accounts (phase 4, in progress)
 
-The drills never needed a server and still do not: with no Supabase project configured, `/login`,
+The exercises never needed a server and still do not: with no Supabase project configured, `/login`,
 `/signup` and `/reset` render a card that says so, `/account` explains it is signed out, and every
 lesson and the dashboard behave exactly as before. Configure a project and those pages become real.
 
@@ -240,7 +248,7 @@ falling back to the anon key. The batch id is the idempotency key — a retry is
 `attempt_seq` is assigned inside the database.
 
 The browser half is `lib/progress/sender.js` (bucketing, dedupe, `take`/`restore`) driven by
-`app/progress-sender.js`, a client component that renders nothing and subscribes to the drill's sink
+`app/progress-sender.js`, a client component that renders nothing and subscribes to the exercise's sink
 through `globalThis.__esOnEvent`. It sends one batch per lesson when the lesson ends (or the page is
 hidden), and stops for the life of the page on the first 401/403/503 — a deployment without accounts
 should not be retried once per answer.
@@ -265,11 +273,11 @@ write are a column-level grant, so a hand-crafted PATCH cannot set `role` or `gr
 (`tests/db/profile.spec.js`). A first sign-in with no display name lands on
 `/account/profile?welcome=1` unless the learner asked for a specific `?next=`.
 
-`/pricing` is the offer both walls point at: it is built from the catalog (the free drills linked, the
+`/pricing` is the offer both walls point at: it is built from the catalog (the free exercises linked, the
 paid ones named and deliberately not linked), costs the same in both builds, is `noindex` and stays out
 of the sitemap. The rule behind the wall is one function — `paywallDecision` in `lib/paywall.js`
 delegating to the same `gateFor` the browser uses — and it is enforced in `proxy.js`, after the session
-is read, so a direct URL to a paid drill is a redirect rather than a page. Entitlement is
+is read, so a direct URL to a paid exercise is a redirect rather than a page. Entitlement is
 `is_entitled(uid)` in Postgres: `status`, period end and the institutional grant are the database's
 facts, not a cookie's.
 
@@ -287,9 +295,10 @@ that account in one statement, and an institution grant is left alone because an
 nothing. Money rows are unreadable to learners (0002), so `my_payments()` is the only door.
 
 Enforcement is off by default and has two env facts: `PAYWALL=on` **and** a configured Supabase project
-with Stripe keys, because a wall that shipped on without checkout would dead-end thirteen drills. The
-in-browser trial stays the honest path until then. The two cannot run together — a request cannot prove
-a `localStorage` trial — which is also why the flag is opt-in rather than automatic.
+with Stripe keys, because a wall that shipped on without checkout would dead-end the paid half with no
+way to buy. With the flag off, the wall's own door is the browser-wide unlock, which is honest while
+nothing is for sale. There is no trial of any kind, so nothing here has to reconcile a local pass with a
+server rule — which is also why the flag is opt-in rather than automatic.
 With it on, `proxy.js` reads `legacy/content` at request time, so a standalone deployment needs that
 directory next to the server bundle.
 
@@ -320,14 +329,16 @@ The full procedure — every field limit, the fixture checklist and a worked exa
 `npm run catalog:reference` prints the reference site's lesson inventory next to our 16 groups, which
 is how the remaining 73 slots were chosen.
 
-Free vs paid is one number: `freeLessonCount` in `legacy/content/track.json` (currently 5).
+Free vs paid is one list: `freeLessons` in `legacy/content/track.json` (ten ids). `freeLessonCount` is
+derived from it, and `promptLesson` names the single paid exercise that opens on one free pass. The list is
+deliberately scattered — lesson numbers that skip (01–07, 24, 25, 48) are the point, not a mistake.
 
 ### Styling
 
 Every visual decision is specified in [docs/phases/05a-design-system.md](docs/phases/05a-design-system.md):
 tokens, type scale, component anatomy, motion, copy voice. Read it before changing a colour.
 `tests/styles.test.js` enforces the invariants — no raw colours outside `tokens.css`, no gradients,
-one shadow, radii ≤5px, `!important` only for `[hidden]`, every `var()` defined, fixed source order.
+one shadow, radii on the 4/8/12px scale, `!important` only for `[hidden]`, every `var()` defined, fixed source order.
 
 ---
 
@@ -370,15 +381,15 @@ buffers (`window.__esEvents`, mirrored to `console.debug`) was counted afterward
 |---|---|
 | 1. Cold visit → index → lesson 1 → `=SUM(B2:B4)` → Enter | Cell fills `3580`, jade success state, "Correct", next CTA points at lesson 2 |
 | 2. Wrong-answer path | `=B2+B3+B4` names SUM and what the answer needs instead; `=SUM(B2:B3)` → "returns 2650, but this lesson expects 3580"; `=sum(` → "cannot be read" with the caret under the missing bracket; three misses reveal the reference formula |
-| 3. Paywall → lesson 6 | Card replaces the grid, docs stay readable, email starts a trial, the drill mounts, reload keeps the trial, `=ROUND(SUM(B2:B4)*1.08,2)` → 4450.4 |
-| 4. Crawl | `verify.mjs`: prompt, five docs sections, reference formula, syntax block, payload and JSON-LD present on all 11 pages; sitemap lists 12 URLs |
+| 3. Wall → a paid lesson | Card replaces the grid, docs stay readable, the card sells the monthly term and links to `/pricing`, the order gate holds the paid track behind its frontier, `=ROUND(SUM(B2:B4)*1.08,2)` → 4450.4 |
+| 4. Crawl | `verify.mjs`: prompt, five docs sections, reference formula, syntax block, payload and JSON-LD present on 86 lesson pages, the index, the dashboard, `/pricing`, `/start` and 16 group pages — 6243 checks |
 
 Counted events for that session: `track_view` 1, `screen_view` 3, `drill_start` 3, `check_correct` 2,
 `check_wrong` 3, `hint_open` 1, `solution_reveal` 1, `lesson_exhausted` 1, `lesson_complete` 2,
-`paywall_view` 1, `paywall_email` 1, `trial_start` 1.
+`gate_view` 1, `paywall_view` 1.
 
-Read plainly: every lesson view started a drill, 5 checks produced 2 completions, and the one gated
-view reached the email field. These are single-user samples proving the instrumentation fires in the
+Read plainly: every lesson view started an exercise, 5 checks produced 2 completions, and the one gated
+view painted the wall. These are single-user samples proving the instrumentation fires in the
 right order, not evidence of demand. The walkthrough was recorded before phase 2 renamed the names
 (`drill_view` → `screen_view`, `drill_hint` → `hint_open`, `drill_solution` → `solution_reveal`,
 `drill_complete` → `lesson_complete`, `drill_exhausted` → `lesson_exhausted`); the single `drill_check`
@@ -393,12 +404,12 @@ recorded completions. Twelve of the fourteen names in the vocabulary are emitted
 - **No JavaScript, no grading.** The sheet, the docs and the reference formula are server-rendered, so
   a no-JS reader can still learn from the page, but Check needs the in-page grader. That is the price
   of keeping the network out of the grading path.
-- **The trial is a fake door.** `paywall_email` records nothing outside the page; `es.trial` is a
-  seven-day local timestamp. Lessons 6–16 are gated to test whether the copy converts, not to sell
-  anything.
-- **Progress lives in `localStorage`** (`es.progress`, `es.trial`), per browser and per origin. Clear
-  storage and the learner is a stranger again. Corrupt values, bad dates and future-dated trials are
-  handled rather than trusted.
+- **The pre-launch wall is a browser-wide door.** With no store configured, `#gate-unlock` opens the
+  whole track in one click and keeps it open in `localStorage`; that is a demo, not a sale. The ten free
+  exercises are the only thing that is genuinely free, and they never expire.
+- **Progress lives in `localStorage`** (`es.progress` and its `unlocked` flag, plus `es.grace` and
+  `es.resume`), per browser and per origin. Clear storage and the learner is a stranger again. Corrupt values, bad dates and a grace pass
+  already spent are handled rather than trusted.
 - **`tries` cannot tell 1 attempt from 2.** A solved lesson stores `Math.max(previous, attempts) || 1`,
   because a first-try solve must still record an attempt. The success copy uses the pre-completion
   count, so the learner sees the truth; anything reading the stored number later should know this.
@@ -412,7 +423,7 @@ recorded completions. Twelve of the fourteen names in the vocabulary are emitted
 - **Verified in Chrome only**, plus a manual Safari smoke test. No cross-browser matrix and no visual
   regression service: `docs/screenshots/` is the baseline.
 - **No analytics collector.** Events are buffered in memory and logged; attaching a provider later
-  means forwarding `window.__esEvents`, not touching the drill.
+  means forwarding `window.__esEvents`, not touching the exercise.
 - **Sixteen lessons.** Volume, not the engine, is the limit: the build, the grader and the client handle
   any number of lessons listed in `track.json`.
 

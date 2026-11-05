@@ -108,7 +108,7 @@ returns `{ session, events }` with a **new** session object — the loop never m
 so the caller can render optimistically and still have the old state.
 
 - Default `scoring` is `{ correct: 20, incorrect: 0, cap: 100 }`: five correct answers complete a lesson.
-  The drill does not use the default: it passes `correct: Math.ceil(100 / screens)`, so a lesson finishes
+  The exercise does not use the default: it passes `correct: Math.ceil(100 / screens)`, so a lesson finishes
   on the last screen of an in-order run (`ceil` guarantees `correct × screens ≥ 100`) while a single-screen
   lesson still completes on its first correct answer.
   A weight that does not divide the cap clamps (`7 × 15 → 100` on the seventh), so a non-divisible track
@@ -156,7 +156,7 @@ wall-clock stop would throw away a zero-signup learner's unfinished lesson, so `
 show up in the funnel as an hour of practice. There is no countdown to render: the reference has none,
 and inventing one would be the parity drift, not the parity.
 
-Two clocks, because the funnel asks two questions. `elapsed` is time on the drill; `screen_elapsed` is
+Two clocks, because the funnel asks two questions. `elapsed` is time on the exercise; `screen_elapsed` is
 time on the screen being answered, and it restarts at every screen entry — so a learner who spends
 40 seconds on screen 1 and 5 on screen 2 is not reported as spending 45 on either. Both are whole
 seconds, never negative (a clock stepped backwards counts as zero), and both are stamped on the events
@@ -174,7 +174,7 @@ emitted, which is before the player advances, so `lesson_complete` reports the s
 ```
 
 - `type` and `ts` are written **last**, so a prop cannot forge the schema.
-- `context()` supplies the per-event facts the call sites should not repeat — the drill passes
+- `context()` supplies the per-event facts the call sites should not repeat — the exercise passes
   `{ route }`. Phase 10 adds `session_id`/`anon_id`; neither exists yet, and nothing outside the buffer
   reads these events, which is why the field can land later without a migration.
 - Props must be **flat primitives**. Strings, booleans, finite numbers and `null` survive; objects,
@@ -186,15 +186,18 @@ emitted, which is before the player advances, so `lesson_complete` reports the s
 
 `EVENT_TYPES` (17 names) is the whole vocabulary:
 `drill_start, screen_view, check_correct, check_wrong, hint_open, solution_reveal, screen_complete,
-lesson_complete, lesson_exhausted, lesson_abandon, gate_view, paywall_view, paywall_email, trial_start,
+lesson_complete, lesson_exhausted, lesson_abandon, gate_view, grace_start, paywall_view, paywall_email,
 track_unlock, track_view, feedback_sent`.
 
-The two gate events sit beside the paywall's because they are the same funnel step asked twice.
-`gate_view` carries `reason: "order"` and `after` — the id of the drill that opens this one — and fires
-from the order card, which is why `paywall_view` no longer fires on a drill ahead of the frontier; a
-learner who never reached the trial was never on trial. `track_unlock` carries only the id, because the
-one thing it can say is that this browser is now open, and the flag it sets is local: nothing is sent
-and no account was created. `paywall_email` still never carries the address.
+The gate events sit beside the paywall's because they are the same funnel step asked more than once.
+`gate_view` carries `reason` (`order`, `prompt`, `buy` or `prelaunch`) and `after` — the id of the exercise
+that opens this one — and fires wherever a wall is painted: the order card, the prompt exercise's one free
+read, and the wall itself. The order card is for paid exercises only: the free ten are a tour, not the
+catalog's first stretch, so a free exercise never asks for its catalog predecessor. `grace_start` carries `id` and the exercise's `number`, and fires only when a
+reader takes the prompt exercise's single free pass. `track_unlock` carries only the id, because the one
+thing it can say is that this browser is now open, and the flag it sets is local: nothing is sent and no
+account was created. `paywall_email` is still in the vocabulary and is still never emitted: there is no
+trial and no email field, so nothing can carry an address.
 
 `feedback_sent` comes from the footer dialog (`legacy/src/client/feedback.js`), which is on every page
 and so has no player to borrow a sink from — it builds its own and writes to the same `window.__esEvents`
@@ -209,20 +212,20 @@ The learner's formula is deliberately **not** in any event: `check_correct`/`che
 attempt count and the rule that failed, never the text of the answer. It is someone's typed input, and
 the one field an analytics hook could forward to a third party.
 
-The drill previously emitted `drill_view`, `drill_check`, `drill_hint`, `drill_solution` and
+The exercise previously emitted `drill_view`, `drill_check`, `drill_hint`, `drill_solution` and
 `drill_complete`. Those were renamed when the sink landed — `drill_check` split in two, because "a
 check happened" is not a funnel step and "a check failed" is. Nothing consumed the old names yet.
 
 ## Wired today vs. waiting for the player
 
-**Wired.** The drill (`legacy/src/client/drill.js`) drives `createSession`, hands every verdict to
+**Wired.** The exercise (`legacy/src/client/drill.js`) drives `createSession`, hands every verdict to
 `recordVerdict`, and emits the returned events through `emitAll` — so `check_correct`, `screen_complete`,
 `lesson_complete` and `check_wrong` are the loop's output rather than a second, hand-written opinion.
 Around them it emits `screen_view` (per screen, with `screen` and `of`), `drill_start`, `hint_open`,
-`solution_reveal`, `lesson_exhausted`, `paywall_view`, `paywall_email`, `trial_start` and `track_view`
-through the same sink, into `window.__esEvents` plus `console.debug`. A gated drill adds `gate_view`
-(order) or `paywall_view` (trial) before any screen exists, and the `screen_view` that follows a gate
-carries `gated: true`: without it the funnel would show a learner entering a drill at screen 2, because
+`solution_reveal`, `lesson_exhausted`, `paywall_view`, `grace_start` and `track_view` through the same
+sink, into `window.__esEvents` plus `console.debug`. A gated exercise adds `gate_view` (order, prompt,
+buy or prelaunch) before any screen exists, and the `screen_view` that follows a gate
+carries `gated: true`: without it the funnel would show a learner entering an exercise at screen 2, because
 the mount's own `screen_view` sits behind the gate's early return.
 
 Two limits are deliberate and documented rather than accidental:

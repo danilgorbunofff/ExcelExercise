@@ -22,7 +22,7 @@ Five properties distinguish this from generated design. All five are checkable.
    like a lesson, not like a feature grid.
 4. **A real artifact above the fold.** The spreadsheet itself is the hero image. No illustration,
    no abstract shapes, no product screenshot of an invented dashboard.
-5. **Hairline geometry.** 1px rules, 3–5px radii, one shadow. No glass, no glow, no 24px cards.
+5. **Hairline geometry.** 1px rules, one shadow, radii on a three-step 4/8/12px scale — soft frame, square grid. No glass, no glow, no 24px cards.
 
 The rejected alternative was the dark "developer tool" look (Linear/Vercel/Resend clones). It reads
 as a SaaS dashboard rather than a lesson, it dates quickly, and it undercuts the thing the page has
@@ -33,7 +33,7 @@ to sell: that these numbers are trustworthy. Paper, ink, and one green is a hard
 | Tell | Replacement |
 |---|---|
 | Indigo→violet gradient, gradient headline text | Flat paper `#f9f9f8`, ink `#21201c`, jade only for state |
-| Everything is a 24px-radius card with a big soft shadow | Hairline `1px solid var(--line)`, `--r-1: 3px`, one 1px shadow |
+| Everything is a 24px-radius card with a big soft shadow | Hairline `1px solid var(--line)`, 4/8/12px radii, one 1px shadow |
 | Centred hero, two CTAs, three feature cards | Left-aligned title block, one action, the sheet artifact immediately below |
 | Emoji used as icons | Inline Phosphor SVGs at 16px, or no icon at all |
 | Glassmorphism / backdrop blur / noise overlays | None. Opaque surfaces only |
@@ -167,7 +167,7 @@ and they are documented with their measured ratios.
   /* geometry */
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 24px;
   --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px;
-  --r-1: 3px;  --r-2: 5px;
+  --r-1: 4px;  --r-2: 8px;  --r-3: 12px;
   --shadow-1: 0 1px 2px #21201c0f, 0 1px 3px -1px #21201c14;
   --dur-1: 120ms; --dur-2: 180ms;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
@@ -216,10 +216,10 @@ Links are ink with a jade underline, not jade text.
 
 | Component | Anatomy | States |
 |---|---|---|
-| **Sheet card** | 1px border, `--r-2`, `--shadow-1`, header strip with dataset name + "read-only" note, grid | default, scrolled (sticky column headers) |
+| **Sheet card** | 1px border, `--r-3`, `--shadow-1`, header strip with dataset name + "read-only" note, grid | default, scrolled (sticky column headers) |
 | **Grid** | Column headers A–E, row numbers 1–6, cells | data, blank, formula cell (corner marker), target cell, selected, correct, wrong |
 | **Formula bar** | 44px tall, left ref chip (`B7`, 56px, `--surface-sunk`), `<input>` in mono | idle, focused, typing, disabled (gated), error (caret marker) |
-| **Check button** | Ink fill, 36px, `--r-1`, label "Check" | default, hover (black), active (1px down), busy (label stays, no spinner) |
+| **Check button** | Ink fill, 36px, `--r-2`, label "Check" | default, hover (black), active (1px down), busy (label stays, no spinner) |
 | **Hint disclosure** | Text link with chevron, not a button-looking button | collapsed, expanded (reveals `.hint`, amber left rule) |
 | **Feedback block** | 3px left rule in state colour, headline 15px/500, body 15px muted, reserved min-height 84px | idle, correct, wrong-rule, syntax-error, exhausted (offers solution) |
 | **Solution panel** | Mono formula with token colours, 2-sentence "why", note that it counts as completed-with-help | revealed |
@@ -235,7 +235,7 @@ The grid is hand-built. A `<table>` is the correct element: it gives real row/co
 selection, and screen-reader navigation for free, in ~40 lines of CSS. A canvas library cannot.
 
 ```css
-.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-2);
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-3);
          box-shadow: var(--shadow-1); overflow: auto; max-height: 60vh; }
 .sheet table { border-collapse: separate; border-spacing: 0; width: max-content;
                font-variant-numeric: tabular-nums; }

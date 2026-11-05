@@ -10,8 +10,10 @@
 
 import { esc, inlineIcon } from "./html.mjs";
 import { dashboardGroups } from "./dashboard-page.mjs";
+import { offerLine, renewalLine } from "./offer.mjs";
+import { renderQuestions } from "./questions.mjs";
 import { breadcrumbJsonLd, jsonLd, renderBreadcrumbs } from "./seo.mjs";
-import { renderByline, renderDocument, renderWaysOut } from "./shell.mjs";
+import { renderDocument } from "./shell.mjs";
 
 /** The first sentence of a group intro, for a card. Intros are authored, so sentence one is the hook. */
 function firstSentence(text) {
@@ -24,7 +26,7 @@ function renderGroupCards({ groups }) {
   const cards = groups
     .map(
       (group) => `        <li class="project-card">
-          <p class="project-meta">${esc(group.entries.length)} drill${group.entries.length === 1 ? "" : "s"}</p>
+          <p class="project-meta">${esc(group.entries.length)} exercise${group.entries.length === 1 ? "" : "s"}</p>
           <h3 class="project-title"><a class="project-link" href="/learn/groups/${esc(group.id)}">${esc(group.title)}</a></h3>
           <p class="project-outcome">${esc(group.summary ?? firstSentence(group.intro))}</p>
         </li>`,
@@ -46,7 +48,7 @@ export function prepareExercisesHub({
   const groups = dashboardGroups({ track, index });
   const first = index[0];
   const trail = [
-    { href: "/", label: "Excel drills" },
+    { href: "/", label: "Excel exercises" },
     { href: "/excel-exercises", label: "Excel exercises" },
   ];
 
@@ -56,39 +58,50 @@ export function prepareExercisesHub({
       <div class="page-head">
         <p class="eyebrow">Excel exercises</p>
         <h1>Excel exercises with instant answers</h1>
-        <p class="lede">${esc(index.length)} spreadsheet tasks, sorted by the skill each one teaches. Type a formula, find out exactly what is wrong, move on. No signup, no download, nothing to install.</p>
-        ${renderByline({ config, index, extra: `${groups.length} groups` })}
+        <p class="lede">${esc(index.length)} spreadsheet tasks, sorted by the skill each one teaches. Type a formula, find out what is wrong, and move on. There is nothing to install, and you do not need an account to start.</p>
       </div>
 
       <section aria-labelledby="picking-heading">
         <h2 id="picking-heading">Pick the skill you need</h2>
-        <p>Every group below is a short run of drills in the order they build on each other. Start at the top of a group or jump to the drill you came for.</p>
+        <p>Each group is a run of exercises that build on each other. Start at the top of a group, or jump to the exercise you came for.</p>
 ${renderGroupCards({ groups })}
       </section>
 
       <section class="how how-strip" aria-labelledby="how-heading">
-        <h2 id="how-heading">How a drill works</h2>
+        <h2 id="how-heading">How an exercise works</h2>
         <ol class="how-steps">
           <li><strong>Type the formula.</strong> Each task names a cell and gives you the numbers already in the sheet.</li>
-          <li><strong>Get graded on the formula, not just the total.</strong> The checker looks for the function and the cell references you were asked for, so a lucky hardcode does not pass.</li>
-          <li><strong>Read the one that is wrong.</strong> A rejected answer tells you which rule it broke, in the words your own manager would use.</li>
+          <li><strong>Get told what is wrong.</strong> The checker reads the function, the cell references and the result, so a right number from the wrong range still fails.</li>
+          <li><strong>Read the reason.</strong> A rejected answer names the rule it broke, so you know what to change.</li>
         </ol>
-        <p class="how-note">Progress stays in your browser. There is no account to create and no email to give.</p>
       </section>
 
-      <p class="cta-row"><a class="btn btn-primary" href="${esc(first.path)}">Start with ${esc(first.title)}${inlineIcon(icons["arrow-right"], { size: 16 })}</a></p>
+      <p class="cta-row"><a class="btn btn-primary" href="${esc(first.path)}">Start with ${esc(first.exercise.title)}${inlineIcon(icons["arrow-right"], { size: 16 })}</a></p>
 
-      <section class="faq" aria-labelledby="questions-heading">
-        <h2 id="questions-heading">Questions people ask before starting</h2>
-        <h3>Are the exercises free?</h3>
-        <p>Yes for the first ${esc(track.freeLessonCount)} drills, including the grading and the notes. The rest of the track is a one-off payment, listed on the <a href="/pricing">pricing page</a>.</p>
-        <h3>Do I need Excel installed?</h3>
-        <p>No. The sheet is on the page and the checking runs in your browser. The notes describe the same formulas in Excel, Google Sheets and LibreOffice, and the workbook drills give you a file to take into a real spreadsheet.</p>
-        <h3>Are the answers checked, or just the total?</h3>
-        <p>Checked properly. A formula that reaches the right number with the wrong function or the wrong range is rejected, and the reason you get names the rule it broke. The <a href="/about">about page</a> explains how that works.</p>
-      </section>
+${renderQuestions({
+        heading: "Questions before you start",
+        questions: [
+          {
+            question: "Are the exercises free?",
+            answers: [
+              `${esc(track.freeLessonCount)} of the ${esc(index.length)} are free, with the grading and the notes. The free ones are spread through the whole track, not taken from the front, and the <a href="/start">start page</a> puts them in the order to take them.`,
+              esc(offerLine({ free: track.freeLessonCount, total: index.length })),
+              esc(renewalLine()),
+            ],
+          },
+          {
+            question: "Do I need Excel installed?",
+            answer:
+              "No. The sheet is on the page and the checking runs in your browser. The notes cover Excel and Google Sheets, and they say where the two differ. A workbook exercise gives you a file to open in Excel, Sheets or LibreOffice.",
+          },
+          {
+            question: "How is an answer checked?",
+            answer:
+              'The formula is what gets checked. A right total from the wrong function or the wrong range is rejected, and the reason you get names the rule it broke. The <a href="/about">about page</a> explains how the checker works.',
+          },
+        ],
+      })}
 
-      ${renderWaysOut({ variant: "home", projectsAvailable, appPagesAvailable, appUrl: config.appUrl })}
     </main>`;
 
   return {
@@ -97,7 +110,6 @@ ${renderGroupCards({ groups })}
       path: "/excel-exercises",
       title: "Excel exercises",
       description: `Hand-checked Excel exercises for ${groups.length} skills: SUM, IF, VLOOKUP, COUNTIF and more. Type a formula, get told exactly what is wrong.`,
-      counter: `${index.length} drills`,
       bodyClass: "hub",
       skipLabel: "exercises",
       jsonLd: jsonLd(breadcrumbJsonLd({ config, trail })),
@@ -107,11 +119,20 @@ ${renderGroupCards({ groups })}
 
 export function prepareAboutPage({ config, track, index, icons = {} }) {
   const trail = [
-    { href: "/", label: "Excel drills" },
+    { href: "/", label: "Excel exercises" },
     { href: "/about", label: "About" },
   ];
-  const contact = config.contact
-    ? `\n        <li><strong>Write to us.</strong> <a href="mailto:${esc(config.contact)}">${esc(config.contact)}</a> for corrections, a drill that will not pass, or a function you want covered.</li>`
+  const code = config.contact ? config.contact.trim().replace(/^mailto:/i, "") : "";
+
+  // "Who runs it" is a fact about the deployment, not copy: it appears only when a build was handed a
+  // name, because an unnamed placeholder would read as the company this site is not.
+  const operator = config.author
+    ? `\n      <section aria-labelledby="operator-heading">
+        <h2 id="operator-heading">Who runs it</h2>
+        <p>${esc(config.author)} writes, checks and maintains every exercise here. It is one person, and the address in the footer reaches them${
+          code ? `: <a href="mailto:${esc(code)}">${esc(code)}</a>` : ""
+        }.</p>
+      </section>`
     : "";
 
   const body = `<main class="shell hub" id="main">
@@ -120,37 +141,47 @@ export function prepareAboutPage({ config, track, index, icons = {} }) {
       <div class="page-head">
         <p class="eyebrow">About</p>
         <h1>About ${esc(config.name)}</h1>
-        <p class="lede">A practice site for spreadsheet formulas. Short tasks, a checker that explains itself, and no account between you and the first drill.</p>
-        ${renderByline({ config, index })}
+        <p class="lede">A practice site for spreadsheet formulas. Short tasks, a checker that tells you what went wrong, and nothing to install.</p>
       </div>
+      ${operator}
 
       <section aria-labelledby="what-heading">
         <h2 id="what-heading">What this is</h2>
-        <p>${esc(index.length)} drills across ${esc(track.groups.length)} skills. Each one is a single job of the kind that turns up in a real workbook: total a column, flag rows that miss a target, look a price up from another sheet, clean a column of pasted text.</p>
-        <p>The drills are ordered. Nothing unlocks behind a paywall that hides the explanation, and the notes under each sheet stay readable whether you answer it or not.</p>
+        <p>${esc(index.length)} exercises across ${esc(track.groups.length)} skills. Each one is a single job you would meet in a real workbook. Total a column, flag the rows that miss a target, or look a price up from another sheet.</p>
+        <p>The exercises are ordered, so a group builds from its first exercise to its last. The ${esc(
+          track.freeLessonCount,
+        )} free exercises are open from start to finish, with their notes and their explanations. The rest open with a paid plan.</p>
       </section>
 
       <section aria-labelledby="grading-heading">
         <h2 id="grading-heading">How the checking works</h2>
-        <p>Grading runs in your browser. Your formula is parsed, not evaluated as a screenshot: the checker confirms the function you used, the cells you referred to, and the number you produced. That is why typing the answer by hand is rejected and why a correct total from the wrong range is still wrong.</p>
-        <p>Nothing you type is uploaded. There is no server that stores your answers and no account to lose access to, which also means clearing your browser data clears your progress.</p>
+        <p>Grading runs in your browser. The checker reads the formula itself, not only the number it returns: it confirms the function you used and the cells you referred to. That is why typing the answer by hand is rejected, and why a correct total from the wrong range still fails.</p>
+        <p>Nothing you type is uploaded. The formula is checked on the page, so the site never receives your answers. Clearing your browser data clears the progress it holds.</p>
+      </section>
+
+      <section aria-labelledby="reader-heading">
+        <h2 id="reader-heading">Who it is for</h2>
+        <p>Written for the person who already opens a spreadsheet and wants the formulas to come back without looking them up. You can type SUM without thinking, then stall on XLOOKUP's fourth argument, or on a COUNTIFS that returns zero.</p>
+        <p><strong>Not for</strong> someone who has never used a spreadsheet, and not a course: there are no videos and no chapters to work through in order. It is also not for macros, Power Query or VBA, and not for Google Sheets or LibreOffice. The grader follows Excel's rules and one locale, so a formula that works elsewhere may be marked wrong here.</p>
       </section>
 
       <section aria-labelledby="made-heading">
-        <h2 id="made-heading">How the drills are written</h2>
-        <p>Each drill is written by hand around one function or one habit, then tested: the expected formula has to pass, and the five to ten mistaken formulas a learner actually types have to fail with a useful reason. Those mistaken answers are kept in the content, so the explanation you get on a wrong answer is authored rather than guessed.</p>
-        <p>The notes name the syntax, the traps, and the error codes the function really returns. No filler paragraphs, no invented statistics, and no claims about Excel that the checker cannot back up.</p>
+        <h2 id="made-heading">How the exercises are written</h2>
+        <p>Each exercise is written by hand around one function or one habit, then tested. The expected formula has to pass, and a wrong one has to fail with a reason you can act on. Every screen names the function, the range or the cell it checks, and a rejected answer points at the rule that failed.</p>
+        <p>The notes name the syntax, the traps, and the error codes the function really returns. Where Excel and Google Sheets differ, they say so. No filler paragraphs, no invented statistics, and no claims about Excel that the checker cannot back up.</p>
       </section>
 
       <section aria-labelledby="cost-heading">
         <h2 id="cost-heading">What it costs</h2>
         <ul class="how-steps">
-          <li><strong>Free.</strong> The first ${esc(track.freeLessonCount)} drills, every explanation, and the grading. No card, no email.</li>
-          <li><strong>Paid.</strong> The rest of the track, once, if you want it. The price is on the <a href="/pricing">pricing page</a> and there is nothing recurring in it.</li>${contact}
+          <li><strong>Free.</strong> The ${esc(track.freeLessonCount)} exercises on the <a href="/start">start page</a>, with their notes and answer explanations. No card and no email.</li>
+          <li><strong>Paid.</strong> The rest of the track, for as long as a term runs. The <a href="/pricing">pricing page</a> has the full terms.</li>
         </ul>
+        <p>${esc(offerLine({ free: track.freeLessonCount, total: index.length }))}</p>
+        <p>${esc(renewalLine())}</p>
+        <p>${esc(config.name)} is not affiliated with Microsoft. Excel is their product; the exercises and the checker are not.</p>
       </section>
 
-      ${renderWaysOut({ variant: "home", appUrl: config.appUrl })}
     </main>`;
 
   return {
@@ -158,8 +189,7 @@ export function prepareAboutPage({ config, track, index, icons = {} }) {
     page: {
       path: "/about",
       title: "About",
-      description: `What ${config.name} is, how the formula checker grades an answer, and how the drills are written and tested.`,
-      counter: `${index.length} drills`,
+      description: `What ${config.name} is, how the formula checker grades an answer, and how the exercises are written and tested.`,
       bodyClass: "hub",
       skipLabel: "page",
       jsonLd: jsonLd(breadcrumbJsonLd({ config, trail })),
@@ -169,10 +199,24 @@ export function prepareAboutPage({ config, track, index, icons = {} }) {
 
 export function renderExercisesHub(args) {
   const { body, page } = prepareExercisesHub(args);
-  return renderDocument({ config: args.config, page, body, icons: args.icons });
+  return renderDocument({
+    config: args.config,
+    page,
+    body,
+    icons: args.icons,
+    projectsAvailable: args.projectsAvailable,
+    appPagesAvailable: args.appPagesAvailable,
+  });
 }
 
 export function renderAboutPage(args) {
   const { body, page } = prepareAboutPage(args);
-  return renderDocument({ config: args.config, page, body, icons: args.icons });
+  return renderDocument({
+    config: args.config,
+    page,
+    body,
+    icons: args.icons,
+    projectsAvailable: args.projectsAvailable,
+    appPagesAvailable: args.appPagesAvailable,
+  });
 }

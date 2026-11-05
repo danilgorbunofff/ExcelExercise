@@ -1,9 +1,10 @@
 /**
- * The feedback dialog in the footer, on every page. There is nothing to post to until phase 10 and no
- * account to attach a note to, so a submission goes two places, both local: the event sink (where the
- * funnel already reads from) and a bounded queue in `localStorage` for the transport to pick up later.
- * The dialog says that in as many words — a form that looks like it reaches a human and does not is
- * worse than no form.
+ * The feedback dialog in the footer, on every page.
+ *
+ * A note is sent to `/api/feedback`, which writes it where a person can read it. When that endpoint is
+ * not there — the static edition has no server, and a deployment without accounts has no store — the
+ * note is kept in this browser instead and the dialog says so. Which of the two happened is never
+ * guessed: the message after Send is the outcome of the request.
  */
 
 import {
@@ -89,6 +90,25 @@ function showDone(note) {
   ui.close?.focus();
 }
 
+/** One POST, and the outcome as three facts rather than an exception. */
+async function postNote(entry) {
+  try {
+    const response = await fetch("/api/feedback", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mood: entry.mood, text: entry.text, page: entry.route }),
+    });
+    if (response.status === 201) return { sent: true };
+    if (response.status === 429) {
+      const body = await response.json().catch(() => ({}));
+      return { sent: false, tooMany: true, retryAfter: body.retry_after ?? null };
+    }
+    return { sent: false };
+  } catch {
+    return { sent: false };
+  }
+}
+
 function submit(event) {
   event.preventDefault();
   const entry = feedbackEntry({
@@ -97,35 +117,61 @@ function submit(event) {
     route: globalObject.location?.pathname ?? "",
   });
   if (!entry) {
-    if (ui.error) ui.error.textContent = "Pick the one that fits first. The note on its own is not enough.";
+    if (ui.error) ui.error.textContent = "Choose one of the three first. The note on its own is not enough.";
     ui.form?.querySelector("input[name='mood']")?.focus();
     return;
   }
 
-  const storage = safeStorage();
-  let kept = 0;
-  if (storage) {
-    try {
-      const queued = enqueueFeedback(readQueue(storage.getItem(QUEUE_KEY)), entry);
-      storage.setItem(QUEUE_KEY, JSON.stringify(queued));
-      kept = queued.length;
-    } catch {
-      kept = 0;
+  const submitButton = ui.form?.querySelector("button[type='submit']");
+  if (submitButton) submitButton.disabled = true;
+  if (ui.error) ui.error.textContent = "";
+
+  postNote(entry).then((outcome) => {
+    if (submitButton) submitButton.disabled = false;
+
+    if (outcome.sent) {
+      sink.emit("feedback_sent", { mood: entry.mood, chars: entry.text.length, delivered: true });
+      showDone("Sent. Thank you. A person reads these, and the page you were on came with it.");
+      return;
     }
-  }
 
-  sink.emit("feedback_sent", {
-    mood: entry.mood,
-    chars: entry.text.length,
-    kept,
-    stored: Boolean(storage) && kept > 0,
+    if (outcome.tooMany) {
+      // Nothing was delivered, so nothing is queued behind the learner's back: say it and let them retry.
+      if (ui.error) {
+        ui.error.textContent = `That is a lot of notes in a short time. Try again in ${
+          outcome.retryAfter ? `${outcome.retryAfter} seconds` : "a few minutes"
+        }.`;
+      }
+      return;
+    }
+
+    // No endpoint, so the honest fallback: keep it here, and say that is all that happened.
+    const storage = safeStorage();
+    let kept = 0;
+    if (storage) {
+      try {
+        const queued = enqueueFeedback(readQueue(storage.getItem(QUEUE_KEY)), entry);
+        storage.setItem(QUEUE_KEY, JSON.stringify(queued));
+        kept = queued.length;
+      } catch {
+        kept = 0;
+      }
+    }
+
+    sink.emit("feedback_sent", {
+      mood: entry.mood,
+      chars: entry.text.length,
+      kept,
+      stored: Boolean(storage) && kept > 0,
+      delivered: false,
+    });
+
+    showDone(
+      kept > 0
+        ? "Saved in this browser, and nowhere else: this copy of the site has no way to receive it yet. Thank you for writing. That is all this form can do here."
+        : "This browser refused to keep the note, so it is gone as soon as you close this. Nothing was sent.",
+    );
   });
-
-  showDone(
-    kept > 0
-      ? "Saved in this browser, and nowhere else: nothing has been sent. Thank you — that is the whole of what this form can do today."
-      : "This browser refused to keep the note, so it is gone as soon as you close this. Nothing was sent.",
-  );
 }
 
 if (ui.dialog && ui.open) {

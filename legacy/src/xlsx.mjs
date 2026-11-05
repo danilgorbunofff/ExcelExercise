@@ -74,11 +74,54 @@ function sheetXml(sheet) {
 }
 
 /**
- * The six parts. `fullCalcOnLoad` makes Excel recompute every formula on open, because the cells are
- * written without cached results — the alternative is a learner opening a file whose answers read 0.
+ * What Excel accepts in a tab name: 31 characters, none of `[ ] : * ? / \`, and not built only of
+ * apostrophes. Refused rather than truncated — a silently shortened name would make two tabs collide.
  */
-function parts(sheet) {
-  const name = esc(sheet.name);
+const SHEET_NAME_LIMIT = 31;
+
+function checkSheetNames(sheets) {
+  if (!Array.isArray(sheets) || sheets.length === 0) throw new Error("xlsx: a workbook needs at least one sheet");
+  const seen = new Set();
+  for (const sheet of sheets) {
+    const name = sheet?.name;
+    if (typeof name !== "string" || name.trim() === "") {
+      throw new Error("xlsx: every sheet needs a name");
+    }
+    if (name.length > SHEET_NAME_LIMIT) {
+      throw new Error(`xlsx: sheet name ${JSON.stringify(name)} is longer than ${SHEET_NAME_LIMIT} characters`);
+    }
+    if (/[[\]:*?/\\]/.test(name)) {
+      throw new Error(`xlsx: sheet name ${JSON.stringify(name)} contains a character Excel forbids: [ ] : * ? / \\`);
+    }
+    if (name.replace(/'/g, "") === "") throw new Error(`xlsx: sheet name ${JSON.stringify(name)} is only apostrophes`);
+    const key = name.toLowerCase();
+    if (seen.has(key)) throw new Error(`xlsx: two sheets are both named ${JSON.stringify(name)}`);
+    seen.add(key);
+  }
+}
+
+/**
+ * The parts of the container: `4 + sheets + 1` entries. `fullCalcOnLoad` makes Excel recompute every
+ * formula on open, because the cells are written without cached results — the alternative is a learner
+ * opening a file whose answers read 0.
+ */
+function parts(sheets) {
+  const count = sheets.length;
+  const overrides = sheets
+    .map(
+      (_, index) =>
+        `<Override PartName="/xl/worksheets/sheet${index + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`,
+    )
+    .join("");
+  const sheetList = sheets
+    .map((sheet, index) => `<sheet name="${esc(sheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`)
+    .join("");
+  const rels = sheets
+    .map(
+      (_, index) =>
+        `<Relationship Id="rId${index + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${index + 1}.xml"/>`,
+    )
+    .join("");
   return [
     {
       name: "[Content_Types].xml",
@@ -87,7 +130,7 @@ function parts(sheet) {
         '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
         '<Default Extension="xml" ContentType="application/xml"/>' +
         '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
-        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        overrides +
         '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
         "</Types>",
     },
@@ -103,15 +146,15 @@ function parts(sheet) {
       body:
         `${XML_HEAD}<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ` +
         'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
-        `<sheets><sheet name="${name}" sheetId="1" r:id="rId1"/></sheets>` +
+        `<sheets>${sheetList}</sheets>` +
         '<calcPr calcId="0" fullCalcOnLoad="1"/></workbook>',
     },
     {
       name: "xl/_rels/workbook.xml.rels",
       body:
         `${XML_HEAD}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
-        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+        rels +
+        `<Relationship Id="rId${count + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>` +
         "</Relationships>",
     },
     {
@@ -125,7 +168,7 @@ function parts(sheet) {
         '<cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>' +
         "</styleSheet>",
     },
-    { name: "xl/worksheets/sheet1.xml", body: sheetXml(sheet) },
+    ...sheets.map((sheet, index) => ({ name: `xl/worksheets/sheet${index + 1}.xml`, body: sheetXml(sheet) })),
   ];
 }
 
@@ -205,9 +248,19 @@ function zip(entries) {
 }
 
 /**
- * One sheet, as the bytes of an `.xlsx` file. `sheet` is the screen's `sheet` object: a name, the
- * address of the top-left cell, and rows of cells that are text, numbers or `null` for a blank.
+ * A workbook, as the bytes of an `.xlsx` file. Each sheet is a screen's `sheet` object: a name, the
+ * address of the top-left cell, and rows of cells that are text, numbers or `null` for a blank. A tab
+ * per sheet, in the order given — `Exercise` then `Solution` is how the site uses it.
+ */
+export function workbook(sheets) {
+  checkSheetNames(sheets);
+  return zip(parts(sheets));
+}
+
+/**
+ * One sheet, as the bytes of an `.xlsx` file. `spreadsheet(sheet)` is `workbook([sheet])` byte for
+ * byte, so the single-tab files that shipped before multi-sheet workbooks existed do not change.
  */
 export function spreadsheet(sheet) {
-  return zip(parts(sheet));
+  return workbook([sheet]);
 }

@@ -4,7 +4,7 @@
  * crawler gets a real page. The island (`assets/client/dashboard.js`) then reads the progress record out
  * of `localStorage` and paints the counts, the badges and the up-next recommendation.
  *
- * `/learn/groups/<id>` is the same page for one group: its intro, its drills, the same island. It is
+ * `/learn/groups/<id>` is the same page for one group: its intro, its exercises, the same island. It is
  * the group's own hub — indexable, in the sitemap, and the page a search for "SUMIF exercises" should
  * land on — because what it says about the skill is the same for every reader. `/learn` stays
  * `noindex`: what it shows is one browser's storage, and there is nothing in it to rank.
@@ -13,13 +13,13 @@
 import { attrs, esc, inlineIcon, jsonScript } from "./html.mjs";
 import { BADGE_LABELS, nextCopy, summaryLine } from "./packages.mjs";
 import { breadcrumbJsonLd, clampDescription, groupPath, jsonLd, renderBreadcrumbs } from "./seo.mjs";
-import { renderDocument, renderWaysOut } from "./shell.mjs";
+import { renderDocument } from "./shell.mjs";
 
 function renderRow({ entry, icons }) {
   const number = String(entry.number).padStart(2, "0");
-  const trial = entry.free
+  const paid = entry.free
     ? ""
-    : ` <span class="chip chip-trial">${inlineIcon(icons.lock, { size: 11, className: "icon icon-lock" })}Trial</span>`;
+    : ` <span class="chip chip-paid">${inlineIcon(icons.lock, { size: 11, className: "icon icon-lock" })}Paid</span>`;
   return `            <li${attrs({
     class: "lesson-row",
     "data-lesson": entry.exercise.id,
@@ -29,7 +29,7 @@ function renderRow({ entry, icons }) {
               <a class="lesson-link" href="${esc(entry.path)}">
                 <span class="row-num" aria-hidden="true">${number}</span>
                 <span class="row-body">
-                  <span class="row-title">${esc(entry.exercise.title)}${trial}</span>
+                  <span class="row-title">${esc(entry.exercise.title)}${paid}</span>
                   <span class="row-outcome">${esc(entry.exercise.docs.outcome)}</span>
                 </span>
                 <span class="row-meta"><span class="badge-pill" data-badge-for>${BADGE_LABELS.not_started}</span></span>
@@ -52,11 +52,11 @@ function proseParagraphs(text, className) {
 
 /**
  * One group as a native disclosure. The title is the link to that group's own page and sits inside the
- * `<summary>`, so the 88 drill links stay in the document while one list is on screen; following the
+ * `<summary>`, so the 88 exercise links stay in the document while one list is on screen; following the
  * link does not toggle the row (Chromium: the anchor's activation wins), and the summary itself still
  * toggles on click, Enter and Space.
  *
- * The count reads "5 drills" until a drill in it is finished, because "0 of 5" sixteen times over is
+ * The count reads "5 exercises" until an exercise in it is finished, because "0 of 5" sixteen times over is
  * sixteen lines that say nothing.
  */
 function renderTrackGroup({ group, icons }) {
@@ -65,7 +65,7 @@ function renderTrackGroup({ group, icons }) {
   return `        <details class="dash-group" id="group-${id}" aria-labelledby="group-${id}-heading">
           <summary class="level-sum">
             <h2 id="group-${id}-heading">${esc(group.title)}</h2>
-            <span class="level-count" data-group-count="${id}">${total} drill${total === 1 ? "" : "s"}</span>
+            <span class="level-count" data-group-count="${id}">${total} exercise${total === 1 ? "" : "s"}</span>
             ${inlineIcon(icons["arrow-right"], { size: 14, className: "icon level-chevron" })}
           </summary>
           <p class="dash-group-about">
@@ -100,7 +100,7 @@ ${groups.map((group) => renderTrackGroup({ group, icons })).join("\n")}
 }
 
 /**
- * The track's groups with their drills attached, in track order, minus any group left empty.
+ * The track's groups with their exercises attached, in track order, minus any group left empty.
  * `/learn`, every `/learn/groups/<id>` page and `scripts/check-next-pages.mjs` all start here, so the
  * three cannot disagree about which groups exist.
  */
@@ -111,7 +111,7 @@ export function dashboardGroups({ track, index }) {
 }
 
 /** The data the island needs, and nothing else: the plan in order, with the group each lesson is in. */
-function planPayload(index) {
+function planPayload(index, track = {}) {
   return {
     plan: index.map((entry) => ({
       id: entry.exercise.id,
@@ -119,6 +119,10 @@ function planPayload(index) {
       title: entry.exercise.title,
       path: entry.path,
       group: entry.group,
+      // Two rows the order gate cannot hold: the free ten (a tour, not the catalog's first stretch) and
+      // the prompt exercise (the door into the paid half). Said here so the row does not claim otherwise.
+      free: entry.free === true,
+      prompt: track.promptAt != null && entry.number === track.promptAt,
     })),
   };
 }
@@ -129,8 +133,6 @@ export function prepareDashboardPage({
   index,
   icons = {},
   clientAvailable = false,
-  projectsAvailable = false,
-  appPagesAvailable = false,
   group,
 }) {
   const groups = dashboardGroups({ track, index });
@@ -148,7 +150,7 @@ export function prepareDashboardPage({
       .filter(Boolean);
     const heading = `Excel exercises: ${single.title}`;
     const trail = [
-      { href: "/", label: "Excel drills" },
+      { href: "/", label: "Excel exercises" },
       { href: "/excel-exercises", label: "Excel exercises" },
       { href: groupPath(single.id), label: heading },
     ];
@@ -178,11 +180,11 @@ ${proseParagraphs(rest.join("\n\n"), "dash-group-intro")}
 
       <p class="dash-back"><a class="link-btn" href="/excel-exercises">All Excel exercises</a></p>
 
-      <p class="gate-note dash-legend">Stale is a drill you finished over two weeks ago. Needs practice is one that took a hint, or more than one try.</p>
+      <p class="gate-note dash-legend">A stale exercise is one you finished two weeks ago or longer. One that needs practice took a hint, or more than one try.</p>
 
 ${renderGroup({ group: single, icons })}
 
-      <script type="application/json" id="dashboard-data">${jsonScript(planPayload(index))}</script>
+      <script type="application/json" id="dashboard-data">${jsonScript(planPayload(index, track))}</script>
     </main>${island}`;
 
     return {
@@ -192,8 +194,7 @@ ${renderGroup({ group: single, icons })}
         title: heading,
         description:
           clampDescription(single.summary ?? lede) ||
-          `The ${single.entries.length} ${single.title.toLowerCase()} drills in order, with the formula each one checks.`,
-        counter: `${single.entries.length} drill${single.entries.length === 1 ? "" : "s"}`,
+          `The ${single.entries.length} ${single.title.toLowerCase()} exercises in order, with the formula each one checks.`,
         bodyClass: "dashboard-page",
         skipLabel: "group",
         jsonLd: jsonLd(breadcrumbJsonLd({ config, trail }), drillList),
@@ -208,7 +209,7 @@ ${renderGroup({ group: single, icons })}
   const body = `<main class="shell dashboard" id="main">
       <div class="page-head">
         <h1>Your progress</h1>
-        <p class="lede">Every drill you finish is remembered in this browser and nowhere else. This page reads that record and tells you what to open next.</p>
+        <p class="lede">Every exercise you finish is remembered in this browser, and an account carries the same record to your other devices. This page reads it and tells you what to open next.</p>
       </div>
 
       <div class="dash-pulse">
@@ -221,10 +222,10 @@ ${renderGroup({ group: single, icons })}
           size: 16,
         })}</a></p>
         <p class="dash-next-why" id="dash-next-why">${esc(upNext.why)}</p>
-        <noscript><p class="gate-note">Finishing a drill needs JavaScript, and so does reading this page's numbers. The drills themselves are listed below.</p></noscript>
+        <noscript><p class="gate-note">Finishing an exercise needs JavaScript, and so does reading this page's numbers. The exercises themselves are listed below.</p></noscript>
       </div>
 
-      <p class="gate-note dash-legend" id="dash-legend" hidden>Stale is a drill you finished over two weeks ago. Needs practice is one that took a hint, or more than one try.</p>
+      <p class="gate-note dash-legend" id="dash-legend" hidden>A stale exercise is one you finished two weeks ago or longer. One that needs practice took a hint, or more than one try.</p>
 
 ${renderGroups({ groups, icons })}
 
@@ -235,14 +236,12 @@ ${renderGroups({ groups, icons })}
 
       <section class="dash-reset" id="dash-reset-section" aria-labelledby="dash-reset-heading" hidden>
         <h2 id="dash-reset-heading">Start clean</h2>
-        <p>Progress lives only in this browser, so resetting deletes it for good. There is no copy anywhere to restore.</p>
+        <p>Resetting clears every completion in this browser. If you are signed in, your account keeps its own copy, and that copy comes back the next time this page loads.</p>
         <p class="cta-row"><button class="btn" type="button" id="dash-reset">Reset progress</button></p>
         <p class="gate-note" id="dash-reset-note" role="status" aria-live="polite"></p>
       </section>
 
-      ${renderWaysOut({ variant: "dashboard", projectsAvailable, appPagesAvailable, appUrl: config.appUrl })}
-
-      <script type="application/json" id="dashboard-data">${jsonScript(planPayload(index))}</script>
+      <script type="application/json" id="dashboard-data">${jsonScript(planPayload(index, track))}</script>
     </main>${island}`;
 
   return {
@@ -250,8 +249,7 @@ ${renderGroups({ groups, icons })}
     page: {
       path: "/learn",
       title: "Your progress",
-      description: "What you have finished, what wants another look, and which drill to open next.",
-      counter: `${total} drills`,
+      description: "What you have finished, what wants another look, and which exercise to open next.",
       bodyClass: "dashboard-page",
       skipLabel: "dashboard",
       noindex: true,

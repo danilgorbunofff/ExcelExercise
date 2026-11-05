@@ -1,16 +1,13 @@
 /**
- * Everything the drill knows that is not the grader: what the learner has finished,
- * whether a trial is running, and how a pasted formula is cleaned up. It is free of
+ * Everything the exercise knows that is not the grader: what the learner has finished,
+ * which exercises are free, and how a pasted formula is cleaned up. It is free of
  * DOM access on purpose — the browser wiring lives in drill.js, so this file can be
  * tested under `node --test` with a fake storage object.
  */
 
 export const PROGRESS_KEY = "es.progress";
-export const TRIAL_KEY = "es.trial";
 export const GRACE_KEY = "es.grace";
-export const TRIAL_DAYS = 7;
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const ZERO_WIDTH = /[\u200B-\u200D\u2060\uFEFF]/g;
 
 export function emptyProgress() {
@@ -113,42 +110,9 @@ export function registerCompletion(progress, id, { at, helped = false } = {}) {
   };
 }
 
-export function parseTrial(text) {
-  if (typeof text !== "string" || text === "") return null;
-  let raw;
-  try {
-    raw = JSON.parse(text);
-  } catch {
-    return null;
-  }
-  if (!isPlainObject(raw)) return null;
-  const startedAt = typeof raw.startedAt === "string" ? Date.parse(raw.startedAt) : Number.NaN;
-  if (Number.isNaN(startedAt)) return null;
-  return { startedAt: new Date(startedAt).toISOString() };
-}
-
-export function startTrial(now = new Date()) {
-  return { startedAt: new Date(now).toISOString() };
-}
-
-export function trialActive(trial, now = new Date()) {
-  if (!trial) return false;
-  const started = Date.parse(trial.startedAt);
-  const current = new Date(now).getTime();
-  if (Number.isNaN(started)) return false;
-  return current >= started && current - started < TRIAL_DAYS * DAY_MS;
-}
-
-/** Whole days left, rounded up, so "1 day left" is true for the last 24 hours. */
-export function trialDaysLeft(trial, now = new Date()) {
-  if (!trialActive(trial, now)) return 0;
-  const elapsed = new Date(now).getTime() - Date.parse(trial.startedAt);
-  return Math.ceil((TRIAL_DAYS * DAY_MS - elapsed) / DAY_MS);
-}
-
 /**
- * The free pass past the soft prompt, remembered per drill. The drill has no account to hang it on,
- * so it is a browser fact like progress and the trial: same store, same honour system.
+ * The free pass past the soft prompt, remembered per exercise. The exercise has no account to hang it on,
+ * so it is a browser fact like progress: same store, same honour system.
  */
 export function emptyGrace() {
   return { v: 1, used: [] };
@@ -176,14 +140,60 @@ export function grantGrace(grace, id) {
 }
 
 /**
- * `open`, `prompt` or `paywall`, from the content flags, the local trial record and the local grace
- * record. `prompt` is the one drill past the free ones: it opens on a click once, so the boundary is
- * a question before it is a wall. `proxy.js` asks this same function before it serves a lesson, so
- * the boundary is one rule rather than two that drift.
+ * The one door past the gate once the store is open, and the price it names.
+ *
+ * The wall sells the shortest term, not the cheapest per month: it has no room for the comparison, and
+ * a reader who is curious should not be pushed into a year by the page they cannot leave. This file is
+ * shipped to the browser and cannot import `site/offer.mjs`, so `DEFAULT_PLAN` and `PRICE` are checked
+ * against these two values by `tests/paywall-offer.test.js` instead.
  */
-export function gateFor({ free, number, freeLessonCount }, trial, now = new Date()) {
-  if (free || trialActive(trial, now)) return "open";
-  if (Number.isInteger(freeLessonCount) && number === freeLessonCount + 1) return "prompt";
+export const CHECKOUT_ACTION = "/api/stripe/checkout?plan=monthly";
+export const TRACK_PRICE = "$9.99 a month";
+
+/**
+ * What stands under a gated exercise: nothing, a buy button, or the pre-launch free unlock.
+ *
+ * Two facts decide it. An entitled reader is offered nothing. Otherwise the store decides: open,
+ * and the only door is the checkout form; closed, and the only door is the free unlock. The
+ * ordering matters — the free unlock cannot be offered alongside a price, because the reader finds
+ * the free one first and the price stops meaning anything.
+ *
+ * `checkout` is a build fact passed down in the lesson payload, not something this file probes:
+ * the static edition has no server to ask.
+ */
+export function paywallOffer({ entitled = false, checkout = false, price = TRACK_PRICE, action = CHECKOUT_ACTION } = {}) {
+  if (entitled) return { kind: "open" };
+  if (checkout) {
+    return {
+      kind: "buy",
+      method: "post",
+      action,
+      label: `Unlock the track: ${price}`,
+      note: "One month at a time, and every exercise is open while it runs. Cancel from your account page and the month you paid for runs to its end. Six months and a year cost less each month; both are on the pricing page.",
+    };
+  }
+  return {
+    kind: "unlock",
+    label: "Unlock the whole track for this browser",
+    note: "Free while the store is closed. It is remembered in this browser, not on an account.",
+  };
+}
+
+/**
+ * `open`, `prompt` or `paywall`, from the content flag and the position the prompt falls on.
+ *
+ * The free exercises are a curated list in `track.json`, so they are not a prefix and `free` is the only
+ * thing that decides "open". `promptAt` is the catalog position of the one paid exercise `track.json`
+ * nominates in `promptLesson`, not of the first paid exercise in order — the free set is scattered
+ * across the track, and the prompt should fall where a reader is at their most curious, not wherever
+ * the catalogue happens to stop being free. That one exercise opens on a click, once, so the boundary
+ * is a question before it is a wall. `lib/paywall.js`
+ * asks this same function before it serves a lesson, so the boundary is one rule rather than two that
+ * drift.
+ */
+export function gateFor({ free, number, promptAt }) {
+  if (free) return "open";
+  if (Number.isInteger(promptAt) && number === promptAt) return "prompt";
   return "paywall";
 }
 
@@ -222,13 +232,6 @@ export function caretLine(raw, position) {
   const offset = Math.min(position - 1 + lead, text.length);
   const padding = text.slice(0, offset).replace(/[^\t]/g, " ");
   return `${text}\n${padding}^`;
-}
-
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-export function validEmail(text) {
-  const value = String(text ?? "").trim();
-  return value.length <= 254 && EMAIL.test(value);
 }
 
 /** Parse the inlined payload. A broken payload is a page bug, not a learner error. */

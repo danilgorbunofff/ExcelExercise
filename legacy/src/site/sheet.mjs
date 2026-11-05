@@ -6,15 +6,15 @@
  */
 
 import { chordText, gridModel, labelsOf, parseChord, parsePress, referenceOf } from "./packages.mjs";
-import { attrs, esc, formatCell, inlineIcon } from "./html.mjs";
+import { attrs, esc, formatCell, inlineIcon, renderParagraphs } from "./html.mjs";
 import { previewSheet } from "./preview.mjs";
 import { datasetUrl, workbookUrl } from "../xlsx.mjs";
 
 /**
- * The grid itself, shared by the drill and the workbook preview. `targetCell` is the cell the learner
- * fills in: a drill has one, a preview has none, and a preview's cells are all read-only data.
- * `interactive` decides the ARIA shape: a drill is a `grid` the client selects cells in, a preview is
- * a plain table, so the drill's delegated handlers cannot mistake one of its cells for an answer cell.
+ * The grid itself, shared by the exercise and the workbook preview. `targetCell` is the cell the learner
+ * fills in: an exercise has one, a preview has none, and a preview's cells are all read-only data.
+ * `interactive` decides the ARIA shape: an exercise is a `grid` the client selects cells in, a preview is
+ * a plain table, so the exercise's delegated handlers cannot mistake one of its cells for an answer cell.
  */
 function renderDataGrid({ id, label, startCell, rows, targetCell = null, interactive = true }) {
   const model = gridModel({ grid: { startCell, rows }, answerCell: targetCell });
@@ -72,8 +72,8 @@ function renderDataGrid({ id, label, startCell, rows, targetCell = null, interac
  * The sheet: column letters, row numbers, read-only data, one target cell. `id` is per screen,
  * because a lesson may show several sheets and two elements cannot share an id.
  *
- * `interactive` and `targetCell` exist for the landing page's proof sheet: it borrows a real drill's
- * grid to show what the product looks like, but it is not a drill, so it renders as a plain table
+ * `interactive` and `targetCell` exist for the landing page's proof sheet: it borrows a real exercise's
+ * grid to show what the product looks like, but it is not an exercise, so it renders as a plain table
  * with no focusable answer cell to tab into.
  */
 export function renderSheet(
@@ -125,17 +125,29 @@ export function renderPicture(screen, { position = 0 } = {}) {
 
 /**
  * A workbook screen: a real spreadsheet the lesson ships, plus a preview built from the same rows so
- * the question can be answered without Excel. The preview is open by default — the drill has to be
+ * the question can be answered without Excel. The preview is open by default — the exercise has to be
  * fair without a download — and collapses, so a big sheet does not push the docs off the page.
  *
  * The preview shows the values the file shows, not the formulas it was built from, and names those
  * formulas under the grid: a learner reading B7 has to see 44.8, and the lesson is still about the
  * formula that produced it.
  */
+/**
+ * The download row: the one link to a screen's `.xlsx`. Every page that shows a spreadsheet links to
+ * the file through this, so a lesson, a note and a problem page cannot label the same download three
+ * ways. A project screen carries the project's one dataset instead of a file of its own — eight tasks
+ * over one spreadsheet is one download, not eight copies of the same rows.
+ */
+export function workbookFile({ slug, screen, label, meta = "It opens in Excel, Sheets or LibreOffice." }) {
+  const url = screen.file ? datasetUrl(screen.file) : workbookUrl(slug, screen.id);
+  const noun = screen.file ? "dataset" : "workbook";
+  return `<p class="workbook-file">
+                    <a class="workbook-link" href="${esc(url)}" download>${esc(label ?? `Download the ${noun}`)}<span class="workbook-ext"> (.xlsx)</span></a>
+                    <span class="workbook-meta">${esc(meta)}</span>
+                  </p>`;
+}
+
 export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
-  // A project screen carries the project's one dataset rather than a file of its own: eight tasks over
-  // one spreadsheet is one download, not eight copies of the same rows.
-  const url = screen.file ? datasetUrl(screen.file) : workbookUrl(exercise.slug, screen.id);
   const noun = screen.file ? "dataset" : "workbook";
   const { rows, formulas } = previewSheet(screen.sheet, { today: screen.today });
   const preview = renderDataGrid({
@@ -156,10 +168,7 @@ export function renderWorkbook(exercise, screen, { position = 0 } = {}) {
                       </p>`;
 
   return `<div class="workbook" id="workbook-${position}">
-                  <p class="workbook-file">
-                    <a class="workbook-link" href="${esc(url)}" download>Download the ${noun}<span class="workbook-ext"> (.xlsx)</span></a>
-                    <span class="workbook-meta">It opens in Excel, Sheets or LibreOffice.</span>
-                  </p>
+                  ${workbookFile({ slug: exercise.slug, screen })}
                   <details class="workbook-preview" open>
                     <summary>Preview the sheet</summary>
                     <div
@@ -300,7 +309,7 @@ export function renderScreenDocs(screen) {
   if (!docs) return "";
   const parts = [];
   if (docs.syntax) parts.push(`<pre class="syntax" tabindex="0"><code>${esc(docs.syntax)}</code></pre>`);
-  if (docs.explain) parts.push(`<p>${esc(docs.explain)}</p>`);
+  if (docs.explain) parts.push(renderParagraphs(docs.explain));
   if (docs.reference) parts.push(`<pre class="reference" tabindex="0"><code>${esc(docs.reference)}</code></pre>`);
   return `
                 <aside class="screen-docs" aria-label="About this screen">
@@ -325,7 +334,7 @@ export function renderDocs(exercise, screen) {
 
   return `<section class="docs" id="docs" aria-labelledby="docs-what">
         <h2 id="docs-what">What it does</h2>
-        <p>${esc(docs.explain)}</p>
+        ${renderParagraphs(docs.explain)}
 
         <h2 id="docs-syntax">Syntax</h2>
         <pre class="syntax" tabindex="0"><code>${esc(docs.syntax)}</code></pre>

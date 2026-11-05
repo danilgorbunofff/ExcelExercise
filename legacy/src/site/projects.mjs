@@ -1,5 +1,5 @@
 /**
- * Projects: the same authored screens as a drill, over one spreadsheet each.
+ * Projects: the same authored screens as an exercise, over one spreadsheet each.
  *
  * A lesson is one file per screen because every screen is its own question about its own rows. A
  * project is the opposite shape — one dataset, eight tasks that all read it — so the file is authored
@@ -19,7 +19,7 @@ import { esc } from "./html.mjs";
 
 const DATASET_FILE = /^[a-z0-9]+(-[a-z0-9]+)*\.xlsx$/;
 
-/** Where the app serves a project. Not `/excel/`: a project is not a drill and its rail is not the track. */
+/** Where the app serves a project. Not `/excel/`: a project is not an exercise and its rail is not the track. */
 export const PROJECT_BASE = "/learn/projects";
 
 /** The shelf itself. One level up from a project, and where a project's rail sends you back to. */
@@ -133,10 +133,13 @@ function projectTrack(projects) {
     promise: "Four spreadsheets, eight tasks each. The work a hiring test would ask for.",
     lessonNoun: "Project",
     eyebrow: "Project track",
-    // The paywall's sentence about what the paid half is. The drill track's is the default in the client;
+    // The paywall's sentence about what the paid half is. The exercise track's is the default in the client;
     // four projects are not rounding, lookups and text splitting, so they say what they are.
     paidHalf: "are the paid half of the shelf",
     freeLessonCount: Math.max(projects.length - 1, 0),
+    // The last project is the shelf's door into the paid half, so it opens on the same single free pass a
+    // lesson would: `gateFor` asks "is this the nominated position?", and four projects nominate the fourth.
+    promptAt: projects.length || null,
     showAnswerAfter: 3,
   };
 }
@@ -206,7 +209,7 @@ function renderProjectCard(entry) {
             <p class="project-meta">
               <span class="rail-num" aria-hidden="true">${String(entry.number).padStart(2, "0")}</span>
               <span class="chip chip-level">${esc(entry.level)}</span>
-              ${entry.free ? "" : `<span class="chip chip-trial">Trial</span>`}
+              ${entry.free ? "" : `<span class="chip chip-paid">Paid</span>`}
             </p>
             <h2 class="project-title"><a class="project-link" href="${esc(entry.path)}">${esc(exercise.title)}</a></h2>
             <p class="project-outcome">${esc(exercise.docs.outcome)}</p>
@@ -215,7 +218,7 @@ function renderProjectCard(entry) {
 }
 
 /**
- * The project shelf. The drill track has a rail and a dashboard; four projects need neither — they need
+ * The project shelf. The exercise track has a rail and a dashboard; four projects need neither — they need
  * one page that says what each file is, in the order they climb, with the one gate marked where it is.
  */
 export function prepareProjectsPage({ track, index }) {
@@ -232,8 +235,6 @@ export function prepareProjectsPage({ track, index }) {
       <ol class="project-list">${cards}
       </ol>
 
-      <p class="project-foot">Every project opens the same player a drill does, and every task reads the one
-        <code>.xlsx</code> its brief names, download it, work in it, and answer with the number the sheet gives you.</p>
     </main>`;
 
   return {
@@ -242,7 +243,6 @@ export function prepareProjectsPage({ track, index }) {
       path: PROJECT_SHELF,
       title: track.title,
       description: track.promise,
-      counter: `${index.length} projects`,
       bodyClass: "projects-page",
       skipLabel: "projects",
     },

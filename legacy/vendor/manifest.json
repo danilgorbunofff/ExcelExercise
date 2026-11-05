@@ -201,6 +201,102 @@
       "licence": "MIT",
       "licenceFile": "licenses/radix-colors-MIT.txt",
       "added": "2026-10-28"
+    },
+    "icons/magnifying-glass.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/magnifying-glass.svg",
+      "sha256": "f9fa2561978a9a3291e8ae0ebfcb651104f5069fade8f84871627bca68889cde",
+      "bytes": 243,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/user.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/user.svg",
+      "sha256": "787434f7fef95f20e137d309d3c6b8b471548c55c9dfc137ae10625d70959d11",
+      "bytes": 340,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/play.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/play.svg",
+      "sha256": "885b3ed2095889c4ff063dac35dc424cb9f6c00273ab44e2f90dc9dadbee661a",
+      "bytes": 293,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/list-checks.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/list-checks.svg",
+      "sha256": "b2d11fc95de627d6abe9feeced5f7e0cdce3ccdf8d9f9d2334d596b8b5cc5cc4",
+      "bytes": 567,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/folder-simple.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/folder-simple.svg",
+      "sha256": "64d0a5a5a35582fc369e5723b6f4095cfa581402d070108ff328befdd29b06d7",
+      "bytes": 304,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/calendar-blank.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/calendar-blank.svg",
+      "sha256": "6268583ae0ea04e93fd24f1e70d47a8e8d79c88fc304af397b95b318980215d6",
+      "bytes": 327,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/cards.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/cards.svg",
+      "sha256": "de7215a56d6131de7ebded00390671efb03233830b77c41f7736a28baf2eb4da",
+      "bytes": 287,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/ranking.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/ranking.svg",
+      "sha256": "250ce5bd66e3ad90ed9639734b46ea7edc6758874b2620eabde1c39f3a138350",
+      "bytes": 424,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/function.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/function.svg",
+      "sha256": "42ef321e8776de0a5ec3464aa66b0759708292b940b96d4b4fb70bfcc301f5ce",
+      "bytes": 356,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/keyboard.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/keyboard.svg",
+      "sha256": "96646775c552eb7944a88071ec3d7b93f28fd0e19ae995cfb52957403e38422e",
+      "bytes": 513,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/seal-check.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/seal-check.svg",
+      "sha256": "462ca0e3c6be8be9b834e3c5a3eff2b4600ccaa9341dab9a13caf71ce6190788",
+      "bytes": 1966,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
+    },
+    "icons/tag.svg": {
+      "url": "https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/regular/tag.svg",
+      "sha256": "56633631b2e56436c33010c432f5da46533d2cfcae9773e694ee90ad43d96d69",
+      "bytes": 345,
+      "licence": "MIT",
+      "licenceFile": "licenses/phosphor-MIT.txt",
+      "added": "2026-11-04"
     }
   }
 }

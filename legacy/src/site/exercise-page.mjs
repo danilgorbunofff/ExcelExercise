@@ -5,9 +5,10 @@
  */
 
 import { esc, inlineIcon, jsonScript } from "./html.mjs";
+import { DEFAULT_PLAN, PRICE } from "./offer.mjs";
 import { revealOf, screenAt } from "./packages.mjs";
-import { breadcrumbJsonLd, clampDescription, groupPath, jsonLd, lessonTrail } from "./seo.mjs";
-import { renderByline, renderDocument, renderRail } from "./shell.mjs";
+import { breadcrumbJsonLd, clampDescription, clampTitle, groupPath, jsonLd, lessonTrail } from "./seo.mjs";
+import { renderDocument, renderRail } from "./shell.mjs";
 import {
   renderDocs,
   renderFeedback,
@@ -18,6 +19,7 @@ import {
   renderScreenDocs,
   renderSheet,
   renderWorkbook,
+  workbookFile,
 } from "./sheet.mjs";
 
 /** One screen's share of the payload: exactly what the client grades and teaches with. */
@@ -57,11 +59,17 @@ export function screenPayload(exercise, screen, position) {
     forbid: screen.forbid,
     requireRef: screen.requireRef,
     rules: screen.rules,
+    // The re-sends travel with the page because grading happens in the browser. They are hidden from
+    // the exercise, not from a reader of this payload — the reference formula is already in `common`.
+    ...(screen.variants === undefined ? {} : { variants: screen.variants }),
   };
 }
 
 /** What the client needs to grade and teach, and nothing it would only duplicate. */
-function exercisePayload({ config, track, index, entry }) {
+/** Where the buy button posts. Absolute when the store lives on the other deployment. */
+const CHECKOUT_PATH = `/api/stripe/checkout?plan=${DEFAULT_PLAN}`;
+
+function exercisePayload({ config, track, index, entry, checkout = {}, checkoutAction, accountHref }) {
   const { exercise } = entry;
   return {
     id: exercise.id,
@@ -76,13 +84,24 @@ function exercisePayload({ config, track, index, entry }) {
       dataset: exercise.docs.dataset,
       outcome: exercise.docs.outcome,
     },
+    // The gate's offer is decided in the browser, and the browser cannot see the environment. Two
+    // facts travel: whether there is a store, and where the buy button posts. The client picks the
+    // door from them (`paywallOffer` in `client/state.js`).
+    paywall: {
+      checkout: Boolean(checkout.enabled),
+      price: PRICE,
+      action: checkoutAction ?? CHECKOUT_PATH,
+      // Where a reader who already owns the track signs in. `null` in an edition with no account
+      // page at all, which leaves the gate without a link rather than a link into a 404.
+      account: accountHref === undefined ? "/account" : accountHref,
+    },
     track: {
       name: config.name,
       title: track.title,
       total: index.length,
       number: entry.number,
       free: entry.free,
-      // The order gate needs the whole order, not just where this drill sits in it: "the first drill you
+      // The order gate needs the whole order, not just where this exercise sits in it: "the first exercise you
       // have not finished" is a fact about the plan. Ids and titles only — the gate links by path.
       plan: index.map((item) => ({
         id: item.exercise.id,
@@ -91,9 +110,11 @@ function exercisePayload({ config, track, index, entry }) {
         path: item.path,
       })),
       freeLessonCount: track.freeLessonCount,
-      // The gate copy below names the shelf it is gating. A drill says "drill"; a project says
-      // "project" rather than offering to unlock a drill that does not exist.
-      noun: track.lessonNoun ?? "Drill",
+      // Where the free tour ends: the first paid exercise asks before it walls, once.
+      promptAt: track.promptAt,
+      // The gate copy below names the shelf it is gating. The exercise track says "exercise"; a project
+      // says "project" rather than offering to unlock an exercise that does not exist.
+      noun: track.lessonNoun ?? "Exercise",
       paidHalf: track.paidHalf,
       showAnswerAfter: track.showAnswerAfter,
       nextPath: entry.nextPath,
@@ -127,7 +148,7 @@ function lessonJsonLd({ config, track, entry }) {
 }
 
 /**
- * Three drills that teach the same skill as this one, plus the first drill of the next group, so a
+ * Three exercises that teach the same skill as this one, plus the first exercise of the next group, so a
  * reader who finished has somewhere to go that is not "forward one". Picked by distance in the track,
  * which keeps a page's links to its neighbours instead of linking every lesson to every other one.
  */
@@ -164,7 +185,7 @@ ${links
 /**
  * The way out of a lesson that is not "next": the group it belongs to. The pager walks the track; this
  * links the hub, which is the page that ranks for the skill and the page a reader who is done with one
- * VLOOKUP drill actually wants. Two links, at the end of the page, where the decision is.
+ * VLOOKUP exercise actually wants. Two links, at the end of the page, where the decision is.
  */
 function renderGroupMore({ group, count }) {
   if (!group) return "";
@@ -193,6 +214,17 @@ function renderScreens(exercise, { icons }) {
             : screen.type === "chord" || screen.type === "sequence"
               ? renderKeys(screen, { position })
               : renderSheet(exercise, screen, { icons, id: `sheet-grid-${position}` });
+      // The grid a screen draws is also the file it ships, so the download sits under that grid: a
+      // learner who would rather work in Excel takes the same rows away instead of retyping them.
+      const download =
+        screen.type === "formula"
+          ? workbookFile({
+              slug: exercise.slug,
+              screen,
+              label: "Download this grid",
+              meta: screen.answerCell ? "Two tabs: the grid you see, and the answer." : "It opens in Excel, Sheets or LibreOffice.",
+            })
+          : "";
       const shell =
         screen.type === "picture"
           ? "picture-body"
@@ -206,7 +238,7 @@ function renderScreens(exercise, { icons }) {
                 <p class="task">${esc(screen.prompt)}</p>${renderScreenDocs(screen)}
                 <div class="${shell}" id="sheet-${position}">
                   ${body}
-                </div>
+                </div>${download}
               </div>`;
     })
     .join("")}
@@ -239,7 +271,7 @@ function renderPager({ entry, icons }) {
             )}</span>${inlineIcon(icons["arrow-right"], { size: 14 })}
           </a>`
     : `<a class="pager-link pager-next" href="/">
-            <span class="pager-label">End of the track</span><span class="pager-title">Back to all drills</span>${inlineIcon(
+            <span class="pager-label">End of the track</span><span class="pager-title">Back to all exercises</span>${inlineIcon(
               icons["arrow-right"],
               { size: 14 },
             )}
@@ -252,7 +284,7 @@ function renderPager({ entry, icons }) {
 }
 
 /**
- * The brief a project opens with. A drill is one task with its notes; a project is a sequence of tasks
+ * The brief a project opens with. An exercise is one task with its notes; a project is a sequence of tasks
  * over one file, so it needs the reading that says what the file is and what the work is before the
  * first task asks for a number. Authored as ordered sections, rendered as they were written.
  */
@@ -272,10 +304,10 @@ function renderBrief(brief) {
 }
 
 /**
- * The way out of a drill into the written note that explains the function it uses, when one exists.
+ * The way out of an exercise into the written note that explains the function it uses, when one exists.
  *
  * The notes were published and linked from nowhere: they cross-linked each other and the hub listed
- * them, but no lesson pointed at one, so a reader who wanted the why after the drill had to guess the
+ * them, but no lesson pointed at one, so a reader who wanted the why after the exercise had to guess the
  * address. This is the same `ways` block the pages already use for their menu, so it reads as part of
  * the page rather than an advert, and it names the function as well as the note's title.
  */
@@ -294,7 +326,7 @@ function renderNoteDoor(article) {
  * The page as two pieces — `<main>` markup and the head metadata for it — so a host that renders its
  * own `<head>` can reuse both. `renderExercisePage` below wraps them in a full document.
  *
- * `articles` is the published note set; a drill whose slug is named by a note's `exercise` frontmatter
+ * `articles` is the published note set; an exercise whose slug is named by a note's `exercise` frontmatter
  * gets that note as a footer door. Absent or empty means no door, which is what the note pages
  * themselves pass when they borrow a lesson's first screen.
  */
@@ -306,13 +338,16 @@ export function prepareExercisePage({
   icons = {},
   clientAvailable = false,
   articles = [],
+  checkout = {},
+  checkoutAction,
+  accountHref,
 }) {
   const { exercise } = entry;
   const screen = screenAt(exercise);
   const screens = exercise.screens;
   // A project is the same player on a different shelf: what changes is the noun in the counter and the
-  // name of the track above it. Both default to the drill's words, so lesson markup is byte-identical.
-  const counter = `${track.lessonNoun ?? "Drill"} ${entry.number} of ${index.length}`;
+  // name of the track above it. Both default to the exercise's words, so lesson markup is byte-identical.
+  const counter = `${track.lessonNoun ?? "Exercise"} ${entry.number} of ${index.length}`;
   // The description is authored per lesson (`seo.description`) because a search result is a different
   // sentence from the lede; the outcome is the fallback, clamped so a long one cannot get cut mid-word.
   const description = clampDescription(exercise.seo?.description ?? exercise.docs.outcome);
@@ -323,17 +358,11 @@ export function prepareExercisePage({
   const body = `<main class="shell" id="main">
       <div class="page-head">
         <p class="eyebrow">${esc(track.eyebrow ?? "Excel track")} · ${esc(counter)}${
-          entry.free ? "" : ' <span class="chip chip-trial">Trial</span>'
+          entry.free ? "" : ' <span class="chip chip-paid">Paid</span>'
         }</p>
         <h1>${esc(exercise.title)}</h1>
         <p class="lede">${esc(exercise.docs.outcome)}</p>
-        ${renderByline({
-          config,
-          index,
-          updated: exercise.updated ?? config.builtAt,
-          extra: `<span class="chip chip-level">${esc(entry.level)}</span>`,
-          noun: track.lessonNoun ? `${track.lessonNoun.toLowerCase()}s` : undefined,
-        })}
+        <p class="lesson-level"><span class="chip chip-level">${esc(entry.level)}</span></p>
       </div>
 
       <div class="layout">
@@ -351,7 +380,7 @@ export function prepareExercisePage({
               <p class="noscript-note">Checking needs JavaScript. The sheet and the notes are readable without it.</p>
             </noscript>
             <script type="application/json" id="exercise-data">${jsonScript(
-              exercisePayload({ config, track, index, entry }),
+              exercisePayload({ config, track, index, entry, checkout, checkoutAction, accountHref }),
             )}</script>
           </section>
 
@@ -374,7 +403,7 @@ export function prepareExercisePage({
     body,
     page: {
       path: entry.path,
-      title: exercise.seo?.title ?? exercise.title,
+      title: clampTitle(exercise.seo?.title ?? exercise.title, { siteName: config.name }),
       description,
       counter,
       isHome: false,

@@ -200,7 +200,7 @@ button {
 :where(a, button, input, summary):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
 }
 
 /* 5A §8: motion is opt-in. Every animation and transition in this system sits inside
@@ -230,7 +230,7 @@ button {
   padding: var(--s-2) var(--s-3);
   background: var(--btn-bg);
   color: var(--btn-text);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   font-size: var(--fs-ui);
   font-weight: 500;
   text-decoration: none;

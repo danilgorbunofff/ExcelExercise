@@ -128,7 +128,8 @@ present, and `lib/paywall.js` treats enforcement as off unless there is a databa
 | `PAYWALL` | app | `on`/`1`/`true` enforces the lesson gate | Gate off: lessons are open, `/pricing` still sells |
 | `STRIPE_SECRET_KEY` | app | Checkout and portal | Checkout answers "not configured" |
 | `STRIPE_WEBHOOK_SECRET` | app | Signature check on `/api/stripe/webhook` | Webhook refuses every request |
-| `STRIPE_PRICE_MONTHLY` / `_ANNUAL` / `_LIFETIME` | app | Price ids sold on `/pricing` | That plan is not offered |
+| `STRIPE_PRICE_MONTHLY` / `_SEMIANNUAL` / `_ANNUAL` | app | Price ids sold on `/pricing` | That plan is not offered |
+| `STRIPE_PRICE_LIFETIME` | app | Only read when a one-off lifetime price is live; not one of the three `/pricing` sells | No lifetime plan |
 | `GIT_SHA` (or `VERCEL_GIT_COMMIT_SHA`) | app | Baked into `/api/health` | Health reports `git rev-parse --short HEAD`, else `unknown` |
 | `SITE_APP_URL` | static edition | Absolute account/certificate/signup/checkout links pointing at the app | The links are omitted: this build *is* the whole site |
 | `RELEASE_SHA` / `SMOKE_ORIGIN` | smoke only | Defaults for `--sha` / the origin argument | — |
@@ -279,5 +280,5 @@ receive a reply is worse than none.
 
 The feedback dialog posts to `POST /api/feedback` when the deployment has a service-role key, and says
 so ("a person reads these"). Without one the route answers 503 and the dialog falls back to the local
-queue with the copy that names it. `npm run db:check` is the only thing that proves the insert path
-end to end, and no gate runs it.
+queue with the copy that names it. `npm run db:check` proves the insert path end to end, and the `db`
+job in `.github/workflows/ci.yml` runs it on every push, against a real local stack.

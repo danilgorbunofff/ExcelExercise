@@ -429,6 +429,13 @@ recorded completions. Twelve of the fourteen names in the vocabulary are emitted
   a person runs them, and there is no visual regression service — `docs/screenshots/` is the baseline.
 - **No analytics collector.** Events are buffered in memory and logged; attaching a provider later
   means forwarding `window.__esEvents`, not touching the exercise.
+- **The two public write endpoints rate-limit in memory, per instance.** `POST /api/feedback` allows
+  twelve notes per address in ten minutes and `POST /api/report-error` thirty reports of at most 2 KB,
+  both counted in a process-local map. On a host that runs more than one instance the real ceiling is
+  the limit times the instance count, so these are anti-firehose valves, not a quota. That is a
+  deliberate trade: a database counter would put a write in front of every note and every browser
+  error, and both routes are a contact form rather than an authentication surface. A shared counter
+  is the change to make if abuse ever appears.
 - **Eighty-six lessons.** Volume, not the engine, is the limit: the build, the grader and the client
   handle any number of lessons listed in `track.json`.
 

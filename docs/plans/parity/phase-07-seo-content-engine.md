@@ -72,7 +72,7 @@ Rewritten as an evidence table on **2026-10-31** from the checklist it replaces.
 | p7-69 | Zero orphan pages, link lint green | Proven | `tests/build.test.js:441` (M22 → "internal links point at pages that are not built") | build | — |
 | p7-70 | Lighthouse SEO ≥ 95 on three articles | Absent | no Lighthouse config, no CI step | n/a | Build B2 |
 | p7-71 | Every note reachable in two clicks, sibling links between notes | Built, unproven | `e2e/article.spec.js:16` proves hub → note; no sibling-link assertion exists | half the claim unexercised | Build B6 |
-| p7-72 | Sitemap matches the route list exactly (118 over 120) | Proven | `tests/metadata-routes.test.js:31` (M9) | route — counts moved; invariant holds | — |
+| p7-72 | Sitemap matches the route list exactly (119 over 121 after `/search`) | Proven | `tests/metadata-routes.test.js:41` (M9) | route — counts moved twice, and the equality held both times | — |
 | p7-73 | JSON-LD validates in the Rich Results test | Built, unproven | `tests/build.test.js:309` parses it; `e2e/article.spec.js:38` reads it; no external validation recorded | claim admits it | Defer: external validator; one manual run on the launch checklist |
 | p7-75 | Note ships one module, drill island ~3 KB | Proven | `e2e-static/static-drill.spec.js:115`; `tests/articles.test.js:52` | browser | — |
 
@@ -110,7 +110,7 @@ notes. Everything below is what actually exists, and why it differs from the bri
 | Note | `/excel-functions/<slug>` | prose, syntax, one drill, related links, `Article` + `BreadcrumbList` |
 | Lesson SEO fields | every `exercises/*.json` | `seo.title`, `seo.description`, `updated`, rewritten for all 88 |
 | Group hubs | `/learn/groups/<id>` | indexable, `LearningResource` + `ItemList` + `BreadcrumbList` |
-| Sitemap | `/sitemap.xml` | 118 URLs: 88 lessons, 10 groups, 5 static, 8 notes, home and the hub |
+| Sitemap | `/sitemap.xml` | 119 URLs: 88 lessons, 10 groups, 6 static, 8 notes, home and the hub |
 
 The eight notes are `vlookup`, `if`, `sum`, `countif`, `sumif`, `index-match`, `xlookup`, `trim` — the
 functions the plan's own intent order names first. Each is 816–921 words.

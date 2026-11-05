@@ -7,11 +7,11 @@
   "brief": [
     {
       "heading": "The file",
-      "body": "wine.xlsx holds one sheet, Cellar, with twelve wines and six columns: the wine, its region, its vintage, how many bottles are on the shelf, the price of one bottle and the score a critic gave it. Rows 15 to 18 are a computed block: how many bottles the cellar holds, what the stock is worth, the mean score and the best score."
+      "body": "wine.xlsx holds one sheet, Cellar, with twelve wines in six columns. The columns are the wine, its region, its vintage, how many bottles are on the shelf, the price of one bottle and the score a critic gave it. Rows 15 to 18 are a computed block: bottles held, stock value, mean score and best score."
     },
     {
       "heading": "The work",
-      "body": "The owner is deciding what to restock, and the answer is never the average — it is which region, which vintage and which price are carrying the cellar. Eight tasks run from reading the block to grouping the rows yourself. The preview shows prices and scores exactly as the file does; the download is there when you want to sort twelve rows rather than squint at them."
+      "body": "The owner is deciding what to restock, and the answer is never the average. It is which region, which vintage and which price are carrying the cellar. Eight tasks run from reading the block to grouping the rows yourself. The preview shows prices and scores exactly as the file does; the download is there when you want to sort twelve rows rather than squint at them."
     },
     {
       "heading": "What good looks like",
@@ -48,7 +48,7 @@
   },
   "docs": {
     "syntax": "=SUM(D2:D13), =SUMPRODUCT(D2:D13,E2:E13), =ROUND(AVERAGE(F2:F13),2)",
-    "explain": "SUM counts bottles because bottles are one column. Stock value cannot use SUM: it needs each row's bottles multiplied by that row's price and then added, which is what SUMPRODUCT does in a single cell — a helper column of twelve multiplications would say the same thing in twelve cells. AVERAGE of the score column divided by twelve and rounded to two decimals gives the cellar's mean critic score, and MAX names the best bottle in it. The tasks then leave the block behind: the interesting questions are which region carries the cellar and which rows are behind the best score.",
+    "explain": "SUM counts bottles because bottles are one column. Stock value cannot use SUM: it needs each row's bottles multiplied by that row's price and then added, which is what SUMPRODUCT does in a single cell. A helper column of twelve multiplications would say the same thing in twelve cells.\n\nAVERAGE of the score column, rounded to two decimals, gives the cellar's mean critic score, and MAX names the best bottle in it. The tasks then leave the block behind: the interesting questions are which region carries the cellar and which rows are behind the best score.",
     "atWork": "Stock, price and rating columns are the shape of every inventory sheet a business runs on. The difference between a list and a dashboard is whether someone can answer 'what is this worth, and which part of it is doing the work' without opening a calculator.",
     "outcome": "Value a cellar, then find which region, vintage and price are carrying it.",
     "teaches": "Weighted totals and grouped reads",
@@ -90,7 +90,7 @@
       "prompt": "Which wine scored highest? Answer with the wine name as the sheet writes it.",
       "answers": ["Barolo"],
       "hints": {
-        "value": "B18 is MAX of the score column. Two rows say Barolo — the one you want is the older vintage."
+        "value": "B18 is MAX of the score column. Two rows say Barolo; the one you want is the older vintage."
       }
     },
     {

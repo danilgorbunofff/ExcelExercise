@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import {
   LEVELS,
+  MAX_VARIANTS,
   SCHEMA_VERSION,
   SCREEN_TYPES,
   failAt,
@@ -13,9 +14,41 @@ import {
   screenAt,
 } from "./schema.js";
 
-export { LEVELS, SCHEMA_VERSION, SCREEN_TYPES, normalizeLesson, normalizeTrack, referenceOf, revealOf, screenAt };
+export {
+  LEVELS,
+  MAX_VARIANTS,
+  SCHEMA_VERSION,
+  SCREEN_TYPES,
+  normalizeLesson,
+  normalizeTrack,
+  referenceOf,
+  revealOf,
+  screenAt,
+};
 export { headingId, parseMarkdown, sectionIds, wordCount } from "./markdown.js";
-export { REQUIRED_SECTIONS, articleProblems, loadArticles, parseArticle } from "./articles.js";
+export { REQUIRED_SECTIONS, articleProblems, loadArticles, parseArticle, practises } from "./articles.js";
+export {
+  COLUMNS as SHORTCUT_COLUMNS,
+  FAMILIES as SHORTCUT_FAMILIES,
+  NO_DEFAULT,
+  PLATFORMS as SHORTCUT_PLATFORMS,
+  PLATFORM_TITLES as SHORTCUT_PLATFORM_TITLES,
+  REQUIRED_SECTIONS as SHORTCUT_SECTIONS,
+  loadShortcuts,
+  parseKeyCell,
+  parseShortcut,
+  shortcutProblems,
+} from "./shortcuts.js";
+export {
+  FAMILIES,
+  MAX_DRILLS,
+  MIN_DRILLS,
+  // Named for the page type, because `articles.js` exports a `REQUIRED_SECTIONS` of its own.
+  REQUIRED_SECTIONS as FORMULA_SECTIONS,
+  formulaProblems,
+  loadFormulas,
+  parseFormula,
+} from "./formulas.js";
 
 /** Kept as the public name of the lesson gate: everything that read it before still does. */
 export const validateLesson = normalizeLesson;

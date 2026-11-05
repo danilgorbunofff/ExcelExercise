@@ -60,10 +60,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SWITCH(value, match 1, result 1, match 2, result 2, ..., fallback): one value, then pairs.",
-        "func-switch": "There is nothing to count or compare here: the code is matched against a short list.",
-        "require-ref": "Read the code from the column instead of typing W-01 into the formula.",
-        "value": "A2 holds W-01, so the first pair matches and the answer is Widget.",
-        "error": "A fallback that divides by zero returns #DIV/0! instead of a label."
+        "func-switch": "Nothing here is counted or compared by size, only a code matched against a short list.",
+        "require-ref": "Read the code from A2 rather than typing W-01.",
+        "value": "A2 is the first code in the list and its pair names Widget, so check every label and the spaces inside them.",
+        "error": "Text divided by zero leaves #VALUE!, which is the error this formula's broken version returns."
       },
       "fixtures": {
         "accept": [
@@ -163,11 +163,11 @@
       "requireRef": "B3",
       "rules": [],
       "hints": {
-        "syntax": "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\"): numbers and text results mix freely.",
-        "func-switch": "A short list of equal-value matches is what SWITCH is for; a lookup table would need a range.",
-        "require-ref": "Match the tier cell in the grid rather than a typed 3.",
-        "value": "B3 holds 3, so the third pair matches and the answer is Gold.",
-        "error": "A division by zero in the fallback returns #DIV/0! instead of a name."
+        "syntax": "=SWITCH(B3,1,\"Bronze\",2,\"Silver\",3,\"Gold\",\"None\"): the matches are numbers here, so no quotes.",
+        "func-switch": "Three tiers are three pairs, which avoids a lookup range for four rows.",
+        "require-ref": "Match the tier in B3, a number, not the code beside it.",
+        "value": "B3 holds 3, so the third pair returns Gold.",
+        "error": "Quoting a match turns the number into text, and the cell answers None without any error at all."
       },
       "fixtures": {
         "accept": [
@@ -215,22 +215,22 @@
   ],
   "docs": {
     "syntax": "=SWITCH(expression, value1, result1, value2, result2, ..., default)",
-    "explain": "SWITCH is an equality machine. It takes one value, then a list of values with the result each should produce, and returns the result of the first exact match. It is the clean way to translate short codes such as states, tiers, currencies or department letters. For those, a lookup table is more scaffolding than the question deserves, and the final argument doubles as the default when nothing matches. Unlike IFS the tests are not comparisons but plain values, so a text \"3\" never matches the number 3. That is the single most common way the function quietly returns its fallback. Order matters only in that the first match wins, so duplicate values are legal but only the first result can ever appear. In this drill A2 holds W-01 and the first pair names it Widget. The second screen matches a numeric tier of 3 to Gold, where the number-versus-text trap is on the reject list rather than in the hint text alone.",
+    "explain": "SWITCH takes one value, then pairs of a match and the result to give back. It compares the value with each match in turn and returns the result beside the first exact one. The pairs hold plain values rather than comparisons, so a text \"3\" and a number 3 are not the same match. That is the usual way the function falls through to its default.\n\nA2 holds W-01, so the first pair in =SWITCH(A2,\"W-01\",\"Widget\",\"G-02\",\"Gadget\",\"Unknown\") returns Widget. The second screen compares tier 3 in B3 with 1, 2 and 3, and the third pair gives Gold. Quote those matches and the tier misses, so the cell falls back to None.\n\nThe last argument is what comes back when no pair matches. Leave it out and an unexpected code returns #N/A in the middle of a column of labels.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "No value matched and no default was supplied."
+        "text": "No pair matched and no default was supplied, which is what a text match against a number produces."
       },
       {
         "code": "#VALUE!",
-        "text": "The value and result pairs were uneven, or a text result was divided."
+        "text": "A text result was used in arithmetic, or a pair is missing its result."
       },
       {
         "code": "#NAME?",
-        "text": "The function was typed as SWITCH in a version that does not have it."
+        "text": "SWITCH is absent from the version of Excel in use, or the name is mistyped."
       }
     ],
-    "atWork": "Translating status codes, cost centres and grade letters without maintaining a lookup range.",
+    "atWork": "Translating status codes and cost centres into labels without maintaining a lookup range.",
     "outcome": "Translate a short fixed list of codes into labels in one formula.",
     "teaches": "SWITCH value/result pairs and the default, plus number-versus-text matching",
     "dataset": "Item codes with a numeric tier column",

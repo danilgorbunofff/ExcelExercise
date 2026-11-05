@@ -63,10 +63,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SUM(B2:B7): the whole block in one reference.",
-        "func-sum": "Adding the cells one by one is what a broken total looks like; use SUM.",
+        "func-sum": "Adding the cells one at a time is how a total ends up short. Use SUM over the block.",
         "require-ref": "Point at the column, or the range stops where somebody typed a row number by hand.",
-        "value": "The numbers are 320, 250, 300, 400 and 180, which total 1450; the text is skipped.",
-        "error": "Dividing by zero leaves #DIV/0! instead of a total."
+        "value": "The numbers are 320, 250, 300, 400 and 180, which total 1450. The text in the middle is skipped.",
+        "error": "#VALUE! means a cell in the range holds text that cannot be added. SUM over the range skips it instead."
       },
       "fixtures": {
         "accept": [
@@ -167,8 +167,8 @@
         "syntax": "=SUM(B2:B5): the four months, stopping above the subtotal.",
         "func-sum": "Add the months with SUM rather than by naming the cells one at a time.",
         "require-ref": "Read the amount column from the grid so the range covers every month.",
-        "value": "320 + 250 + 180 + 140 is 890; pulling the 750 subtotal in as well gives 1640.",
-        "error": "A division by zero leaves #DIV/0! in the answer cell."
+        "value": "320 + 250 + 180 + 140 is 890. Pulling the 750 subtotal in as well gives 1640.",
+        "error": "A range that starts or ends on the wrong row is not an error in Excel. It is just a wrong number."
       },
       "fixtures": {
         "accept": [
@@ -221,22 +221,22 @@
   ],
   "docs": {
     "syntax": "=SUM(first_cell:last_cell)",
-    "explain": "A total that skips a row is almost never a broken SUM. It is a range that stops one short, starts one late, or swallows a row it should have stopped above. The two screens are the two common shapes. In the first, a cell in the middle holds text, which SUM ignores without complaint. The correct range simply covers the whole block and the number comes out at 1450. The trap is that a range written by hand around the text stops short of the stores below it. In the second, the row above the answer is a Q1 subtotal of 750, and a range that reaches it counts the first quarter twice. 890 becomes 1640. Read both by comparing the total against a quick manual addition, then check which rows the range covers. Click the answer cell and drag the range handles. The highlighted block on screen is exactly what the formula sees.",
+    "explain": "A total that skips a row is nearly always a range problem. The range stops one short, starts one late, or reaches up into a subtotal it should have stayed below. SUM is doing what it was told.\n\nOn the first screen one cell in the middle holds text, and SUM steps over it without complaint, so B2:B7 returns 1450. A range drawn by hand around the text stops above the stores further down.\n\nOn the second, the row above the answer is a Q1 subtotal of 750, and a range that touches it counts the quarter twice: 890 becomes 1640. Compare the total with a quick manual addition, then select the answer cell and read the highlighted block, which is exactly what the formula sees.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A cell inside the range holds text that a chain of plus signs cannot add."
-      },
-      {
-        "code": "#DIV/0!",
-        "text": "A division by zero in the formula stops it before a total is produced."
+        "text": "A cell in the range holds text that a chain of plus signs cannot add. SUM over the range would have skipped it."
       },
       {
         "code": "#REF!",
         "text": "The range names a column or row that no longer exists after rows were deleted."
+      },
+      {
+        "code": "Wrong total",
+        "text": "A range that reaches a subtotal counts the same money twice, and a range that stops early leaves a store out. Neither raises an error."
       }
     ],
-    "atWork": "A monthly close where a subtotal row sits above the answer, and an imported list with one unreadable cell.",
+    "atWork": "A monthly close with a subtotal row above the answer, and an imported list with one unreadable cell.",
     "outcome": "Find the row a broken total skips and cover it without double-counting a subtotal.",
     "teaches": "SUM over a block with text in it, and stopping a range above a subtotal",
     "dataset": "City sales with a gap, and four months plus a subtotal",

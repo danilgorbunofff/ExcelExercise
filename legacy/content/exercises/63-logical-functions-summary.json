@@ -70,12 +70,12 @@
       "requireRef": "B8",
       "rules": [],
       "hints": {
-        "syntax": "=IF(AND(test 1, test 2),\"PASS\",\"FAIL\"): the tests go inside the IF.",
-        "func-if": "Two words have to come out of one formula, so the test needs an IF around it.",
-        "func-and": "Both conditions have to hold at the same time, which is what AND is for.",
-        "require-ref": "Read the total and the units column rather than typing the numbers.",
-        "value": "The total is 150 and the smallest item is 18, so both tests hold and the cell says PASS.",
-        "error": "A division by zero anywhere in the tests returns #DIV/0! instead of a verdict."
+        "syntax": "=IF(AND(test 1, test 2),\"PASS\",\"FAIL\"): the tests sit inside the IF, in brackets of their own.",
+        "func-if": "The cell has to say PASS or FAIL, so the combined test needs an IF around it.",
+        "func-and": "Both conditions have to hold at once, and only AND does that.",
+        "require-ref": "Read the total from B8 and the units from B2:B7.",
+        "value": "150 clears the total test and 18 clears the floor, so B9 reads PASS.",
+        "error": "A division by zero inside a test gives #DIV/0!, so the verdict never appears."
       },
       "fixtures": {
         "accept": [
@@ -210,12 +210,12 @@
       "rules": [],
       "hints": {
         "syntax": "=IF(ISNUMBER(AVERAGE(C2:C7)),ROUND(AVERAGE(C2:C7),1),\"none\"): the guard comes first.",
-        "func-if": "The formula has two outcomes, a number and the word none, so it needs an IF.",
-        "func-isnumber": "Asking whether the average produced a number is how an empty range is caught.",
-        "func-round": "One decimal place comes from ROUND, not from the cell format.",
-        "require-ref": "Average the price column of the grid rather than typing the prices.",
-        "value": "The six prices average 4.3166, which rounds to 4.3.",
-        "error": "A division by zero in the range returns #DIV/0! before the guard can help."
+        "func-if": "A number or the word none is two outcomes, which is what IF is for.",
+        "func-isnumber": "ISNUMBER is the guard: it asks whether the average produced a number at all.",
+        "func-round": "ROUND sets one decimal place; the cell format would only change how 4.3166 looks.",
+        "require-ref": "Average C2:C7, the price column.",
+        "value": "The six prices come to 25.9, which is 4.3166 each, so one decimal place gives 4.3.",
+        "error": "The finished value is divided by zero, so the cell holds #DIV/0! and the guard never gets a chance."
       },
       "fixtures": {
         "accept": [
@@ -268,22 +268,22 @@
   ],
   "docs": {
     "syntax": "=IF(AND(test 1, test 2),\"PASS\",\"FAIL\"); =IF(ISNUMBER(AVERAGE(range)),ROUND(...,1),\"none\")",
-    "explain": "A summary lesson is where the pieces have to work together. Each of these formulas reads a test, decides something, and returns one of two kinds of value. The first screen nests AND inside IF. Both conditions are checked, and the cell answers the word PASS or FAIL rather than TRUE or FALSE, which is what a reader of the sheet wants to see. The second wraps the average in ISNUMBER before rounding it, so an empty or text-only price column returns none instead of #DIV/0!. The guard is not decoration. It is the difference between a report that prints and one that shows an error in a client meeting. Both formulas keep every number inside the grid. The total row, the units column and the price column are read, never typed, so editing a price moves the answer without touching a formula. Two habits are worth carrying away. The first is that ROUND changes the value while cell formatting only changes the display, so a rounded number can be summed safely and a formatted one cannot. The second is that an IF with a guard is easier to read than IFERROR around a calculation. It names the condition that could fail instead of catching every error that did.",
+    "explain": "The two formulas here put the earlier pieces together. The first nests AND inside IF: both tests are checked and the cell answers PASS or FAIL rather than TRUE or FALSE. The second wraps an average in ISNUMBER before rounding it, so a price column with no numbers returns none instead of an error.\n\nOn the first screen the total is 150 and the smallest item is 18, so both tests hold and B9 reads PASS. The second screen averages six prices to 4.3166 and rounds that to 4.3. Every figure comes from the grid, so a corrected price moves the answer without the formula changing.\n\nROUND changes the value while cell formatting changes only the look, so a rounded figure can be summed and a formatted one still carries its decimals underneath. A guard on the calculation names the condition that could fail, which reads better than IFERROR over the whole formula.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A text result was used in arithmetic that could not accept it."
+        "text": "The finished text result was used in arithmetic, as when PASS is divided by zero."
       },
       {
         "code": "#DIV/0!",
-        "text": "The average divided by a count of zero because no number was in the range."
+        "text": "AVERAGE found no numbers in C2:C7 and divided a zero total by a count of zero."
       },
       {
         "code": "#NAME?",
-        "text": "One of the nested function names was misspelled."
+        "text": "One of the nested function names was mistyped, so the whole formula fails."
       }
     ],
-    "atWork": "Printing a rounded average with a fallback word instead of an error when a month has no data.",
+    "atWork": "Printing a rounded average with a word in place of an error when a month has no data.",
     "outcome": "Combine a logical test, a combined test and a rounded calculation in one formula.",
     "teaches": "nesting AND inside IF, and guarding a calculation with ISNUMBER before ROUND",
     "dataset": "Stock list with a total row, and a price column to average",

@@ -1,9 +1,9 @@
 ---
 title: SUM in Excel, the whole column in one number
 summary: SUM adds the numbers in a range and ignores anything that is not a number. It is the first formula most people type and the one most often pointed at the wrong range.
-description: How SUM works in Excel, why it skips text and blanks, three worked examples, the errors it returns, and a drill that totals a revenue column.
+description: How SUM works in Excel, why it skips text and blanks, three worked examples, the errors it returns, and an exercise that totals a revenue column.
 function: SUM
-exercise: sum-basics
+drills: sum-basics, sum-across-several-blocks, running-total-down-a-column, debug-a-total-that-skips-a-row, sum-functions-summary
 syntax: =SUM(number1, [number2], ...)
 updated: 2026-02-14
 ---
@@ -56,9 +56,21 @@ The comma separates two ranges and SUM adds all six cells. This works with any n
 
 The last row of the table is the one that survives longest in real files. A total placed at the bottom of a column, then a new range dragged to include rows below it, adds the old total to the new figures. The number is plausible and wrong, which is the worst combination. Read the range in the formula bar before you trust the answer.
 
+## Alternatives
+
+`=SUBTOTAL(9, B2:B4)` adds the same three cells and skips any row hidden by a filter, which `=SUM(B2:B4)` does not. On a table the reader filters, that difference is the whole point, and SUBTOTAL is in every version of Excel.
+
+`=SUMIF(B2:B4, ">0")` adds only the positive figures, which is how a total ignores a refund row without deleting it. Excel 365 and Excel 2021 also have `=SUM(FILTER(B2:B6, A2:A6 = "North"))`, a total over the rows where another column matches.
+
+## Other apps
+
+Google Sheets has SUM with the same range syntax, so `=SUM(B2:B4)` moves between the two products without an edit. Sheets also counts numbers stored as text where Excel does not, so a total can disagree by one row after an import.
+
+VBA calls it as `WorksheetFunction.Sum(Range("B2:B4"))`, and that method returns 0 rather than an error when the range holds no numbers at all. `Evaluate("SUM(B2:B4)")` is the shorter route when the range is already a string.
+
 ## Practice
 
-The drill below shows the revenue table and asks for the total of the Q1 column. Type the formula as you would in Excel and press Check. The expected answer is the number the formula should return, so the range has to be the three data rows, not the whole column.
+The exercise below shows the revenue table and asks for the total of the Q1 column. Type the formula as you would in Excel and press Check. The expected answer is the number the formula should return, so the range has to be the three data rows, not the whole column.
 
 ## Questions
 

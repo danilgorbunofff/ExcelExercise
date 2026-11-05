@@ -149,16 +149,16 @@ describe("sheet: moving the selection", () => {
 });
 
 describe("sheet: the client imports the shipped module", () => {
-  const drill = readFileSync(join(ROOT, "legacy/src/client/drill.js"), "utf8");
+  const exercise = readFileSync(join(ROOT, "legacy/src/client/drill.js"), "utf8");
 
   it("moves the selection through the model instead of walking the DOM", () => {
-    assert.match(drill, /from "\.\.\/sheet\/index\.js"/);
-    assert.match(drill, /moveSelection\(/);
-    assert.doesNotMatch(drill, /function neighbouringKey/);
+    assert.match(exercise, /from "\.\.\/sheet\/index\.js"/);
+    assert.match(exercise, /moveSelection\(/);
+    assert.doesNotMatch(exercise, /function neighbouringKey/);
   });
 
   it("builds the model once per screen from the payload's grid", () => {
-    assert.match(drill, /gridModel\(\{ grid: screen\.grid/);
+    assert.match(exercise, /gridModel\(\{ grid: screen\.grid/);
   });
 });
 

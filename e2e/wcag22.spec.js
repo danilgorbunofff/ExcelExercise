@@ -85,7 +85,7 @@ test("a keyboard user can see every control they tab to, on the front door", asy
   expect(findings).toEqual([]);
 });
 
-test("a keyboard user can see every control they tab to, in a drill", async ({ page }) => {
+test("a keyboard user can see every control they tab to, in an exercise", async ({ page }) => {
   await page.goto(`/learn/excel/${freeDrill().slug}`);
   await page.waitForLoadState("networkidle");
   // The formula bar, the rail, the hint button and the sheet are all in this count; the sheet's sticky
@@ -103,9 +103,9 @@ test("a keyboard user can see every control they tab to, on the offer page", asy
   expect(findings).toEqual([]);
 });
 
-test("the drill's verdict is announced, not only painted", async ({ page }) => {
+test("the exercise's verdict is announced, not only painted", async ({ page }) => {
   await page.goto(`/learn/excel/${freeDrill().slug}`);
-  // The verdict is the whole point of a drill: green for accepted, red for missed. 4.1.3 asks that the
+  // The verdict is the whole point of an exercise: green for accepted, red for missed. 4.1.3 asks that the
   // change reaches assistive technology without moving focus, which is exactly what `role="status"`
   // declares; `aria-live` is the same promise in the form older screen readers still read.
   const verdict = page.locator("#feedback");

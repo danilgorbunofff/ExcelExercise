@@ -58,11 +58,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "DATE takes three numbers in a fixed order: year, month, day: =DATE(B2,C2,D2).",
-        "func-date": "All three parts go in one call: passing two year/month pairs to one DATE is a different date entirely.",
-        "require-ref": "Read the three parts from the row rather than typing 2024, 3 and 1 into the formula.",
-        "value": "45352 is 1 March 2024: the three parts have to come from the same row, and E2 wants INV-2001's.",
-        "error": "A date built out of a formula that divides by zero comes back as #DIV/0!, not as a date."
+        "syntax": "DATE takes year, month, day in that order: =DATE(B2,C2,D2).",
+        "func-date": "All three parts belong in one call; splitting them across two DATE calls adds two serials together.",
+        "require-ref": "Read the year, month and day from row 2, so the formula fills down to the other invoices.",
+        "value": "2024, 3 and 1 build 45352, which is 1 March 2024. A nearby serial means a part came from the wrong column.",
+        "error": "A part stored as text returns #VALUE!, because DATE cannot build a serial from a label."
       },
       "fixtures": {
         "accept": [
@@ -149,11 +149,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "The month argument may be an expression: =DATE(2024,B2+1,1) passes April's number, not March's.",
-        "func-date": "The month arithmetic belongs inside the DATE call, so the year and the roll-over stay in Excel's hands.",
-        "require-ref": "Pass B2 rather than a typed 3, and add the one inside the call.",
-        "value": "March 2024 is 45352 and April has 31 days, so the first of April is 45383.",
-        "error": "Dividing by zero anywhere in the formula leaves #DIV/0! instead of a date."
+        "syntax": "The month can be an expression: =DATE(2024,B2+1,1) asks for April when B2 holds 3.",
+        "func-date": "Keep the +1 inside the call, where the year and the roll-over stay Excel's job.",
+        "require-ref": "Pass B2 rather than a typed 3, then add the one inside the brackets.",
+        "value": "March is 45352 and April has 31 days, so 1 April 2024 is 45383. A result of 45352 means the month never moved.",
+        "error": "A month of 13 rolls into the next year instead of failing, so an answer a year out points at the year argument."
       },
       "fixtures": {
         "accept": [
@@ -206,23 +206,23 @@
   ],
   "docs": {
     "syntax": "=DATE(year, month, day)",
-    "explain": "A date in Excel is a number: the count of days since the end of 1899, with 1 January 1900 as day 1. That is why a date typed into a cell shows as 45352 in this grid. The serial is what the sheet stores, and the formatted date is only what it draws. DATE builds that serial out of three ordinary numbers. A year in one column, a month in another and a day in a third become one real date, one that sorts, subtracts and formats like every other date. The parts do not have to be tidy. Excel rolls them over instead of complaining. Month 13 is January of the next year, day 0 is the day before the first, and month 0 is December of the year before. That roll-over is the most useful thing DATE does. 'The first of next month' is the current month plus one rather than a lookup table of month lengths, and the last day of this month is day zero of the next. The parts can also be expressions, which is why the month argument may hold `B2+1`.",
+    "explain": "A date in Excel is a serial number: the count of days since the end of 1899, with 1 January 1900 as day 1. The grid stores that serial, and a formatted date is only what the cell draws. DATE builds the serial from three ordinary numbers, a year, a month and a day, and hands back a real date that sorts and subtracts.\n\nThe first screen wants 1 March 2024 in E2, which is serial 45352 built from 2024, 3 and 1. The second asks for the first day of April, so the month argument holds B2+1. DATE rolls the parts over instead of returning an error: month 13 is January of the next year, and day 0 is the day before the first.\n\nThat behaviour saves a table of month lengths. The first of next month is the current month plus one, and the last day of this month is day zero of the next. Expressions work in any part, which is how B2+1 becomes April.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "One of the three parts was text that does not read as a number, so DATE has nothing to build with."
+        "text": "A part is text that does not read as a number, so DATE has nothing to build the serial from."
       },
       {
         "code": "#NUM!",
-        "text": "The parts describe a date before 1900 or after the last serial Excel can hold, so the result is out of range."
+        "text": "A negative year, or parts that push the result past 31 December 9999, fall outside the serials Excel holds."
       },
       {
-        "code": "#N/A",
-        "text": "DATE was called with fewer than three arguments, which this drill reports as a missing part rather than a wrong date."
+        "code": "Wrong month",
+        "text": "A month built as B2+2 rolls into the following month without an error, so 1 May appears where 1 April was asked for."
       }
     ],
-    "atWork": "Turning the year, month and day that a finance export puts in three separate columns into one real date column. The ledger can then be sorted and aged by month instead of by substring.",
-    "outcome": "Build a real date from three numbers, and let Excel roll the overflow instead of guarding every month length.",
+    "atWork": "A finance export with the year, month and day in three columns, turned into one date column the ledger can sort and age.",
+    "outcome": "Build a real date from three numbers and let DATE roll the overflow.",
     "teaches": "DATE, and how a date is stored as a number",
     "dataset": "Invoice dates split into year, month and day columns",
     "reference": "=DATE(B2,C2,D2)"

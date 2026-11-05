@@ -8,9 +8,9 @@ import { localLessons } from "../lib/progress/migrate.js";
 import { createCollector } from "../lib/progress/sender.js";
 
 /**
- * Sends the drill's event buffer to `POST /api/progress`, once per lesson, when the lesson ends or the
+ * Sends the exercise's event buffer to `POST /api/progress`, once per lesson, when the lesson ends or the
  * page goes away, and hands over whatever a signed-out browser had kept in `es.progress`. It renders
- * nothing: the drill owns the DOM and the buffer, this only reads them.
+ * nothing: the exercise owns the DOM and the buffer, this only reads them.
  *
  * A deployment without accounts answers `503 progress_sync_unconfigured`; that is a configuration, not
  * a failure to retry, so the first refusal stops the sender for the life of the page.
@@ -41,7 +41,7 @@ export default function ProgressSender() {
         .then((response) => {
           if (response.status === 409) return; // a batch id already used: the award was paid there
           if (response.ok) {
-            // The award is only knowable from the answer, and the drill owns the panel it goes in, so
+            // The award is only knowable from the answer, and the exercise owns the panel it goes in, so
             // the number is handed over as an event rather than written into the DOM from here.
             response
               .json()
@@ -104,7 +104,7 @@ export default function ProgressSender() {
       if (lessonId) send(lessonId, false);
     };
 
-    // Whatever the drill emitted before hydration is still in its buffer; the hook covers the rest.
+    // Whatever the exercise emitted before hydration is still in its buffer; the hook covers the rest.
     collector.seed(globalThis.__esEvents);
     globalThis.__esOnEvent = onEvent;
     migrate();

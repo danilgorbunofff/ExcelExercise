@@ -1,7 +1,7 @@
 /**
  * The dashboard's read model. The cases that matter are the ones a learner sees as a wrong sentence:
- * a stale drill called "complete", a count that includes a lesson that no longer exists, an up-next
- * that offers nothing while six drills are untouched.
+ * a stale exercise called "complete", a count that includes a lesson that no longer exists, an up-next
+ * that offers nothing while six exercises are untouched.
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
@@ -111,10 +111,14 @@ describe("nextCopy", () => {
   const row = { number: 4, title: "Average scores" };
 
   it("names the verb the reason earned", () => {
-    assert.equal(nextCopy({ next: row, nextReason: "start" }).label, "Start drill 4 · Average scores");
-    assert.equal(nextCopy({ next: row, nextReason: "resume" }).label, "Resume drill 4 · Average scores");
-    assert.equal(nextCopy({ next: row, nextReason: "practice" }).label, "Revisit drill 4 · Average scores");
+    assert.equal(nextCopy({ next: row, nextReason: "start" }).label, "Start exercise 4 · Average scores");
+    assert.equal(nextCopy({ next: row, nextReason: "resume" }).label, "Resume exercise 4 · Average scores");
+    assert.equal(nextCopy({ next: row, nextReason: "practice" }).label, "Revisit exercise 4 · Average scores");
     assert.ok(nextCopy({ next: row, nextReason: "practice" }).why.length > 0);
+  });
+
+  it("says nothing under a fresh start, where the label already named the exercise", () => {
+    assert.equal(nextCopy({ next: row, nextReason: "start" }).why, "");
   });
 
   it("promises nothing when there is nothing left", () => {
@@ -278,7 +282,7 @@ describe("canStart", () => {
     assert.deepEqual(canStart({ plan, progress, id: "02-b" }), { open: true, reason: "next", after: null });
   });
 
-  it("gates a drill ahead of the frontier and names the one to finish", () => {
+  it("gates an exercise ahead of the frontier and names the one to finish", () => {
     const progress = progressOf({ done: { "01-a": { at: at(1), tries: 0, helped: false } } });
     assert.deepEqual(canStart({ plan, progress, id: "03-c" }), {
       open: false,
@@ -287,7 +291,7 @@ describe("canStart", () => {
     });
   });
 
-  it("opens a finished drill however far past the frontier it sits", () => {
+  it("opens a finished exercise however far past the frontier it sits", () => {
     const progress = progressOf({ done: { "03-c": { at: at(1), tries: 1, helped: true } } });
     assert.equal(canStart({ plan, progress, id: "03-c" }).open, true);
   });
@@ -308,7 +312,7 @@ describe("canStart", () => {
     });
   });
 
-  it("opens every drill when the track is finished", () => {
+  it("opens every exercise when the track is finished", () => {
     const done = { "01-a": { at: at(3) }, "02-b": { at: at(2) }, "03-c": { at: at(1) } };
     assert.equal(canStart({ plan, progress: progressOf({ done }), id: "03-c" }).open, true);
     assert.equal(canStart({ plan, progress: progressOf({ done }), id: "01-a" }).reason, "complete");

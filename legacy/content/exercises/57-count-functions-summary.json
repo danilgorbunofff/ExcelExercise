@@ -70,10 +70,10 @@
       "rules": [],
       "hints": {
         "syntax": "=COUNT(B2:B9): one range, and the function decides what counts.",
-        "func-count": "COUNT counts numbers; COUNTA counts anything that is not empty.",
-        "require-ref": "Pass the units column of the grid rather than a typed list of quantities.",
-        "value": "Six rows hold a number: two blank-ish cells are not numbers, and n/a is text.",
-        "error": "A formula that divides by zero returns #DIV/0! instead of a count."
+        "func-count": "COUNT counts numbers. COUNTA counts anything that is not empty.",
+        "require-ref": "Pass the units column from the grid rather than a typed list of quantities.",
+        "value": "Six rows hold a number. One cell is blank, one holds n/a, and neither is a number.",
+        "error": "COUNTA over the same range answers 7, because the n/a counts as a value."
       },
       "fixtures": {
         "accept": [
@@ -193,12 +193,12 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "=COUNTA(A2:A9)-COUNT(B2:B9): all the rows minus the numeric ones.",
-        "func-counta": "COUNTA counts everything that is not empty; it is how you count rows rather than values.",
-        "func-count": "COUNT is the half that counts the numbers, and the difference is what is left.",
-        "require-ref": "Start both ranges on row 2 so the header row never enters the count.",
-        "value": "Eight items, six numeric units, so two rows are missing a number.",
-        "error": "A division by zero in the formula returns #DIV/0! instead of a count."
+        "syntax": "=COUNTA(A2:A9)-COUNT(B2:B9): every row, minus the rows with a number.",
+        "func-counta": "COUNTA counts rows rather than values, which is how the item column is read.",
+        "func-count": "COUNT supplies the half that holds real numbers.",
+        "require-ref": "Start both ranges on row 2 so the header never enters either count.",
+        "value": "Eight items and six numbers leave two rows without a quantity.",
+        "error": "A range that starts on row 1 counts the header as an item, which reports three."
       },
       "fixtures": {
         "accept": [
@@ -251,23 +251,23 @@
   ],
   "docs": {
     "syntax": "=COUNT(range) counts numbers; =COUNTA(range) counts anything not empty",
-    "explain": "The count family answers three different questions that look alike. COUNT counts numbers, and it quietly skips text, blanks and logical values. A column with six quantities and one n/a answers six. COUNTA counts every cell that is not empty, whatever it holds, so the same column answers seven because the text is still something. COUNTIF and COUNTIFS count the cells that match conditions, which is the only way to ask what the values are rather than what type they are. In this drill the units column holds six numbers, one blank and one n/a, so COUNT answers six and COUNTA answers seven. The second screen subtracts one from the other and reports the two rows where the item exists but the quantity is missing. Choosing the wrong member of the family is the classic mistake. COUNTA on a numeric column looks correct until the first text value slips into the sheet, and COUNT on a text column answers zero without warning.",
+    "explain": "The count family answers questions that read alike. COUNT counts numbers and passes over text and blanks. COUNTA counts every cell that holds anything, so a text value enters where it would not enter a sum.\n\nThe units column holds six numbers, a blank in B4 and the text n/a in B6, so COUNT returns 6 and COUNTA returns 7. Column A holds eight items, and eight minus six leaves the 2 rows where the item exists and the quantity does not.\n\nThat subtraction is how you screen an import before trusting a total. When COUNTA and COUNT agree, every row carries a number. When they do not, the gap is the count of rows to fix.",
     "errors": [
       {
-        "code": "#VALUE!",
-        "text": "The count was combined with text where a number was expected."
+        "code": "Wrong count",
+        "text": "COUNTA over B2:B9 answers 7, because the n/a counts as a value."
       },
       {
-        "code": "#DIV/0!",
-        "text": "A count was divided by zero before it reached the cell."
+        "code": "Silent zero",
+        "text": "COUNT over a column that holds only text answers 0 and points at nothing."
       },
       {
         "code": "#NAME?",
-        "text": "The function was misspelled, so nothing was counted at all."
+        "text": "A misspelled name such as COUNTT is not a function, and Excel says so."
       }
     ],
     "atWork": "Checking how many rows of an import carry a real quantity before a pivot or a total is trusted.",
-    "outcome": "Tell the difference between counting values and counting rows, then use both together.",
+    "outcome": "Tell counting values from counting rows, then use both together to find gaps.",
     "teaches": "COUNT and COUNTA, and subtracting one from the other to find gaps",
     "dataset": "Parts list with a quantity column holding two gaps",
     "reference": "=COUNT(B2:B9)"

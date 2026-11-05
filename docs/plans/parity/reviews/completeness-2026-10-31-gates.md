@@ -6,28 +6,28 @@ records only what the gates did on this machine, at this commit.
 
 - rows: **133** — 33 Built, unproven, 0 Built, unproven (half), 78 Proven, 21 Absent, 1 Obsolete
 - proved rows whose witness held: **78 of 78** — 63 by a test that ran, 12 by a gate this run passed, 3 by an artifact that exists
-- links crawled: **137** in the Next build, **118** in the static build
+- links crawled: **139** in the Next build, **119** in the static build
 - result: **green**
 
 ## Gates
 
 | Gate | What it proves | Result | Time |
 | --- | --- | --- | --- |
-| unit | the unit suite, with line coverage so a witness can be proved to have run | pass | 5s |
-| content | the content factory gate and the legal copy | pass | 0s |
-| build | both builds, as production on the shipped origin | pass | 4s |
+| unit | the unit suite, with line coverage so a witness can be proved to have run | pass | 12s |
+| content | the content factory gate and the legal copy | pass | 1s |
+| build | both builds, as production on the shipped origin | pass | 9s |
 | budget | the byte budget | pass | 0s |
-| routes | routes match the templates | pass | 0s |
-| origin | no canonical on the fallback origin | pass | 0s |
-| secrets | no secret in either build | pass | 0s |
+| routes | routes match the templates | pass | 1s |
+| origin | no canonical on the fallback origin | pass | 1s |
+| secrets | no secret in either build | pass | 1s |
 | static | the static site crawls clean | pass | 0s |
-| browser | the browser suite | pass | 48s |
-| db | the database suite (the layer no other gate reaches) | pass | 49s |
-| accounts | the accounts browser suite | pass | 27s |
+| browser | the browser suite | pass | 112s |
+| db | the database suite (the layer no other gate reaches) | pass | 65s |
+| accounts | the accounts browser suite | pass | 43s |
 
 ## The db gate's own list
 
-`tests/db/*.spec.js`: 12 files, 12 of them named by `db:check`.
+`tests/db/*.spec.js`: 13 files, 13 of them named by `db:check`.
 
 Every spec in the directory is one the gate runs.
 
@@ -43,19 +43,19 @@ Every spec in the directory is one the gate runs.
 | p0-43 | Proven | `tests/grader.test.js:458` (M2) | yes: 1 test witness ran |
 | p0-50 | Proven | `gate:content:check` (M17, M18) | yes: 1 gate ran |
 | p0-59 | Proven | `e2e/routes.spec.js:67`; `next:check` 120 pages | yes: 1 test witness ran |
-| p0-77 | Proven | `e2e/routes.spec.js:26,31` | yes: 2 test witnesses ran |
+| p0-77 | Proven | `e2e/routes.spec.js:30,31` | yes: 2 test witnesses ran |
 | p0-82 | Proven | `e2e/dashboard.spec.js:225` | yes: 1 test witness ran |
 | p0-91 | Proven | `artifact:.github/workflows/ci.yml` (four jobs now: `check`, `e2e`, `static`, `db`) | yes: 1 artifact present |
 | p0-99 | Proven | 153 passed; `e2e-static/static-drill.spec.js:33` | yes: 1 test witness ran |
-| p0-110 | Proven | `tests/metadata-routes.test.js:31` (M9) | yes: 1 test witness ran |
+| p0-110 | Proven | `tests/metadata-routes.test.js:41` (M9) | yes: 1 test witness ran |
 | p0-132 | Proven | `artifact:.gitignore` | yes: 1 artifact present |
 | p0-179 | Proven | `gate:test` — 1 724 cases, count obsolete | yes: 1 gate ran |
-| p0-180 | Obsolete | 120 prerendered / 144 HTML; `tests/build.test.js:56` | not required |
+| p0-180 | Obsolete | 120 prerendered / 144 HTML; `tests/build.test.js:57` | not required |
 | p0-181 | Proven | `tests/golden.test.js:30` (M1) | yes: 1 test witness ran |
 | p0-182 | Proven | `gate:e2e` — 160 passed locally; the `e2e` CI job runs the same suite | yes: 1 gate ran |
 | p0-183 | Proven | `tests/smoke.test.js:388` (a real `legacy/dist` served, lessons and assets graded); `tests/metadata-routes.test.js:102` (M8) for the SHA | yes: 2 test witnesses ran |
-| p0-184 | Proven | `tests/build.test.js:56`; `legacy/dist` = 120 HTML | yes: 1 test witness ran |
-| p0-185 | Proven | `tests/metadata-routes.test.js:31,48` (M9) | yes: 2 test witnesses ran |
+| p0-184 | Proven | `tests/build.test.js:57`; `legacy/dist` = 120 HTML | yes: 1 test witness ran |
+| p0-185 | Proven | `tests/metadata-routes.test.js:41,58` (M9) | yes: 2 test witnesses ran |
 | p0-187 | Built, unproven | no document in `docs/` carries a per-route budget table; only prose in plans | not required |
 
 ### docs/plans/parity/phase-01-curriculum-content-factory.md
@@ -176,7 +176,7 @@ Every spec in the directory is one the gate runs.
 | p7-69 | Proven | `tests/build.test.js:441` (M22 → "internal links point at pages that are not built") | yes: 1 test witness ran |
 | p7-70 | Absent | no Lighthouse config, no CI step | not required |
 | p7-71 | Built, unproven | `e2e/article.spec.js:16` proves hub → note; no sibling-link assertion exists | not required |
-| p7-72 | Proven | `tests/metadata-routes.test.js:31` (M9) | yes: 1 test witness ran |
+| p7-72 | Proven | `tests/metadata-routes.test.js:41` (M9) | yes: 1 test witness ran |
 | p7-73 | Built, unproven | `tests/build.test.js:309` parses it; `e2e/article.spec.js:38` reads it; no external validation recorded | not required |
 | p7-75 | Proven | `e2e-static/static-drill.spec.js:115`; `tests/articles.test.js:52` | yes: 2 test witnesses ran |
 
@@ -214,8 +214,8 @@ Every spec in the directory is one the gate runs.
 | p10-134 | Absent | event vocabulary exists (`tests/session.test.js:402`) but no sink, no dedupe key, no vendor | not required |
 | p10-135 | Absent | no funnel, no reconciliation | not required |
 | p10-136 | Absent | no Lighthouse | not required |
-| p10-137 | Proven | `e2e/routes.spec.js:26,31`; static crawl | yes: 2 test witnesses ran |
-| p10-139 | Built, unproven | `tests/metadata-routes.test.js:31` proves the equality; Search Console submission is unrecorded | not required |
+| p10-137 | Proven | `e2e/routes.spec.js:30,31`; static crawl | yes: 2 test witnesses ran |
+| p10-139 | Built, unproven | `tests/metadata-routes.test.js:41` proves the equality; Search Console submission is unrecorded | not required |
 | p10-140 | Built, unproven | `artifact:docs/ops/backup.md` — the dump/reload rehearsal with per-table counts | not required |
 | p10-142 | Absent | no monitoring client in any dependency, and no vendor is added at launch (§5.1) | not required |
 | p10-143 | Built, unproven | `tests/smoke.test.js:388` serves a real `legacy/dist` and the smoke passes; `artifact:docs/ops/rollback.md` | not required |

@@ -1,6 +1,6 @@
 /**
  * The player's event vocabulary, in one place, because two things depend on it: the
- * browser buffer the drill fills today and the collector that will read it later
+ * browser buffer the exercise fills today and the collector that will read it later
  * (phase 10). A name that is not on this list never reaches the buffer, so a typo at a
  * call site shows up as a missing event in a test rather than as a wrong column in a
  * funnel three months from now.
@@ -24,7 +24,6 @@ export const EVENT_TYPES = Object.freeze([
   "grace_start",
   "paywall_view",
   "paywall_email",
-  "trial_start",
   "track_unlock",
   "track_view",
   "feedback_sent",

@@ -74,12 +74,12 @@
         }
       ],
       "hints": {
-        "syntax": "Start with = and close every bracket: =VLOOKUP(A7&\"*\",A1:C6,3,FALSE).",
-        "func-vlookup": "Use VLOOKUP. INDEX and MATCH can find the same row, but this drill is about what a wildcard inside the lookup value does.",
-        "match-type": "Write FALSE as the fourth argument. Approximate match compares text in sort order and never reads the wildcard, so the pattern has to be matched exactly.",
-        "require-ref": "Build the lookup value from A7 with &\"*\" on the end. Typing \"Northwind*\" in gives the right number today and stops following A7 tomorrow.",
-        "value": "That is the country, not the lead time. Count the columns in A1:C6: supplier is 1, country 2, lead time 3, so the third argument is 3.",
-        "error": "Read the code: #N/A means the pattern matched no supplier, so the wildcard is missing or says the wrong thing; #REF! means the column number points past the three columns of A1:C6; #VALUE! means it is text rather than a number."
+        "syntax": "=VLOOKUP(A7&\"*\",A1:C6,3,FALSE): the star turns the partial name into a pattern.",
+        "func-vlookup": "INDEX and MATCH could answer too, but the point here is what a wildcard does inside VLOOKUP's first argument.",
+        "match-type": "FALSE as the fourth argument. Approximate match sorts text and never reads the pattern, so a miss could pass as a hit.",
+        "require-ref": "Build the pattern from A7. A typed \"Northwind*\" is right today and dead tomorrow.",
+        "value": "That is the country. Supplier is 1, country 2, lead time 3, so the third argument is 3.",
+        "error": "#N/A means the pattern found no supplier: check the star. #REF! means the column number passed column C; #VALUE! means the column slot holds a word."
       },
       "fixtures": {
         "accept": [
@@ -146,7 +146,7 @@
           {
             "formula": "=INDEX(C1:C6,MATCH(A7&\"*\",A1:A6,0))",
             "rule": "func-vlookup",
-            "why": "right answer, but the drill is about VLOOKUP reading the wildcard"
+            "why": "right answer, but the exercise is about VLOOKUP reading the wildcard"
           }
         ]
       }
@@ -154,30 +154,30 @@
   ],
   "docs": {
     "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
-    "explain": "VLOOKUP compares the pattern Northwind followed by anything, written A7&\"*\", against the first column of A1:C6. So it matches the first supplier whose name starts with Northwind, which is Air in row 4, and column 3 of that row is 7 days. Without the wildcard the lookup value is the bare word Northwind, which is not in the list, so exact match stops at #N/A. Three suppliers begin with Northwind, Air, Rail and Sea, and VLOOKUP returns the first in table order. That is why 7 comes back rather than Rail's 19. A longer prefix such as Northwind R would pick out one row and settle it. The fourth argument must be FALSE, because approximate match compares text in sort order and never reads the pattern. The pattern is built from A7, so changing that cell changes which supplier is found.",
+    "explain": "A wildcard turns the lookup value into a pattern. A7 holds Northwind, so A7&\"*\" asks for the first supplier whose name starts with it. Air sits in row 4, and column 3 of A1:C6 gives its lead time, 7 days.\n\nWithout the star the lookup value is the bare word Northwind, which no cell holds, so exact match stops at #N/A. Three suppliers begin with Northwind, and the first in table order wins: Air at 7 days, and Rail's 19 never comes up.\n\nFALSE is still required. Approximate match compares text in sort order and never reads the pattern. A longer prefix such as Northwind R narrows the field when the order matters.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "Nothing in the first column matches the pattern exactly, so VLOOKUP has no row to read."
+        "text": "The pattern matched no supplier, usually because the star is missing or the prefix is wrong."
       },
       {
         "code": "#VALUE!",
-        "text": "The column number is text, such as \"lead\", so there is no column to count to."
+        "text": "The column number is a word such as lead, so there is no column to count to."
       },
       {
         "code": "#REF!",
-        "text": "The column number reaches past the right edge of A1:C6, which is only three columns wide."
+        "text": "The column number runs past column C, the last one in A1:C6."
       }
     ],
-    "atWork": "Supplier names arrive abbreviated in a purchase ledger, so a wildcard turns a partial name into the first matching order, rate or lead time without a helper column.",
-    "outcome": "Match a lookup value you only partly know, and keep the pattern in a cell so it stays editable.",
+    "atWork": "A purchase ledger where supplier names arrive abbreviated and only the first few letters can be trusted.",
+    "outcome": "Match a name you half know, and keep the pattern in a cell so it can change.",
     "teaches": "VLOOKUP wildcard",
     "dataset": "Supplier lead times",
     "reference": "=VLOOKUP(A7&\"*\",A1:C6,3,FALSE)"
   },
   "updated": "2026-10-31",
   "seo": {
-    "title": "VLOOKUP wildcard in Excel: match a partial name",
+    "title": "VLOOKUP wildcard: match a partial name",
     "description": "A7&\"*\" turns a partial name into a pattern, and VLOOKUP returns the first supplier that starts with it: Northwind Air at 7 days, not Rail at 19."
   }
 }

@@ -30,18 +30,23 @@ export function inlineIcon(svg, { size = 16, className = "icon" } = {}) {
     .replace(/\s+xmlns="[^"]*"/, "");
 }
 
-/** `28 Oct 2026` — one date drives the byline and <lastmod> alike. */
-export function humanDate(isoDate) {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${isoDate}T00:00:00Z`));
-}
-
 /** Numbers keep their exact value, text keeps its case, a blank cell stays blank. */
 export function formatCell(value) {
   if (value === null || value === undefined) return "";
   return String(value);
+}
+
+/**
+ * Prose as the page prints it: one `<p>` per blank-line separated block. A single newline inside a
+ * block is a hand-wrapped line, not a paragraph break, so it collapses to a space. Content written
+ * before explanations had paragraphs lands here as exactly one `<p>`, unchanged.
+ */
+export function renderParagraphs(text, { className = null } = {}) {
+  const attribute = className ? ` class="${esc(className)}"` : "";
+  return String(text ?? "")
+    .split(/\n[ \t]*\n/)
+    .map((paragraph) => paragraph.replace(/\s*\n\s*/g, " ").trim())
+    .filter((paragraph) => paragraph.length > 0)
+    .map((paragraph) => `<p${attribute}>${esc(paragraph)}</p>`)
+    .join("\n        ");
 }

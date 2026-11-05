@@ -5,18 +5,22 @@
   "title": "Lookup dashboard from three tables",
   "docs": {
     "syntax": "=INDEX(answer,MATCH(name,names,0)) looks up anything; nest the inner INDEX for three tables",
-    "explain": "A dashboard is a cell you type a name into and a set of cells that follow. The mechanism that makes it follow is INDEX and MATCH, which the earlier group introduced as a pair and which this lesson uses twice. The first use is the ordinary one: find the row where the name matches, then read the value at that position in another column. That gets you the figure the dashboard shows. The second use is why dashboards need three tables rather than two. A rep is in a list, the rep belongs to a region, and the region has a target. The target is not reachable from the rep's row without going through the region first. Writing the inner INDEX and MATCH inside the outer one is the whole technique. The inner pair answers which region, and the outer pair answers what that region's target is. Once the shape is in place the dashboard is just more of the same. The manual alternative, a helper column of regions plus a VLOOKUP on top of it, becomes unnecessary rather than wrong.",
+    "explain": "INDEX reads a value at a row and column position, and MATCH supplies that position. Together they look up a key without counting columns. MATCH finds where the typed name sits in the names column, and INDEX reads the figure at that position in the sales column.\n\nThe first screen does that once, reading the sales figure for the name in F2. The second screen chains the pair twice, because a rep belongs to a region and the region holds the target. The inner pair finds Di's region, East, and the outer pair finds the target that goes with it.\n\nThe nesting fails loudly when the lists are confused. Point the outer MATCH at the rep names in place of the region list and it returns #N/A, because no rep name appears there. A helper column of regions does the same job with more cells to keep in step.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The name is not in the lookup column, so MATCH has no position to return."
+        "text": "The typed name is not in the column MATCH reads, so there is no position to return."
       },
       {
-        "code": "#VALUE!",
-        "text": "The match type is a number other than zero, one or minus one."
+        "code": "#REF!",
+        "text": "INDEX is given a position past the end of its range, which is what happens after a column is deleted."
+      },
+      {
+        "code": "Wrong table",
+        "text": "The outer INDEX reads the target column at the rep's row instead of the region's row, and returns a nearby figure with no error at all."
       }
     ],
-    "atWork": "Driving a summary cell from a name someone types, across tables that are not joined.",
+    "atWork": "A summary cell that follows a typed name through a rep list and a region table.",
     "outcome": "Read a keyed value with INDEX and MATCH, then chain the pair to reach a third table.",
     "teaches": "INDEX and MATCH on the typed name, then nested through a region column",
     "dataset": "Four reps and a three-region target table beside them",
@@ -103,7 +107,7 @@
         "func-match": "The position comes from finding the typed name in the rep column.",
         "require-ref": "The typed name is in F2.",
         "value": "Di is the fourth rep, and the fourth sales figure is 600.",
-        "error": "A match type of zero is the only one that finds an exact name here."
+        "error": "#N/A means the typed name is not in A2:A5, so MATCH has no position to return."
       },
       "fixtures": {
         "accept": [
@@ -249,9 +253,9 @@
         "syntax": "=INDEX(G2:G4,MATCH(INDEX(B2:B5,MATCH(F7,A2:A5,0)),F2:F4,0)): the inner pair finds the region, the outer pair finds its target.",
         "func-index": "Two columns are read by position: the region, then the target.",
         "func-match": "Two positions are found: the rep's row, then the region's row.",
-        "require-ref": "The typed name is in F7.",
+        "require-ref": "The typed name is in F7, below the rep list.",
         "value": "Di is in East, and the East target is 2000.",
-        "error": "Looking a rep name up in the region list finds nothing and returns #N/A."
+        "error": "A rep name looked for in the region list finds nothing there, so the cell reads #N/A."
       },
       "fixtures": {
         "accept": [

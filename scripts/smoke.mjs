@@ -9,11 +9,11 @@
  *      the deploy notes claim.
  *   2. Do deep addresses work? — not just `/`, because a host that serves the front page and shatters
  *      `/learn/excel/sum-basics` is the failure mode a static host actually has. The lesson address is
- *      taken from the drill hub the origin itself advertises, so the check follows the site's own links
+ *      taken from the exercise hub the origin itself advertises, so the check follows the site's own links
  *      instead of a list typed here.
  *   3. Do the assets behind those pages exist? — every stylesheet and script the page names, with the
  *      status a browser would hit.
- *   4. Does a drill still grade, and does the certificate still print? — the payload each drill page
+ *   4. Does an exercise still grade, and does the certificate still print? — the payload each exercise page
  *      embeds is graded with the shipped grader, using the formula the page's own hint spells out; the
  *      certificate route answers, and the sheet's print rules travel with the stylesheet.
  *
@@ -91,7 +91,7 @@ export function sameOriginAssets(html, origin) {
   return [...found];
 }
 
-/** The JSON a drill page hands its client, which is the page's whole interactive content. */
+/** The JSON an exercise page hands its client, which is the page's whole interactive content. */
 export function exercisePayload(html) {
   const match = /<script\b[^>]*type=["']application\/json["'][^>]*id=["']exercise-data["'][^>]*>([\s\S]*?)<\/script>/i.exec(html);
   if (!match) return null;
@@ -109,9 +109,9 @@ function textOf(value) {
 }
 
 /**
- * The first formula the drill's own hints spell out, and the screen it belongs to.
+ * The first formula the exercise's own hints spell out, and the screen it belongs to.
  *
- * A visitor who cannot solve a drill is shown a hint containing the answer; that makes the hint the
+ * A visitor who cannot solve an exercise is shown a hint containing the answer; that makes the hint the
  * one place a smoke can learn a correct answer without a fixture file that drifts from the content.
  */
 export function firstGradableScreen(payload) {
@@ -123,7 +123,7 @@ export function firstGradableScreen(payload) {
   return null;
 }
 
-/** A drill the origin advertises on its hub, so the cookieless check follows the site's own links. */
+/** An exercise the origin advertises on its hub, so the cookieless check follows the site's own links. */
 export function firstLessonHref(html) {
   const match = /href=["'](\/(?:learn\/)?excel\/[a-z0-9][a-z0-9-]*)["']/i.exec(html);
   return match ? match[1] : null;
@@ -176,7 +176,7 @@ function isRedirect(status) {
 }
 
 /**
- * The drill pages live at a different address on each deployable: the app serves
+ * The exercise pages live at a different address on each deployable: the app serves
  * `/learn/excel/<slug>` and redirects the legacy path, the static build serves `/excel/<slug>`.
  * Rather than asking the caller, ask the origin which one it publishes.
  */
@@ -232,18 +232,18 @@ async function checkDeepPages(origin, options, report) {
   try {
     hub = await fetchText(origin, "/excel-exercises", options);
   } catch (error) {
-    report.fail(`${origin} serves the drill hub`, error.message);
+    report.fail(`${origin} serves the exercise hub`, error.message);
     return null;
   }
   if (hub.response.status !== 200 || !/<main\b/i.test(hub.body)) {
-    report.fail(`${origin} serves the drill hub`, `status ${hub.response.status}`);
+    report.fail(`${origin} serves the exercise hub`, `status ${hub.response.status}`);
     return null;
   }
-  report.pass(`${origin} serves the drill hub`, `${hub.body.length} bytes`);
+  report.pass(`${origin} serves the exercise hub`, `${hub.body.length} bytes`);
 
   const href = firstLessonHref(hub.body);
   if (!href) {
-    report.fail(`${origin} links a drill from its hub`, "no /excel/<slug> link on the hub");
+    report.fail(`${origin} links an exercise from its hub`, "no /excel/<slug> link on the hub");
     return null;
   }
 
@@ -265,10 +265,10 @@ async function checkDeepPages(origin, options, report) {
     }
   }
   if (lesson.response.status !== 200 || !/<main\b/i.test(lesson.body)) {
-    report.fail(`${origin} serves the drill the hub links`, `${shapes.app} and ${shapes.legacy} both failed`);
+    report.fail(`${origin} serves the exercise the hub links`, `${shapes.app} and ${shapes.legacy} both failed`);
     return null;
   }
-  report.pass(`${origin} serves the drill the hub links`, lessonPath);
+  report.pass(`${origin} serves the exercise the hub links`, lessonPath);
 
   const pages = [{ label: "/excel-exercises", html: hub.body }];
   const others = { [lessonPath]: lesson.body };
@@ -328,12 +328,12 @@ async function checkDrillGrades(origin, options, report, lessonPath, html) {
   try {
     outcome = grade({ ...payload, ...screen }, formula);
   } catch (error) {
-    report.fail(`${lessonPath} grades a drill`, `the shipped grader threw: ${error.message}`);
+    report.fail(`${lessonPath} grades an exercise`, `the shipped grader threw: ${error.message}`);
     return;
   }
   if (!outcome?.ok) {
     report.fail(
-      `${lessonPath} grades a drill`,
+      `${lessonPath} grades an exercise`,
       `${formula} from the page's own hint was refused: ${outcome?.message ?? "no outcome"}`,
     );
     return;
@@ -346,7 +346,7 @@ async function checkDrillGrades(origin, options, report, lessonPath, html) {
     report.fail(`${lessonPath} refuses a wrong answer`, `${wrong} was accepted`);
     return;
   }
-  report.pass(`${lessonPath} grades a drill`, `${formula} correct, ${wrong} refused`);
+  report.pass(`${lessonPath} grades an exercise`, `${formula} correct, ${wrong} refused`);
 }
 
 async function checkCertificatePrints(origin, options, report) {

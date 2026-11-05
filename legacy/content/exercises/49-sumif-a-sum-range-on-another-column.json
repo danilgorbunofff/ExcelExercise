@@ -66,10 +66,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SUMIF(A2:A6,\"North\",C2:C6): condition range, condition, then the numbers to add.",
-        "func-sumif": "This lesson is a SUMIF drill; the total has to come from one SUMIF call.",
+        "func-sumif": "SUMIF adds only the rows that match, and here the money sits in a different column from the test.",
         "require-ref": "Read the regions from the grid rather than typing them into the formula.",
-        "value": "The North bonuses are 32, 18 and 40, which come to 90.",
-        "error": "Dividing by zero leaves #DIV/0! in the cell instead of a total."
+        "value": "The North bonuses are 32, 18 and 40, which come to 90. The full column holds more than that.",
+        "error": "A sum range of the wrong shape leaves #VALUE!. Both ranges have to cover the same five rows."
       },
       "fixtures": {
         "accept": [
@@ -89,7 +89,7 @@
           {
             "formula": "=SUMIFS(C2:C6,A2:A6,\"North\")",
             "rule": "func-sumif",
-            "why": "the same answer through SUMIFS, which is not the function this drill asks for"
+            "why": "the same answer through SUMIFS, which is not the function this exercise asks for"
           },
           {
             "formula": "=SUMIF(A2:A6,\"South\",C2:C6)",
@@ -173,10 +173,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SUMIF(B2:B6,\">40\"): two arguments, and the comparison is written in quotes.",
-        "func-sumif": "A plain SUM adds every score; the filter is the whole point here.",
+        "func-sumif": "A plain SUM adds every score; filtering them is the whole question here.",
         "require-ref": "Test the scores in the grid rather than a list of numbers typed into the formula.",
         "value": "The scores above 40 are 52 and 47, which total 99.",
-        "error": "A division by zero in the formula returns #DIV/0!."
+        "error": "A comparison without quotes around it is read as a cell reference, so the total comes back wrong rather than broken."
       },
       "fixtures": {
         "accept": [
@@ -229,22 +229,22 @@
   ],
   "docs": {
     "syntax": "=SUMIF(criteria_range, condition, [sum_range])",
-    "explain": "The third argument is the part people leave out. Given only a criteria range and a condition, SUMIF adds the cells it just tested. That is right for a column of scores, and wrong the moment the numbers you want sit somewhere else. This drill separates them on purpose. Column A holds the region and column C holds the bonus, so the condition reads column A and the addition reads column C. Leave the third argument off and the total becomes the sum of the regions, which is not even a number. The ranges only have to line up row for row, not be the same column. A2:A6 is tested, C2:C6 is added, and row 2 in each is the same sale. That also means a shifted range is silently wrong rather than an error, so check that both ranges start and end on the same rows. Comparison conditions work the same way here as in the second screen, where the sum range is omitted because the scores are both the test and the total.",
+    "explain": "SUMIF's third argument is the range to add. Leave it out and SUMIF adds the cells it has just tested, which suits a column of scores and fails the moment the numbers sit somewhere else.\n\nColumn A holds the region and column C the bonus, so the condition reads A2:A6 while the addition reads C2:C6. The ranges only have to line up row for row: row 2 of each is the same sale, and the North bonuses of 32, 18 and 40 come to 90.\n\nA shifted range is silently wrong rather than an error, so check that both ranges start and end on the same rows. The second screen works with two arguments because there the scores are both the test and the total.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The sum range holds text where numbers were expected."
+        "text": "The sum range holds text where numbers were expected, which happens when the region column is given as the third argument."
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled, usually as SMIF or SUMIFS with SUMIF's argument order."
+        "text": "The function is spelled SMIF, or SUMIFS was used with the argument order SUMIF keeps."
       },
       {
-        "code": "#DIV/0!",
-        "text": "A division by zero in the formula stops it before a total is produced."
+        "code": "Silent 0",
+        "text": "Two arguments means SUMIF adds the criteria range. With words in that column the answer is 0, and no error marks it."
       }
     ],
-    "atWork": "A commission sheet where the region decides who is paid but the bonus column carries the money.",
+    "atWork": "A commission sheet where the region decides who is paid and the bonus column carries the money.",
     "outcome": "Total one column while testing a different column for the condition.",
     "teaches": "SUMIF with a separate sum range, and a comparison condition with no sum range",
     "dataset": "Regional amounts and bonuses, and a list of scores",

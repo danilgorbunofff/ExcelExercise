@@ -59,10 +59,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SUMIF(B2:B6,\">0\"): the condition is a comparison, written in quotes.",
-        "func-sumif": "SUM takes everything; you only want the positive changes.",
+        "func-sumif": "SUM takes everything. You want the months that went up and nothing else.",
         "require-ref": "Test the changes from the grid, not from numbers typed into the formula.",
         "value": "The gains are 12, 15 and 20, which total 47.",
-        "error": "A division by zero in the formula returns #DIV/0!."
+        "error": "A comparison without quotes around it is read as a cell reference, so the answer comes back wrong rather than broken."
       },
       "fixtures": {
         "accept": [
@@ -160,11 +160,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=-SUMIF(B2:B6,\"<0\"): the minus sign flips a negative total to positive.",
-        "func-sumif": "Add only the negative weeks, and this drill wants a SUMIF doing it.",
+        "syntax": "=-SUMIF(B2:B6,\"<0\"): the minus sign turns a negative total into a positive size.",
+        "func-sumif": "Add only the negative weeks, and let SUMIF do the adding.",
         "require-ref": "Read the variances from the grid so the filter applies to real cells.",
-        "value": "The losses add to -15, so the size of them is 15.",
-        "error": "A division by zero in the formula returns #DIV/0!."
+        "value": "The losses add to -15, so their size is 15.",
+        "error": "The minus belongs in front of the function, not inside the condition. \">-0\" matches nothing and returns 0."
       },
       "fixtures": {
         "accept": [
@@ -212,22 +212,22 @@
   ],
   "docs": {
     "syntax": "=SUMIF(range, \">0\") and =-SUMIF(range, \"<0\")",
-    "explain": "A plain SUM of a profit-and-loss column tells you the net, which is usually the least useful number in it. Splitting the column by sign with SUMIF gives the two numbers a report wants: how much was gained, and how much was lost. The condition is a comparison in quotes, so \">0\" keeps the positives and \"<0\" keeps the negatives. Zero falls in neither bucket, which is worth remembering, because a zero month disappears from both totals and the two will not add back to the net. The second screen flips the sign of the losses so they read as a size rather than a negative. A leading minus in front of the function does that. It does not change which rows matched, so a mistake in the condition still shows up as the wrong size. If a column can hold text, SUMIF ignores it, and so would a single SUM over the same range. The difference is that SUMIF never adds a row you did not mean to keep.",
+    "explain": "A plain SUM over a profit-and-loss column returns the net, which is the least informative figure in it. SUMIF splits the column by sign instead: \">0\" keeps the gains and \"<0\" keeps the drops.\n\nZero belongs to neither bucket, so a flat month vanishes from both totals and the pair will not add back to the net. A net that misses the column by one month's figure is that missing zero.\n\nThe second screen puts a minus in front of the function so the losses read as a size rather than a negative. The minus does not change which rows matched, so a wrong condition still shows up as the wrong size.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The range holds text that cannot be compared with the number in the condition."
-      },
-      {
-        "code": "#DIV/0!",
-        "text": "A division by zero in the formula stops it before a total is produced."
+        "text": "The criteria range holds text that cannot be compared with a number, or a comparison lost its quotes and is read as a cell reference."
       },
       {
         "code": "#NAME?",
-        "text": "The function is misspelled, or SUMIFS was used with SUMIF's argument order."
+        "text": "The function is misspelled, or SUMIFS was used with the argument order SUMIF keeps."
+      },
+      {
+        "code": "Wrong sign",
+        "text": "Losses are negative, so a report that wants their size needs the minus in front of SUMIF. Without it the figure reads as -15 rather than 15."
       }
     ],
-    "atWork": "A monthly variance report that shows total gains and total losses as separate lines.",
+    "atWork": "A monthly variance report that shows total gains and total losses on separate lines.",
     "outcome": "Total the positive and negative rows separately instead of netting a column.",
     "teaches": "SUMIF with a sign comparison, and flipping a negative total",
     "dataset": "Monthly changes and weekly variances",

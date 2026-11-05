@@ -8,7 +8,7 @@
     {
       "id": "formula-1",
       "type": "formula",
-      "prompt": "In B7, read the units for the region in B6 and the quarter in B7 from the grid B2:D4.",
+      "prompt": "In B7, read the units for the region in B5 and the quarter in B6 from the grid B2:D4.",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -86,13 +86,13 @@
         }
       ],
       "hints": {
-        "syntax": "One MATCH for the row and one for the column: =INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0)).",
-        "func-index": "INDEX takes three arguments here: the grid, the row, the column: because the answer sits inside a grid rather than in one column.",
-        "func-match": "Both positions come from MATCH: one searches the region labels, the other searches the quarter headers.",
-        "match-exact": "Neither list is sorted, so both MATCH calls need 0 to match exactly.",
-        "require-ref": "Read the region from B5 and the quarter from B6 so the drill follows the sheet.",
-        "value": "South is the second data row and Q3 is the third column of the grid, so INDEX reads 130.",
-        "error": "A region or quarter that is not in the labels leaves MATCH with #N/A."
+        "syntax": "=INDEX(B2:D4,MATCH(B5,A2:A4,0),MATCH(B6,B1:D1,0)): the grid, then a row, then a column.",
+        "func-index": "INDEX needs both numbers. With only the row it reads along the first column of B2:D4 and ignores the quarter.",
+        "func-match": "One MATCH looks down the region column, the other looks across the quarter header row. INDEX waits for both.",
+        "match-exact": "Both lists are in the order they were typed, so both MATCH calls need 0.",
+        "require-ref": "Read the region from B5 and the quarter from B6 so the sheet drives the answer.",
+        "value": "South is the second region down and Q3 is the third column across, so INDEX reads 130.",
+        "error": "A quarter missing from B1:D1, or a region missing from A2:A4, gives #N/A."
       },
       "fixtures": {
         "accept": [
@@ -145,18 +145,22 @@
   ],
   "docs": {
     "syntax": "=INDEX(grid, row, column)",
-    "explain": "A two-way lookup is two questions: which row is South, and which column is Q3. MATCH answers each one against its own labels, and INDEX takes the grid plus those two numbers. That is why the two ranges are different shapes, and why mixing them up returns #N/A rather than a wrong number. A2:A4 is a column of regions and B1:D1 is a row of quarters, so a column cannot answer for a row. Both MATCH calls need the zero, since region names and quarter labels are both in the order they were typed. INDEX does no searching of its own. It reads a coordinate, so a wrong row number and a wrong column number look exactly alike in the result until you check the two MATCH calls separately.",
+    "explain": "Two MATCH calls answer two separate questions. South is second in A2:A4, so the first returns 2. Q3 is third in the header row B1:D1, so the second returns 3. INDEX reads B2:D4 at row 2, column 3, and B7 shows 130.\n\nThe two lists run in different directions, which is why they are separate ranges. A2:A4 is a column of regions and B1:D1 is a row of quarters. Give the quarter MATCH the region column and Q3 is not among the labels it searches, so the cell shows #N/A.\n\nBoth calls need the zero, since neither list is sorted. A wrong number from either one still produces a figure: swap the two MATCH calls and B7 reads 95, West's Q2. When a two-way answer looks plausible, check each MATCH on its own before blaming INDEX.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "One of the two MATCH calls found no label, so the row or column number is missing."
+        "text": "A region missing from A2:A4, or a quarter missing from B1:D1, leaves one of the two positions without a value."
       },
       {
-        "code": "#VALUE!",
-        "text": "The two MATCH ranges were swapped, so a quarter label was searched in the region column."
+        "code": "Swapped positions",
+        "text": "The two MATCH calls went in the wrong order, so INDEX reads row 3 column 2 and returns 95 with no error."
+      },
+      {
+        "code": "#REF!",
+        "text": "A MATCH run over a range that reaches past the grid returns a position B2:D4 does not have."
       }
     ],
-    "atWork": "A budget grid with regions down the side and quarters across the top, where the numbers change every month.",
+    "atWork": "A budget grid with regions down the side and quarters across the top, read by label each month.",
     "outcome": "Read one cell out of a grid by matching its row and column labels.",
     "teaches": "Two-way INDEX MATCH",
     "dataset": "Three regions, three quarters",

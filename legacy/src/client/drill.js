@@ -1,11 +1,12 @@
 /**
- * The drill client. The HTML is already on the page: the sheet, the formula bar, the
+ * The exercise client. The HTML is already on the page: the sheet, the formula bar, the
  * feedback region and the progress rail are server-rendered, and this module only
  * adds behaviour and fills those regions in. Nothing here builds markup from content
  * with innerHTML — the grader echoes learner input inside its messages, so every
  * string reaches the DOM through textContent.
  */
 
+import { funnel } from "./funnel.js";
 import { grade, gradeAnswer } from "../grader/index.js";
 import { canStart } from "../progress/index.js";
 import { chordText, labelsOf, matchesEvent, matchesTyped, matchesTypedSteps, parseChord, parsePress, uncapturable } from "../keys/index.js";
@@ -22,7 +23,6 @@ import { createSink } from "../session/index.js";
 import {
   GRACE_KEY,
   PROGRESS_KEY,
-  TRIAL_KEY,
   attemptsFor,
   canGrade,
   caretLine,
@@ -35,13 +35,10 @@ import {
   parseGrace,
   parsePayload,
   parseProgress,
-  parseTrial,
+  paywallOffer,
   registerAttempt,
   registerCompletion,
   serializeProgress,
-  startTrial,
-  trialDaysLeft,
-  validEmail,
 } from "./state.js";
 import { rewardLine } from "./reward.js";
 
@@ -49,9 +46,9 @@ import { rewardLine } from "./reward.js";
 const DEFAULT_REVEAL_AFTER = 3;
 
 /**
- * Where the learner stopped in this drill, so leaving and coming back does not start over.
+ * Where the learner stopped in this exercise, so leaving and coming back does not start over.
  *
- * One key for the whole site rather than one per drill: a learner is only ever in one drill, and the
+ * One key for the whole site rather than one per exercise: a learner is only ever in one exercise, and the
  * slug in the record is what refuses a stale entry from a different lesson. `index` is a screen
  * position, never a score — resuming puts the raw screen back, and the answers given before leaving
  * are not replayed, because the browser only ever kept a roll-up.
@@ -147,7 +144,7 @@ function mountStorageWarning() {
   const note = el("p", {
     class: "rail-note",
     id: "rail-blocked",
-    text: "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.",
+    text: "This browser blocks local storage, so nothing is saved. The exercises still work, but this page cannot remember them.",
   });
   const count = rail.querySelector(".rail-count");
   if (count) count.after(note);
@@ -167,7 +164,7 @@ function createStore(storage) {
       try {
         if (storage) storage.setItem(key, value);
       } catch {
-        /* private mode: the drill still works, progress just does not persist */
+        /* private mode: the exercise still works, progress just does not persist */
       }
     },
   };
@@ -220,7 +217,7 @@ function spoken(chord) {
   return chordText(chord, { os: OS });
 }
 
-/** A press the learner aimed at the drill rather than at the page: a chord, or a named key. */
+/** A press the learner aimed at the exercise rather than at the page: a chord, or a named key. */
 const NAMED_PRESS = /^(F[1-9]|F1[0-2]|Tab|Enter|Delete|Backspace|Insert|Home|End|PageUp|PageDown|ArrowUp|ArrowDown|ArrowLeft|ArrowRight)$/;
 
 /**
@@ -298,7 +295,7 @@ function mountDrill(payloadNode) {
   };
 
   if (!ui.screens || !ui.input || !ui.check || !ui.feedback) {
-    console.warn("[es] the page is missing part of the drill mount contract");
+    console.warn("[es] the page is missing part of the exercise mount contract");
     return;
   }
 
@@ -306,7 +303,6 @@ function mountDrill(payloadNode) {
   const store = createStore(storage);
   if (!storage) mountStorageWarning();
   let progress = parseProgress(store.read(PROGRESS_KEY));
-  let trial = parseTrial(store.read(TRIAL_KEY));
   let grace = parseGrace(store.read(GRACE_KEY));
 
   const lessonId = payload.id;
@@ -314,7 +310,7 @@ function mountDrill(payloadNode) {
   /**
    * The screen to open on: the one left last time, or the first.
    *
-   * Only this drill's own entry counts, only a position inside the drill counts, and a finished drill
+   * Only this exercise's own entry counts, only a position inside the exercise counts, and a finished exercise
    * always opens at the top — its record says completed, so there is nothing left to continue.
    */
   function resumeAt() {
@@ -343,18 +339,25 @@ function mountDrill(payloadNode) {
     ? payload.track.showAnswerAfter
     : DEFAULT_REVEAL_AFTER;
   const screenCount = payload.screens.length;
-  // What this shelf calls the thing being answered. A drill track says "drill" and the project track
-  // says "project", so the gate under a project never offers to open a drill that is not there. Every
-  // payload built before this field existed reads as the drill, which is what all of them were.
-  const noun = payload.track.noun ?? "Drill";
-  // One gated item reads as "4", a range as "4–8"; the paid-half copy is the track's to describe.
-  const span = (from, to) => (from === to ? `${from}` : `${from}–${to}`);
+  // What this shelf calls the thing being answered. The exercise track says "exercise" and the project
+  // track says "project", so the gate under a project never offers to open an exercise that is not there.
+  // Every payload built before this field existed reads as the exercise, which is what all of them were.
+  const noun = payload.track.noun ?? "Exercise";
   const paidHalf = payload.track.paidHalf ?? "cover rounding, lookups, and text splitting";
+  // Whether there is a store to sell the track, and where its button posts. Both are build facts in
+  // the payload, because a page served as static files has no server to ask at read time.
+  const checkoutOpen = payload.paywall?.checkout === true;
+  const offer = paywallOffer({
+    entitled: progress.unlocked === true && !checkoutOpen,
+    checkout: checkoutOpen,
+    price: payload.paywall?.price,
+    action: payload.paywall?.action,
+  });
 
   // A lesson is complete once every screen has been answered correctly: one screen is
   // worth the whole cap, four screens a quarter each. The loop therefore ends on the last
   // screen of an honest run, and only recycles when a screen was skipped — which is what
-  // "answer them all" means, and what the single-screen drill did before there were screens.
+  // "answer them all" means, and what the single-screen exercise did before there were screens.
   let loop = createSession({
     screens: screenCount,
     scoring: { correct: Math.ceil(100 / screenCount), incorrect: 0, cap: 100 },
@@ -389,6 +392,9 @@ function mountDrill(payloadNode) {
   let started = false;
   let screenMisses = 0;
   let exhausted = false;
+  // Graded answers on this page, right or wrong. The funnel reports it with the completion, which is
+  // the only place "how much did it take" can be answered without recording an answer.
+  let graded = 0;
   let solved = isComplete(progress, lessonId);
   let offeredSolution = solved && progress.done[lessonId].helped === true;
   // `solved` also turns true when *this* visit finishes the lesson, so it cannot tell the two apart.
@@ -401,9 +407,10 @@ function mountDrill(payloadNode) {
     if (started) return;
     started = true;
     track("drill_start", { id: lessonId, elapsed: seconds() });
+    funnel("drill_started");
   }
 
-  /** Whole seconds on the drill, the unit the funnel reports. */
+  /** Whole seconds on the exercise, the unit the funnel reports. */
   function seconds() {
     return Math.round(clock.elapsedMs() / 1000);
   }
@@ -535,7 +542,7 @@ function mountDrill(payloadNode) {
       const link = el("a", { class: "next-cta", href: next.path }, [document.createTextNode(next.label)]);
       link.append(el("svg", { class: "icon", width: "14", height: "14", "aria-hidden": "true" }));
       ui.feedback.append(link);
-      // The drill is over, so this is the only way forward. Handing it the focus saves a keyboard
+      // The exercise is over, so this is the only way forward. Handing it the focus saves a keyboard
       // user tabbing past the bar and the hint row to find it, and the verdict is still announced
       // by the live region above.
       link.focus({ preventScroll: true });
@@ -726,7 +733,7 @@ function mountDrill(payloadNode) {
   }
 
   function successLabel(missed) {
-    if (revisit) return "Solved again — this lesson was already on your record.";
+    if (revisit) return "Solved again. This lesson was already on your record.";
     if (missed === 0) return "Solved on the first attempt.";
     return `Solved after ${missed} ${missed === 1 ? "wrong attempt" : "wrong attempts"}.`;
   }
@@ -746,7 +753,7 @@ function mountDrill(payloadNode) {
     clearFeedback();
     ui.feedback.classList.add("is-revisit");
     ui.feedbackHead.textContent = "Already solved";
-    ui.feedbackBody.textContent = `${solvedLine(activeScreen())} The answer is in the bar and in the cell — edit either one to practise it again.`;
+    ui.feedbackBody.textContent = `${solvedLine(activeScreen())} The answer is in the bar and in the cell. Edit either one to practise it again.`;
     ui.feedback.append(
       el("p", {
         class: "feedback-meta",
@@ -873,7 +880,7 @@ function mountDrill(payloadNode) {
       return true;
     }
 
-    onWrong({ rule: "keys", message: "That is not the shortcut this task wants.", position: null });
+    onWrong({ rule: "keys", message: "That is not the shortcut this screen wants.", position: null });
     return true;
   }
 
@@ -883,8 +890,11 @@ function mountDrill(payloadNode) {
     const helped = offeredSolution;
     const events = verdict(true);
     const finished = loopComplete(loop);
+    graded += 1;
 
     if (finished) {
+      // The lesson, not the screen: this is the denominator's numerator in `content-report`.
+      funnel("drill_completed", { attempts: graded, seconds: seconds() });
       progress = registerCompletion(progress, lessonId, { at: new Date().toISOString(), helped });
       saveProgress();
       paintSolved();
@@ -893,8 +903,8 @@ function mountDrill(payloadNode) {
 
     if (finished) {
       const next = payload.track.nextPath
-        ? { path: payload.track.nextPath, label: `Next: ${payload.track.nextTitle ?? "the next drill"}` }
-        : { path: "/", label: "Back to all drills" };
+        ? { path: payload.track.nextPath, label: `Next: ${payload.track.nextTitle ?? "the next exercise"}` }
+        : { path: "/", label: "Back to all exercises" };
       showFeedback({
         state: "is-correct",
         head: "Correct",
@@ -926,6 +936,7 @@ function mountDrill(payloadNode) {
   }
 
   function onWrong(result) {
+    graded += 1;
     progress = registerAttempt(progress, lessonId);
     saveProgress();
     screenMisses += 1;
@@ -934,7 +945,7 @@ function mountDrill(payloadNode) {
     showFeedback({
       state: "is-wrong",
       head: RULE_LABEL[result.rule] ?? "Not accepted",
-      body: result.message || "That formula is not accepted yet.",
+      body: result.message || "That formula is not right yet. Check the hint and try again.",
       caret,
       meta: attemptLabel(),
     });
@@ -1033,23 +1044,34 @@ function mountDrill(payloadNode) {
   }
 
   /**
-   * The wall in front of this drill, or `null`. Three stand here, in the order a learner meets them:
-   * the order gate (the track is in order, so the frontier is the first drill nobody has finished),
-   * the soft prompt on the first drill past the free ones (one free pass, once), and the trial gate
-   * (`freeLessonCount`). The order gate is asked first because finishing one drill is the honest way
-   * through it, and a paywall behind an order wall would be a second riddle.
+   * The wall in front of this exercise, or `null`. Two can stand here: the paywall — softened into a
+   * question on the first paid exercise (`promptAt`), which opens on a click once — and the order gate
+   * (the track is in order, so the frontier is the first exercise nobody has finished).
+   *
+   * The paywall is settled first, because the order gate belongs to the paid track alone. The free ten
+   * are a tour `start-page` lists in its own order, not a prefix of the catalog, so a free exercise
+   * whose catalog predecessor is paid (`len-left-and-right-count-and-cut`, behind 23) has to walk.
+   * The prompt carries the same exemption: it is the door into the paid half, and blocking it with "pass
+   * exercise 48" when 48 itself sits behind the wall would leave the reader no way in.
    */
   function blockingGate() {
-    if (progress.unlocked === true) return null;
+    // The free unlock is an honour-system flag in this browser. It opens the track while there is
+    // nothing to buy; once checkout is open it would be a permanent discount, so it stops counting
+    // and the gate offers the purchase instead.
+    if (progress.unlocked === true && !checkoutOpen) return null;
+    const verdict = gateFor(payload.track);
+    if (verdict === "open") return null;
+    if (verdict === "prompt") {
+      if (!graceUsed(grace, lessonId)) return { kind: "prompt" };
+      // The pass is spent: the price is the honest next step, not "finish the exercise you just did".
+      return { kind: "paywall" };
+    }
     const start = canStart({ plan: payload.track.plan ?? [], progress, id: lessonId });
     if (!start.open) return { kind: "order", after: start.after };
-    const verdict = gateFor(payload.track, trial);
-    if (verdict === "open") return null;
-    if (verdict === "prompt" && !graceUsed(grace, lessonId)) return { kind: "prompt" };
     return { kind: "paywall" };
   }
 
-  /** The one exit from a wall: take it down, say why, and put the drill under the cursor. */
+  /** The one exit from a wall: take it down, say why, and put the exercise under the cursor. */
   function openAfterGate(card, head, body) {
     card.remove();
     for (const node of [ui.screens, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = false;
@@ -1076,6 +1098,7 @@ function mountDrill(payloadNode) {
       class: "paywall",
       id: "paywall",
       "data-gate": blocked.kind,
+      "data-offer": offer.kind,
     });
 
     if (blocked.kind === "order") {
@@ -1087,7 +1110,11 @@ function mountDrill(payloadNode) {
         }),
         el("p", {
           class: "paywall-body",
-          text: `The track is in order, so finishing "${after.title}" opens this one. Nothing is locked forever: the unlock below opens the whole track in this browser.`,
+          text:
+            `The track is in order, so finishing "${after.title}" opens this one. ` +
+            (offer.kind === "buy"
+              ? "One purchase opens the whole track, on every device you sign in to."
+              : "One click below opens the whole track in this browser."),
         }),
         el("p", { class: "paywall-actions" }, [
           el("a", { class: "btn btn-primary", href: after.path, text: `Go to ${noun.toLowerCase()} ${after.number}` }),
@@ -1095,8 +1122,8 @@ function mountDrill(payloadNode) {
       );
       track("gate_view", { id: lessonId, reason: "order", after: after.id });
     } else if (blocked.kind === "prompt") {
-      // The boundary as a question. This drill is the first one past the free ones, so it opens on a
-      // click, once: the same honour system as the trial, kept in the same place and nowhere else.
+      // The one paid exercise the track nominates opens on a click, once, so a reader who has finished the
+      // free tour can judge the paid half before deciding anything. The pass is remembered here only.
       const free = payload.track.freeLessonCount ?? 0;
       const pass = el("button", {
         class: "btn btn-primary",
@@ -1105,10 +1132,10 @@ function mountDrill(payloadNode) {
         text: "Continue free this once",
       });
       paywall.append(
-        el("h2", { class: "paywall-title", text: `The last ${noun.toLowerCase()} before the paid half` }),
+        el("h2", { class: "paywall-title", text: `One ${noun.toLowerCase()} from the paid half, open` }),
         el("p", {
           class: "paywall-body",
-          text: `${noun}s 1–${free} are free and stay free. This one opens on a click, once, so you can judge the rest before deciding anything.`,
+          text: `The ${free} free ${noun.toLowerCase()}s stay free for good. This one opens on a click, once, so you can judge the rest before deciding anything.`,
         }),
         el("p", { class: "paywall-actions" }, [
           pass,
@@ -1116,7 +1143,7 @@ function mountDrill(payloadNode) {
         ]),
         el("p", {
           class: "paywall-note",
-          text: `${noun}s ${span(payload.track.number + 1, total)} are the paid half. One free pass, remembered in this browser. Nothing is sent anywhere.`,
+          text: `${total - free} ${noun.toLowerCase()}s come with the track. One free pass, remembered in this browser. Nothing is sent anywhere.`,
         }),
       );
       track("gate_view", { id: lessonId, reason: "prompt", after: null });
@@ -1127,77 +1154,78 @@ function mountDrill(payloadNode) {
         openAfterGate(
           paywall,
           "One free pass used",
-          `${noun} ${payload.track.number} is open. ${noun}s ${span(payload.track.number + 1, total)} are the paid half of the track.`,
+          `${noun} ${payload.track.number} is open. The other ${total - free} come with the track.`,
         );
       });
     } else {
-      const remaining = Math.max(total - (payload.track.freeLessonCount ?? 0), 1);
+      // Both remaining cases say the same thing; only the door under the card differs (a checkout form
+      // while there is a store, the browser unlock while there is not).
+      const free = payload.track.freeLessonCount ?? 0;
       paywall.append(
-        el("h2", { class: "paywall-title", text: "The rest of the track is on trial" }),
-        el(
-          "p",
-          { class: "paywall-body" },
-          [
-            `${noun}s ${span((payload.track.freeLessonCount ?? 0) + 1, total)} ${paidHalf}. ` +
-              `The first ${payload.track.freeLessonCount} stay free. A trial opens the remaining ` +
-              `${remaining} for ${7} days.`,
-          ],
-        ),
+        el("h2", { class: "paywall-title", text: "The rest of the track is paid" }),
+        el("p", {
+          class: "paywall-body",
+          text: `${total - free} of the ${total} ${noun.toLowerCase()}s come with the track. They ${paidHalf}. The ${free} free ones stay free for good.`,
+        }),
       );
+      track("gate_view", { id: lessonId, reason: offer.kind === "buy" ? "buy" : "prelaunch", after: null });
+      if (offer.kind !== "buy") {
+        track("paywall_view", { id: lessonId });
+        funnel("paywall_shown");
+      }
+    }
 
-      const error = el("p", { class: "paywall-error", id: "paywall-error", role: "alert", text: "" });
-      const input = el("input", {
-        class: "paywall-input",
-        id: "paywall-email",
-        type: "email",
-        name: "email",
-        autocomplete: "email",
-        placeholder: "you@company.com",
-        "aria-label": "Email address",
-        "aria-describedby": "paywall-error",
-        required: true,
-      });
-      const submit = el("button", { class: "btn", type: "submit", text: "Start free trial" });
-      const form = el("form", { class: "paywall-form", id: "paywall-form", novalidate: true }, [input, submit, error]);
+    // The one way out from under the card. Which door it is comes from `paywallOffer`: the purchase
+    // while there is a store, the browser-wide free flag while there is not. Never both.
+    //
+    // The prompt card is the exception, because its door is already above it: the single free pass. A buy
+    // button or a browser-wide unlock under "one exercise is open free" would be a second, louder answer to
+    // a question the card came to soften; the plan comparison is one link away instead.
+    if (blocked.kind === "prompt") {
+      // Nothing to append: the pass and the two pricing links are the whole card.
+    } else if (offer.kind === "buy") {
+      const form = el("form", { class: "paywall-form", id: "paywall-buy", method: offer.method, action: offer.action }, [
+        el("button", { class: "btn btn-primary", type: "submit", text: offer.label }),
+      ]);
+      const account = payload.paywall?.account;
       paywall.append(
-        form,
-        el("p", { class: "paywall-note", text: "No card required. Nothing is sent anywhere: the trial is stored in this browser." }),
-        el("p", { class: "paywall-note" }, [
-          "The whole track is one purchase; ",
-          el("a", { href: "/pricing", text: "what it costs" }),
-          " is on the pricing page.",
+        el("div", { class: "paywall-unlock" }, [
+          form,
+          el("p", { class: "paywall-note", text: offer.note }),
+          account
+            ? el("p", { class: "paywall-note" }, [
+                "Already bought it? ",
+                el("a", { href: account, text: "Sign in to your account" }),
+                ".",
+              ])
+            : el("p", { class: "paywall-note", text: "Already bought it? Sign in to the account you bought it with." }),
         ]),
       );
-      track("paywall_view", { id: lessonId });
-
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const email = input.value.trim();
-        if (!validEmail(email)) {
-          error.textContent = "That does not look like an email address. Use the form you@company.com.";
-          input.focus();
-          return;
-        }
-        trial = startTrial();
-        store.write(TRIAL_KEY, JSON.stringify(trial));
-        // Deliberately not logging the address: this buffer may later be wired to an
-        // analytics endpoint, and the form promises nothing is sent anywhere.
-        track("paywall_email", { id: lessonId });
-        track("trial_start", { id: lessonId, days: trialDaysLeft(trial) });
-        openAfterGate(paywall, "Trial started", `${trialDaysLeft(trial)} days of the full track are open. Your progress is kept in this browser.`);
+      // The form is a real post, so this fires on the way out, not on an answer.
+      // The plan the reader is buying is the one in the form's action, not a second copy of it here.
+      const plan = new URL(offer.action, location.origin).searchParams.get("plan") ?? "monthly";
+      form.addEventListener("submit", () => track("checkout_start", { id: lessonId, plan }));
+    } else {
+      const unlock = el("button", { class: "btn", id: "gate-unlock", type: "button", text: offer.label });
+      const note = el("p", { class: "paywall-note", text: offer.note });
+      paywall.append(el("div", { class: "paywall-unlock" }, [unlock, note]));
+      unlock.addEventListener("click", () => {
+        progress = { ...progress, unlocked: true };
+        saveProgress();
+        track("track_unlock", { id: lessonId });
+        openAfterGate(paywall, "The track is open", "Every exercise is unlocked in this browser. Your progress is kept here too.");
       });
     }
 
-    // The order gate and the trial both offer the same way out: one flag, one browser, no account.
-    const unlock = el("button", { class: "btn", id: "gate-unlock", type: "button", text: "Unlock the whole track for this browser" });
-    const note = el("p", { class: "paywall-note", text: "Instant, and only in this browser. Clearing site data puts the walls back." });
-    paywall.append(el("div", { class: "paywall-unlock" }, [unlock, note]));
-    unlock.addEventListener("click", () => {
-      progress = { ...progress, unlocked: true };
-      saveProgress();
-      track("track_unlock", { id: lessonId });
-      openAfterGate(paywall, "The track is open", "Every drill is unlocked in this browser. Your progress is kept here too.");
-    });
+    // The wall's primary door is one plan; the other two live on the offer page, so the card always
+    // carries the way to compare them. Without this the only choices are "buy" and "leave".
+    paywall.append(
+      el("p", { class: "paywall-note" }, [
+        "Every plan, and what stays free, is on the ",
+        el("a", { href: "/pricing", text: "pricing page" }),
+        ".",
+      ]),
+    );
 
     for (const node of [ui.screens, ui.bar, ui.feedback, ui.hintRow]) if (node) node.hidden = true;
     if (ui.solution) ui.solution.hidden = true;
@@ -1272,7 +1300,7 @@ function mountDrill(payloadNode) {
     const line = rewardLine(detail);
     if (!line) return;
     const note = el("p", { class: "feedback-reward", text: line });
-    // Above the way out, not below it: the next drill is the last thing in the panel by design.
+    // Above the way out, not below it: the next exercise is the last thing in the panel by design.
     const next = ui.feedback.querySelector(".next-cta");
     if (next) next.before(note);
     else ui.feedback.append(note);
@@ -1307,7 +1335,7 @@ function mountDrill(payloadNode) {
     elapsed: seconds(),
   });
 
-  // Focus the answer only when the drill is actually on screen: autofocus on a long page
+  // Focus the answer only when the exercise is actually on screen: autofocus on a long page
   // scrolls the reader past the lesson title. The bar is the door for a typed answer, and the
   // shortcut panel is the door for a pressed one — a press that landed in the bar would be typed
   // text, not a shortcut.
@@ -1345,7 +1373,7 @@ function mountTrack() {
   const fill = document.getElementById("track-fill");
   // Nothing complete yet means nothing to say: an empty rail pinned at 0% is chrome, not information.
   if (wrap) wrap.hidden = count === 0;
-  if (note) note.textContent = `${count} of ${rows.length} drills complete${count === 0 ? "." : " in this browser."}`;
+  if (note) note.textContent = `${count} of ${rows.length} exercises complete${count === 0 ? "." : " in this browser."}`;
   if (fill) {
     fill.style.width = `${Math.round((count / rows.length) * 100)}%`;
     fill.dataset.full = String(count === rows.length);

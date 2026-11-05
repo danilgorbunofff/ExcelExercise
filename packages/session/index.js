@@ -1,7 +1,7 @@
 /**
  * The player's session engine: the score loop, the wall-clock budget, and the event
  * sink that everything else reports through. No DOM, no network, no dependencies —
- * the drill imports it through `../session/index.js`, and the Next player will import
+ * the exercise imports it through `../session/index.js`, and the Next player will import
  * the same file.
  */
 

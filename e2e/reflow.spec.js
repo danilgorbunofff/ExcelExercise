@@ -14,12 +14,12 @@ const PAGES = [
   ["the track list", "/learn"],
   ["the project shelf", "/projects"],
   ["a project", "/learn/projects/ufo-dashboard"],
-  ["a drill", `/learn/excel/${freeDrill().slug}`],
+  ["an exercise", `/learn/excel/${freeDrill().slug}`],
   ["the dashboard", "/dashboard"],
   ["the sign-in form", "/login"],
-  // The app surfaces below are only reachable from the dashboard's "Your tools" menu, which is exactly
-  // why they had no reflow coverage: `/flashcards` pushed the document 2px wide at 320px because its
-  // header carries a third nowrap item, the badge.
+  // The app surfaces below sit one level deeper than the front door, which is why they went without
+  // reflow coverage for a while: `/flashcards` pushed the document 2px wide at 320px because its header
+  // carries a third nowrap item, the badge.
   ["the flashcard review", "/flashcards"],
   ["the daily run", "/daily"],
   ["the leaderboard", "/leaderboard"],

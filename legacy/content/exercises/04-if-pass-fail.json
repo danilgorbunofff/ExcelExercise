@@ -39,11 +39,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=IF(B2>=70,\"Pass\",\"Fail\"): the test first, then the two outcomes in order.",
-        "func-if": "Use IF so the word changes by itself when the score changes. Typing Pass is right once and wrong forever after.",
-        "require-ref": "The test has to read the score cell, not a number you typed in.",
-        "value": "The test or the two branches are in the wrong order. IF returns the first value when the test is true, the second when it is false. Ana scored exactly 70, so 70>70 is false and 70>=70 is true. That boundary is the whole lesson.",
-        "error": "#NAME? means a branch was written without quotes, so Excel hunted for a name called Pass. Both text outcomes need double quotes, and IF needs all three arguments."
+        "syntax": "=IF(B2>=70,\"Pass\",\"Fail\"): the test first, then the two values in order.",
+        "func-if": "Use IF so the label follows the score. A typed Pass is right for this one student and wrong for the next.",
+        "require-ref": "The test has to read B2, not a number you worked out yourself.",
+        "value": "Check the operator, then the order of the two values. Ana scored exactly 70, so 70>=70 passes and 70>70 does not.",
+        "error": "#NAME? means a label went in without quotes, so Excel hunted for a name called Pass."
       },
       "fixtures": {
         "accept": [
@@ -106,23 +106,23 @@
   ],
   "docs": {
     "syntax": "=IF(logical_test, value_if_true, value_if_false)",
-    "explain": "IF runs one test and returns one of two values. Ana scored exactly 70, the test 70>=70 is true, so =IF(B2>=70,\"Pass\",\"Fail\") returns Pass. Change B2 to 68 and the same formula returns Fail with no editing. Order matters: the true value comes second, the false value third. Both outcomes can be numbers, text or other formulas. Leaving the third argument out is legal and returns FALSE, which is how columns end up showing FALSE where a blank was expected. Text outcomes need quotation marks, or Excel looks for a name called Pass and fails.",
+    "explain": "IF takes a test and returns one of two values. The test comes first, the value for a true result second, and the value for a false one third. Either value can be a number, text or another formula. Text needs quote marks, or Excel reads Pass as a name and returns #NAME?.\n\nAna's score is exactly 70, so =IF(B2>=70,\"Pass\",\"Fail\") puts Pass in C2. Narrow the comparison to > and the same student fails, because 70 is not greater than 70. The two values are just as easy to reverse, and a reversed pair still fills the column with confident-looking answers.\n\nLeave the third argument out and a false test returns FALSE, so the cell shows a logical value where a label was expected. Type Pass without quotes and the formula stops with #NAME?.",
     "errors": [
       {
         "code": "FALSE",
-        "text": "The third argument was omitted, so a failing student shows FALSE instead of Fail."
+        "text": "The third argument was left out, so a failing student shows FALSE instead of Fail."
       },
       {
         "code": "#NAME?",
-        "text": "Pass was written without quotes, so Excel read it as a name and could not find it."
+        "text": "Pass was written without quotes, so Excel looked for a name and found nothing."
       },
       {
         "code": "Swapped branches",
-        "text": "Putting \"Fail\" second gives every passing student a Fail, and the column still looks plausible."
+        "text": "With the labels the other way round, every passing student is marked Fail and nothing on the sheet looks wrong."
       }
     ],
-    "atWork": "Pass or fail, in stock or reorder, over budget or fine: every dashboard you have seen is a column of IFs underneath. Writing the test properly is what makes a sheet reusable next month.",
-    "outcome": "Write a decision: one comparison, two possible answers.",
+    "atWork": "A stock flag or a budget status is an IF underneath, and so is every pass or fail mark on a report.",
+    "outcome": "Write a decision that returns one of two values, chosen by a single test.",
     "teaches": "IF",
     "dataset": "Exam results",
     "reference": "=IF(B2>=70,\"Pass\",\"Fail\")"
@@ -130,6 +130,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "IF in Excel: one test, two answers",
-    "description": "IF returns one value when a test is true and another when it is false. Ana scores exactly 70, so the boundary between 70>=70 and 70>70 decides the drill."
+    "description": "IF returns one value when a test is true and another when it is false. Ana scores 70, so the boundary between 70>=70 and 70>70 decides the exercise."
   }
 }

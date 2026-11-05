@@ -1,0 +1,11 @@
+{
+  "name": "@excelsupreme/search",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "description": "Build-time exercise index and its ranking: no network, no DOM, same answer in both builds."
+}

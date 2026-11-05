@@ -7,11 +7,11 @@
   "brief": [
     {
       "heading": "The file",
-      "body": "ufo.xlsx holds one sheet, Sightings, with fourteen logged sightings. Columns A to F are the date, the city, the state, the shape reported, how long the sighting lasted in seconds, and how many witnesses were present. Rows 17 to 20 carry a summary block the sheet computes for you, so open the file in Excel, Sheets or LibreOffice and the numbers in B17 to B20 are already there."
+      "body": "ufo.xlsx holds one sheet, Sightings, with fourteen logged sightings. Columns A to F are the date, the city, the state, the shape reported, how long the sighting lasted in seconds, and how many witnesses were present. Rows 17 to 20 carry a summary block the sheet computes for you. Open the file in Excel, Sheets or LibreOffice and the numbers in B17 to B20 are already there."
     },
     {
       "heading": "The work",
-      "body": "You are the analyst the report goes to. Eight tasks: read the summary block, find the rows behind it, and answer in the box under the sheet. The preview under each task shows the same values the file shows, so nothing here needs a download — but the download is there when you want to sort the rows yourself, which is how most of these are quickest."
+      "body": "You are the analyst the report goes to. Eight tasks: read the summary block, find the rows behind it, and answer in the box under the sheet. The preview under each task shows the same values the file shows, so nothing here needs a download. The download is there when you want to sort the rows yourself, which is how most of these are quickest."
     },
     {
       "heading": "How it is marked",
@@ -50,7 +50,7 @@
   },
   "docs": {
     "syntax": "=COUNTA(B2:B15), =SUM(F2:F15), =ROUND(AVERAGE(E2:E15),1)",
-    "explain": "The summary block is four formulas and nothing else. COUNTA counts the city cells that are not empty, which is the number of sightings without anyone having to count rows by hand. SUM adds every witness across the fourteen rows. AVERAGE divides that same duration column by the number of values in it, and ROUND pins the result to one decimal so the report does not print a repeating decimal. MAX finds the single longest sighting. The rows behind those numbers are what the eight tasks are about: once the block is computed, most questions are a sort away.",
+    "explain": "The summary block is four formulas and nothing else. COUNTA counts the city cells that are not empty, so nobody has to count rows by hand. SUM adds every witness across the fourteen rows.\n\nAVERAGE divides that duration column by the number of values in it, and ROUND pins the result to one decimal so the report does not print a repeating decimal. MAX finds the single longest sighting. The eight tasks work on the rows behind those numbers, and most are a sort away.",
     "atWork": "Every sightings, complaints or orders sheet that arrives on a Monday morning is this file: raw rows and a block of totals someone will read first. The person who can add the totals, and then say what sits behind the largest one, is the one who gets asked next.",
     "outcome": "Read a raw sightings log, find the rows behind its summary, and report what it says.",
     "teaches": "Count, sum and average raw rows",
@@ -137,7 +137,7 @@
       "prompt": "How many witnesses in total were in Arizona?",
       "answers": ["16", "sixteen"],
       "hints": {
-        "value": "Four rows are AZ. Their witness counts are 3, 5, 6 and 2 — SUMIF over state, taking witnesses."
+        "value": "Four rows are AZ. Their witness counts are 3, 5, 6 and 2, so SUMIF over state, taking witnesses."
       }
     }
   ]

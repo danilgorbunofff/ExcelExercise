@@ -815,6 +815,60 @@ describe("buildCells and grade", () => {
   });
 });
 
+describe("variants: the same table with different numbers", () => {
+  // 1200 + 1450 + 930 = 3580, and the three variants move one input each so that a total which
+  // quietly carries a number instead of a range cannot survive all three.
+  const Q1 = {
+    cells: SALES,
+    answerCell: "B2",
+    expect: { value: 3580 },
+    hints: { value: "Read the sheet again.", hardcoded: "Sum the whole range, not three numbers." },
+    variants: [
+      { id: "north-up", cells: { B2: 1300 }, expect: { value: 3680 } },
+      { id: "south-up", cells: { B3: 1500 }, expect: { value: 3630 } },
+      { id: "west-down", cells: { B4: 1000 }, expect: { value: 3650 } },
+    ],
+  };
+
+  it("passes a formula that still answers when an input changes", () => {
+    const result = grade(Q1, "=SUM(B2:B4)");
+    assert.equal(result.ok, true);
+    assert.equal(result.rule, "correct");
+  });
+
+  it("rejects a formula that only answers this table, as hardcoded", () => {
+    const result = grade(Q1, "=SUM(B2:B3)+930");
+    assert.equal(result.ok, false);
+    assert.equal(result.rule, "hardcoded");
+    assert.equal(result.value, 3580);
+    assert.equal(result.expected, 3650, "the verdict names the value the changed table needs");
+  });
+
+  it("says what is wrong in the screen's own words, and falls back to the general hint", () => {
+    assert.equal(grade(Q1, "=SUM(B2:B3)+930").hint, "Sum the whole range, not three numbers.");
+    const { hardcoded, ...general } = Q1.hints;
+    assert.equal(grade({ ...Q1, hints: general }, "=SUM(B2:B3)+930").hint, "Read the sheet again.");
+  });
+
+  it("keeps the error code when the formula breaks on a changed table", () => {
+    // A variant that a reference cannot survive is a lint refusal, but the grader meets one anyway on
+    // a payload it did not author, and it must answer with a rule rather than `internal`.
+    const exercise = {
+      cells: { A1: 10, A2: 5 },
+      expect: { value: 3 },
+      variants: [{ id: "divisor-gone", cells: { A2: 0 }, expect: { value: 0 } }],
+    };
+    const result = grade(exercise, "=SUM(A1:A2)/A2");
+    assert.equal(result.rule, "hardcoded");
+    assert.equal(result.code, CODES.DIV0);
+    assert.match(result.message, /A2 changed to 0/);
+  });
+
+  it("reports a value mismatch before it ever looks at a variant", () => {
+    assert.equal(grade(Q1, "=SUM(B2:B3)").rule, "value");
+  });
+});
+
 describe("module hygiene", () => {
   it("imports without adding anything to globalThis", async () => {
     const before = new Set(Object.keys(globalThis));

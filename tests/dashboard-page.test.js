@@ -3,7 +3,7 @@
  * `/learn/groups/<id>`.
  *
  * The group page reuses the dashboard's rows, payload and island, so the risks worth pinning are that it
- * quietly leaks another group's drills into the list, that it loses the section the island's count
+ * quietly leaks another group's exercises into the list, that it loses the section the island's count
  * updates, and that it starts ranking in a search engine.
  */
 import assert from "node:assert/strict";
@@ -47,7 +47,7 @@ describe("prepareDashboardPage", () => {
     assert.equal(page.path, "/learn");
     assert.equal(page.noindex, true);
     for (const group of groups) {
-      // A group is a native disclosure: all 88 drills stay in the document, one list is on screen.
+      // A group is a native disclosure: all 88 exercises stay in the document, one list is on screen.
       assert.match(body, new RegExp(`<details class="dash-group" id="group-${group.id}"`));
       assert.match(body, new RegExp(`aria-labelledby="group-${group.id}-heading"`));
       // The title names the row and nothing else: a control inside <summary> is the nested-interactive
@@ -57,12 +57,12 @@ describe("prepareDashboardPage", () => {
         body.includes(`<a class="dash-group-link" href="/learn/groups/${group.id}">About this group</a>`),
         `group ${group.id} has no way out to its own page`,
       );
-      // Sixteen counters read "5 drills" until a drill in that group is finished.
-      assert.match(body, new RegExp(`data-group-count="${group.id}">${group.entries.length} drills?<`));
+      // Sixteen counters read "5 exercises" until an exercise in that group is finished.
+      assert.match(body, new RegExp(`data-group-count="${group.id}">${group.entries.length} exercises?<`));
       // The prose is written for the group's own page; the index is an index.
       assert.ok(!body.includes('class="dash-group-intro"'), "the track page repeats the group intro");
     }
-    // Group-major on the page, curriculum order in the plan: the same drills either way.
+    // Group-major on the page, curriculum order in the plan: the same exercises either way.
     assert.deepEqual(
       [...rowsOf(body)].sort(),
       index.map((entry) => entry.exercise.id).sort(),
@@ -78,11 +78,18 @@ describe("prepareDashboardPage", () => {
       // title is what a reader sees in the result.
       assert.equal(page.title, `Excel exercises: ${group.title}`);
       assert.equal(page.noindex, undefined, "the hub is a landing page, not a private dashboard");
-      assert.equal(page.counter, `${group.entries.length} drill${group.entries.length === 1 ? "" : "s"}`);
+      // No header fact: the row is the mark and the ways in, so the count that used to sit beside the
+      // mark has to be in the page itself. The group section states it, in the `<h2>`'s own line.
+      assert.equal(page.counter, undefined, "the group hub still sets a header count");
+      assert.match(
+        body,
+        new RegExp(`data-group-count="${group.id}">0 of ${group.entries.length}<`),
+        "the page states no count of its own",
+      );
       assert.ok(page.description.length <= 155, `description is ${page.description.length} characters`);
       assert.ok(!page.description.includes("\n"), "description is one line");
 
-      // The drills, in track order, and nobody else's.
+      // The exercises, in track order, and nobody else's.
       assert.deepEqual(
         rowsOf(body),
         group.entries.map((entry) => entry.exercise.id),
@@ -113,10 +120,10 @@ describe("prepareDashboardPage", () => {
       assert.match(body, /<script type="module" src="\/assets\/client\/dashboard\.js"><\/script>/);
       assert.match(body, /<a class="link-btn" href="\/excel-exercises">All Excel exercises<\/a>/);
 
-      // Indexable, and structured: the trail up to the group, and the drills as a list. The JSON-LD
+      // Indexable, and structured: the trail up to the group, and the exercises as a list. The JSON-LD
       // lands in the head, so it is asserted on the page rather than on the body.
       assert.match(body, /class="crumbs"/);
-      assert.ok(page.jsonLd.includes('"@type":"ItemList"'), "the hub does not list its drills as structured data");
+      assert.ok(page.jsonLd.includes('"@type":"ItemList"'), "the hub does not list its exercises as structured data");
       assert.ok(page.jsonLd.includes('"@type":"BreadcrumbList"'), "the hub has no trail");
     });
   }

@@ -65,11 +65,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=SUM(B2:B7)>100: the comparison wraps the total, not the other way round.",
-        "func-sum": "The question is about the total, so the units have to be added up inside the formula.",
-        "require-ref": "Add the units column in the grid rather than typing the total.",
-        "value": "The six items add to 150, which is over 100, so the answer is TRUE.",
-        "error": "Dividing by zero anywhere in the comparison returns #DIV/0!."
+        "syntax": "=SUM(B2:B7)>100: add the units first, then compare the result.",
+        "func-sum": "The question is about the total, so the six units have to be added inside the formula.",
+        "require-ref": "Add the cells in B2:B7 rather than typing 150.",
+        "value": "The items come to 150, and 150 is over 100, so the cell should show TRUE.",
+        "error": "A division inside the comparison leaves #DIV/0!, and the cell shows that instead of TRUE or FALSE."
       },
       "fixtures": {
         "accept": [
@@ -175,11 +175,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=AVERAGE(B2:B7)>=20: the comparison wraps the whole calculation.",
-        "func-average": "The question is about the average, so a total cannot answer it.",
-        "require-ref": "Take the average over the units column of the grid.",
-        "value": "The six items average 25 units, which is at least 20, so the answer is TRUE.",
-        "error": "A division by zero in the range returns #DIV/0! instead of a logical value."
+        "syntax": "=AVERAGE(B2:B7)>=20: the comparison takes the whole average as its left side.",
+        "func-average": "The question asks about the average, so a total of 150 would answer a different one.",
+        "require-ref": "Average the units column of the grid.",
+        "value": "150 across six items is 25 each, which clears 20, so the answer is TRUE.",
+        "error": "Here #DIV/0! comes from dividing by zero in the comparison, not from AVERAGE over a full range."
       },
       "fixtures": {
         "accept": [
@@ -227,23 +227,23 @@
   ],
   "docs": {
     "syntax": "=SUM(B2:B7)>100 returns TRUE or FALSE; it is the comparison, not a word",
-    "explain": "Every comparison in Excel is itself a formula, and it hands back one of two logical values rather than the words TRUE and FALSE. Type =SUM(B2:B7)>100 and the cell holds TRUE, formatted in capitals. The same value can be used by IF, by AND, or by a conditional format without ever being written as text. Because the logical values are not text, a formula that returns the string \"TRUE\" looks right and behaves differently. It will not drive IF, it will not count as a match for TRUE, and sorting puts it in with the words. In this drill the units add to 150, so =SUM(B2:B7)>100 answers TRUE. The second screen wraps an average in the same comparison and answers TRUE because the six items average 25 units. Both screens are drills in reading the question. The comparison operator carries the whole meaning, and an IF around it only wraps a value that was already Boolean. The common failure is writing the words in quotes, which is the one form that grades as a wrong answer here.",
+    "explain": "A comparison is a formula in its own right. Enter =SUM(B2:B7)>100 and the cell holds TRUE, a logical value that IF, AND and conditional formatting all read directly. Wrap the word in quotes and the cell holds four characters of text, which sorts with labels and fails a logical test.\n\nThe six items add to 150, so the first screen answers TRUE. The second screen asks about the average, which is 25 units and clears a floor of 20. Point the operator the other way and the same numbers answer FALSE.\n\nAn IF wrapped around a comparison only passes along a value that was already worked out. Put the comparison in quotes instead, as in =IF(SUM(B2:B7)>100,\"TRUE\",\"FALSE\"), and the cell returns two pieces of text that nothing else can test.",
     "errors": [
       {
-        "code": "#VALUE!",
-        "text": "Text and a number were compared with an operator that cannot order them."
-      },
-      {
-        "code": "#DIV/0!",
-        "text": "The comparison divided by zero before it produced a value."
+        "code": "Quoted TRUE",
+        "text": "The cell holds the four characters TRUE as text, so a later IF reads a label where it expected a logical value."
       },
       {
         "code": "#NAME?",
-        "text": "The function or the cell reference was misspelled."
+        "text": "A function name or a cell reference was mistyped, so Excel cannot tell which cells to compare."
+      },
+      {
+        "code": "#DIV/0!",
+        "text": "The comparison is divided by zero, so the cell shows an error where TRUE or FALSE belonged."
       }
     ],
-    "atWork": "Flagging a month as over budget without adding a helper column of yes and no words.",
-    "outcome": "Read a comparison as a TRUE or FALSE value you can build on, not as text.",
+    "atWork": "Flagging a month as over budget, then letting the next formula act on the flag.",
+    "outcome": "Read a comparison as a logical value that other formulas can act on.",
     "teaches": "comparison operators returning logical values, and why quoted TRUE is not one",
     "dataset": "Stock list with a total row to compare against",
     "reference": "=SUM(B2:B7)>100"

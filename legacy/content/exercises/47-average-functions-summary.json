@@ -8,7 +8,7 @@
     {
       "id": "formula-1",
       "type": "formula",
-      "prompt": "Put the average of the two best times into C2, taking the values from the unsorted column.",
+      "prompt": "Put the average of the two highest times into C2, taking the values from the unsorted column.",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -60,11 +60,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "Two LARGE calls and an average: =(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2.",
-        "func-large": "LARGE gives you one position at a time, so ask for two of them and average the pair.",
-        "require-ref": "Both LARGE calls read the same range, B2:B6, so no time is typed into the formula.",
-        "value": "The two best are 61 and 58, and their average is 59.5.",
-        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+        "syntax": "Two LARGE calls and a division: =(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2.",
+        "func-large": "LARGE returns one position at a time, so ask it twice and average the pair.",
+        "require-ref": "Both calls point at B2:B6, so no time is typed into the formula.",
+        "value": "The two largest are 61 and 58. Add them, divide by two, and the cell holds 59.5.",
+        "error": "#NUM! comes from a position larger than the list, so check the 1 and the 2 in the two LARGE calls."
       },
       "fixtures": {
         "accept": [
@@ -175,11 +175,11 @@
       "rules": [],
       "hints": {
         "syntax": "One function inside another: =RANK(MEDIAN(B2:B6),B2:B6).",
-        "func-median": "The middle time is the median, and it is a value in the list, not a place in it.",
-        "func-rank": "Once you have the middle time, RANK turns it into a place.",
+        "func-median": "The middle time is 57, a value in the list rather than a place in it.",
+        "func-rank": "Once MEDIAN returns 57, RANK turns that 57 into third place.",
         "require-ref": "Both functions read B2:B6, so the comparison stays inside the team.",
-        "value": "The median of the five times is 57, and 57 is third from the top.",
-        "error": "Dividing by zero leaves #DIV/0! in the cell instead of a place."
+        "value": "The five times run 50, 55, 57, 58, 61, so 57 is third from the top.",
+        "error": "#N/A is the one to expect here: RANK looks for its number in the range, and a mean built from part of the list is not there."
       },
       "fixtures": {
         "accept": [
@@ -232,22 +232,22 @@
   ],
   "docs": {
     "syntax": "=RANK(MEDIAN(range), range) and =(LARGE(range,1)+LARGE(range,2))/2",
-    "explain": "A summary statistic answers a question, and most real questions need two of them joined together. The average of the best two times is not a function Excel has. It is LARGE asked twice and divided by two, and reading it as a sentence is the skill this lesson teaches. The second screen nests MEDIAN inside RANK, so the answer is a place rather than a value. The middle time is 57, and the place that time earns is 3. Nesting works because every function returns a value another function can consume, and the trace is read inside-out. MEDIAN finishes, then RANK uses what it returned. The trap is that a mean of a subset can produce a number that exists nowhere in the data, so it has no place, no row and no format to inherit. Averaging the top two gives 59.5, which is not a swim time at all. Watch the ranges. Two LARGE calls pointing at different ranges silently average two different groups, which is the most common way a hand-built summary goes quietly wrong.",
+    "explain": "A summary often needs two functions joined together, and Excel has none that averages the top two values on its own. The formula =(LARGE(B2:B6,1)+LARGE(B2:B6,2))/2 asks LARGE twice and divides by two. Read it inside out: each LARGE finds one value, the plus joins them, and the division finishes the job.\n\nThe five times are 58, 61, 55, 57 and 50, so LARGE picks 61 first and 58 second, and their average is 59.5. The second screen nests MEDIAN inside RANK: the middle time is 57, and 57 sits third from the top, so the answer is a place and not a time.\n\nA mean of a subset can land on a number that appears nowhere in the data, so it has no row to inherit a format from. Two LARGE calls pointing at different ranges average two different groups, and nothing on the sheet says so.",
     "errors": [
       {
         "code": "#NUM!",
-        "text": "A LARGE position went past the end of the range, so there is no value to include."
+        "text": "One of the LARGE positions runs past the end of the range, so there is no value to add."
       },
       {
         "code": "#N/A",
-        "text": "RANK was asked about a number that does not appear in the range, as a mean of a subset never will."
+        "text": "RANK was given a number that is not in the range, which an average of a subset always produces: 59.5 appears nowhere among the times."
       },
       {
         "code": "#VALUE!",
-        "text": "One of the nested arguments was text that cannot be read as a number."
+        "text": "An argument in the nest arrived as text that cannot be read as a number."
       }
     ],
-    "atWork": "A selection report that averages a team's best two results, and a review sheet that shows where the median case sits in the ranked list.",
+    "atWork": "A selection report that averages a team's top two results, and a review sheet that shows where the median case sits in the ranked list.",
     "outcome": "Join two summary functions into one answer, reading the nesting inside-out.",
     "teaches": "MEDIAN, LARGE and RANK combined",
     "dataset": "One team's swim times summarised two ways",

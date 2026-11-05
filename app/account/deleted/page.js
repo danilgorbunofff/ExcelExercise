@@ -14,11 +14,11 @@ export const metadata = {
  */
 export default function DeletedPage() {
   return (
-    <AuthShell counter="Your account" skipLabel="your account">
+    <AuthShell skipLabel="your account">
       <AuthCard title="Your account is gone" lede="Signed out, erased, and not coming back.">
         <p>
           Your profile, your progress, every saved answer and your points are gone from the database.
-          Nothing will be graded against it again, and there is no copy to restore.
+          Nothing will be graded against that account again, and there is no copy to restore.
         </p>
         <p>
           Two things were kept: your payment and entitlement records, now with no name or email
@@ -26,10 +26,10 @@ export default function DeletedPage() {
           You can read the whole list on the <a href="/privacy">privacy page</a>.
         </p>
         <p>
-          If you want to start again, the first <a href="/learn">drills</a> are free and need no
+          If you want to start again, the first <a href="/learn">exercises</a> are free and need no
           account.
         </p>
-        <Links items={[{ href: "/learn", label: "Back to the drills" }, { href: "/privacy", label: "Privacy" }]} />
+        <Links items={[{ href: "/learn", label: "Back to the exercises" }, { href: "/privacy", label: "Privacy" }]} />
       </AuthCard>
     </AuthShell>
   );

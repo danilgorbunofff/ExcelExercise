@@ -51,7 +51,7 @@ test("the export downloads everything held about this learner, and nothing about
 
   psql(
     `insert into lesson_progress (user_id, lesson_id, track, status, score, attempts, completed_at)
-     values ('${userId}', 'what-a-formula-actually-does', 'excel', 'complete', 100, 1, now())
+     values ('${userId}', '01-sum-basics', 'excel', 'complete', 100, 1, now())
      on conflict do nothing;`,
   );
 
@@ -62,7 +62,7 @@ test("the export downloads everything held about this learner, and nothing about
 
   expect(body.email ?? body.account?.email ?? email).toBe(email);
   const json = JSON.stringify(body);
-  expect(json).toContain("what-a-formula-actually-does");
+  expect(json).toContain("01-sum-basics");
   // The other seeded accounts are visible to nobody through this route.
   expect(json).not.toContain("alice@");
   expect(json).not.toContain("bob@");
@@ -76,7 +76,7 @@ test("deleting the account needs the phrase, and then really removes it", async 
 
   psql(
     `insert into lesson_progress (user_id, lesson_id, track, status, score, attempts, completed_at)
-     values ('${userId}', 'what-a-formula-actually-does', 'excel', 'complete', 100, 1, now())
+     values ('${userId}', '01-sum-basics', 'excel', 'complete', 100, 1, now())
      on conflict do nothing;`,
   );
 

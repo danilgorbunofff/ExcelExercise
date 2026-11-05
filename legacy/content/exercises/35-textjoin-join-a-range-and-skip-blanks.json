@@ -57,11 +57,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "TEXTJOIN takes the separator, whether to skip blanks, then the range: =TEXTJOIN(\", \",TRUE,B2:B6).",
-        "func-textjoin": "TEXTJOIN is the one function that takes a separator and a blank rule; CONCAT would glue everything into one word.",
+        "syntax": "=TEXTJOIN(\", \",TRUE,B2:B6): separator, blank rule, then the range.",
+        "func-textjoin": "TEXTJOIN is the one function with a separator and a blank rule. CONCAT has neither and runs the departments into one word.",
         "require-ref": "Join B2:B6 so a department typed into a blank row is picked up.",
-        "value": "Three of the five rows hold a department, and they are joined by a comma and a space.",
-        "error": "TEXTJOIN itself does not error on blanks; string arithmetic on its result does, which is where #VALUE! comes from."
+        "value": "Three of the five rows hold a department, joined by a comma and a space.",
+        "error": "The grader looks for TRUE in the second argument. A missing closing bracket returns #VALUE! before anything joins."
       },
       "fixtures": {
         "accept": [
@@ -114,19 +114,23 @@
   ],
   "docs": {
     "syntax": "=TEXTJOIN(delimiter, ignore_empty, range)",
-    "explain": "Two of the five rows have no department, and a list with '\", \"' in the middle reads like a mistake. TEXTJOIN's second argument is the blank rule. TRUE skips empty cells, and FALSE keeps them and leaves the separator behind. The first argument is the separator itself, typed as text in quotes, so '\", \"' means a comma and a space. CONCAT has neither argument, which is why it produces one long unreadable word and cannot be adjusted afterwards. Because the separator is an argument, turning a comma list into a semicolon list is one character in one cell rather than an afternoon of retyping.",
+    "explain": "TEXTJOIN takes a separator, a blank rule and a range, and returns one string. The separator is text in quotes, a comma and a space here. The blank rule takes TRUE or FALSE.\n\nFive rows sit in B2:B6 and three hold a department: Engineering, Research and Ops. TRUE drops the two empty slots, so the line reads Engineering, Research, Ops. FALSE keeps them, and the line carries a comma pair with nothing between.\n\nCONCAT has neither argument, so it joins the same range with no separators at all. Because the separator sits in the formula here, a switch to semicolons is one character in one cell.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The joined text was used in arithmetic, which a string cannot do."
+        "text": "The joined text was used in arithmetic, as when the result is divided by a number."
       },
       {
         "code": "#NAME?",
-        "text": "TEXTJOIN was typed without its last letter, so the sheet sees a name it does not know."
+        "text": "TEXTJOIN is typed without its last letter, so the sheet reads a name it does not know."
+      },
+      {
+        "code": "Blanks kept",
+        "text": "FALSE in the second argument keeps the two empty rows, so the line has two comma pairs with nothing between them."
       }
     ],
-    "atWork": "Building a summary line from a column of tags, roles or categories where some rows are empty.",
-    "outcome": "Join a column into one line and choose what happens to the blanks.",
+    "atWork": "A summary line from a column of tags or roles, where some rows are empty.",
+    "outcome": "Join a column into one line and decide what happens to the blanks.",
     "teaches": "TEXTJOIN",
     "dataset": "Five people, three departments",
     "reference": "=TEXTJOIN(\", \",TRUE,B2:B6)"

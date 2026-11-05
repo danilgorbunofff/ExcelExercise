@@ -29,7 +29,7 @@ export function toNumber(value, who = "That value") {
     throw new FormulaError(CODES.VALUE, `${who} is text ("${text}"), not a number.`);
   }
   if (isRange(value)) {
-    throw new FormulaError(CODES.VALUE, `${who} is a range of cells; a single value is needed here.`);
+    throw new FormulaError(CODES.VALUE, `${who} is a range of cells. A single value is needed here.`);
   }
   throw new FormulaError(CODES.VALUE, `${who} is not a number.`);
 }
@@ -62,7 +62,7 @@ export function toBoolean(value) {
     const text = value.trim().toUpperCase();
     if (text === "TRUE") return true;
     if (text === "FALSE") return false;
-    throw new FormulaError(CODES.VALUE, `"${value}" is text; a condition needs TRUE or FALSE.`);
+    throw new FormulaError(CODES.VALUE, `"${value}" is text, and a condition needs TRUE or FALSE.`);
   }
   throw new FormulaError(CODES.VALUE, "That value cannot be used as a condition.");
 }

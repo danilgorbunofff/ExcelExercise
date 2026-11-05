@@ -5,19 +5,23 @@
   "title": "SUBSTITUTE: replace one piece of text",
   "docs": {
     "syntax": "=SUBSTITUTE(text,old,new,[instance]) swaps old for new everywhere, or at one instance",
-    "explain": "SUBSTITUTE is the function that changes text without touching anything else. It takes the text, the piece to look for, and the piece to put in its place, and it does that everywhere in the string by default. The reason it deserves its own lesson rather than a footnote is that the obvious alternative, replacing a fixed position, breaks the moment the text changes length. A reference like WH-12-03 has two hyphens in the same places today and, on the next import, may have three. SUBSTITUTE names the piece rather than the position, so the formula survives that. The optional fourth argument is the part people miss. Give it a number and only that occurrence changes: one keeps the first hyphen, two keeps every hyphen before it and swaps the second. That turns one function into two: a global replace when the argument is absent, and a surgical replace when it is present. Both screens here work on the same reference column. The learner writes the three-argument form and then the four-argument form, and sees the difference in the answer rather than in the explanation.",
+    "explain": "SUBSTITUTE takes the text, the piece to look for and the piece to put in its place. It swaps every match in the string, so the call =SUBSTITUTE(A2,\"-\",\"/\") turns WH-12-03 into WH/12/03. Nothing outside the match changes.\n\nThis column holds three booking references, each with two hyphens. The first screen replaces both, which is what the three-argument form does. The second adds 2 as a fourth argument, and only the second hyphen becomes a slash: WH-12/03.\n\nThe number counts from the left, and it counts the hyphens you keep. So 2 points at the second hyphen, not at the second match to change. A replace at a fixed position names a place, and breaks as soon as a reference changes length.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The instance number is not a number, or it is less than one."
+        "text": "The fourth argument is below 1 or is not a number, so there is no occurrence to replace."
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled, so the sheet has nothing to call."
+        "text": "SUBSTITUTE is misspelled, so the sheet has nothing to call."
+      },
+      {
+        "code": "Nothing replaced",
+        "text": "An occurrence number past the end of the text returns the reference unchanged, and the grader sees an untouched answer."
       }
     ],
-    "atWork": "Restyling imported codes and references without changing anything but the separator.",
-    "outcome": "Replace a separator everywhere, then drill down to one occurrence with the instance argument.",
+    "atWork": "Imported codes that need a different separator before another system will read them.",
+    "outcome": "Replace a separator everywhere, then name a single occurrence with the fourth argument.",
     "teaches": "SUBSTITUTE replacing all matches, then one named occurrence",
     "dataset": "Booking references that carry two hyphens in fixed places",
     "reference": "=SUBSTITUTE(A2,\"-\",\"/\")"
@@ -64,11 +68,11 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\"): the text, what to look for, then what to put there.",
-        "func-substitute": "The separator is being swapped for another character, which is SUBSTITUTE's job.",
-        "require-ref": "The reference is in A2.",
-        "value": "Both hyphens become slashes, giving WH/12/03.",
-        "error": "An instance number below one has no occurrence to replace."
+        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\"): the text, the piece to find, then what replaces it.",
+        "func-substitute": "Both hyphens move, which is what the three-argument form does with no occurrence given.",
+        "require-ref": "Point at A2 so every reference in the column can be checked.",
+        "value": "Both hyphens become slashes: WH/12/03. The digits never move.",
+        "error": "A piece of text that is not found leaves the string unchanged, so the grader reports a wrong answer rather than a broken formula."
       },
       "fixtures": {
         "accept": [
@@ -159,11 +163,11 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\",2): the fourth argument names which occurrence changes.",
-        "func-substitute": "One separator is being swapped, which is the instance form of SUBSTITUTE.",
-        "require-ref": "The reference is in A2.",
-        "value": "Only the second hyphen turns into a slash, giving WH-12/03.",
-        "error": "An instance number that is not a number has no occurrence to replace."
+        "syntax": "=SUBSTITUTE(A2,\"-\",\"/\",2): the fourth argument is which hyphen to change.",
+        "func-substitute": "Only one hyphen moves, so the occurrence number has to be named.",
+        "require-ref": "The reference is in A2. Type it in and a corrected code never reaches the answer.",
+        "value": "The second hyphen turns into a slash and the first one stays: WH-12/03.",
+        "error": "An occurrence number past the end of the text returns the reference untouched."
       },
       "fixtures": {
         "accept": [
@@ -216,7 +220,7 @@
   ],
   "schemaVersion": 2,
   "seo": {
-    "title": "SUBSTITUTE in Excel: replace one piece of text",
+    "title": "SUBSTITUTE in Excel: replace one piece",
     "description": "SUBSTITUTE swaps a named piece of text everywhere. Add the instance argument and only the second occurrence changes, which a fixed position cannot do."
   },
   "updated": "2026-10-31"

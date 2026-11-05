@@ -21,12 +21,12 @@ const icons = readIcons(join(ROOT, "legacy/vendor/icons"));
 
 function assertFragmentsReassemble({ name, prepare, fetchArgs, renderPage }) {
   const { body, page } = prepare({ config, track, index, icons, clientAvailable: true, ...fetchArgs });
-  const { skip, header, footer } = renderChrome({ config, page });
+  const { skip, header, footer } = renderChrome({ config, page, icons });
   const document = renderPage({ config, track, index, icons, clientAvailable: true, ...fetchArgs });
 
   // `renderPage` must be the document renderer, not a lookalike: anything the document adds outside
   // the fragments (a banner, a wrapper) would never reach the Next.js routes.
-  assert.equal(document, renderDocument({ config, page, body }), `${name}: the page is no longer the document renderer`);
+  assert.equal(document, renderDocument({ config, page, body, icons }), `${name}: the page is no longer the document renderer`);
 
   const positions = [skip, header, body, footer].map((fragment) => {
     assert.ok(fragment.length > 0, `${name}: a fragment is empty`);

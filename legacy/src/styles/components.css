@@ -11,17 +11,17 @@
 
 .site {
   display: flex;
-  /* Brand, counter and badge are all nowrap-ish at 320px on `/flashcards` (98 + 64 + 113 + gaps and
-     padding = 339px). The row wraps instead of pushing the document 2px wide. */
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--s-3);
+  gap: var(--s-2) var(--s-3);
   max-width: var(--shell);
   margin: 0 auto;
-  padding: var(--s-4) var(--s-5);
+  padding: var(--s-3) var(--s-5);
   border-bottom: 1px solid var(--line);
 }
 
+/* The mark leads: identity on the left, the ways in on the right edge, which is where a reader's eye
+   goes when the page is not doing what they wanted. */
 .brand {
   display: inline-flex;
   align-items: center;
@@ -30,23 +30,21 @@
   text-decoration: none;
 }
 
+/* The formula bar's `=` is the product's whole idea: a cell starts with it. It is set as a glyph in the
+   accent colour, not as a filled tile — a white 28px square was the loudest object in a row of six
+   equally loud ones, and it encoded nothing a reader could use. */
 .brand-mark {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--r-1);
-  background: var(--btn-bg);
-  color: var(--btn-text);
+  color: var(--jade-8);
   font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: var(--fs-ui);
+  font-size: var(--fs-body);
+  font-weight: 700;
+  line-height: 1;
 }
 
 .brand-name {
   font-weight: 600;
   font-size: var(--fs-ui);
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
 }
 
 .brand:hover .brand-name {
@@ -55,24 +53,278 @@
   text-underline-offset: 0.2em;
 }
 
-.drill-count {
+/* The three ways in hang together at the right edge, and none of them is a box. A bordered button per
+   link gave the row six equal rectangles; the menu, which is a control rather than a destination, keeps
+   the one border. */
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
   margin-left: auto;
-  color: var(--text-muted);
-  font-size: var(--fs-meta);
-  font-variant-numeric: tabular-nums;
 }
 
-.badge {
-  padding: 1px var(--s-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-1);
-  background: var(--surface-sunk);
-  color: var(--text-muted);
+/* 44px tall, `--text` rather than `--text-muted` — a link in the faintest grey is a link most readers do
+   not try. The hover fill is the affordance the missing border used to carry. */
+.head-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-2);
+  color: var(--text);
   font-size: var(--fs-meta);
   font-weight: 500;
+  text-decoration: none;
   white-space: nowrap;
 }
 
+.head-link:hover {
+  background: var(--surface-sunk);
+  text-decoration: underline;
+  text-decoration-color: var(--jade-8);
+  text-underline-offset: 0.2em;
+}
+
+/* The glyph is the scannable half of the pair and never the whole of it: 16px, muted, sitting on the
+   label's baseline. `flex: none` so a long word cannot squeeze it, and no colour of its own so it
+   inherits the link's — a second accent hue in a two-word link is a third thing to decode. */
+.icon-head {
+  flex: none;
+  margin-right: var(--s-2);
+  color: var(--text-muted);
+}
+
+.head-link:hover .icon-head {
+  color: inherit;
+}
+
+/* ── Drawer ───────────────────────────────────────────────────────────── */
+
+/* The wall the footer used to carry, behind one button. The button takes the badge's shape so the
+   header still reads as one strip; the drawer is a native modal `<dialog>`, so the scrim, the inert
+   page, Escape and the focus trap are the browser's. */
+.menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  margin-left: var(--s-1);
+  padding: 0 var(--s-2) 0 var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.menu-toggle:hover,
+.menu-toggle[aria-expanded="true"] {
+  border-color: var(--jade-8);
+  background: var(--surface-sunk);
+}
+
+/* A phone keeps three things on one line: the mark, search and the menu. The account link is the one
+   the small screen can do without — the drawer still holds it, with the same glyph — so the row never
+   wraps onto a second line. */
+@media (max-width: 30rem) {
+  .site {
+    gap: var(--s-1) var(--s-2);
+    padding-inline: var(--s-3);
+  }
+
+  .head-link-account {
+    display: none;
+  }
+
+  .head-actions {
+    gap: 0;
+  }
+
+  .head-link {
+    padding: 0 var(--s-2);
+  }
+
+  .menu-toggle {
+    margin-left: var(--s-1);
+    padding: 0 var(--s-1) 0 var(--s-2);
+  }
+}
+
+/* The label is the button's name, so it is set, not hidden: an icon-only control is one most readers
+   never try. `line-height: 1` keeps it on the bars' centre. */
+.menu-label {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Three rules on the toggle, drawn rather than typed: a glyph is a different size in every fallback. */
+.menu-bars,
+.menu-bars::before,
+.menu-bars::after {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: currentcolor;
+}
+
+.menu-bars {
+  position: relative;
+}
+
+.menu-bars::before,
+.menu-bars::after {
+  position: absolute;
+  left: 0;
+  content: "";
+}
+
+.menu-bars::before {
+  top: -5px;
+}
+
+.menu-bars::after {
+  top: 5px;
+}
+
+/* A sheet, not a centred panel: it fills the left edge under the header, and the page behind it dims
+   rather than disappears — the reader is still on the page they came from. */
+.menu {
+  width: min(22rem, 92vw);
+  max-width: var(--shell);
+  max-height: none;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.menu::backdrop {
+  background: var(--scrim);
+}
+
+/* A modal dialog stops the page being clicked; this stops it being scrolled behind the sheet. */
+html:has(.menu[open]) {
+  overflow: hidden;
+}
+
+.menu-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  height: 100%;
+  padding: var(--s-5);
+  overflow: hidden;
+}
+
+/* On a 667px phone the eleven rows are taller than the screen from the fourth group down, so the list
+   scrolls inside a sheet whose heading and Close stay where they are. A Close button that scrolled
+   away would leave Escape as the only way out for a reader who does not have a keyboard. */
+.menu-sheet > nav {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-height: 0;
+  padding-bottom: var(--s-4);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The heading is the product's own name, the way a sidebar names the workspace — not a second word for
+   "navigation" the reader has to translate. */
+.menu-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-lede);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.menu-close {
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: none;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.menu-close:hover {
+  border-color: var(--jade-8);
+  color: var(--text);
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* The three pages about the reader rather than the work — what they earned, who they are, what it
+   costs — hang at the foot under a rule, the way a sidebar keeps its account area apart. */
+.menu-list-foot {
+  margin-top: auto;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+/* One row, one destination, named the way the page names itself. The glyph is a 16px column, not a
+   filled tile: eleven tiles would be eleven shapes competing with eleven words, while one quiet column
+   of marks gives the eye a rhythm to run down and lands on the label either way. */
+.icon-row {
+  flex: none;
+  margin-right: var(--s-3);
+  color: var(--text-muted);
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--s-2);
+  border-radius: var(--r-2);
+  color: var(--text);
+  font-size: var(--fs-body);
+  text-decoration: none;
+}
+
+.menu-row:hover {
+  background: var(--surface-sunk);
+}
+
+/* Where the reader already is: a jade hairline at the edge and one weight up, so the mark does not
+   rest on the background alone — hover uses that too. */
+.menu-row[aria-current="page"] {
+  background: var(--surface-sunk);
+  box-shadow: inset 2px 0 0 var(--jade-8);
+  font-weight: 500;
+}
+
+.menu-row[aria-current="page"] .icon-row {
+  color: var(--jade-9);
+}
+
+.menu-row:hover .icon-row {
+  color: var(--text);
+}
+
+/* The colophon is outside the shell's padding, so it carries its own. */
 .foot {
   display: flex;
   flex-wrap: wrap;
@@ -119,6 +371,7 @@
 }
 
 /* ── Feedback dialog ───────────────────────────────────────────────────── */
+/* ── Feedback dialog ───────────────────────────────────────────────────── */
 
 /*
  * A native modal `<dialog>`: the browser traps focus and answers Escape, so the only rules here are
@@ -129,7 +382,7 @@
   width: min(34rem, calc(100vw - var(--s-6)));
   padding: var(--s-6);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-2);
+  border-radius: var(--r-3);
   background: var(--surface);
   color: var(--text);
 }
@@ -192,7 +445,7 @@
   margin-top: var(--s-2);
   padding: var(--s-2) var(--s-3);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: var(--surface);
   color: var(--text);
   font-family: inherit;
@@ -261,15 +514,14 @@
   line-height: 1.55;
 }
 
-.byline {
+/* The one thing left above a lesson's content: how hard the task is. The page used to also carry its
+ * revision date and how many exercises exist, which no reader was using to decide anything. */
+.lesson-level {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0 var(--s-2);
   margin-top: var(--s-4);
-  color: var(--text-muted);
-  font-size: var(--fs-meta);
-  font-variant-numeric: tabular-nums;
 }
 
 .chip {
@@ -288,7 +540,7 @@
 }
 
 .chip-level,
-.chip-trial {
+.chip-paid {
   border-color: var(--line-strong);
 }
 
@@ -324,7 +576,7 @@
   align-self: start;
   padding: var(--s-4);
   border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border-radius: var(--r-3);
   background: var(--surface);
   box-shadow: var(--shadow-1);
 }
@@ -485,7 +737,7 @@
     min-height: 44px;
     padding: 2px var(--s-2);
     border: 1px solid var(--line);
-    border-radius: var(--r-1);
+  border-radius: var(--r-2);
     box-shadow: none;
   }
 
@@ -535,7 +787,7 @@
 
 .sheet-card {
   border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border-radius: var(--r-3);
   background: var(--surface);
   box-shadow: var(--shadow-1);
   overflow: hidden;
@@ -569,13 +821,70 @@
   color: var(--text);
 }
 
-/* The landing page's proof sheet: a real drill, shown where a stranger lands. The promise above it is
-   a claim, and a claim about a spreadsheet means nothing without the spreadsheet. The width is capped
-   to the two columns this lesson actually has: stretched to the page it reads as filler, sized to its
-   content it reads as a sheet. */
+/* The landing page's specimen: a real drill, shown where a stranger lands. The promise above it is a
+   claim, and a claim about a spreadsheet means nothing without the spreadsheet. The card keeps its
+   own width — stretched across the page a sheet reads as filler — while the note beside it and the
+   formula bar underneath take the rest of the shell. */
 .proof {
-  max-width: var(--artifact);
-  margin: var(--s-5) 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, var(--artifact)) minmax(0, 1fr);
+  grid-template-areas:
+    "sheet note"
+    "spine spine";
+  column-gap: var(--s-7);
+  row-gap: var(--s-5);
+  max-width: var(--shell);
+  margin: var(--s-9) 0 0;
+  align-items: start;
+}
+
+.proof .sheet-card {
+  grid-area: sheet;
+}
+
+/* The spine. A formula bar is the one piece of spreadsheet furniture the reader already knows, so it
+   is the page's line: it runs the full shell under the sheet and the note, outside the card, rather
+   than sitting in the card as its footer. */
+.spine {
+  display: flex;
+  grid-area: spine;
+  align-items: stretch;
+  min-height: 56px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.spine .ref-chip {
+  width: 64px;
+  min-width: 64px;
+  border-right: 1px solid var(--line);
+  background: transparent;
+}
+
+.proof-formula {
+  flex: 1;
+  min-width: 0;
+  padding: 0 var(--s-3);
+  align-self: center;
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* What the bar says about the formula in it: the accepted answer is the only one the page claims, so
+   the status is a word in the bar's own mono, not a badge with a tick beside it. */
+.spine-status {
+  display: grid;
+  place-items: center;
+  padding: 0 var(--s-4);
+  border-left: 1px solid var(--line);
+  color: var(--ok);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
 }
 
 /* The whole grid is the point, so the drill's 60vh scroll ceiling comes off, and the card's own
@@ -585,28 +894,34 @@
   border-top: 0;
 }
 
-.proof-formula {
-  flex: 1;
-  min-width: 0;
-  padding: 0 var(--s-2);
+/* The grader's own sentence, set as the quote it is, beside the sheet it is about: a reader who has
+   just met the grid is exactly the reader who wants to know what happens when it is answered
+   wrongly. The lead-in keeps the mistaken formula in the same mono as the bar, so the two formulas
+   on the page are visibly the same kind of object. */
+.proof-note {
+  grid-area: note;
   align-self: center;
-  overflow: hidden;
+  max-width: 40ch;
+  margin-top: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+  line-height: 1.55;
+}
+
+.proof-lead code {
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: var(--fs-ui);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.proof-note {
-  margin-top: var(--s-2);
-  color: var(--text-muted);
-  font-size: var(--fs-meta);
-}
-
-.proof-note code {
-  color: var(--text);
   font-weight: 500;
+}
+
+.proof-note q {
+  display: block;
+  margin-top: var(--s-3);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 
 .task {
@@ -655,7 +970,7 @@
   min-width: max-content;
   height: auto;
   border: 1px solid var(--line);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: var(--surface);
 }
 
@@ -696,7 +1011,7 @@
   gap: var(--s-2);
   padding: var(--s-2) var(--s-3);
   border: 1px solid var(--line);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: var(--surface);
   color: var(--text);
   font-weight: 600;
@@ -716,6 +1031,16 @@
 .workbook-meta {
   color: var(--text-muted);
   font-size: var(--fs-meta);
+}
+
+/*
+ * A download under a grid rather than inside a workbook block: a lesson screen's own sheet. It needs
+ * the gap the workbook container would otherwise supply, and it wraps rather than pushing the grid
+ * off the page on a phone.
+ */
+.sheet + .workbook-file,
+.article-drill .workbook-file {
+  margin-top: var(--s-3);
 }
 
 /*
@@ -752,7 +1077,7 @@
   max-height: 40vh;
   overflow: auto;
   border: 1px solid var(--line);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: var(--surface);
   scrollbar-width: thin;
 }
@@ -774,7 +1099,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--s-4);
-  border-radius: var(--r-2);
+  border-radius: var(--r-3);
 }
 
 .keys-panel:focus-visible {
@@ -815,7 +1140,7 @@
   gap: var(--s-1);
   padding: var(--s-2) var(--s-3);
   border: 1px solid var(--line);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: var(--surface);
   counter-increment: step;
 }
@@ -1096,7 +1421,7 @@
   min-height: 44px;
   padding: 0 var(--s-4);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: transparent;
   color: var(--text);
   font-size: var(--fs-ui);
@@ -1155,6 +1480,21 @@
   border-color: var(--sand-11);
   background: var(--sand-11);
   color: var(--sand-1);
+}
+
+/* The closing offer on `/start`, where the page finally asks for money. It earns the extra weight
+   because it is a decision, not a step: 56px tall with a body-size label, so it reads as the last
+   thing on the page rather than another row in the list. The width is `ch` rather than a pixel count
+   to keep the label on one line at any type scale, and the label wraps on a phone instead of forcing
+   the page wider than 390px. */
+.btn-lg {
+  width: 100%;
+  max-width: 38ch;
+  min-height: 56px;
+  padding: 0 var(--s-6);
+  font-size: var(--fs-body);
+  white-space: normal;
+  text-align: center;
 }
 
 .btn[aria-disabled="true"] {
@@ -1411,7 +1751,7 @@
   height: 36px;
   padding: 0 var(--s-3);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: var(--surface);
   color: var(--text);
   font-size: var(--fs-ui);
@@ -1469,7 +1809,7 @@
   margin: 0 0 var(--s-4);
   padding: var(--s-3) var(--s-4);
   border: 1px solid var(--line);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: var(--surface-sunk);
 }
 
@@ -1522,6 +1862,11 @@
 .docs p {
   margin-top: var(--s-2);
   max-width: var(--prose);
+}
+
+/* An explanation is two or three paragraphs now, and a reader needs to see the seam between them. */
+.docs p + p {
+  margin-top: var(--s-3);
 }
 
 .docs code {
@@ -1655,7 +2000,7 @@
   margin-bottom: var(--s-6);
   padding: var(--s-5);
   border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border-radius: var(--r-3);
   background: var(--surface-sunk);
 }
 
@@ -1728,7 +2073,7 @@
   gap: var(--s-2);
   padding: var(--s-5);
   border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border-radius: var(--r-3);
   background: var(--surface);
   box-shadow: var(--shadow-1);
 }
@@ -1776,14 +2121,6 @@
   color: var(--text-muted);
   font-size: var(--fs-meta);
   font-variant-numeric: tabular-nums;
-}
-
-.project-foot {
-  max-width: var(--prose);
-  margin-top: var(--s-6);
-  color: var(--text-muted);
-  font-size: var(--fs-meta);
-  line-height: 1.6;
 }
 
 /* ── Breadcrumbs ──────────────────────────────────────────────────────── */
@@ -1906,43 +2243,27 @@
 /* ── Track index ───────────────────────────────────────────────────────── */
 
 /*
- * The front door fits one screen: the promise and one action on the left, the real spreadsheet it is
- * promising on the right. Below 1024px the proof stacks under the copy instead of shrinking into a
- * thumbnail nobody can read.
+ * The front door is one line of type, one action, then the product. No two-column hero: a stranger's
+ * first question is "what is this", and the answer is a sentence — so the sentence gets the width of
+ * the page, and the drill arrives below at the size it will actually be read at instead of being
+ * shrunk into a thumbnail beside the copy.
  */
 .hero {
-  display: grid;
-  gap: var(--s-6);
   padding-top: var(--s-7);
 }
 
+.home .hero h1 {
+  max-width: 20ch;
+  font-size: var(--fs-display);
+  line-height: 0.98;
+  letter-spacing: -0.032em;
+}
+
+/* 44ch is a subhead's measure, not an essay's: the promise is two sentences, and at the full measure
+   it reads as a paragraph that has been squeezed into half a screen. */
 .hero .lede {
-  margin-top: var(--s-3);
-}
-
-/* The promise reads as a paragraph, not as the width of a laptop. */
-.hero-copy {
-  max-width: var(--prose);
-}
-
-.hero .proof {
-  margin-top: 0;
-}
-
-@media (min-width: 1024px) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr) var(--artifact);
-    gap: var(--s-8);
-    align-items: start;
-  }
-}
-
-/* The one fact line under the CTA: what is free, and that nothing leaves the browser. */
-.facts {
-  margin-top: var(--s-3);
-  color: var(--text-muted);
-  font-size: var(--fs-meta);
-  font-variant-numeric: tabular-nums;
+  max-width: 44ch;
+  margin-top: var(--s-4);
 }
 
 .cta-row {
@@ -1966,6 +2287,16 @@
 
 .track-progress .rail-track {
   margin-bottom: var(--s-2);
+}
+
+/* A band of the shell's own width, ruled off at the top. Not the `.how` ribbon: /pricing used to run
+   620px columns with a 2px left rule under a 1080px head, leaving 400px of dead column beside the
+   bottom two thirds of the page. A horizontal rule makes each section read as a section. */
+.price-band {
+  max-width: var(--shell);
+  margin-top: var(--s-8);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
 }
 
 .how {
@@ -2010,6 +2341,336 @@
 }
 
 /*
+ * The offer. One product, so one card. Three terms are a control inside it, not three objects beside
+ * it: an earlier version printed a card per term and the reader had to compare before they could
+ * decide, which is three products' worth of page for one thing sold at three commitments. The switch is
+ * three radio inputs and three labels with no script: `:checked ~` reaches the track and the panel body
+ * because both are the inputs' siblings, so the static edition switches too, and every term keeps its
+ * own checkout form rather than sharing one action that would sell the year to a reader who chose the
+ * month.
+ *
+ * No `:has()` anywhere. It would be shorter, and it would drop the oldest browser this site still
+ * answers, for a page whose whole interaction is three radios.
+ */
+.term-switch {
+  display: block;
+  min-inline-size: 0;
+  max-width: var(--shell);
+  margin: var(--s-7) 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.term-legend {
+  padding: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.02em;
+}
+
+/* Visually gone, still in the tab order and still the thing a screen reader announces. The ring is
+   drawn on the label the input owns, a few rules down, because the 1px box it would land on is not
+   something a sighted reader can find. */
+.term-radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.term-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-1);
+  margin-top: var(--s-3);
+  padding: var(--s-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface-sunk);
+}
+
+.term-track label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: var(--s-2);
+  border-radius: var(--r-1);
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+  text-align: center;
+  cursor: pointer;
+}
+
+.term-track label:hover {
+  color: var(--text);
+}
+
+/* The selected segment, and only the selected one, is raised: the surface colour matches the card
+   below, so the term reads as a tab lifted off the track rather than a button that was clicked. */
+#term-monthly:checked ~ .term-track label[for="term-monthly"],
+#term-semiannual:checked ~ .term-track label[for="term-semiannual"],
+#term-annual:checked ~ .term-track label[for="term-annual"] {
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+  font-weight: 500;
+}
+
+#term-monthly:focus-visible ~ .term-track label[for="term-monthly"],
+#term-semiannual:focus-visible ~ .term-track label[for="term-semiannual"],
+#term-annual:focus-visible ~ .term-track label[for="term-annual"] {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.term-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-6);
+  margin-top: var(--s-4);
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+}
+
+.term-panel {
+  display: none;
+  align-content: start;
+  gap: var(--s-1);
+}
+
+#term-monthly:checked ~ .term-body [data-plan="monthly"],
+#term-semiannual:checked ~ .term-body [data-plan="semiannual"],
+#term-annual:checked ~ .term-body [data-plan="annual"] {
+  display: grid;
+}
+
+.term-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-2);
+}
+
+/* What the card is charged, which is the only number a reader has to agree to. The monthly equivalent
+   is the line under it, and its saving is derived from the same two amounts. */
+.term-amount {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.term-unit {
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+}
+
+.term-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2);
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+}
+
+.term-per-month {
+  font-variant-numeric: tabular-nums;
+}
+
+.term-save {
+  padding: 1px var(--s-2);
+  border: 1px solid var(--ok-line);
+  border-radius: var(--r-1);
+  background: var(--ok-bg);
+  color: var(--ok);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.04em;
+}
+
+.term-buy {
+  margin-top: var(--s-3);
+}
+
+.term-buy .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* What the money buys, once, beside the price rather than in a band under it: three lines, one per
+   question a reader has before they type a card number. A checkmark column keeps them a list instead of
+   a paragraph that was broken into three. */
+.term-includes {
+  display: grid;
+  align-content: start;
+  gap: var(--s-2);
+}
+
+.term-includes p {
+  position: relative;
+  padding-left: calc(16px + var(--s-2));
+  font-size: var(--fs-ui);
+  line-height: 1.55;
+}
+
+.term-includes p::before {
+  content: "";
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 9px;
+  height: 5px;
+  border-left: 1.5px solid var(--ok);
+  border-bottom: 1.5px solid var(--ok);
+  transform: rotate(-45deg);
+}
+
+.term-guarantee {
+  margin-top: var(--s-3);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+@media (max-width: 760px) {
+  .term-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-5);
+    padding: var(--s-4);
+  }
+}
+
+/* The two ways onward from the card, as a row of links rather than as a sentence with two links buried
+   in it: a 17px link inside a paragraph is a 17px target, and the reader has just read a heading. */
+.free-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s-5);
+  margin-top: var(--s-5);
+}
+
+.free-more a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  font-size: var(--fs-ui);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 0.2em;
+}
+
+.free-more a:hover {
+  text-decoration-color: var(--jade-8);
+}
+
+/* The offer page is the one page whose links sit inside sentences' worth of prose. They are still
+   targets: the sentence stays a sentence — an inline flex keeps the line unbroken — while the box
+   grows to the site's 24px floor instead of inheriting a 22px line box. */
+.qa-block p a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+
+/*
+ * The questions fold, shared by the five pages that answer questions before they end. Native
+ * `<details>`: no script, the answer stays in the HTML while closed, and `<summary>` brings the button
+ * role, the state and the keyboard. Several open at once (no `name`) so comparing answers costs
+ * nothing; the caret is drawn on `summary::after` and kept out of the accessible name; the question
+ * stays an `<h3>` so the outline still holds it. `site/questions.mjs` is the only renderer.
+ */
+.qa-block {
+  max-width: var(--prose);
+  margin-top: var(--s-8);
+}
+
+/* `/pricing` asks the same questions at the width of the page it is on, not at the prose measure: the
+   fold is a band there, ruled like the four above it. The hook is the band wrapper rather than a body
+   class — the Next edition renders one `<body class="light">` for every route, so a rule scoped to
+   `body.pricing` would only ever paint the static build. */
+.price-band .qa-block {
+  max-width: var(--shell);
+  margin-top: 0;
+}
+
+.qa {
+  margin-top: var(--s-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.faq {
+  border-top: 1px solid var(--line);
+}
+
+.faq summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-4);
+  min-height: 44px;
+  padding: var(--s-3) 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary h3 {
+  margin: 0;
+  font-size: var(--fs-ui);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.faq summary:hover h3 {
+  color: var(--text-muted);
+}
+
+/* A caret drawn from two borders rather than typed: the `+`/`−` pair is a glyph that changes width
+   with the font, and rotating one character reads as an action rather than as a state. */
+.faq summary::after {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 0.45em;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: rotate(45deg);
+}
+
+.faq[open] summary::after {
+  transform: rotate(225deg);
+}
+
+.faq p {
+  padding-bottom: var(--s-3);
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+  line-height: 1.55;
+}
+
+.faq p + p {
+  margin-top: var(--s-2);
+}
+
+/* The closing line of the section: who to ask, or where the account is. */
+.qa-footer {
+  margin-top: var(--s-4);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+/*
  * The same three steps on the front door, as one strip under the hero. /pricing keeps the list form,
  * where each set of steps explains its own price and needs its own heading. Here they are one line of
  * the page's story, so the left rule becomes a top rule and the three become columns.
@@ -2029,10 +2690,9 @@
 }
 
 /*
- * The page's menu. The site has no header navigation, so every destination the footer used to carry in
- * two right-aligned rows lives here instead: inside `--prose`, as one wrapping line of links that reads
- * as the end of the page rather than a second header. It carries no rule of its own — the footer's
- * hairline sits below it, and two dividers 96px apart is one divider too many.
+ * The dashboard's own ways around. The site's destinations are in the drawer (`.menu`); this is the
+ * page's, sitting beside the learner's progress: one wrapping line of links inside `--prose`, so it
+ * reads as the end of the page rather than a second header.
  */
 .ways {
   max-width: var(--prose);
@@ -2101,7 +2761,7 @@
 }
 
 /*
- * The curriculum. One head with the trial rule and the reader's own progress, then three levels as
+ * The curriculum. One head with the free/paid rule and the reader's own progress, then three levels as
  * native disclosures. `<details>` costs no JavaScript, keeps the disclosure arrow and the keyboard
  * behaviour the platform already guarantees, and — the reason it is here — keeps all 88 lesson links
  * in the document while only one list is on screen.
@@ -2295,8 +2955,9 @@
 
   /* The primary action of a drill is 32px tall on every viewport; on a phone it grows to a thumb
      target and the formula bar grows with it. Button labels stop being unbreakable here too: a
-     46-character CTA cannot fit 390px in one line and used to push the page 70px wide. */
-  .btn {
+     46-character CTA cannot fit 390px in one line and used to push the page 70px wide. The oversized
+     closing CTA on `/start` is exempt — its whole point is to stay bigger than the rows above it. */
+  .btn:not(.btn-lg) {
     height: auto;
     min-height: 44px;
     white-space: normal;
@@ -2323,6 +2984,92 @@
 
   .curriculum-head .track-progress {
     flex: 0 1 100%;
+  }
+}
+
+/* ── Front door ────────────────────────────────────────────────────────── */
+
+/*
+ * What the landing page changes about the shared parts. `.level-sum` is the dashboard's own
+ * disclosure as well and `.how-strip` is the hub's three steps, so the front door's treatment is
+ * scoped to `.home`. The page is a workbook: a ruled worksheet of levels under the specimen, closed by
+ * the one line that leads out of it.
+ */
+
+/* Below 1024 the card, the note and the spine are one column. The spine stays where it is in the
+   document — under the sheet — so the note reads last, after the bar it is talking about. */
+@media (max-width: 1023px) {
+  .proof {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "sheet"
+      "spine"
+      "note";
+    row-gap: var(--s-6);
+  }
+
+  .proof-note {
+    max-width: var(--prose);
+    align-self: start;
+  }
+}
+
+/* The three levels are worksheet rows: a ruled frame, a serif level name in the row header, and the
+   drill count where a spreadsheet puts a subtotal. */
+.home .curriculum {
+  margin-top: var(--s-9);
+}
+
+.home .curriculum-head {
+  align-items: baseline;
+  margin-bottom: 0;
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.home .curriculum .level-sum {
+  padding: var(--s-3) var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.home .level-sum h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+.home .level-count {
+  font-family: var(--font-mono);
+}
+
+/* The row numbers are the sheet's row headers: a fixed gutter, mono, tabular. The third column is
+   empty on this page (the paid chip rides with the title), so it collapses to zero and the outcome
+   line gets the width. */
+.home .lesson-link {
+  grid-template-columns: 40px minmax(0, 1fr);
+  padding: var(--s-3) var(--s-2);
+}
+
+/* One duration for every hover on the page: the page's only movement is the page reacting to the
+   pointer, and a row that fades in does not need a longer one than another. */
+@media (prefers-reduced-motion: no-preference) {
+  .home .lesson-link,
+  .home .level-sum {
+    transition: background-color var(--dur-2) var(--ease), border-color var(--dur-2) var(--ease),
+      color var(--dur-2) var(--ease);
+  }
+}
+
+@media (max-width: 767px) {
+  /* 96px is a desktop section rhythm; a phone scrolls through six of them. */
+  .home .proof,
+  .home .how-strip,
+  .home .curriculum {
+    margin-top: var(--s-8);
+  }
+
+  .home .hero {
+    padding-top: var(--s-6);
   }
 }
 
@@ -2365,6 +3112,10 @@
   color: var(--text-muted);
   font-size: var(--fs-ui);
   line-height: 1.55;
+}
+
+.dash-next-why:empty {
+  display: none;
 }
 
 .dash-legend {
@@ -2594,6 +3345,12 @@
     animation: rise var(--dur-1) var(--ease) both;
   }
 
+  /* The questions caret turns rather than jumps. The state itself is instant either way: `[open]`
+     swaps the rotation whether or not the browser animates it. */
+  .faq summary::after {
+    transition: transform var(--dur-2) var(--ease);
+  }
+
   .hint-text.is-live {
     animation: rise var(--dur-2) var(--ease) both;
   }
@@ -2724,7 +3481,7 @@ pre.syntax,
   margin-top: var(--s-6);
   padding: var(--s-5);
   border: 1px solid var(--line);
-  border-radius: var(--r-2);
+  border-radius: var(--r-3);
   background: var(--surface-sunk);
 }
 
@@ -2757,7 +3514,7 @@ pre.syntax,
   min-height: 44px;
   padding: 0 var(--s-3);
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
+  border-radius: var(--r-2);
   background: var(--surface);
   color: var(--text);
   font-family: var(--font-mono);
@@ -2870,4 +3627,324 @@ pre.syntax,
   max-width: var(--prose);
   color: var(--text-muted);
   font-size: var(--fs-ui);
+}
+
+/* Search: the box, the list of answers, and the whole track under it. */
+
+.search-form {
+  display: flex;
+  gap: var(--s-2);
+  margin: var(--s-6) 0 var(--s-2);
+  max-width: var(--prose);
+}
+
+.search-form input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-body);
+}
+
+.search-form input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.search-help,
+.search-status {
+  margin: 0 0 var(--s-3);
+  max-width: var(--prose);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.search-status:empty {
+  display: none;
+}
+
+.search-results {
+  margin: 0 0 var(--s-6);
+  padding: 0;
+  list-style: none;
+  max-width: var(--prose);
+  border-top: 1px solid var(--line);
+}
+
+.search-results[hidden] {
+  display: none;
+}
+
+.search-result {
+  border-bottom: 1px solid var(--line);
+}
+
+.search-result a {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-height: 44px;
+  padding: var(--s-2) var(--s-2);
+  text-decoration: none;
+}
+
+.search-result[aria-selected="true"] a,
+.search-result a:hover {
+  background: var(--surface-sunk);
+}
+
+.search-num {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.search-title {
+  grid-column: 2;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.search-result a:hover .search-title {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.search-kind {
+  grid-column: 3;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  white-space: nowrap;
+}
+
+.search-everything {
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s-5) var(--s-6);
+  grid-template-columns: repeat(auto-fill, minmax(min(20rem, 100%), 1fr));
+}
+
+.search-group h3 {
+  margin-bottom: var(--s-2);
+  font-size: var(--fs-h3);
+}
+
+.search-titles {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+}
+
+.search-titles li {
+  margin-bottom: var(--s-1);
+}
+
+.search-titles a {
+  color: var(--text);
+}
+
+.search-gated {
+  margin-left: var(--s-1);
+  padding: 0 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+
+/* The shortcut pages. The table is the page, so the tabs above it are links rather than a widget —
+   each tabbed state has an address, which is the only way one is shareable — and a hidden cell is
+   hidden rather than removed, so the table a reader prints still holds every platform. */
+.platform-tabs {
+  margin-top: var(--s-4);
+}
+
+.platform-tabs-list {
+  display: flex;
+  gap: var(--s-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.platform-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--r-1);
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+  text-decoration: none;
+}
+
+.platform-tab:hover {
+  color: var(--text);
+  background: var(--surface-sunk);
+}
+
+.platform-tab[aria-current="page"] {
+  margin-bottom: -1px;
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.keys-table tbody th {
+  font-weight: 500;
+}
+
+.keys-table td {
+  white-space: normal;
+}
+
+.keys-table [hidden] {
+  display: none;
+}
+
+/* A keycap that wraps to a second line would read as two presses, so the chord holds together as one
+   run and the table takes the horizontal scroll instead. */
+.keys-table .press {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  vertical-align: middle;
+}
+
+.keys-none {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.keys-note {
+  display: block;
+  margin-top: var(--s-1);
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+/* Above the table, in the flow, never over it: a banner that covers the thing it is about is a
+   banner that has to be dismissed before the page can be read. */
+.touch-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--text);
+  border-radius: var(--r-2);
+  background: var(--surface-sunk);
+}
+
+.touch-banner[hidden] {
+  display: none;
+}
+
+.touch-banner-text {
+  flex: 1 1 18rem;
+  margin: 0;
+  font-size: var(--fs-ui);
+}
+
+.touch-banner-actions {
+  display: flex;
+  gap: var(--s-2);
+  margin: 0;
+}
+
+.practice-cta {
+  margin-top: var(--s-4);
+}
+
+.shortcut-filter {
+  display: grid;
+  gap: var(--s-2);
+  margin: var(--s-7) 0 var(--s-6);
+  max-width: var(--prose);
+}
+
+.shortcut-filter[hidden] {
+  display: none;
+}
+
+.shortcut-filter-label {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  font-weight: 600;
+}
+
+.shortcut-filter-input {
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-ui);
+}
+
+.shortcut-filter-status {
+  margin: 0;
+  min-height: 1.2em;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+/* Six families of actions: a column of headings and a list each, so the hub reads as a table of
+   contents rather than six cards competing for the same click. */
+.shortcut-family {
+  margin-bottom: var(--s-6);
+}
+
+.shortcut-family-note {
+  margin: var(--s-1) 0 var(--s-2);
+  color: var(--text-muted);
+  font-size: var(--fs-ui);
+}
+
+.shortcut-index {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: 2;
+  column-gap: var(--s-6);
+  font-size: var(--fs-ui);
+}
+
+.shortcut-index li {
+  break-inside: avoid;
+}
+
+.shortcut-index a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.shortcut-index [hidden],
+.shortcut-family[hidden] {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  .shortcut-index {
+    columns: 1;
+  }
 }

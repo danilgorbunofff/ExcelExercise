@@ -2,18 +2,18 @@
 
 The authoring gate. `content` answers "can this lesson be rendered?"; this answers "can it be shipped?".
 
-It exists because a drill can be perfectly well-formed and still be broken: a formula the lesson calls
+It exists because an exercise can be perfectly well-formed and still be broken: a formula the lesson calls
 accepted but the grader rejects, a failure path documented in `hints` that no fixture ever triggers, a
 prompt copy-pasted from the lesson above it, a link to a page the site does not emit. None of those are
 schema errors — they are content errors, and they are invisible until a learner hits them.
 
 ```bash
 npm run content:check                                  # the gate CI runs
-npm run content:copy                                   # the wording rules, lessons and groups
+npm run content:copy                                   # the wording rules, lessons, groups, pages, projects
 npm run content:articles                               # the function notes
 npm run content:fixtures -- --lesson 6                 # one lesson, row per fixture
 npm run content:new -- --lesson 11 --group lookup      # fill the next planned slot
-npm run content:preview -- --lesson 11                 # the drill as its page reads
+npm run content:preview -- --lesson 11                 # the exercise as its page reads
 node packages/content-lint/cli.js check --content <dir> --fixtures <dir>
 ```
 
@@ -27,13 +27,15 @@ that entry to `{ id, group }`. The lesson's title, level and group come from the
 cannot land somewhere the site does not look for it, and the slug comes from the title, so the URL is
 not a second decision.
 
-`--lesson` is the number the *file* carries, and it has to be the next free one: ids are dense and
-follow the order lessons were written in, which is what keeps the folder sorted by creation. The
+`--lesson` is the number the *file* carries, and it has to be the next one in order: ids follow the
+order lessons were written in, which is what keeps the folder sorted by creation. That means the next
+number is one past the highest in the catalog, not the first gap — a lesson deleted years ago does not
+hand its number to today's lesson. The
 number a lesson is *published* as is a different thing — position among authored lessons in catalog
 order — so a lesson written into an earlier group takes a lower published number than its file says,
 and every lesson after it moves up one. Both numbers are printed when the file is written.
 
-The skeleton is the smallest drill that passes every rule: a SUM total over two cells, six accepted
+The skeleton is the smallest exercise that passes every rule: a SUM total over two cells, six accepted
 and six rejected formulas, a hint per failure path it advertises, and docs that validate. What it
 cannot write is the lesson — the prompt and `docs.explain` say "replace this scaffold" in place, so a
 scaffold that is never edited reads as unfinished rather than as content.
@@ -68,7 +70,7 @@ table.
 
 | Lesson shape | Fixtures | Why |
 |---|---|---|
-| `schemaVersion: 2` | `screens[].fixtures: { accept, reject }` | the screen owns its drill, so it owns the proof |
+| `schemaVersion: 2` | `screens[].fixtures: { accept, reject }` | the screen owns its exercise, so it owns the proof |
 | v1 flat | `tests/fixtures/<id>.json` | the shape predates screens; one file per lesson |
 
 Every shipped lesson is v2, so the sidecar path is a deprecation window rather than the normal home: it
@@ -94,7 +96,7 @@ rule must match it: that is what keeps `hints` honest.
   nobody reads.
 - **Prompts are unique and one sentence** — duplicates are errors (that is a copy-paste, not a
   lesson); more than one sentence is a warning, because a capstone may legitimately name three
-  techniques in one long sentence while two short ones mean the drill does two things.
+  techniques in one long sentence while two short ones mean the exercise does two things.
 - **Links resolve** — markdown links to site-absolute paths must point at a page the site emits: the
   index, or a lesson under one of the published bases in `LESSON_BASES` (`/learn/excel/<slug>`, the
   canonical one, and `/excel/<slug>`, which `next.config.mjs` redirects onto it while the static build
@@ -108,7 +110,7 @@ rule must match it: that is what keeps `hints` honest.
   blank one is a hole on the page. One line names every reachable group still blank rather than nine
   separate findings. A group whose lessons are all still planned owes nothing yet.
 
-Empty hints on a rejection are a warning, not an error: the drill still grades, it just teaches less.
+Empty hints on a rejection are a warning, not an error: the exercise still grades, it just teaches less.
 
 ## What it deliberately does not do
 
@@ -133,8 +135,8 @@ What it refuses:
 - **A note that does not parse** — reported per file, collected, so one bad note does not hide the rest.
 - **A note missing a section** — the five required headings, 2 to 4 `### Example N`, at least one
   table, and 700 to 1400 words.
-- **A drill that leads nowhere** — `exercise` has to name a lesson that exists, by slug. A note with a
-  wrong slug still renders; it just loses its drill, which is why the rendered-page test in
+- **An exercise that leads nowhere** — `exercise` has to name a lesson that exists, by slug. A note with a
+  wrong slug still renders; it just loses its exercise, which is why the rendered-page test in
   `tests/articles.test.js` checks the shipped pages too and not only the parser.
 - **A link to a page the site does not emit** — `servedPaths(lessons, notes)` is derived from the
   content, so a link to `/excel/<slug>` that was renamed, or to `/account`, fails here.

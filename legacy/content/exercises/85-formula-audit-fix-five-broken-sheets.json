@@ -5,30 +5,22 @@
   "title": "Formula audit: fix five broken sheets",
   "docs": {
     "syntax": "each error code names one break: a zero divisor, a missing key, text in arithmetic, a wrong range, a misspelling",
-    "explain": "This capstone is the reverse of everything before it. The other lessons hand you a question and ask for a formula. Here the formula exists, it is broken, and the sheet shows you the error code it broke with. Reading that code is the skill. A division error means the denominator can be zero, and the fix is a guard rather than a different function. A not-available error means a lookup found nothing, and the fix is to test for the row before asking for it. A value error means one of the operands is text and the arithmetic has no number to work with, which is caught with a type test. A reference error means a range points outside the data, and the fix is to read the range against the table rather than to trust the mouse. A name error means the function was mistyped, and the repair is spelling. The five screens here are one of each, in that order. Each one takes a different function to repair, which is why the audit is the last lesson in the track rather than an early one.",
+    "explain": "Each error code names one kind of break. A division error means the denominator can be zero, so the repair is a test in front of the division. A not-available error means a lookup found no row, so the repair tests for the key before asking for it.\n\nA value error means an operand is text where a number belongs, which ISNUMBER catches. A reference error means a range points outside the table, and a name error means the function was typed wrong. Both are read off the sheet, and neither needs a guess about the arithmetic.\n\nThe five screens take one code each, and each repair uses a different function: IF, COUNTIF, ISNUMBER, SUMIF and AVERAGE. Working from the code down stops you rewriting a formula that was one argument short of right.",
     "errors": [
       {
         "code": "#DIV/0!",
-        "text": "A denominator is zero, so the division has no result."
+        "text": "A denominator is zero, so the division has no result and the cell needs a test in front of it."
       },
       {
         "code": "#N/A",
-        "text": "A lookup key is not in the table, so there is no row to read."
+        "text": "A lookup key is not in the table, so there is no row to read and the key has to be counted first."
       },
       {
         "code": "#VALUE!",
-        "text": "An operand is text where a number is needed."
-      },
-      {
-        "code": "#REF!",
-        "text": "A range points outside the data, so it no longer exists."
-      },
-      {
-        "code": "#NAME?",
-        "text": "A function name is misspelled, so the sheet does not know it."
+        "text": "An operand is text where a number belongs, so the arithmetic needs a type test before it runs."
       }
     ],
-    "atWork": "Opening a workbook someone else built and fixing it from the error code down.",
+    "atWork": "Opening a workbook someone else built and repairing each cell from the error code it shows.",
     "outcome": "Repair five broken cells, one per error code, by choosing the test each code implies.",
     "teaches": "an error-code-first repair: guard, key test, type test, range, spelling",
     "dataset": "Five broken sheets, one per error code, to repair in place",
@@ -94,7 +86,7 @@
         "func-if": "The cell has to choose between a word and a division.",
         "require-ref": "The visits figure for that rep is in B3.",
         "value": "With no visits the answer is the word n/a, not a number.",
-        "error": "A zero divisor is exactly what the guard is there to catch."
+        "error": "The guard tests the wrong thing and the zero divisor is still reached, so the cell shows #DIV/0!."
       },
       "fixtures": {
         "accept": [
@@ -219,7 +211,7 @@
         "func-vlookup": "The orders figure is read from the third column of the rep table.",
         "require-ref": "The typed name is in E2.",
         "value": "Zed is not in the list, so the answer is the word not found.",
-        "error": "A lookup of a missing key is what returns #N/A, so the test must come first."
+        "error": "A test that runs the wrong way still sends a missing key into VLOOKUP, which returns #N/A."
       },
       "fixtures": {
         "accept": [
@@ -338,7 +330,7 @@
         "func-isnumber": "The quantity is text on that row, so the fix starts with a type test.",
         "require-ref": "The quantity is in B3.",
         "value": "A line with no usable quantity is worth nothing, so it contributes zero.",
-        "error": "Multiplying text by a price is what raises the value error."
+        "error": "The type test is applied to the price rather than the quantity, so text still gets multiplied."
       },
       "fixtures": {
         "accept": [
@@ -447,7 +439,7 @@
         "func-sumif": "Only the North rows count, so the total needs a criterion.",
         "require-ref": "The amount column is B2:B5.",
         "value": "A hundred and a hundred and fifty are the two North rows, so 250.",
-        "error": "A range that points outside the table is what raised the reference error."
+        "error": "A range that reaches outside the table raises #REF! until both ranges are read back against the rows."
       },
       "fixtures": {
         "accept": [
@@ -546,7 +538,7 @@
         "func-average": "The repaired cell reports the mean of the scores.",
         "require-ref": "The score column is B2:B5.",
         "value": "339 across four names is 84.75.",
-        "error": "A misspelled function name is what raised the name error."
+        "error": "A misspelled function name raises #NAME?, so the repair is the spelling of AVERAGE."
       },
       "fixtures": {
         "accept": [

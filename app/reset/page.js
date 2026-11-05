@@ -34,7 +34,7 @@ async function ResetPanel() {
 
 export default function ResetPage() {
   return (
-    <AuthShell counter={t("auth.reset.title")}>
+    <AuthShell >
       <AuthCard
         title={t("auth.reset.title")}
         lede={t("auth.reset.lede")}

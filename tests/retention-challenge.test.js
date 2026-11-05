@@ -4,7 +4,7 @@
  * What is proven here is everything that must be *deterministic*: the draw is the same for a day in
  * every process (no cron, no stored seed), the ten screens spread across lessons rather than piling up
  * on the lesson with the most screens, the payload the browser receives carries no answer, and the
- * verdict comes from the same grader the drills use.
+ * verdict comes from the same grader the exercises use.
  *
  * `tests/db/challenge.spec.js` proves the other half — one challenge per day, one attempt per learner,
  * the first verdict standing — against a real Postgres.
@@ -40,7 +40,7 @@ const { index } = loadSite();
 
 // Two authored screens used as the grading fixtures: one formula, one picture. Read from content
 // rather than written here, because a test that restates a lesson is a test of its own copy.
-const FORMULA_LESSON = index.find((entry) => entry.exercise.id === "27-what-a-formula-actually-does").exercise;
+const FORMULA_LESSON = index.find((entry) => entry.exercise.id === "01-sum-basics").exercise;
 const FORMULA_SCREEN = FORMULA_LESSON.screens.find((screen) => screen.type === "formula");
 const PICTURE_LESSON = index.find(
   (entry) => entry.exercise.id === "11-vlookup-approximate-match-needs-a-sorted-column",
@@ -71,10 +71,10 @@ describe("the shape of a challenge", () => {
 
 describe("the screen key", () => {
   it("round-trips a lesson and screen id", () => {
-    const key = screenKey("27-what-a-formula-actually-does", "formula-1");
-    assert.equal(key, "27-what-a-formula-actually-does#formula-1");
+    const key = screenKey("01-sum-basics", "formula-1");
+    assert.equal(key, "01-sum-basics#formula-1");
     assert.deepEqual(parseScreenKey(key), {
-      lessonId: "27-what-a-formula-actually-does",
+      lessonId: "01-sum-basics",
       screenId: "formula-1",
     });
   });

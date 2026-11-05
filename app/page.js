@@ -2,6 +2,7 @@ import { prepareIndexPage } from "../legacy/src/site/index-page.mjs";
 import { renderChrome } from "../legacy/src/site/shell.mjs";
 
 import { loadSite } from "../lib/site.js";
+import { socialImage, socialTwitter } from "../lib/social.js";
 
 const { config, track, index, icons, clientAvailable } = loadSite();
 
@@ -15,8 +16,9 @@ export const metadata = {
     title: track.title,
     description: track.promise,
     url: "/",
+    images: [socialImage({ path: "/", title: track.title })],
   },
-  twitter: { card: "summary" },
+  twitter: socialTwitter({ path: "/", title: track.title }),
 };
 
 export default function Home() {
@@ -29,7 +31,7 @@ export default function Home() {
     projectsAvailable: true,
     appPagesAvailable: true,
   });
-  const { skip, header, footer } = renderChrome({ config, page });
+  const { skip, header, footer } = renderChrome({ config, page, appPagesAvailable: true, icons });
 
   return (
     <>

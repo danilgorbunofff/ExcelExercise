@@ -34,7 +34,17 @@ const PICTURE_FIELDS = ["image", "alt", "answers"];
 const WORKBOOK_ONLY_FIELDS = ["sheet"];
 
 /** The inverse: fields a picture screen has no use for, and a formula screen's grader cannot read. */
-const FORMULA_FIELDS = ["grid", "answerCell", "expect", "require", "forbid", "requireRef", "rules", "fixtures"];
+const FORMULA_FIELDS = [
+  "grid",
+  "answerCell",
+  "expect",
+  "require",
+  "forbid",
+  "requireRef",
+  "rules",
+  "fixtures",
+  "variants",
+];
 
 /** The two key screens' own fields, which neither a formula screen nor a picture screen can render. */
 const KEY_FIELDS = ["keys", "steps"];
@@ -45,7 +55,15 @@ const KEY_FIELDS = ["keys", "steps"];
  * The lesson-level block cannot say that, and a screen that reuses the lesson's reference reads as the
  * wrong drill. Lengths are the lesson block's own, so the two read at one rhythm.
  */
-const SCREEN_DOCS = { syntax: 120, explain: 400, reference: 200 };
+const SCREEN_DOCS = { syntax: 120, explain: 700, reference: 200 };
+
+/**
+ * The explanation is read, not scanned: one long block of 150 words is where a reader gives up. It is
+ * authored as two or three paragraphs separated by a blank line, and this is the shape the page and
+ * the reader both assume. The ceiling is per paragraph, so a paragraph that needs a second pass is
+ * reported as the paragraph it is rather than as one unreadable field.
+ */
+const EXPLAIN = { max: 1400, minParagraphs: 2, maxParagraphs: 4, maxWords: 70, maxSentences: 4 };
 
 /**
  * How many misses on one screen open the reference answer. Three is what the copy was written around
@@ -71,6 +89,7 @@ const SCREEN_FIELDS = [
   "rules",
   "hints",
   "fixtures",
+  "variants",
   "image",
   "alt",
   "answers",
@@ -106,6 +125,57 @@ export function requireText(value, label, where, { max = Infinity, multiline = f
   if (!multiline && value.includes("\n")) failAt(where, `${label} must be a single line`);
   if (value.length > max) failAt(where, `${label} is ${value.length} characters, limit is ${max}`);
   return value.trim();
+}
+
+/**
+ * A paragraph is a blank-line separated block. A single newline inside one collapses to a space, so an
+ * author who wrapped a line by hand does not accidentally get a two-line paragraph the page then
+ * renders as two.
+ */
+export function paragraphsOf(text) {
+  return String(text)
+    .split(/\n[ \t]*\n/)
+    .map((paragraph) => paragraph.replace(/\s*\n\s*/g, " ").trim())
+    .filter((paragraph) => paragraph.length > 0);
+}
+
+/**
+ * Sentences, for the per-paragraph ceiling. The splitter has to be the copy gate's, because a full stop
+ * is not the only thing that ends a sentence here: `#REF!` and `#VALUE!` carry an exclamation mark that
+ * would otherwise count as three sentence ends in one line, and a decimal point between two digits is
+ * not a full stop at all.
+ */
+function sentenceCount(paragraph) {
+  return paragraph.split(/(?<=[.!?])\s+(?=[A-Z0-9"'([])/).filter((sentence) => sentence.trim() !== "").length || 1;
+}
+
+/**
+ * The explanation's shape: two to four paragraphs a reader can take one at a time, none of them long
+ * enough to become the wall of text the format exists to avoid. Applied to the lesson block and to a
+ * screen's own notes, so a multi-screen lesson cannot smuggle its prose back into one block. A screen
+ * note sits beside one formula, so it may be a single paragraph: `minParagraphs` is the lesson's rule
+ * and only drops to one where the text is that short.
+ */
+export function requireExplain(value, label, where, { max, minParagraphs = EXPLAIN.minParagraphs }) {
+  const text = requireText(value, label, where, { max, multiline: true });
+  const paragraphs = paragraphsOf(text);
+  if (paragraphs.length < minParagraphs) {
+    failAt(where, `${label} is one paragraph — split it into ${minParagraphs} to ${EXPLAIN.maxParagraphs} so a reader can take it one idea at a time`);
+  }
+  if (paragraphs.length > EXPLAIN.maxParagraphs) {
+    failAt(where, `${label} is ${paragraphs.length} paragraphs, limit is ${EXPLAIN.maxParagraphs} — cut it, do not subdivide it`);
+  }
+  paragraphs.forEach((paragraph, index) => {
+    const words = paragraph.match(/\S+/g) ?? [];
+    if (words.length > EXPLAIN.maxWords) {
+      failAt(where, `${label} paragraph ${index + 1} is ${words.length} words, limit is ${EXPLAIN.maxWords}`);
+    }
+    const sentences = sentenceCount(paragraph);
+    if (sentences > EXPLAIN.maxSentences) {
+      failAt(where, `${label} paragraph ${index + 1} is ${sentences} sentences, limit is ${EXPLAIN.maxSentences}`);
+    }
+  });
+  return text;
 }
 
 /**
@@ -327,6 +397,7 @@ function checkFormulaHints(screen, label, where) {
   if (!isPlainObject(screen.hints)) failAt(where, `${label}hints must be an object`);
   const known = new Set(["error", "value", "syntax"]);
   if (screen.requireRef !== undefined) known.add("require-ref");
+  if (screen.variants !== undefined) known.add("hardcoded");
   for (const field of ["require", "forbid", "rules"]) {
     for (const rule of screen[field] ?? []) if (rule?.id !== undefined) known.add(rule.id);
   }
@@ -358,7 +429,12 @@ function checkScreenDocs(screen, label, where, version) {
     if (SCREEN_DOCS[key] === undefined) {
       failAt(where, `${label}docs.${key} is not a screen note — use ${Object.keys(SCREEN_DOCS).join(", ")}`);
     }
-    const text = requireText(docs[key], `${label}docs.${key}`, where, { max: SCREEN_DOCS[key] });
+    // A screen note explains itself in paragraphs for the same reason the lesson does, but it sits
+    // beside one formula, so one paragraph is a shape rather than a wall.
+    const text =
+      key === "explain"
+        ? requireExplain(docs[key], `${label}docs.${key}`, where, { max: SCREEN_DOCS[key], minParagraphs: 1 })
+        : requireText(docs[key], `${label}docs.${key}`, where, { max: SCREEN_DOCS[key] });
     if (key === "reference" && !text.startsWith("=")) {
       failAt(where, `${label}docs.reference must be a formula starting with =`);
     }
@@ -515,6 +591,14 @@ function validateFormulaScreen(screen, label, where, version) {
     if (!insideGrid(ref)) outside(`${label}requireRef`, screen.requireRef);
   }
 
+  // A variant is the same table re-sent with a number changed, plus the value the screen's own
+  // reference formula returns on it. Both halves are authored here rather than computed in the
+  // browser: the page must never evaluate a reference it was handed, and the expected value is the
+  // one thing a table can be re-sent with that the browser cannot check for itself.
+  if (screen.variants !== undefined) {
+    validateVariants(screen.variants, `${label}variants`, where, { answer, insideGrid, outside });
+  }
+
   if (!Array.isArray(screen.require) || screen.require.length === 0) {
     failAt(where, `${label}require must be a non-empty array`);
   }
@@ -572,14 +656,67 @@ function validateFormulaScreen(screen, label, where, version) {
   }
 }
 
+/** How many re-sends one screen may carry: enough for two axes of change, not a second lesson. */
+export const MAX_VARIANTS = 3;
+
+/**
+ * The anti-hardcoding pass, authored. `cells` is what the re-sent table changes and `expect` is what
+ * the screen's reference returns on it — never derived at runtime, because the page is handed a JSON
+ * payload and has no reference to run. A variant that changes nothing, or that the reference itself
+ * cannot survive, is a content-lint refusal rather than a schema error: it is well-formed, just
+ * useless, and only a formula evaluator can see that.
+ */
+function validateVariants(variants, label, where, { answer, insideGrid, outside }) {
+  if (!Array.isArray(variants) || variants.length === 0) failAt(where, `${label} must be a non-empty array`);
+  if (variants.length > MAX_VARIANTS) {
+    failAt(where, `${label} carries ${variants.length}; a screen may carry at most ${MAX_VARIANTS}`);
+  }
+  const seen = new Set();
+  variants.forEach((variant, index) => {
+    const at = `${label}[${index}]`;
+    if (!isPlainObject(variant)) failAt(where, `${at} must be an object with id, cells, expect and why`);
+    const id = requireText(variant.id, `${at}.id`, where, { max: 40 });
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)) failAt(where, `${at}.id "${id}" must be lowercase-with-dashes`);
+    if (seen.has(id)) failAt(where, `${at}.id "${id}" is used twice`);
+    seen.add(id);
+
+    if (!isPlainObject(variant.cells) || Object.keys(variant.cells).length === 0) {
+      failAt(where, `${at}.cells must name at least one cell to change`);
+    }
+    for (const [address, value] of Object.entries(variant.cells)) {
+      const cell = requireCell(address, `${at}.cells.${address}`, where);
+      if (!insideGrid(cell)) outside(`${at}.cells`, address);
+      if (cell.key === answer.key) {
+        failAt(where, `${at}.cells.${address} is the cell the learner fills in — change an input instead`);
+      }
+      if (!["number", "string", "boolean"].includes(typeof value)) {
+        failAt(where, `${at}.cells.${address} must be a number, some text or true/false`);
+      }
+      if (typeof value === "number" && !Number.isFinite(value)) {
+        failAt(where, `${at}.cells.${address} is not a finite number`);
+      }
+      if (typeof value === "string" && value.trim() === "") {
+        failAt(where, `${at}.cells.${address} is blank — leave the cell out of cells instead of emptying it`);
+      }
+    }
+
+    if (!isPlainObject(variant.expect) || !("value" in variant.expect)) {
+      failAt(where, `${at}.expect.value is required — it is what the reference returns on the changed cells`);
+    }
+    if ("tolerance" in variant.expect && (!Number.isFinite(variant.expect.tolerance) || variant.expect.tolerance <= 0)) {
+      failAt(where, `${at}.expect.tolerance must be a positive number`);
+    }
+    requireText(variant.why, `${at}.why`, where, { max: 200 });
+  });
+}
+
 /**
  * What `docs.reference` has to be, decided from the screens before they are validated so the two
  * problems are reported in the order an author fixes them. A malformed `screens` array, a type this
  * loop does not know, and the v1 flat drill all keep the stricter formula rule: a broken file should
  * hear about the formula rather than the friendlier shortcut rule, and an unknown type should hear
  * about itself instead of about its docs.
- */
-function referenceKind(raw, version) {
+ */function referenceKind(raw, version) {
   if (version === 1 || !Array.isArray(raw.screens)) return "formula";
   // An unknown type is read as a formula screen: its own error is the one to report.
   const types = raw.screens.map((screen) => (SCREEN_TYPES.includes(screen?.type) ? screen.type : "formula"));
@@ -598,7 +735,7 @@ function referenceKind(raw, version) {
 function validateDocs(docs, where, { reference }) {
   if (!docs || typeof docs !== "object") failAt(where, "docs is required");
   requireText(docs.syntax, "docs.syntax", where, { max: 120 });
-  requireText(docs.explain, "docs.explain", where);
+  requireExplain(docs.explain, "docs.explain", where, { max: EXPLAIN.max });
   requireText(docs.atWork, "docs.atWork", where);
   requireText(docs.outcome, "docs.outcome", where, { max: 120 });
   requireText(docs.teaches, "docs.teaches", where, { max: 80 });
@@ -672,6 +809,8 @@ function pickScreen(screen, id, type, version) {
     requireRef: screen.requireRef,
     rules: screen.rules ?? [],
     fixtures: screen.fixtures,
+    // Carried as authored: the browser grades these without ever evaluating a reference itself.
+    ...(screen.variants === undefined ? {} : { variants: screen.variants }),
   };
 }
 
@@ -847,11 +986,27 @@ export function normalizeTrack(raw, file) {
 
   const authored = lessons.filter((lesson) => !lesson.planned).length;
   if (authored === 0) failAt(where, "lessons must include at least one authored entry — the index page has nothing to link");
-  if (!Number.isInteger(raw.freeLessonCount) || raw.freeLessonCount < 1) {
-    failAt(where, "freeLessonCount must be at least 1 — the opening drills are the free entry point");
+  // Which exercises are free is a curated list, not a prefix of the catalog: a reader deciding whether
+  // the rest is worth paying for should meet a short tour of what the product does, in an order somebody
+  // chose. Listing ids keeps that choice explicit and keeps it out of file numbering.
+  if (raw.freeLessonCount !== undefined) {
+    failAt(where, "freeLessonCount is gone — list the free exercises by id in freeLessons");
   }
-  if (raw.freeLessonCount > authored) {
-    failAt(where, `freeLessonCount ${raw.freeLessonCount} exceeds the ${authored} authored lessons`);
+  const freeLessons = raw.freeLessons;
+  if (!Array.isArray(freeLessons) || freeLessons.length === 0) {
+    failAt(where, "freeLessons must list at least one lesson id — something has to be free");
+  }
+  const authoredIds = new Set(lessons.filter((lesson) => !lesson.planned).map((lesson) => lesson.id));
+  const seenFree = new Set();
+  freeLessons.forEach((id, index) => {
+    const label = `freeLessons[${index}]`;
+    requireText(id, label, where);
+    if (!authoredIds.has(id)) failAt(where, `${label} "${id}" is not an authored lesson in this track`);
+    if (seenFree.has(id)) failAt(where, `${label} "${id}" is listed twice — free is a set, not a weight`);
+    seenFree.add(id);
+  });
+  if (freeLessons.length > authored) {
+    failAt(where, `freeLessons has ${freeLessons.length} ids but only ${authored} authored lessons`);
   }
   for (const group of groups) {
     if (!lessons.some((lesson) => lesson.group === group.id)) {
@@ -867,5 +1022,27 @@ export function normalizeTrack(raw, file) {
     failAt(where, `showAnswerAfter must be an integer from 1 to 10 (got ${JSON.stringify(raw.showAnswerAfter)})`);
   }
 
-  return { id, title, promise, freeLessonCount: raw.freeLessonCount, showAnswerAfter, groups, lessons };
+  // The one paid exercise that opens on a click, once, so somebody who has finished the free tour can judge
+  // the rest before paying. Optional: a track that names none simply walls every paid exercise. Naming a
+  // free one would be a no-op, which is a mistake worth failing on.
+  const promptLesson = raw.promptLesson ?? null;
+  if (promptLesson !== null) {
+    requireText(promptLesson, "promptLesson", where);
+    if (!authoredIds.has(promptLesson)) failAt(where, `promptLesson "${promptLesson}" is not an authored lesson`);
+    if (seenFree.has(promptLesson)) failAt(where, `promptLesson "${promptLesson}" is already free`);
+  }
+
+  // `freeLessonCount` stays on the parsed track because a dozen pages count the free ones ("10 free, no
+  // signup") without caring which they are.
+  return {
+    id,
+    title,
+    promise,
+    freeLessons: [...freeLessons],
+    freeLessonCount: freeLessons.length,
+    promptLesson,
+    showAnswerAfter,
+    groups,
+    lessons,
+  };
 }

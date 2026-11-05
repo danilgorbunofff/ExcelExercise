@@ -5,19 +5,19 @@
   "title": "FIND and SEARCH: case-sensitive or not",
   "docs": {
     "syntax": "=FIND(needle,text) matches case; =SEARCH(needle,text) ignores it; both answer a position",
-    "explain": "FIND and SEARCH do the same job and disagree about only one thing: capital letters. That difference is the whole reason both exist, and it decides which one you write. When the text is a code, case is part of the meaning, so a hyphen has to be found as a hyphen and a lower-case letter as a lower-case letter. FIND does that, and it fails loudly when the character it was sent to look for is not there. When the text is a label somebody typed, case is noise, so SEARCH is the right tool. It finds north, North and NORTH wherever they sit in the cell. Both functions answer with a position number counted from the left, not with the text they found, which is what makes them useful inside MID. This lesson pins the difference down with one screen each, so the learner types the same shape twice and only the function name changes.",
+    "explain": "FIND and SEARCH answer the same question: where inside this text does the needle start. Both count from 1 and both return a position, never the text they found. The only difference is case, and it decides which one you write.\n\nFIND matches case. A code is case-sensitive text, so the hyphen in AN-1042 is found at position 3, and a capital N would not be found in a lower-case label. SEARCH ignores case and finds north, North and NORTH alike.\n\nUse FIND when the character is part of a code and SEARCH when the text was typed by someone else. The wrong choice does not always raise an error: FIND on a label returns #VALUE! only once the cases disagree. The second screen asks for a position in a label, so the function name is what the grader checks.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The text being searched for does not occur in the cell."
+        "text": "The text you are looking for is not in the cell, and FIND raises #VALUE! instead of returning 0."
       },
       {
-        "code": "#NAME?",
-        "text": "The function name is misspelled, so the sheet has nothing to call."
+        "code": "Wrong function",
+        "text": "SEARCH returns 3 for the hyphen as well, but this screen is graded on FIND, so the answer does not pass."
       }
     ],
     "atWork": "Locating a separator or a word inside a code or a label before slicing it.",
-    "outcome": "Choose FIND for a case-sensitive position and SEARCH when the case should not matter.",
+    "outcome": "Choose FIND for a case-sensitive position, SEARCH when case should not matter.",
     "teaches": "FIND reporting a case-sensitive position and SEARCH ignoring case",
     "dataset": "Hyphenated codes and typed labels holding lower-case letters",
     "reference": "=FIND(\"-\",A2)"
@@ -64,11 +64,11 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=FIND(\"-\",A2): the character to look for first, then the text.",
-        "func-find": "Codes are case-sensitive text, so the position comes from FIND.",
+        "syntax": "=FIND(\"-\",A2): the character first, then the text to search.",
+        "func-find": "A code is case-sensitive text, so the position comes from FIND.",
         "require-ref": "The code is in A2.",
-        "value": "A, N, then the hyphen: it sits in third place.",
-        "error": "A character the cell does not hold is a #VALUE! error."
+        "value": "A, N, then the hyphen: third place.",
+        "error": "The grader reports wrong function if SEARCH appears, even though it also returns 3."
       },
       "fixtures": {
         "accept": [
@@ -160,11 +160,11 @@
       ],
       "requireRef": "A2",
       "hints": {
-        "syntax": "=SEARCH(\"N\",A2): the character, then the text, with case ignored.",
-        "func-search": "The label is typed text, so the position comes from SEARCH.",
+        "syntax": "=SEARCH(\"N\",A2): the character first, then the text, with case ignored.",
+        "func-search": "A label typed by a person can be in any case, so SEARCH is the safe one.",
         "require-ref": "The label is in A2.",
-        "value": "b, a, n: the first N is in third place.",
-        "error": "A letter the label does not hold is a #VALUE! error."
+        "value": "b, a, n: the first n is in third place.",
+        "error": "FIND(\"N\",A2) returns #VALUE! here, because the label holds no capital N."
       },
       "fixtures": {
         "accept": [

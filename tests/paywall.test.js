@@ -1,6 +1,6 @@
 /**
  * The server half of the paywall: the decision, the flag that turns it on, and the wiring in
- * `proxy.js` that makes a direct URL land on the offer instead of the drill.
+ * `proxy.js` that makes a direct URL land on the offer instead of the exercise.
  *
  * The decision is a pure function of the catalog flags and the database's answer, so the matrix is
  * tested here rather than through a running server. `proxy.js` cannot be imported by `node --test`
@@ -16,6 +16,7 @@ import { readIcons } from "../legacy/src/site/assets.mjs";
 import { esc } from "../legacy/src/site/html.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
 import { loadContent } from "../legacy/src/site/content.mjs";
+import { PLANS } from "../legacy/src/site/offer.mjs";
 import { preparePricingPage } from "../legacy/src/site/pricing-page.mjs";
 import { entitledFor, PAYWALL_PATH, paywallDecision, paywallEnforced } from "../lib/paywall.js";
 
@@ -31,49 +32,58 @@ const { track, index } = loadContent(join(ROOT, "legacy/content"));
 const icons = readIcons(join(ROOT, "legacy/vendor/icons"));
 
 /** The catalog entry the lesson URL resolves to, in the shape `proxy.js` gets from `loadSite()`. */
-const entry = (number) => index[number - 1];
+const freeEntries = index.filter((candidate) => candidate.free);
+const paidEntries = index.filter((candidate) => !candidate.free);
+const promptEntry = index.find((candidate) => candidate.number === track.promptAt);
 const freeLessonCount = track.freeLessonCount;
 
 describe("paywallDecision", () => {
-  it("serves the free drills", () => {
-    for (let number = 1; number <= freeLessonCount; number += 1) {
-      assert.equal(paywallDecision({ entry: entry(number), freeLessonCount }), null, `drill ${number}`);
+  it("serves the free exercises", () => {
+    assert.equal(freeEntries.length, freeLessonCount, "track.json and the catalog disagree on the free set");
+    for (const candidate of freeEntries) {
+      assert.equal(paywallDecision({ entry: candidate, promptAt: track.promptAt }), null, candidate.path);
     }
   });
 
-  it("serves the prompt drill, because its 'continue free this once' button is client-side", () => {
-    const prompt = paywallDecision({ entry: entry(freeLessonCount + 1), freeLessonCount });
-    assert.equal(prompt, null, "a redirect here would make the soft prompt's button unreachable");
+  it("serves the prompt exercise, because its 'continue free this once' button is client-side", () => {
+    assert.ok(promptEntry, "track.json nominates no paid exercise to prompt at");
+    assert.equal(promptEntry.free, false, "the prompt exercise is free, so nothing is being prompted");
+    assert.equal(paywallDecision({ entry: promptEntry, promptAt: track.promptAt }), null, "the soft prompt was walled");
   });
 
-  it("sends a paid drill to the offer", () => {
-    for (let number = freeLessonCount + 2; number <= index.length; number += 1) {
-      assert.equal(paywallDecision({ entry: entry(number), freeLessonCount }), PAYWALL_PATH, `drill ${number}`);
+  it("sends every other paid exercise to the offer", () => {
+    const walled = paidEntries.filter((candidate) => candidate.number !== track.promptAt);
+    assert.equal(walled.length, paidEntries.length - 1, "exactly one paid exercise is the prompt");
+    for (const candidate of walled) {
+      assert.equal(paywallDecision({ entry: candidate, promptAt: track.promptAt }), PAYWALL_PATH, candidate.path);
     }
   });
 
-  it("reads the free count from the track, not from a constant in the code", () => {
-    // The plan's "config, not code": the same drill is served or walled depending on `track.json`,
-    // which is the point — moving the boundary must not need a code change.
+  it("reads the boundary from the track, not from a constant in the code", () => {
+    // The plan's "config, not code": the same exercise is served or walled depending on `track.json`,
+    // which is the point — moving the boundary must not need a code change. The boundary is two facts
+    // now: the exercise's own `free` flag, and the one paid exercise nominated as the prompt.
     const fifth = { free: false, number: 5, path: "/excel/fifth" };
-    assert.equal(paywallDecision({ entry: fifth, freeLessonCount: 3 }), PAYWALL_PATH);
-    assert.equal(paywallDecision({ entry: fifth, freeLessonCount: 4 }), null, "the prompt drill follows the config");
-    assert.equal(paywallDecision({ entry: fifth, freeLessonCount: 5 }), PAYWALL_PATH, "and so does the wall");
+    assert.equal(paywallDecision({ entry: fifth, promptAt: 4 }), PAYWALL_PATH);
+    assert.equal(paywallDecision({ entry: fifth, promptAt: 5 }), null, "the prompt exercise follows the config");
+    assert.equal(paywallDecision({ entry: { ...fifth, free: true }, promptAt: 4 }), null, "a free flag is served wherever it sits");
+    assert.equal(paywallDecision({ entry: fifth, promptAt: null }), PAYWALL_PATH, "no prompt means no soft door");
   });
 
   it("serves anything to an entitled reader", () => {
-    assert.equal(paywallDecision({ entry: entry(index.length), freeLessonCount, entitled: true }), null);
+    const last = index[index.length - 1];
+    assert.equal(paywallDecision({ entry: last, promptAt: track.promptAt, entitled: true }), null);
   });
 
   it("serves everything when enforcement is off, which is the shipped default", () => {
-    for (let number = 1; number <= index.length; number += 1) {
-      assert.equal(paywallDecision({ entry: entry(number), freeLessonCount, enforced: false }), null);
+    for (const candidate of index) {
+      assert.equal(paywallDecision({ entry: candidate, promptAt: track.promptAt, enforced: false }), null, candidate.path);
     }
   });
 
   it("has no opinion about a slug that is not in the catalog", () => {
     // `null` here means the lesson route's `notFound()` decides, which is the right 404 for a stranger.
-    assert.equal(paywallDecision({ entry: null, freeLessonCount }), null);
+    assert.equal(paywallDecision({ entry: null, promptAt: track.promptAt }), null);
   });
 });
 
@@ -130,7 +140,7 @@ describe("proxy wiring", () => {
     assert.match(code, /import \{ entitledFor, paywallDecision, paywallEnforced \} from "\.\/lib\/paywall\.js"/);
     assert.match(code, /const LESSON = \/\^\\\/learn\\\/excel/);
     assert.match(code, /return paywallDecision\(\{/);
-    assert.match(code, /freeLessonCount: track\.freeLessonCount/);
+    assert.match(code, /promptAt: track\.promptAt/);
   });
 
   it("asks it after the session, so a signed-in reader's entitlement is what decides", () => {
@@ -141,7 +151,8 @@ describe("proxy wiring", () => {
   });
 
   it("returns early before any of it when accounts are unconfigured", () => {
-    const early = code.indexOf("if (!config.enabled) return NextResponse.next()");
+    // Still an early return, now inside the branch that also counts the render the funnel is built on.
+    const early = code.indexOf("if (!config.enabled) {");
     assert.ok(early > -1 && early < code.indexOf("const paywall = await paywallFor("));
   });
 });
@@ -156,35 +167,40 @@ describe("the offer page", () => {
     assert.equal(page.path, "/pricing");
   });
 
-  it("quotes the price the reference charges", () => {
-    for (const phrase of ["$59.99/year", "100% refund guarantee", "Cancel anytime"]) {
-      assert.ok(body.includes(phrase), `the offer does not say ${phrase}`);
+  it("quotes the three prices the checkout charges, and the guarantee", () => {
+    for (const plan of PLANS) {
+      assert.ok(body.includes(`$${plan.amount}`), `the offer does not name the ${plan.label} price`);
+    }
+    for (const phrase of ["100% refund guarantee", "cancel anytime"]) {
+      assert.ok(body.toLowerCase().includes(phrase.toLowerCase()), `the offer does not say ${phrase}`);
     }
   });
 
-  it("says how many drills are free and links every one of them", () => {
-    assert.ok(body.includes(`Drills 1–${free.length} are free`), "the free range in the lede");
-    for (const candidate of free) assert.ok(body.includes(`href="${candidate.path}"`), candidate.path);
+  it("says how many exercises are free, and sends the reader to them", () => {
+    assert.ok(body.includes(`${track.freeLessonCount} exercises free`), "the free count is not in the heading");
+    assert.ok(body.includes('href="/start"'), "the free exercises are not one click from the price");
   });
 
-  it("names the paid drills without linking into a wall", () => {
-    for (const candidate of paid) {
-      // The page escapes titles on the way in, so an apostrophe lands as `&#39;`: compare against
-      // what the renderer emits rather than against the raw title.
-      assert.ok(body.includes(esc(candidate.exercise.title)), candidate.exercise.title);
-      assert.equal(body.includes(`href="${candidate.path}"`), false, `${candidate.path} links into a gated drill`);
+  it("does not print either half of the catalogue", () => {
+    // The page sold the track by listing it, twice: ten linked titles, then eighty-six rows in a fold.
+    // A catalogue is the one thing an offer page must not be, so a title anywhere on it is a regression
+    // whichever list it came back through.
+    for (const candidate of [...free, ...paid]) {
+      const title = esc(candidate.exercise.title);
+      assert.equal(body.includes(title), false, `"${candidate.exercise.title}" is listed on the offer`);
+      assert.equal(body.includes(`href="${candidate.path}"`), false, `${candidate.path} links into an exercise`);
     }
   });
 
-  it("does not claim the header badge it does not honour", () => {
-    // The site header says "Free · no signup" everywhere else; on a price page that sentence would be
-    // a lie in the first element a reader reads.
-    const html = page.badge ? "free drills" : "";
-    assert.ok(page.badge, "the pricing page must override the header badge");
-    assert.equal(html.includes("no signup"), false);
+  it("carries no header fact at all, so it cannot promise one it does not honour", () => {
+    // The header used to state one fact about the page, and each page overrode it — a badge here, a
+    // count there. The slot is gone, so the pricing page cannot leave a promise in it, and the offer
+    // is stated exactly where it is explained: in the page body.
+    assert.equal(page.counter, undefined, "the pricing page set a header count");
+    assert.equal(page.badge, undefined, "the pricing page set a header badge");
   });
 
   it("tells the reader that checkout is not open yet, rather than taking a payment it cannot take", () => {
-    assert.ok(body.includes("Checkout is not open yet"), "the page must not imply a working checkout");
+    assert.ok(body.includes("Checkout is not open on this copy"), "the page must not imply a working checkout");
   });
 });

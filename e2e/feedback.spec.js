@@ -1,7 +1,11 @@
 /**
  * The feedback dialog, in a browser. `tests/feedback.test.js` covers the queue rules; what only the
- * browser can prove is the promise the dialog makes — that a note is kept here and nowhere else — so
- * every test below reads the queue and the event sink out of the page rather than trusting the copy.
+ * browser can prove is the promise the dialog makes in this build — no accounts configured, so there
+ * is nowhere to post a note and it stays in the browser — so every test below reads the queue and the
+ * event sink out of the page rather than trusting the copy.
+ *
+ * The delivered path needs a configured store and is covered where that exists: the accounts suite
+ * and `tests/db/feedback.spec.js`.
  */
 import { expect, test } from "@playwright/test";
 
@@ -39,7 +43,7 @@ test("a note with no mood is refused, and the cursor lands on the choice", async
   await page.click("#feedback-form button[type='submit']");
 
   await expect(page.locator("#feedback-error")).toHaveText(
-    "Pick the one that fits first. The note on its own is not enough.",
+    "Choose one of the three first. The note on its own is not enough.",
   );
   await expect(page.locator("#feedback-dialog")).toBeVisible();
   await expect(page.locator("input[name='mood']").first()).toBeFocused();
@@ -48,7 +52,7 @@ test("a note with no mood is refused, and the cursor lands on the choice", async
   expect(await readQueue(page)).toEqual([]);
 });
 
-test("a sent note is queued here and the dialog says nothing was sent", async ({ page }) => {
+test("a sent note is queued here, and the dialog says that is all that happened", async ({ page }) => {
   await openDialog(page);
   await page.check("input[name='mood'][value='stuck']");
   await page.fill("#feedback-text", "  counting by hand, I keep losing my place  ");
@@ -56,7 +60,7 @@ test("a sent note is queued here and the dialog says nothing was sent", async ({
 
   await expect(page.locator("#feedback-form")).toBeHidden();
   await expect(page.locator("#feedback-done-note")).toContainText("Saved in this browser, and nowhere else");
-  await expect(page.locator("#feedback-done-note")).toContainText("nothing has been sent");
+  await expect(page.locator("#feedback-done-note")).toContainText("no way to receive it yet");
 
   const queue = await readQueue(page);
   expect(queue).toHaveLength(1);
@@ -71,7 +75,7 @@ test("a sent note is queued here and the dialog says nothing was sent", async ({
   const event = await page.evaluate(() =>
     (globalThis.__esEvents ?? []).find((entry) => entry.type === "feedback_sent"),
   );
-  expect(event).toMatchObject({ mood: "stuck", chars: 40, kept: 1, stored: true });
+  expect(event).toMatchObject({ mood: "stuck", chars: 40, kept: 1, stored: true, delivered: false });
   expect(JSON.stringify(event)).not.toContain("losing my place");
 
   // And it survives the reload the learner will do next.
@@ -96,6 +100,8 @@ test("the queue stops at twenty notes so it cannot crowd out the progress record
   await page.fill("#feedback-text", "the newest note");
   await page.click("#feedback-form button[type='submit']");
 
+  // The fallback write happens after the request is refused, so wait for the dialog to say so.
+  await expect(page.locator("#feedback-done-note")).toContainText("Saved in this browser");
   const queue = await readQueue(page);
   expect(queue).toHaveLength(20);
   expect(queue.at(-1).text).toBe("the newest note");

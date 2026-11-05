@@ -53,11 +53,11 @@
       "requireRef": "B5",
       "rules": [],
       "hints": {
-        "syntax": "XLOOKUP takes the lookup value, the column to search, the column to return, and then the text to show when nothing matches.",
-        "func-xlookup": "XLOOKUP answers this with four arguments; the fourth is only there for the miss, and the three-argument form would show #N/A instead.",
-        "require-ref": "Search for the SKU in B5 rather than typing TX-104 into the formula, so a different SKU is one edit away.",
-        "value": "TX-104 is not in the list, so the answer is the fallback text exactly as the prompt spells it, lower case and all.",
-        "error": "The search column and the return column must be the same size: TX-101 to TX-103 against three prices, or XLOOKUP returns #VALUE!."
+        "syntax": "=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\"): the fourth slot is the text for a miss.",
+        "func-xlookup": "Four arguments here. The fourth only matters when nothing matches, and the three-argument form would show #N/A.",
+        "require-ref": "Search for the SKU in B5, so asking about another one is a single edit.",
+        "value": "TX-104 is not in the list, so the answer is the fallback, spelled as the prompt spells it.",
+        "error": "The search column and the return column must match in size: three SKUs against three prices, or #VALUE!."
       },
       "fixtures": {
         "accept": [
@@ -105,19 +105,19 @@
   ],
   "docs": {
     "syntax": "=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found])",
-    "explain": "The list holds TX-101, TX-102 and TX-103, and cell B5 asks about TX-104, which is not there. Without a fourth argument XLOOKUP returns #N/A, and a page of #N/A sends a reader to the formula bar to find out what went wrong. The fourth argument is the text to show instead, so the lookup answers \"not stocked\" and the cell reads as a sentence. The fallback belongs in the fourth slot and nowhere else. Put it in the third slot and XLOOKUP tries to return it as a column, which returns #VALUE!. The fallback shows exactly as typed, so the capitalisation in the prompt is part of the answer.",
+    "explain": "The list holds three SKUs and B5 asks for TX-104, which is not among them. A three-argument XLOOKUP would answer #N/A, and a column of #N/A sends the reader to the formula bar to work out what went wrong.\n\nThe fourth argument is the text to show instead. XLOOKUP returns \"not stocked\" and the cell reads as a sentence. That text appears exactly as typed, so the lower case in the prompt is part of the answer.\n\nUse it on sheets that other people read. The fallback should say what is missing, and it should never be a zero, because a zero passes for a price.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "No fallback was supplied, so a lookup value that is not in the search column came back with nothing to say."
+        "text": "No fallback was supplied, so a SKU that is not in A2:A4 came back with nothing to say."
       },
       {
         "code": "#VALUE!",
-        "text": "The search column and the return column were different sizes, so the pair of columns could not be lined up."
+        "text": "The search column and the return column are different sizes, so there is no row to pair with."
       }
     ],
-    "atWork": "A stock sheet where a discontinued SKU has to read as out of stock in the customer's email rather than #N/A.",
-    "outcome": "Return a sentence instead of #N/A when the lookup value is not there.",
+    "atWork": "A stock sheet where a discontinued SKU has to read as out of stock in an email, rather than #N/A.",
+    "outcome": "Answer a missing SKU with a sentence instead of an error.",
     "teaches": "XLOOKUP fallback",
     "dataset": "A three-SKU price list",
     "reference": "=XLOOKUP(B5,A2:A4,B2:B4,\"not stocked\")"

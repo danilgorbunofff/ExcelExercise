@@ -20,7 +20,7 @@ async function RunScreen() {
     return (
       <AuthCard title="Today's run">
         <Notice>{flagCopy("dailyChallenge")}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -30,7 +30,7 @@ async function RunScreen() {
     return (
       <AuthCard title="Today's run">
         <Notice>{config.reason}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -52,7 +52,7 @@ async function RunScreen() {
       title="Today's run"
       lede="Ten screens, fifteen minutes, one attempt. The clock is the server's and a screen's first answer is the one that counts."
     >
-      <Suspense fallback={<Skeleton label="Starting today's run…" rows={4} />}>
+      <Suspense fallback={<Skeleton label="Starting today's run" rows={4} />}>
         <Runner />
       </Suspense>
     </AuthCard>
@@ -61,8 +61,8 @@ async function RunScreen() {
 
 export default function DailyRunPage() {
   return (
-    <AuthShell counter="Today's run" skipLabel="run">
-      <Suspense fallback={<Skeleton label="Loading today's run…" rows={6} />}>
+    <AuthShell skipLabel="run">
+      <Suspense fallback={<Skeleton label="Loading today's run" rows={6} />}>
         <RunScreen />
       </Suspense>
     </AuthShell>

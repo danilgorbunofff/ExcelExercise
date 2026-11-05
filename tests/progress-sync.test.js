@@ -14,7 +14,7 @@ import { MAX_BATCH_EVENTS, deriveUpdates, parseBatch } from "../lib/progress/der
 const T0 = "2026-10-31T10:00:00.000Z";
 const at = (seconds) => new Date(Date.parse(T0) + seconds * 1000).toISOString();
 
-/** One screen, solved first try, in the order the drill really emits them. */
+/** One screen, solved first try, in the order the exercise really emits them. */
 function solvedFirstTry(lesson = "01-sum-basics") {
   return [
     { type: "drill_start", id: lesson, elapsed: 0, ts: at(0) },

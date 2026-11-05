@@ -14,8 +14,10 @@ const PAGES = [
   },
   {
     path: "/terms",
-    title: "The deal, in plain English",
-    must: ["$59.99/year", "not affiliated with", "not been reviewed by a lawyer", "refund"],
+    title: "What you agree to",
+    // The price is written the way a person says it ("$59.99 a year"), not as a slug, so the probe quotes
+    // the shipped sentence rather than a shape the copy never had.
+    must: ["$59.99 a year", "not affiliated with", "not been reviewed by a lawyer", "refund"],
   },
 ];
 
@@ -34,8 +36,11 @@ for (const page of PAGES) {
     }
 
     const text = await view.locator("#main").innerText();
+    // The probes are claims, not transcriptions: a claim that opens a sentence carries a capital the
+    // probe need not, so the comparison is case-folded as `tests/legal.test.js` already does.
+    const folded = text.toLowerCase();
     for (const probe of page.must) {
-      expect(text, `${page.path} does not mention ${JSON.stringify(probe)}`).toContain(probe);
+      expect(folded, `${page.path} does not mention ${JSON.stringify(probe)}`).toContain(probe.toLowerCase());
     }
 
     // Both legal pages are reachable from the footer of every page, not only from each other.

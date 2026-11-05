@@ -13,6 +13,7 @@
  *   a hint about the shape of the site and that shape is an editorial decision.
  */
 
+import { PLANS, PRICE_CURRENCY } from "./offer.mjs";
 import { esc, inlineIcon, jsonScript } from "./html.mjs";
 
 /**
@@ -20,8 +21,12 @@ import { esc, inlineIcon, jsonScript } from "./html.mjs";
  * pass the set they publish. Every entry is a path, not a URL: the origin comes from `config`.
  */
 export const EXTRA_PAGES = {
+  start: { path: "/start", priority: "0.9" },
   exercises: { path: "/excel-exercises", priority: "0.9" },
   functions: { path: "/excel-functions", priority: "0.8" },
+  formulas: { path: "/formulas", priority: "0.8" },
+  shortcuts: { path: "/shortcuts", priority: "0.8" },
+  search: { path: "/search", priority: "0.5" },
   about: { path: "/about", priority: "0.4" },
   privacy: { path: "/privacy", priority: "0.3" },
   terms: { path: "/terms", priority: "0.3" },
@@ -29,6 +34,26 @@ export const EXTRA_PAGES = {
 
 /** The two pages that are legal in nature. Both builds publish them, so they are not optional. */
 const LEGAL = ["privacy", "terms"];
+
+/**
+ * The non-lesson pages both builds publish, in sitemap order.
+ *
+ * It lives here because the order and the membership have to be identical in three callers — the static
+ * build, `legacy/src/verify.mjs` and `app/sitemap.js` — and the check scripts compare their lists entry
+ * for entry. Three hand-kept copies drifted once already: adding `/search` to one of them made the
+ * sitemap assertion fail with a length mismatch that named nothing.
+ */
+export function extraKeys({ articles = [], formulas = [], shortcuts = [] } = {}) {
+  const hubs = [
+    "start",
+    "exercises",
+    ...(articles.length > 0 ? ["functions"] : []),
+    ...(formulas.length > 0 ? ["formulas"] : []),
+    ...(shortcuts.length > 0 ? ["shortcuts"] : []),
+    "search",
+  ];
+  return [...hubs, "about", ...LEGAL];
+}
 
 /** A group's own page. The same path in both builds: `/learn` is a Next route and a static folder. */
 export function groupPath(id) {
@@ -44,17 +69,40 @@ export function clampDescription(text, max = 155) {
     .replace(/\s+/g, " ")
     .trim();
   if (flat.length <= max) return flat;
-  const cut = flat.slice(0, max - 1);
+  const cut = flat.slice(0, max - 3);
   const space = cut.lastIndexOf(" ");
-  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[,.;:]$/, "")}…`;
+  return `${(space > cut.length * 0.6 ? cut.slice(0, space) : cut).replace(/[,.;:]$/, "")}...`;
+}
+
+/**
+ * A page title that fits the 60 characters a search result shows, site name included. A title the page
+ * authors itself is written to length; the ones built from a lesson or a formula heading are not,
+ * because a heading is allowed to be a whole clause. When the heading will not fit, the trailing clause
+ * goes before a word is cut: "Count only the numbers, and see what COUNT skips" becomes "Count only the
+ * numbers", not "Count only the numbers, and see what COUNT".
+ *
+ * The site name is passed in because `renderHead` composes the two, and it composes them in the other
+ * order on the home page — so the budget is the caller's fact, not this function's assumption.
+ */
+export function clampTitle(text, { siteName = "", separator = " · ", max = 60 } = {}) {
+  const flat = String(text ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const budget = max - (siteName ? siteName.length + separator.length : 0);
+  if (flat.length <= budget) return flat;
+  const cut = flat.slice(0, budget);
+  const clause = Math.max(cut.lastIndexOf(", "), cut.lastIndexOf(": "), cut.lastIndexOf("; "));
+  if (clause >= 12) return cut.slice(0, clause);
+  const space = cut.lastIndexOf(" ");
+  return (space >= 12 ? cut.slice(0, space) : cut).replace(/[,;:.]$/, "");
 }
 
 /**
  * The sitemap as data, in the order a crawler should read it: the front door, the two hub pages, the
- * group hubs, the 88 lessons, the articles, then the legal pages. Each item carries its own lastmod so
+ * group hubs, the 86 lessons, the articles, then the legal pages. Each item carries its own lastmod so
  * a lesson rewritten today does not claim the whole site changed.
  */
-export function indexablePaths({ config, index = [], groups = [], articles = [], extra = LEGAL }) {
+export function indexablePaths({ config, index = [], groups = [], articles = [], formulas = [], shortcuts = [], extra = LEGAL }) {
   const fallback = config.builtAt;
   const items = [
     { path: "/", priority: "1.0", lastModified: fallback },
@@ -77,6 +125,17 @@ export function indexablePaths({ config, index = [], groups = [], articles = [],
       path: article.path,
       priority: "0.7",
       lastModified: article.updated ?? fallback,
+    })),
+    // Callers pass either the parsed page, which carries `slug`, or a `{ path, updated }` row.
+    ...formulas.map((formula) => ({
+      path: formula.path ?? `/formulas/${formula.slug}`,
+      priority: "0.7",
+      lastModified: formula.updated ?? fallback,
+    })),
+    ...shortcuts.map((shortcut) => ({
+      path: shortcut.path ?? `/shortcuts/${shortcut.slug}`,
+      priority: "0.7",
+      lastModified: shortcut.updated ?? fallback,
     })),
   ];
 
@@ -112,7 +171,7 @@ ${items}
 
 /** The trail a lesson page shows: where it sits, with the group hub as the working link. */
 export function lessonTrail({ entry, group }) {
-  const trail = [{ href: "/", label: "Excel drills" }];
+  const trail = [{ href: "/", label: "Excel exercises" }];
   if (group) trail.push({ href: groupPath(group.id), label: group.title });
   trail.push({ href: entry.path, label: entry.exercise.title });
   return trail;
@@ -158,10 +217,50 @@ export function courseJsonLd({ config, track, index }) {
     inLanguage: config.inLanguage,
     provider: { "@id": `${config.baseUrl}/#organization` },
     isAccessibleForFree: true,
-    // No `hasPart`: the 88 lessons would be 88 URLs of head on every page, and each lesson already
+    // No `hasPart`: the 86 lessons would be 86 URLs of head on every page, and each lesson already
     // declares this node as its `isPartOf`. `numberOfCredits` is left out too — it means ECTS, not
-    // "how many drills are in here".
-    teaches: [...new Set(index.map((entry) => entry.exercise.docs.teaches ?? entry.exercise.docs.explain).filter(Boolean))].slice(0, 5),
+    // "how many exercises are in here".
+    // `teaches` is a one-line label. The explanation is only a fallback, and it is now several
+    // paragraphs, so its line breaks are flattened before they reach a JSON-LD string.
+    teaches: [
+      ...new Set(
+        index
+          .map((entry) => entry.exercise.docs.teaches ?? entry.exercise.docs.explain)
+          .filter(Boolean)
+          .map((text) => String(text).replace(/\s+/g, " ").trim()),
+      ),
+    ].slice(0, 5),
+  };
+}
+
+/**
+ * The app itself: what the home page is the front door to. `offers` is not typed into this file — the
+ * amounts and currency come from `offer.mjs`'s `PLANS`, the same array the pricing page prints, so the
+ * markup cannot promise a price the store does not charge, and cannot go on promising a term the
+ * pricing page stopped selling. One `Offer` per term, because a reader comparing search results is
+ * comparing terms: a single price here would silently pick one of the three for them.
+ */
+export function applicationJsonLd({ config }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": `${config.baseUrl}/#app`,
+    name: config.name,
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    url: `${config.baseUrl}/`,
+    description:
+      "An Excel formula grader that runs in the browser: type a formula into the sheet and it names the rule the answer broke.",
+    inLanguage: config.inLanguage,
+    publisher: { "@id": `${config.baseUrl}/#organization` },
+    offers: PLANS.map((plan) => ({
+      "@type": "Offer",
+      price: plan.amount,
+      priceCurrency: PRICE_CURRENCY,
+      url: `${config.baseUrl}/pricing`,
+      category: "subscription",
+      description: `${plan.label} of the whole track for $${plan.amount}.`,
+    })),
   };
 }
 

@@ -5,14 +5,16 @@ import { callsOf, parse, walkAst } from "./parse.js";
 import { valuesEqual, isBlank, isRange } from "./values.js";
 
 const DEFAULT_MESSAGES = {
-  syntax: "That formula cannot be read yet.",
+  syntax: "That formula cannot be read yet. Check the brackets and commas.",
   require: "The formula does not use the function this lesson is teaching.",
   forbid: "The formula uses a function this lesson asks you not to use.",
   "require-ref": "The formula does not point at the data it is meant to use.",
   matchType: "One of the arguments is not what this lesson needs.",
   value: "The formula runs, but the answer is not the one this lesson expects.",
+  hardcoded:
+    "That answer is right for this table but not for the same table with different numbers. Point the formula at the cells instead of typing the result.",
   error: "The formula stops with an error instead of a value.",
-  internal: "The grader could not read that formula.",
+  internal: "The checker could not read that formula. Try a shorter version.",
   correct: "Correct.",
 };
 
@@ -91,7 +93,7 @@ function checkRequire(ast, rule) {
       rule: rule.id,
       // Lessons that need more than one function supply their own sentence, because the
       // generic one would name a function the lesson also teaches rather than the missing one.
-      message: rule.message ?? `This lesson is about ${rule.func}. Your formula does not use ${rule.func}.`,
+      message: rule.message ?? `This lesson is about ${rule.func}. Your formula does not use it.`,
       hint: rule.hint,
     };
   }
@@ -107,7 +109,7 @@ function checkRequire(ast, rule) {
         rule: rule.id,
         message:
           rule.minArgsMessage ??
-          `${rule.func} needs at least ${rule.minArgs} ${needed} here; yours has ${worst.args.length}.`,
+          `${rule.func} needs at least ${rule.minArgs} ${needed} here. Yours has ${worst.args.length}.`,
         hint: rule.hint,
       };
     }
@@ -130,7 +132,7 @@ function checkMatchType(ast, rule, ctx) {
   if (!calls.length) {
     return {
       rule: rule.id,
-      message: rule.message ?? `${rule.func} is missing from the formula.`,
+      message: rule.message ?? `${rule.func} is missing from the formula. Add it and check again.`,
       hint: rule.hint,
     };
   }
@@ -151,7 +153,7 @@ function checkCallArgument(call, index, rule, ctx) {
       rule: rule.id,
       message:
         rule.missingMessage ??
-        `${rule.func} has no ${ordinal(rule.arg)} argument, so Excel uses its default instead.`,
+        `${rule.func} has no ${ordinal(rule.arg)} argument, so Excel uses its default instead. Add the argument and check again.`,
       hint: rule.hint,
     };
   }
@@ -173,7 +175,7 @@ function checkCallArgument(call, index, rule, ctx) {
       rule: rule.id,
       message:
         rule.missingMessage ??
-        `${rule.func}'s ${ordinal(rule.arg)} argument points at an empty cell, so this lesson cannot use it.`,
+        `${rule.func}'s ${ordinal(rule.arg)} argument points at an empty cell, so this lesson cannot use it. Fill the cell or point at another one.`,
       hint: rule.hint,
     };
   }
@@ -185,7 +187,7 @@ function checkCallArgument(call, index, rule, ctx) {
       rule: rule.id,
       message:
         rule.wrongMessage ??
-        `${rule.func}'s ${ordinal(rule.arg)} argument points at ${formatValue(value)} instead of a single value.`,
+        `${rule.func}'s ${ordinal(rule.arg)} argument points at ${formatValue(value)} instead of a single value. Point at one cell.`,
       hint: rule.hint,
     };
   }
@@ -204,7 +206,7 @@ function checkCallArgument(call, index, rule, ctx) {
     rule: rule.id,
     message:
       rule.wrongMessage ??
-      `${rule.func}'s ${ordinal(rule.arg)} argument is ${formatValue(value)}; this lesson needs ${allowed
+      `${rule.func}'s ${ordinal(rule.arg)} argument is ${formatValue(value)}, but this lesson needs ${allowed
         .map(formatValue)
         .join(" or ")}.`,
     hint: rule.hint,
@@ -226,7 +228,7 @@ function ordinal(n) {
   }
 }
 
-function compareToExpected(actual, expected, tolerance) {
+export function compareToExpected(actual, expected, tolerance) {
   if (isRange(actual)) return false;
   if (typeof actual === "number" && typeof expected === "number") {
     const scale = Math.max(1, Math.abs(actual), Math.abs(expected));
@@ -282,7 +284,7 @@ export function grade(exercise, input) {
     return outcome(false, "require-ref", exercise, {
       message:
         exercise.requireRefMessage ??
-        `Your formula does not refer to ${exercise.requireRef}. The lesson checks that you point at the data rather than typing the number.`,
+        `Your formula does not refer to ${exercise.requireRef}. Point at that cell instead of typing the number.`,
       expected,
     });
   }
@@ -328,11 +330,52 @@ export function grade(exercise, input) {
     });
   }
 
+  // A variant re-runs the formula on the same table with a number changed. A formula that carries
+  // the answer inside it passes the check above and fails here, which is the point: the answer is
+  // not the lesson, pointing at the data is.
+  for (const variant of exercise.variants ?? []) {
+    const changed = { ...cells, ...variant.cells };
+    const variantCtx = createContext(changed, { clock: pinnedClock(exercise.today) });
+    const variantTolerance = variant.expect.tolerance ?? tolerance;
+
+    let variantValue;
+    try {
+      variantValue = evaluate(ast, variantCtx);
+    } catch (error) {
+      if (error instanceof FormulaError) {
+        return outcome(false, "hardcoded", exercise, {
+          message: `With ${describeEdit(variant)}, your formula stops with ${error.code} instead of returning ${formatValue(variant.expect.value)}.`,
+          hint: exercise?.hints?.hardcoded,
+          value: null,
+          expected: variant.expect.value,
+          code: error.code,
+        });
+      }
+      throw error;
+    }
+
+    if (isRange(variantValue) || !compareToExpected(variantValue, variant.expect.value, variantTolerance)) {
+      return outcome(false, "hardcoded", exercise, {
+        message: exercise?.hardcodedMessage ?? DEFAULT_MESSAGES.hardcoded,
+        hint: exercise?.hints?.hardcoded,
+        value: isRange(variantValue) ? null : variantValue,
+        expected: variant.expect.value,
+      });
+    }
+  }
+
   return outcome(true, "correct", exercise, {
     message: exercise.successMessage ?? DEFAULT_MESSAGES.correct,
     value: actual,
     expected,
   });
+}
+
+/** "B2 changed to 1450" — how one variant's edit is described back to the learner. */
+function describeEdit(variant) {
+  return Object.entries(variant.cells)
+    .map(([key, value]) => `${key} changed to ${formatValue(value)}`)
+    .join(", ");
 }
 
 /** Structural summary used by rules and by the UI's "what did I write" panel. */

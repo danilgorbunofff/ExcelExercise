@@ -17,7 +17,7 @@ const CATALOG = join(ROOT, "legacy", "content", "track.json");
 /**
  * Reference category → the group that replaces it. `[]` means we deliberately do not cover it:
  * keyboard shortcuts and click-paths cannot be graded by a formula engine, and the dashboard project
- * is a workbook walkthrough rather than a drill.
+ * is a workbook walkthrough rather than an exercise.
  */
 const MAP = {
   "Intro Lessons": ["intro"],

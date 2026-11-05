@@ -5,19 +5,23 @@
   "title": "Budget versus actual with a variance flag",
   "docs": {
     "syntax": "=ROUND((actual-budget)/budget,3) sizes the variance; ABS lets one threshold catch both directions",
-    "explain": "A budget report is only useful when it says which lines need attention, and the arithmetic that makes the decision is a division rather than a subtraction. Dividing by the budget turns a variance into a share of what was planned. That is what makes one threshold apply to every line: twenty pounds over is nothing on a five thousand pound line and everything on a fifty pound one. The first screen writes that share and rounds it. An unrounded ratio is a long tail of digits that nobody reads, and no comparison against a threshold can be written to match it. The second screen adds the flag, and the interesting part is the ABS call. A flag written without it catches overspends and silently lets underspends through, so a line thirty per cent under budget never gets reviewed. Wrapping the difference in ABS makes one threshold cover both directions, which is what a review flag is for. Together the two screens are the shape of every variance table: a share of plan, then a word that says whether that share is worth a conversation.",
+    "explain": "Dividing a variance by its budget turns an amount into a share of what was planned. That is what lets one threshold fit every line: 100 over on a 2000 budget is five per cent, and the same 100 over on 300 is a third. ROUND keeps the share at three decimals so two cells can be compared.\n\nThe rent line asks for that share directly: 2100 actual against a 2000 budget is 0.05. The second screen turns the same arithmetic into a flag, with the threshold at ten per cent in either direction.\n\nWithout ABS the test reads a signed difference, so an underspend never reaches review. Payroll at 4800 against a 5000 budget is four per cent under and would pass unnoticed. Travel at 950 against 800 is the line that does flag, at 18.75 per cent.",
     "errors": [
       {
         "code": "#DIV/0!",
-        "text": "The budget figure is zero, so the variance has nothing to be measured against."
+        "text": "The budget cell is zero, so the variance has nothing to be divided by."
       },
       {
         "code": "#VALUE!",
-        "text": "A budget or actual cell holds text, so the difference cannot be worked out."
+        "text": "A budget or actual cell holds text, so the subtraction has no number to work with."
+      },
+      {
+        "code": "Signed test",
+        "text": "A flag built on the signed difference catches overspends and lets an underspend through, which is what ABS around the difference prevents."
       }
     ],
-    "atWork": "Turning budget and actual columns into a comparable variance and a review flag.",
-    "outcome": "Size a variance as a share of budget, then flag it with one threshold in both directions.",
+    "atWork": "Turning a budget column and an actual column into a variance a reader can compare across lines.",
+    "outcome": "Size a variance as a share of budget, then flag it with one threshold both ways.",
     "teaches": "a rounded variance share, then an IF over ABS so under- and overspends both flag",
     "dataset": "Four budget lines with budget, actual and one answer cell",
     "reference": "=ROUND((C2-B2)/B2,3)"
@@ -79,10 +83,10 @@
       "requireRef": "B2",
       "hints": {
         "syntax": "=ROUND((C2-B2)/B2,3): the difference over the budget, to three places.",
-        "func-round": "The raw ratio is a long tail of digits, so it is rounded for reporting.",
-        "require-ref": "The budget figure is in B2.",
+        "func-round": "The raw ratio runs to a long tail of digits, so it is rounded for reporting.",
+        "require-ref": "The budget is in B2 and the actual in C2, on the same row.",
         "value": "A hundred over two thousand is five per cent, or 0.05.",
-        "error": "A zero budget leaves the share nothing to be measured against."
+        "error": "A zero budget leaves the share nothing to measure against, and the cell shows #DIV/0!."
       },
       "fixtures": {
         "accept": [
@@ -192,12 +196,12 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=IF(ABS(C2-B2)/B2>0.1,\"review\",\"ok\"): the absolute share against the threshold, then two words.",
-        "func-if": "The cell has to choose between two words.",
+        "syntax": "=IF(ABS(C2-B2)/B2>0.1,\"review\",\"ok\"): the absolute share, then the threshold, then two words.",
+        "func-if": "One branch for a line worth review and one for a line that is fine.",
         "func-abs": "An overspend and an underspend both count, so the difference is taken without its sign.",
-        "require-ref": "The budget figure is in B2.",
-        "value": "Five per cent is inside ten, so the first line is ok.",
-        "error": "A zero budget divides by zero before the comparison is made."
+        "require-ref": "The budget is B2 and the actual C2, not the answer column.",
+        "value": "Five per cent is inside ten, so the first line reads ok.",
+        "error": "If the test uses the signed difference, the grader reports the flag as wrong for an underspend."
       },
       "fixtures": {
         "accept": [

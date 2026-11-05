@@ -15,7 +15,7 @@ import { after, before, describe, it } from "node:test";
 
 import { build } from "../legacy/src/build.mjs";
 import { verify } from "../legacy/src/verify.mjs";
-import { shippedWorkbooks } from "./lessons.js";
+import { shippedSheetScreens } from "./lessons.js";
 
 const ROOT = join(import.meta.dirname, "..");
 const LESSON = "01-sum-basics.json";
@@ -74,8 +74,8 @@ describe("a build with a workbook lesson", () => {
     rmSync(work, { recursive: true, force: true });
   });
 
-  it("writes one file per workbook screen and counts them", () => {
-    assert.equal(summary.files, 2 + shippedWorkbooks([LESSON]), "the summary does not count the workbooks");
+  it("writes one file per screen with a spreadsheet and counts them", () => {
+    assert.equal(summary.files, 2 + shippedSheetScreens([LESSON]), "the summary does not count the workbooks");
     for (const name of ["sum-basics-book-total.xlsx", "sum-basics-book-price.xlsx"]) {
       const file = join(out, "assets/files", name);
       assert.ok(existsSync(file), `${name} was not written`);

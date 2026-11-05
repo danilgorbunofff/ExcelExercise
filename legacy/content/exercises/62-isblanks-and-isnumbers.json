@@ -61,11 +61,11 @@
       "requireRef": "A3",
       "rules": [],
       "hints": {
-        "syntax": "=ISBLANK(A3): one cell in the parentheses, no comparison needed.",
-        "func-isblank": "A test that asks what kind of value is in a cell is what the IS functions are for.",
-        "require-ref": "Point at the cell the question names rather than a different row of the list.",
-        "value": "A3 holds the word text, so ISBLANK answers FALSE.",
-        "error": "Arithmetic on a logical value cannot be divided by zero without an error."
+        "syntax": "=ISBLANK(A3): one cell inside the brackets, with no comparison around it.",
+        "func-isblank": "The question asks what is in the cell, so it needs a type test rather than a count.",
+        "require-ref": "Point at A3, the cell the prompt names.",
+        "value": "A3 holds the word text, so the cell is not empty and the answer is FALSE.",
+        "error": "The answer is a logical value, so arithmetic on it ends in #VALUE! rather than TRUE or FALSE."
       },
       "fixtures": {
         "accept": [
@@ -167,11 +167,11 @@
       "requireRef": "A7",
       "rules": [],
       "hints": {
-        "syntax": "=ISNUMBER(A7): the result is a logical value, not the value itself.",
-        "func-isnumber": "Asking whether a cell holds a number is the job of ISNUMBER, not of a comparison.",
-        "require-ref": "Test the cell that holds n/a instead of the list as a whole.",
-        "value": "A7 holds the text n/a, so ISNUMBER answers FALSE.",
-        "error": "Arithmetic on a logical value cannot be divided by zero without an error."
+        "syntax": "=ISNUMBER(A7): the cell goes inside the brackets and the answer comes back TRUE or FALSE.",
+        "func-isnumber": "Whether a cell holds a number is a question for ISNUMBER, not for a comparison with 0.",
+        "require-ref": "Test A7, the row holding n/a.",
+        "value": "A7 holds text, so the answer is FALSE, while the 12 in A2 would answer TRUE.",
+        "error": "A correct test followed by a division by zero shows #VALUE!, because the logical value cannot be divided."
       },
       "fixtures": {
         "accept": [
@@ -219,19 +219,19 @@
   ],
   "docs": {
     "syntax": "=ISBLANK(cell), =ISNUMBER(cell), =ISTEXT(cell) return a logical value",
-    "explain": "The IS functions answer a different kind of question from a comparison. They ask not whether a value is large enough, but what kind of value it is. ISBLANK is TRUE only for a cell with nothing in it. That is not the same as a cell holding an empty string left behind by a formula: that one is text of length zero, and ISBLANK says FALSE. ISNUMBER is TRUE for dates and times as well as ordinary numbers, because Excel stores both as serial numbers, and FALSE for anything typed with letters. ISTEXT is its mirror. All of them return true logical values, so they plug straight into IF, AND and conditional formatting. None of them needs a comparison around it. Writing =ISBLANK(A4)=TRUE works, but adds a second comparison to a value that was already Boolean. In this drill A3 holds the word text, so ISBLANK answers FALSE and so does ISNUMBER. Two different questions can share an answer without being interchangeable. The second screen tests a cell holding the text n/a, where ISNUMBER answers FALSE and ISTEXT answers TRUE. Counting blanks is the everyday use. COUNTIF with an empty criterion counts empty strings differently from cells that were never filled, and the IS functions are how you tell the two apart.",
+    "explain": "The IS functions ask what kind of value a cell holds rather than how large it is. ISBLANK is TRUE only for a cell that was never filled. ISNUMBER is TRUE for a number or a date, since Excel stores both as serial numbers, and ISTEXT is its mirror. All three return a logical value, so IF and conditional formatting can read them directly.\n\nA3 holds the word text, so ISBLANK answers FALSE on the first screen. The unfilled cell is A4, and pointing the formula there answers TRUE. The second screen tests A7, which holds n/a, and ISNUMBER answers FALSE while ISTEXT answers TRUE.\n\nA cell holding an empty string is where the readings separate. A formula that returns \"\" leaves text of length zero, so ISBLANK says FALSE. COUNTIF with an empty criterion counts that cell and the unfilled one together, so a blank count can run higher than the cells you never touched.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A logical result was used in arithmetic that cannot accept it."
+        "text": "The logical answer was used in arithmetic, as when a TRUE is divided by zero."
       },
       {
         "code": "#NAME?",
-        "text": "The function name was misspelled."
+        "text": "The function name was mistyped, so Excel has nothing to run."
       },
       {
-        "code": "#N/A",
-        "text": "Not an error of these functions, but the value a lookup returns when nothing matches."
+        "code": "Text answer",
+        "text": "The cell holds the characters FALSE typed in quotes, so a later IF reads a label where it expected a logical value."
       }
     ],
     "atWork": "Finding the rows where a due date was never entered instead of comparing to an empty string.",

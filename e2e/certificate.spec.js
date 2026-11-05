@@ -25,7 +25,7 @@ test("a credential-shaped id is answered, and this deployment says it cannot che
   await expect(page.getByText(/no database configured/)).toBeVisible();
   await expect(page.getByText(/No certificate has that credential id/)).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Your certificate" })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "The drills" })).toHaveAttribute("href", "/learn");
+  await expect(page.getByRole("link", { name: "The exercises" })).toHaveAttribute("href", "/learn");
 });
 
 test("the id is read in either case, so a typed lowercase credential resolves the same way", async ({ page }) => {
@@ -53,7 +53,7 @@ test("the certificate page tells a signed-out learner that a certificate names a
   await expect(page.getByRole("heading", { name: "Certificate" })).toBeVisible();
   // No account store here, so the honest state is the unconfigured one rather than a sign-in prompt.
   await expect(page.getByText(/Accounts are not configured on this deployment/)).toBeVisible();
-  await expect(page.getByRole("link", { name: "Your drills" })).toHaveAttribute("href", "/learn");
+  await expect(page.getByRole("link", { name: "Your exercises" })).toHaveAttribute("href", "/learn");
   // Nothing on this page can issue yet, so the name-twice form is not offered.
   await expect(page.getByRole("button", { name: /issue/i })).toHaveCount(0);
   await expect(page.getByText(/cannot be changed afterwards/)).toHaveCount(0);

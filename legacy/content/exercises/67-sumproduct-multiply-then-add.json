@@ -5,19 +5,23 @@
   "title": "SUMPRODUCT: multiply the pair, then add them up",
   "docs": {
     "syntax": "=SUMPRODUCT(prices, quantities) multiplies the two ranges row by row and adds the products",
-    "explain": "SUMPRODUCT is the formula that values a stock list. You have a price in one column and a quantity in another. The number you want is not the sum of either column. It is the sum of every row's price multiplied by that row's quantity. Typing the products into a helper column and summing it gives the same answer. The helper column is a second place to make a mistake, and it stops being right the moment a row is inserted. SUMPRODUCT takes the two ranges and pairs them up in order, first row with first row, so there is no matching step to get wrong. The ranges have to be the same shape, which is the one thing to look at when the answer looks strange. The second screen goes one step further: a weighted average, where the products are divided by the total quantity rather than by the count of rows. A row that holds three items should count three times. That is the same SUMPRODUCT, used as a numerator instead of the whole answer, and it is the shape most pricing sheets are built around. Both screens keep the answer on one row, so the whole table stays visible while the formula is written.",
+    "explain": "SUMPRODUCT pairs two ranges row by row, multiplies each pair, then adds the products. The formula =SUMPRODUCT(B2:B4,C2:C4) covers the three prices and the three quantities and returns 100. Ten times two, five times four and twenty times three come to 20, 20 and 60. A helper column of products would reach the same answer, in more steps and in a second place to be wrong.\n\nThe second screen puts that pair of ranges in the numerator of an average. Divide 100 by the quantity total of 9 and the answer is 11.1, the average price per item, with the ink row counted three times. Averaging the three prices instead comes to 11.7, because each row counts once whatever its quantity.\n\nKeep both ranges on the same rows. SUMPRODUCT pairs by position, so a range that starts one row late pairs each price with the wrong quantity and the total still reads as a number. Excel only objects with #VALUE! when the heights differ outright.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The two ranges are different shapes, so the pairs do not line up."
+        "text": "The two ranges are a different height, so the pairs stop lining up and Excel refuses the call."
       },
       {
         "code": "#NAME?",
-        "text": "A bare range was typed after a comma that the function did not expect."
+        "text": "The function name is misspelt, so Excel reads it as an undefined name."
+      },
+      {
+        "code": "Wrong total",
+        "text": "A range that starts one row below the other pairs each price with the next quantity, and the total comes back as a number with no warning."
       }
     ],
-    "atWork": "Valuing a stock list without a helper column, then averaging by volume instead of by row.",
-    "outcome": "Value a table and compute a weighted average from the same two columns.",
+    "atWork": "Valuing a stock list in one cell, and averaging a price per unit sold rather than per row.",
+    "outcome": "Value a table and take a weighted average from the same two columns.",
     "teaches": "SUMPRODUCT as a value total and as the numerator of a weighted average",
     "dataset": "Stock list with a price chain and a quantity per row",
     "reference": "=SUMPRODUCT(B2:B4,C2:C4)"
@@ -79,10 +83,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SUMPRODUCT(B2:B4,C2:C4): two ranges, one comma, no multiplication sign.",
-        "func-sumproduct": "The pairs are multiplied and added by the function itself, so no helper column is needed.",
-        "require-ref": "Point the ranges at the table rows rather than typing numbers.",
+        "func-sumproduct": "Both columns go in, and the function does the multiplying and adding itself.",
+        "require-ref": "Point at the price and quantity cells, not at numbers typed into the formula.",
         "value": "Ten times two, five times four, twenty times three: 100.",
-        "error": "Dividing the total by zero replaces it with #DIV/0!."
+        "error": "The formula still divides something by zero, so the cell shows #DIV/0! in place of a stock value."
       },
       "fixtures": {
         "accept": [
@@ -183,10 +187,10 @@
       "rules": [],
       "hints": {
         "syntax": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUM(C2:C4),1): the division sits inside the ROUND.",
-        "func-sumproduct": "The numerator is the value of the whole stock, which is what the pairs are for.",
-        "require-ref": "Both the value and the quantity total come from the table rows.",
+        "func-sumproduct": "The numerator is the value of the whole stock, so it is a pair of ranges.",
+        "require-ref": "Both totals, the value and the quantity, come from the table rows.",
         "value": "100 divided by 9 units is 11.111..., which rounds to 11.1.",
-        "error": "A zero denominator leaves nothing to round, so #DIV/0! comes back."
+        "error": "A zero denominator returns #DIV/0! before ROUND runs at all."
       },
       "fixtures": {
         "accept": [

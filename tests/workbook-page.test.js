@@ -110,8 +110,8 @@ describe("a workbook lesson page", () => {
     assert.match(html, /class="workbook-link" href="[^"]+\.xlsx" download>/);
   });
 
-  it("previews the same rows, as a table rather than a drill grid", () => {
-    // A preview is read-only data: if it were a `grid`, the drill's delegated handlers would treat a
+  it("previews the same rows, as a table rather than an exercise grid", () => {
+    // A preview is read-only data: if it were a `grid`, the exercise's delegated handlers would treat a
     // click on a preview cell as selecting an answer cell the screen does not have.
     assert.ok(html.includes('id="workbook-grid-0"'), "the preview table is missing");
     assert.doesNotMatch(html, /id="workbook-grid-0"[^>]*role="grid"/, "the preview announces itself as an interactive grid");

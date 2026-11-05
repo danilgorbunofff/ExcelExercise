@@ -1,7 +1,7 @@
 /**
  * `POST /api/progress` as CI runs it: no Supabase project, so no account to attribute a write to.
  *
- * The failure this guards against is the tempting one — accepting the batch anyway "because the drill
+ * The failure this guards against is the tempting one — accepting the batch anyway "because the exercise
  * worked". Without accounts there is nowhere for it to go, and saying so (503) is better than a 201
  * that quietly dropped a learner's lesson. The write itself is proved against the real database by
  * `tests/db/progress.spec.js`, and the derivation by `tests/progress-sync.test.js`.
@@ -43,9 +43,9 @@ test("answers a malformed body with a status, never a crash", async ({ request }
 });
 
 /** The sender runs in the browser, so the only honest proof of it is a real browser: type the answer,
- *  finish the lesson, and read the request it made. The opening intro drill is one screen and inside the
+ *  finish the lesson, and read the request it made. The opening intro exercise is one screen and inside the
  *  free half, so it reaches `lesson_complete` on the first accepted formula. */
-test("the drill posts its lesson's events when the lesson ends", async ({ page }) => {
+test("the exercise posts its lesson's events when the lesson ends", async ({ page }) => {
   const request = page.waitForRequest((r) => carries('"events"', r));
   const response = page.waitForResponse((r) => carries('"events"', r));
 

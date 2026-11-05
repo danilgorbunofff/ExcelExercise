@@ -58,7 +58,8 @@
         "func-sum": "Add the three cells with SUM instead of typing 1200+1450+930.",
         "require-ref": "Your answer has to point at the Q1 cells, not repeat a total you worked out yourself.",
         "value": "Close, but that is not the Q1 total. Check that the range covers all three regions and none of the Q2 column.",
-        "error": "SUM only fails on what you feed it: #VALUE! means a cell in the range holds text instead of a number, #REF! means the range was pointed at something deleted. Re-select B2:B4 and let Excel write the range for you."
+        "error": "SUM only fails on what you feed it: #VALUE! means a cell in the range holds text instead of a number, #REF! means the range was pointed at something deleted. Re-select B2:B4 and let Excel write the range for you.",
+        "hardcoded": "Your total only works for the numbers in front of you, which means a figure is typed in. Sum the whole range, B2:B4, so a corrected region lands in the total on its own."
       },
       "fixtures": {
         "accept": [
@@ -109,29 +110,66 @@
             "formula": "=SUM(B2:B4",
             "rule": "syntax",
             "why": "unclosed bracket"
+          },
+          {
+            "formula": "=SUM(B2:B3)+930",
+            "rule": "hardcoded",
+            "why": "adds West as a typed number, so a corrected B4 never reaches the total"
           }
         ]
-      }
+      },
+      "variants": [
+        {
+          "id": "north-up",
+          "cells": {
+            "B2": 1300
+          },
+          "expect": {
+            "value": 3680
+          },
+          "why": "North is revised up to 1300, so the total has to move with it"
+        },
+        {
+          "id": "south-up",
+          "cells": {
+            "B3": 1500
+          },
+          "expect": {
+            "value": 3630
+          },
+          "why": "South is corrected to 1500, which is the change the docs describe"
+        },
+        {
+          "id": "west-down",
+          "cells": {
+            "B4": 1000
+          },
+          "expect": {
+            "value": 3650
+          },
+          "why": "West drops to 1000, so a formula that stopped at B3 would miss it"
+        }
+      ]
     }
   ],
   "docs": {
     "syntax": "=SUM(number1, [number2], ...)",
-    "explain": "SUM adds every number in the range you give it. The Q1 column holds 1200, 1450 and 930, so SUM(B2:B4) returns 3580. Change the South figure to 1500 and the total follows without retyping anything, which is the reason a spreadsheet exists. SUM skips text and empty cells inside a range, so a stray label will not break the answer. The trap runs the other way: a number stored as text is skipped silently. If a region is missing from the total, look for the left-aligned number in the column.",
+    "explain": "SUM adds the numbers in the range you give it. Any text or blank cell inside that range is stepped over rather than counted. =SUM(B2:B4) covers 1200, 1450 and 930 and returns 3580. Change South to 1500 and the total follows.\n\nThe failure runs the other way. A number stored as text looks like a number and is skipped without a warning, so the total comes out low and nothing on screen says why. A region missing from a total is usually a left-aligned figure in the column.\n\nPoint at the range rather than at three cells. 1200+1450+930 breaks when a row is inserted, while B2:B4 grows to take the new row in.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "You passed a cell that holds text where SUM expected a number, usually by summing the Region column instead of the Q1 column."
+        "text": "A cell in the range holds text where SUM expected a number, usually the heading or the Region column in place of the Q1 figures."
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled, for example SUMM or SU. Excel does not guess."
+        "text": "The function name is misspelled as SUMM or SU. Excel reads what is there and does not guess at the rest."
       },
       {
         "code": "Out of range",
-        "text": "SUM(B2:B5) would add the label cell B5 as well, which is how a total quietly doubles itself in real files."
+        "text": "SUM(B2:B5) would reach the label in B5 as well. A range that runs one cell long is how a total quietly doubles itself."
       }
     ],
-    "atWork": "Every monthly close starts like this: one row per branch, one column per period, and a total at the bottom. The people who get promoted are the ones whose totals update themselves.",
+    "atWork": "Every monthly close: one row per branch, one column per period, and a total at the bottom that updates itself.",
     "outcome": "Total a column with one function instead of typing every cell.",
     "teaches": "SUM",
     "dataset": "Q1 revenue by region",
@@ -140,6 +178,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "SUM in Excel: total a column in one cell",
-    "description": "SUM adds a whole range in one cell. This drill totals 3580 from three rows, then shows why a number stored as text never reaches the total."
+    "description": "SUM adds a whole range in one cell. This exercise totals 3580 from three rows, then shows why a number stored as text never reaches the total."
   }
 }

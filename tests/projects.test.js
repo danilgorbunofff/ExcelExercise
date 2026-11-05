@@ -1,7 +1,7 @@
 /**
  * The project shelf: four authored spreadsheets, one download each, one gate on the fourth.
  *
- * The player, the rail and the paywall are the drill's, unchanged; what is new is the shelf above them
+ * The player, the rail and the paywall are the exercise's, unchanged; what is new is the shelf above them
  * and the bytes below them. Three things therefore need proving here rather than in a browser: the
  * loader's order (easiest first, so the gated fourth is the hardest), that every task screen reads the
  * project's one dataset rather than a per-screen workbook, that the dataset name a URL carries can only
@@ -46,7 +46,7 @@ describe("the project track", () => {
       index.map((entry) => entry.free),
       [true, true, true, false],
     );
-    // The client's gate copy names the shelf it gates; the drill's defaults must survive untouched.
+    // The client's gate copy names the shelf it gates; the exercise's defaults must survive untouched.
     assert.equal(track.track.lessonNoun, "Project");
     assert.equal(track.track.showAnswerAfter, 3);
     assert.match(track.track.paidHalf, /paid half/);

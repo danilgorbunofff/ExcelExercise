@@ -19,7 +19,7 @@ import {
  * The study loop.
  *
  * Nothing here decides what is complete. The lesson ids come from `es.progress` — the same store the
- * drill writes — plus, for an account, the lessons the server already knows are finished. Everything
+ * exercise writes — plus, for an account, the lessons the server already knows are finished. Everything
  * else is presentation: flip, grade, persist, advance.
  *
  * The schedule lives in `es.flashcards`. It is read once on mount and written after every grade, so a
@@ -188,7 +188,7 @@ export function Deck({ serverIds = [] }) {
   const card = state.phase === "study" ? session[at] : null;
 
   if (state.phase === "loading") {
-    return <p className="auth-notice">Shuffling your cards…</p>;
+    return <p className="auth-notice">Shuffling your cards</p>;
   }
 
   if (state.phase === "empty") {
@@ -198,7 +198,7 @@ export function Deck({ serverIds = [] }) {
           Flashcards come from lessons you have finished, and there are none in this browser yet.
         </p>
         <p>
-          Finish a drill and its screens become cards: the question and the sheet on the front, the
+          Finish an exercise and its screens become cards: the question and the sheet on the front, the
           formula and one line of the lesson on the back.
         </p>
       </>
@@ -216,7 +216,7 @@ export function Deck({ serverIds = [] }) {
     // to have gone through zero cards.
     const when =
       status.nextDue === null
-        ? "Nothing is scheduled yet — finish a drill to add cards."
+        ? "Nothing is scheduled yet. Finish an exercise to add cards."
         : `The next card is due on ${new Date(status.nextDue).toLocaleDateString("en-GB", { dateStyle: "long" })}.`;
     return (
       <>

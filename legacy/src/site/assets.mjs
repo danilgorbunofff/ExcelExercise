@@ -11,7 +11,7 @@ import { esc } from "./html.mjs";
 import { indexablePaths } from "./seo.mjs";
 
 /** 5A §5: jade-9 is the one colour the favicon may use, and an SVG cannot read a CSS var. */
-const FAVICON_JADE = "#29a383";
+export const FAVICON_JADE = "#29a383";
 
 export const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Excel Supreme">
   <rect width="32" height="32" rx="7" fill="${FAVICON_JADE}"/>
@@ -72,8 +72,8 @@ export function buildStyles({ vendorDir, stylesDir }) {
  * signed-in surfaces are `noindex` and are never passed in, so they cannot leak in here; the legal
  * pages and the hub pages are passed in because a crawler is supposed to find them.
  */
-export function renderSitemap({ config, index = [], groups = [], articles = [], extra }) {
-  const entries = indexablePaths({ config, index, groups, articles, extra }).map((entry) => ({
+export function renderSitemap({ config, index = [], groups = [], articles = [], formulas = [], shortcuts = [], extra }) {
+  const entries = indexablePaths({ config, index, groups, articles, formulas, shortcuts, extra }).map((entry) => ({
     ...entry,
     loc: `${config.baseUrl}${entry.path}`,
   }));

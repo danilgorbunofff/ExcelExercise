@@ -80,10 +80,10 @@ test("the formula prompt is readable before anything is typed", async ({ page })
   expect(Math.round(ratio * 100) / 100).toBeGreaterThanOrEqual(4.5);
 });
 
-test("a formula drill passes before and after a miss", async ({ page }) => {
+test("a formula exercise passes before and after a miss", async ({ page }) => {
   await page.goto(freeDrill().path);
   await expect(page.locator("#formula")).toBeVisible();
-  await scan(page, "a fresh formula drill");
+  await scan(page, "a fresh formula exercise");
 
   // A wrong answer is the state a learner spends the most time in, and it is the one that adds a
   // verdict, a hint and a highlighted cell to the page.
@@ -92,7 +92,7 @@ test("a formula drill passes before and after a miss", async ({ page }) => {
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await page.click("#hint");
   await expect(page.locator("#hint-text")).toBeVisible();
-  await scan(page, "a formula drill after a miss, with its hint open");
+  await scan(page, "a formula exercise after a miss, with its hint open");
 });
 
 test("the dashboard passes with progress in it", async ({ page }) => {
@@ -134,17 +134,16 @@ test("a group page passes with progress in it", async ({ page }) => {
   await scan(page, "a group page with progress");
 });
 
-test("a drill behind the order gate passes with nothing to fix", async ({ page }) => {
+test("an exercise behind the order gate passes with nothing to fix", async ({ page }) => {
   await page.goto("/learn/excel/xlookup-search-from-the-bottom");
   await expect(page.locator("#paywall[data-gate='order']")).toBeVisible();
   await scan(page, "the order gate");
 });
 
-test("the picture screen of a multi-screen drill passes", async ({ page }) => {
+test("the picture screen of a multi-screen exercise passes", async ({ page }) => {
   await seedBefore(page, "xlookup-search-from-the-bottom");
   await page.goto("/learn/excel/xlookup-search-from-the-bottom");
-  await page.fill("#paywall-email", "learner@example.com");
-  await page.click("#paywall-form button[type='submit']");
+  await passGate(page);
   await expect(page.locator("#formula")).toBeVisible();
   await page.fill("#formula", "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)");
   await page.click("#check");
@@ -158,8 +157,8 @@ test("the picture screen of a multi-screen drill passes", async ({ page }) => {
 });
 
 test("the shortcut panels of a shipped lesson pass", async ({ page }) => {
-  // The drill that carries the chord and sequence screens sits past the free three, so the trial
-  // form is how a visitor reaches it.
+  // The exercise that carries the chord and sequence screens is one of the paid ones, so the gate is
+  // how a visitor reaches it: one free pass on the nominated exercise, the wall everywhere else.
   await seedBefore(page, "countif-open-tickets");
   await page.goto("/learn/excel/countif-open-tickets");
   await passGate(page);
@@ -179,8 +178,7 @@ test("the shortcut panels of a shipped lesson pass", async ({ page }) => {
 test("the workbook panel of a shipped lesson passes", async ({ page }) => {
   await seedBefore(page, "capstone-margin");
   await page.goto("/learn/excel/capstone-margin");
-  await page.fill("#paywall-email", "learner@example.com");
-  await page.click("#paywall-form button[type='submit']");
+  await passGate(page);
   await expect(page.locator("#formula")).toBeVisible();
   await page.fill(
     "#formula",
@@ -189,7 +187,7 @@ test("the workbook panel of a shipped lesson passes", async ({ page }) => {
   await page.click("#check");
 
   // A workbook screen puts a download, a collapsible preview and a read-only grid on the page at once,
-  // which is the most crowded screen the drill has: the preview's head has to name the sheet it opens.
+  // which is the most crowded screen the exercise has: the preview's head has to name the sheet it opens.
   await expect(page.locator("[data-screen='2'] .workbook")).toBeVisible();
   await scan(page, "a lesson's workbook screen");
 
@@ -209,7 +207,7 @@ test("a project passes on its first task and after a miss", async ({ page }) => 
   const FIRST = index[0];
   await page.goto(FIRST.path);
   await expect(page.locator("#formula")).toBeVisible();
-  // A project page is the drill player with a brief, a dataset download and a preview above the bar —
+  // A project page is the exercise player with a brief, a dataset download and a preview above the bar —
   // the same screen the phase-2 workbook test covers, reached through a different template.
   await scan(page, "a project's first task");
 
@@ -220,30 +218,46 @@ test("a project passes on its first task and after a miss", async ({ page }) => 
 });
 
 test("the offer page passes with nothing to fix", async ({ page }) => {
-  // Three sections of prose and a price: the page a walled reader lands on is the last place a label
-  // should point at nothing.
+  // An offer card, a folded roster and six answers: the page a walled reader lands on is the last place
+  // a label should point at nothing.
   await page.goto("/pricing");
-  await expect(page.locator("#main h1")).toHaveText("The free half, and the paid half");
+  await expect(page.locator("#main h1")).toHaveText("10 exercises free. The rest from $9.99/month");
   await scan(page, "the pricing page");
 });
 
 test("both paywalls pass with nothing to fix", async ({ page }) => {
-  // The prompt has a button where the wall has an email form, so they are different shapes of page and
-  // both are scanned. Neither was in the suite when the free count moved from 5 to 3.
-  // Read from the catalog rather than named here: the boundary is `freeLessonCount`, not a slug.
+  // The prompt has a pass button where the wall has a checkout form, so they are different shapes of page
+  // and both are scanned. Read from the catalog rather than named here: the boundary is the nominated
+  // `promptLesson`, and the wall is the paid exercise after it.
   const { index, track } = loadSite();
-  const promptAt = index[track.freeLessonCount];
-  const wallAt = index[track.freeLessonCount + 1];
+  const promptAt = index.find((entry) => entry.exercise.id === track.promptLesson);
+  const wallAt = index.filter((entry) => entry.number > promptAt.number && !entry.free)[0];
 
-  await seedBefore(page, promptAt.slug);
+  // The prompt needs no seeding: it is the door into the paid half, so it opens on a click from cold.
   await page.goto(promptAt.path);
   await expect(page.locator("#paywall[data-gate='prompt']")).toBeVisible();
-  await scan(page, "the soft prompt on the first paid drill");
+  await scan(page, "the soft prompt on the first paid exercise");
 
   await seedBefore(page, wallAt.slug);
   await page.goto(wallAt.path);
   await expect(page.locator("#paywall[data-gate='paywall']")).toBeVisible();
-  await scan(page, "the paywall on the drill behind it");
+  await scan(page, "the paywall on the exercise behind it");
+});
+
+// The drawer is the site's only navigation. A dialog with an unlabelled heading or a row whose name is
+// carried by a decorative tile is exactly the shape axe catches, and the tile is `aria-hidden` on
+// purpose — the label has to survive without it.
+test("the drawer passes while it is open", async ({ page }) => {
+  await page.goto("/");
+  await page.click("#menu-open");
+  await expect(page.locator("#site-menu")).toBeVisible();
+  await scan(page, "the open drawer");
+
+  // And it is still a page underneath: the scrim makes the body inert, so the scan has to happen with
+  // the drawer closed as well, or the only navigation a screen reader can reach goes unscanned on the
+  // pages that carry it.
+  await page.keyboard.press("Escape");
+  await scan(page, "the index after the drawer closed");
 });
 
 test("the feedback dialog passes while it is open", async ({ page }) => {
@@ -295,7 +309,7 @@ test("the profile page passes with nothing to fix", async ({ page }) => {
 test("the legal pages pass with nothing to fix", async ({ page }) => {
   for (const [path, heading] of [
     ["/privacy", "What this site keeps, and what it never sees"],
-    ["/terms", "The deal, in plain English"],
+    ["/terms", "What you agree to"],
   ]) {
     await page.goto(path);
     await expect(page.locator("#main h1")).toHaveText(heading);
@@ -327,12 +341,12 @@ test("every page's skip link names the landmark it jumps to", async ({ page }) =
   // reader user hears. `/learn` shipped "Skip to the Skip to the dashboard" and the boards shared the
   // sign-in form's label — neither is visible to anyone not using the link, which is why it survived.
   const pages = [
-    ["/", "drills"],
+    ["/", "exercises"],
     ["/learn", "dashboard"],
     ["/learn/groups/sum", "group"],
     ["/excel-exercises", "exercises"],
     ["/about", "page"],
-    [freeDrill().path, "drill"],
+    [freeDrill().path, "exercise"],
     ["/pricing", "pricing"],
     ["/privacy", "privacy policy"],
     ["/terms", "terms"],

@@ -4,20 +4,24 @@
   "level": 3,
   "title": "AGGREGATE: a total that says what to ignore",
   "docs": {
-    "syntax": "=AGGREGATE(function-number, options, range) — nine is SUM, one is AVERAGE, six ignores error values",
-    "explain": "AGGREGATE is SUBTOTAL's more careful cousin. It takes three arguments instead of two. First the function number, which works the same way. Then an options number that says what the answer should skip, and only then the range. The options number is the point. Six means ignore error values, seven means ignore hidden rows and error values as well, and there are settings for nested subtotals and for ignoring nothing at all. That matters because a plain SUM refuses to answer when one cell in its range holds an error. One broken reference and the total is #VALUE! for the whole column, which is the opposite of helpful when you are trying to see the rest of the numbers. AGGREGATE with six keeps adding the cells that work. The cost of that convenience is that a real mistake can disappear into a total that looks reasonable, so the options number is a decision, not a default. On this drill nothing in the range is an error, so the aggregate agrees with the plain sum. That is the useful lesson: the shape of the formula, and where the number you choose sits inside it.",
+    "syntax": "=AGGREGATE(function-number, options, range) with 9 for SUM, 1 for AVERAGE and 6 to skip error values",
+    "explain": "AGGREGATE takes three arguments: a function number, an options number, then the range. The function number works as it does in SUBTOTAL, so 9 adds and 1 averages. The formula =AGGREGATE(9,6,B2:B4) adds the three prices to 35.\n\nThe options number decides what the calculation walks past. Six ignores error values, and seven ignores hidden rows as well. A plain SUM answers a broken reference with that same error across the whole column, while AGGREGATE keeps adding the cells that still hold numbers.\n\nThe cost of option six is that a failed row disappears from the total, and nothing on screen says so. Here B2:B4 is intact, so 35 is the plain sum as well. The second screen changes only the function number, to 1, and rounds 35 over 3 to 11.7.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The options number is not one AGGREGATE recognises."
+        "text": "The options number is not one AGGREGATE recognises, so it cannot decide what to skip."
       },
       {
         "code": "#NUM!",
-        "text": "The function number is outside the range of supported functions."
+        "text": "The function number is outside the range AGGREGATE supports."
+      },
+      {
+        "code": "Wrong total",
+        "text": "Option six has left a failed row out of the total, and nothing on screen says a row is missing."
       }
     ],
     "atWork": "A total that keeps working when one row of the source data has broken.",
-    "outcome": "Write a three-argument aggregate and know what the options number is buying.",
+    "outcome": "Write a three-argument aggregate and know which cells the options number leaves out.",
     "teaches": "AGGREGATE's function number, options number and range, in that order",
     "dataset": "Stock list where the total has to survive a broken row",
     "reference": "=AGGREGATE(9,6,B2:B4)"
@@ -78,11 +82,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=AGGREGATE(9,6,B2:B4): function number, options number, range.",
-        "func-aggregate": "The total that can skip a broken cell is AGGREGATE.",
+        "syntax": "=AGGREGATE(9,6,B2:B4): function number, options number, range, in that order.",
+        "func-aggregate": "Three arguments, and only AGGREGATE carries the options number that skips a broken cell.",
         "require-ref": "The range is the price column of the table.",
         "value": "Ten plus five plus twenty is 35.",
-        "error": "Dividing the total by zero replaces it with #DIV/0!."
+        "error": "The total is divided by zero after the aggregate runs, so #DIV/0! is what shows."
       },
       "fixtures": {
         "accept": [
@@ -183,10 +187,10 @@
       "rules": [],
       "hints": {
         "syntax": "=ROUND(AGGREGATE(1,6,B2:B4),1): the aggregate sits inside the ROUND.",
-        "func-aggregate": "The average has to survive a broken cell, so it is an AGGREGATE rather than an AVERAGE.",
+        "func-aggregate": "An average over a range that may hold a broken cell needs AGGREGATE, with 1 as its function number.",
         "require-ref": "The prices live in B2:B4.",
         "value": "35 divided by 3 is 11.666..., which rounds to 11.7.",
-        "error": "A zero denominator leaves nothing to round, so #DIV/0! comes back."
+        "error": "With the divisor at zero the cell returns #DIV/0!, and the rounding never happens."
       },
       "fixtures": {
         "accept": [

@@ -48,11 +48,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "DATEDIF reads left to right: start, then end, then the unit in quotes: =DATEDIF(B2,C2,\"Y\").",
-        "func-datedif": "DATEDIF is the one that answers in whole units; subtracting two serials answers in days, so read it off C2 and B2 instead.",
-        "require-ref": "Point at B2 and C2 rather than typing the two serials into the call.",
-        "value": "44562 is 1 January 2022 and 45352 is 1 March 2024, so two full years have passed and the two months since are not counted.",
-        "error": "DATEDIF answers #NUM! for a unit it does not know, or when the start date falls after the end date."
+        "syntax": "DATEDIF reads start, end, unit: =DATEDIF(B2,C2,\"Y\").",
+        "func-datedif": "Subtracting the two serials gives 790 days; the Y unit is what turns that into complete years.",
+        "require-ref": "Point at B2 and C2, so the second employee needs no new formula.",
+        "value": "1 January 2022 to 1 March 2024 is 2 whole years. The two months after that anniversary do not count.",
+        "error": "The unit has to be one of Y, M, D, YM, MD or YD; anything else returns #NUM!."
       },
       "fixtures": {
         "accept": [
@@ -150,11 +150,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "Same three arguments, a different unit: =DATEDIF(B2,C2,\"M\").",
-        "func-datedif": "DATEDIF with the month unit, not a subtraction and not DAYS.",
-        "require-ref": "Read the two serials from B2 and C2.",
-        "value": "44197 is 1 January 2021, so three whole years is 36 months and January to March 2024 adds the other two.",
-        "error": "A unit DATEDIF does not know comes back as #NUM!, so a typo in the quotes is a visible failure rather than a wrong number."
+        "syntax": "The same three arguments with the month unit: =DATEDIF(B2,C2,\"M\").",
+        "func-datedif": "M counts complete months, not days divided by thirty.",
+        "require-ref": "Read Grace's start and the review date from B2 and C2.",
+        "value": "1 January 2021 to 1 March 2024 is 38 whole months: 36 for the three years, then two more.",
+        "error": "A reversed pair returns #NUM!, so if the number is an error check the dates before the quotes."
       },
       "fixtures": {
         "accept": [
@@ -212,23 +212,23 @@
   ],
   "docs": {
     "syntax": "=DATEDIF(start, end, \"unit\")",
-    "explain": "Subtracting one date from another answers in days and nothing else. DATEDIF answers in whichever unit you name. It is also the only function that answers in the leftovers: complete years between two dates, complete months, days left over after those years, months left over after them. It takes a start date, an end date, and a unit written as text in quotes. Y, M and D give whole years, months and days, and YM, MD, YD give the remainders. The word complete is the whole point. From 1 January 2022 to 1 March 2024 nobody has served three years yet, so Y answers 2, and a birthday that has not arrived is not a year of service. Nothing in the arguments says which unit you meant, so a wrong unit is a plausible number rather than an error. 26 is the right answer to a different question, which is why it grades as a wrong answer here instead of a typo. DATEDIF is old enough that Excel still hides it from the function list. It answers #NUM! when the unit is unknown or the start date falls after the end, so both failures are at least loud.",
+    "explain": "Subtracting one date from another answers in days and nothing else. DATEDIF takes a start date, an end date and a unit in quotes, and answers in whichever unit you name. Y, M and D give whole units; YM, MD and YD give what is left after the whole ones.\n\nAda started on 1 January 2022 and the review is 1 March 2024, so the Y answer is 2. A subtraction on that pair gives 790 and M gives 26, both correct answers to other questions. The second screen asks for Grace's complete months and expects 38.\n\nNothing in the call checks that the unit matches the question, so a wrong one returns a plausible number. Excel leaves DATEDIF out of its function list, so type the name in full. A start date after the end returns #NUM! instead of a negative count.",
     "errors": [
       {
         "code": "#NUM!",
-        "text": "The unit in quotes is not one DATEDIF knows: Y, M, D, YM, MD and YD are the whole list."
+        "text": "The end date falls before the start date, so there is no positive interval for DATEDIF to report."
       },
       {
         "code": "#NUM!",
-        "text": "The start date falls after the end date, so there is no positive difference to report."
+        "text": "The unit in quotes is not Y, M, D, YM, MD or YD, so there is no unit to count."
       },
       {
         "code": "#VALUE!",
-        "text": "A date argument was text that does not read as a date, so DATEDIF has no serial to work from."
+        "text": "One of the dates is text that Excel cannot read as a date, so there is no serial to compare."
       }
     ],
-    "atWork": "A staff review sheet that reports years of service without dividing a day count by 365. The question the HR export asks is complete years, and DATEDIF is the only function that answers it.",
-    "outcome": "Ask for the difference between two dates in whole years, months or days, and get the leftovers when you want them too.",
+    "atWork": "A staff review sheet reporting complete years of service, without dividing a day count by 365.",
+    "outcome": "Ask for the gap between two dates in whole years, months or days, with the leftovers when needed.",
     "teaches": "DATEDIF and its six units",
     "dataset": "Two employees, their start dates and one review date",
     "reference": "=DATEDIF(B2,C2,\"Y\")"

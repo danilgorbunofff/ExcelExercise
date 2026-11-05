@@ -6,7 +6,7 @@ import { AUDIT, auditRows } from "./audit.js";
 import { HOSTILE, OUTCOME_KEYS } from "./corpus.js";
 import { LESSONS as lessons } from "./lessons.js";
 
-/** Each screen with its own fixtures: every screen is a drill a learner has to get through. */
+/** Each screen with its own fixtures: every screen is an exercise a learner has to get through. */
 const screens = lessons.flatMap(({ lesson, screens: views }) =>
   views.map(({ exercise, fixture, screen }, index) => ({
     label: views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id,
@@ -29,11 +29,12 @@ const MEDIAN_FLOOR = 6;
 
 describe("fixtures: shape", () => {
   it("carries both lists on every screen, with nothing empty", () => {
-    assert.ok(lessons.length >= 10, `only ${lessons.length} lessons ship fixtures`);
-    for (const { name, screen, fixture } of lessons) {
-      assert.ok(screen.fixtures, `${name}: screen has no fixtures inline`);
-      assert.ok(fixture.accepted.length > 0, `${name}: no accepted fixtures`);
-      assert.ok(fixture.rejected.length > 0, `${name}: no rejected fixtures`);
+    const fixtureScreens = screens.filter((entry) => entry.screen.type === "formula");
+    assert.ok(fixtureScreens.length >= 10, `only ${fixtureScreens.length} screens ship fixtures`);
+    for (const { label, screen, fixture } of fixtureScreens) {
+      assert.ok(screen.fixtures, `${label}: screen has no fixtures inline`);
+      assert.ok(fixture.accepted.length > 0, `${label}: no accepted fixtures`);
+      assert.ok(fixture.rejected.length > 0, `${label}: no rejected fixtures`);
     }
   });
 

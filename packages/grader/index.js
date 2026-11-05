@@ -3,7 +3,7 @@ import { grade } from "./grade.js";
 import { parse } from "./parse.js";
 import { tokenize } from "./tokenize.js";
 
-export { grade } from "./grade.js";
+export { grade, compareToExpected, referencesCell } from "./grade.js";
 export { gradeAnswer, normaliseAnswer } from "./answers.js";
 export { FormulaError, CODES, isFormulaError } from "./errors.js";
 export { tokenize } from "./tokenize.js";

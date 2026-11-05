@@ -63,7 +63,7 @@ export function expandRange(from, to, getCell) {
   if (cells > MAX_RANGE_CELLS) {
     throw new FormulaError(
       CODES.NUM,
-      `${from}:${to} covers ${cells.toLocaleString("en-US")} cells. Use the columns your table actually fills, not a whole block.`,
+      `${from}:${to} covers ${cells.toLocaleString("en-US")} cells. Use the columns your table fills, not a whole block.`,
     );
   }
 

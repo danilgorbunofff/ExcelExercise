@@ -60,11 +60,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "LARGE takes the range and which one you want: =LARGE(B2:B6,2).",
-        "func-large": "MAX gives only the best time; the second best needs a function that counts in from the top.",
-        "require-ref": "Point at the column of times rather than listing them inside the formula.",
-        "value": "2 means the second highest number, not the number in row 2: the answer is 58, not 61.",
-        "error": "Dividing by zero anywhere in the formula leaves #DIV/0!."
+        "syntax": "LARGE takes the range, then which one you want: =LARGE(B2:B6,2).",
+        "func-large": "MAX gives the top time only. The second one needs a function that counts in from the top.",
+        "require-ref": "Point at the column of times instead of listing them inside the formula.",
+        "value": "The 2 is a position, not a row number. The highest time is 61, so the second highest is 58.",
+        "error": "#NUM! means the position is outside the list: it appears when the second argument is 0 or larger than the count."
       },
       "fixtures": {
         "accept": [
@@ -169,11 +169,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "SMALL is LARGE from the other end: =SMALL(B2:B6,2).",
-        "func-small": "MIN only knows the cheapest quote; the next one up needs a function that counts in from the bottom.",
-        "require-ref": "Read the range from B2:B6 so the quotes stay the only place the numbers live.",
-        "value": "1 is the cheapest, 35; the second cheapest is 38.",
-        "error": "Dividing by zero replaces the quote with #DIV/0!."
+        "syntax": "SMALL is LARGE counted from the other end: =SMALL(B2:B6,2).",
+        "func-small": "MIN returns the cheapest quote and stops there. The next one up needs SMALL.",
+        "require-ref": "Read the quotes from B2:B6, so the numbers live in one place.",
+        "value": "35 is the cheapest. The second cheapest is 38, which is what the 2 asks for.",
+        "error": "#VALUE! appears when the first argument holds text, as a column of quote codes would."
       },
       "fixtures": {
         "accept": [
@@ -226,22 +226,22 @@
   ],
   "docs": {
     "syntax": "=LARGE(range, n) and =SMALL(range, n)",
-    "explain": "MAX and MIN answer only the first question anybody asks. The moment you want the runner-up, the third-worst month or the second-cheapest quote, you need a function that counts in from one end of the sorted order without sorting anything. LARGE does that from the top and SMALL from the bottom. The second argument is a position, not a row number, which is why 2 usually surprises people. The list stays exactly where it is: no helper column, no sort, no copy. Ranks that tie are counted separately, so two swimmers on 61 give LARGE 61 for both 1 and 2, and third place goes to the next distinct time. That is how Excel behaves, and it is worth knowing before a ranking report is published. A position beyond the size of the range returns #NUM! rather than a blank, so a chart title built on `=LARGE(...)` needs error handling if the list can shrink. The range should also be a range. LARGE over a hand-typed list freezes the answer and defeats the point.",
+    "explain": "LARGE returns the value at a given position counted from the top of the list, and SMALL counts the same way from the bottom. The second argument is a rank, so 1 is the highest and 2 the one after it. Nothing is sorted: the sheet keeps its rows and the answer sits wherever the formula is written.\n\nHere the times run 58, 61, 55, 57 and 50, so the highest is 61 and the second highest is 58. The quote column works the other way: 35 is the cheapest and 38 the next one up, which is what SMALL with a 2 returns.\n\nThe position is the usual mistake, because 2 looks like a row number. A position of 0, or one past the end of the list, returns #NUM! where a value should be. A headline built on LARGE needs a guard when the list can shrink.",
     "errors": [
       {
         "code": "#NUM!",
-        "text": "The position asked for is larger than the number of values in the range."
-      },
-      {
-        "code": "#NUM!",
-        "text": "The position is zero or negative, so there is no such place in the order."
+        "text": "The position is 0 or larger than the count of values, so there is no such place in the order."
       },
       {
         "code": "#VALUE!",
-        "text": "The range holds no numbers at all, so there is no order to count in from."
+        "text": "The first argument holds text rather than a block of numbers, so there is no order to count through."
+      },
+      {
+        "code": "Wrong end",
+        "text": "LARGE on a list of times returns the slowest and SMALL the fastest, so the number is right and the label above it is wrong."
       }
     ],
-    "atWork": "A team sheet that names the second-best time, and a tender list that tracks the second-cheapest quote, both without re-sorting the underlying table.",
+    "atWork": "A team sheet naming the second-best time, and a tender list tracking the second-cheapest quote, both without re-sorting the table.",
     "outcome": "Pick the nth value in an unsorted list instead of sorting it to read one number.",
     "teaches": "LARGE and SMALL with a position argument",
     "dataset": "Swim times and five supplier quotes",

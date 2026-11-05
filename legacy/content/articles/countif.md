@@ -1,9 +1,9 @@
 ---
 title: COUNTIF in Excel, count the rows that match
 summary: COUNTIF counts the cells in one range that meet one condition. The criteria decides everything, and text criteria need quotation marks.
-description: How COUNTIF works in Excel, counting text, numbers and blank cells, three worked examples, its common errors, and a drill on a ticket log.
+description: How COUNTIF works in Excel, counting text, numbers and blank cells, three worked examples, its common errors, and an exercise on a ticket log.
 function: COUNTIF
-exercise: countif-open-tickets
+drills: countif-open-tickets, countif-with-wildcards, countifs-several-conditions
 syntax: =COUNTIF(range, criteria)
 updated: 2026-02-14
 ---
@@ -17,7 +17,9 @@ updated: 2026-02-14
 - `range` is the block of cells to read. Only this block is searched.
 - `criteria` is what a cell has to be. Text goes in quotes, a number does not.
 
-A text criterion is exact by default: `"Open"` does not count `"open"` or `"Open "` with a space on the end. Numbers can be written as a comparison in quotes, which looks odd but works: `">10"`, `"<=100"`, `"<>0"`. The quotes are needed because the whole thing, operator and number, is a piece of text that COUNTIF parses. Comparing to a cell reference drops the quotes and keeps the operator: `=">"&D2`.
+A text criterion has to match the cell, stray spaces included: `"Open"` does not count `"Open "` with a space on the end.
+
+Numbers can be written as a comparison in quotes, which looks odd but works: `">10"`, `"<=100"`, `"<>0"`. The quotes are needed because the whole thing, operator and number, is a piece of text that COUNTIF parses. Comparing to a cell reference drops the quotes and keeps the operator: `=">"&D2`.
 
 ## Examples
 
@@ -49,7 +51,7 @@ F2 holds 48, the `&` joins the operator and the cell into one piece of text, and
 
 | Result | What it means | The fix |
 | --- | --- | --- |
-| `0` when matches exist | The criteria is not what the cells contain, often a trailing space or different case | Try `"*open*"` to see if spacing is the problem |
+| `0` when matches exist | The criteria is not what the cells contain, most often a trailing space | Try `"*Open*"` to see if spacing is the problem |
 | `#VALUE!` | The first argument is a single value, not a range, or the quotes are missing | Pass a range such as `B2:B9` |
 | `#NAME?` | The name is misspelled, for example `COUNTIFF` | Let Excel complete the name for you |
 | A count that is one short | The range stops a row before the last entry | Extend the range, or use a whole column |
@@ -57,11 +59,23 @@ F2 holds 48, the `&` joins the operator and the cell into one piece of text, and
 
 The one-short count is the most common of these. A range typed as `B2:B8` on a log with nine rows misses the newest ticket, and the number is wrong by exactly one until someone notices. Selecting the range with the mouse and dragging instead of typing the address avoids most of it.
 
-Case is not a factor: COUNTIF treats `"open"` and `"Open"` as the same criterion. If you need a case-sensitive count, use `SUMPRODUCT` with `EXACT`, which is a different lesson and rarely needed on a status column.
+Case is not a factor: COUNTIF treats `"open"` and `"Open"` as the same criterion. If you need a case-sensitive count, use `SUMPRODUCT` with `EXACT`, which is a different formula and rarely needed on a status column.
+
+## Alternatives
+
+`=COUNTIFS(A2:A8, "Open", B2:B8, ">3")` is the same function with a second condition, and it is the form to reach for the moment one criterion stops being enough. It has been in Excel since 2007, so a shared file still opens on the other machine.
+
+`=SUMPRODUCT(--(A2:A8 = "Open"))` counts the same rows without a criteria string, which matters when the test comes from a cell: `=SUMPRODUCT(--(A2:A8 = D1))` needs no quotes and no joining. Excel 365 can also count and show the rows at once with `=FILTER(` and `=ROWS(`.
+
+## Other apps
+
+Google Sheets has COUNTIF, and its criteria can be read as regular expressions rather than Excel's wildcards. `=COUNTIF(A2:A8, "e.*")` counts the cells that contain an `e`; Excel would read `"e*"` as "starts with e". Copying a formula across changes the meaning of the string, not just the syntax.
+
+VBA goes through `WorksheetFunction.CountIf(Range("A2:A8"), "Open")`, and it raises a run-time error rather than returning 0 when the criteria are malformed. That is easier to debug than a silent zero, but a loop needs an error handler around it.
 
 ## Practice
 
-The drill below shows the ticket log and asks how many tickets are Open. Type the formula with the range and the word in quotes, then press Check. A result of 0 usually means the quotes are missing or the range points at the wrong column, and a result of 8 means the criteria matched everything.
+The exercise below shows the ticket log and asks how many tickets are Open. Type the formula with the range and the word in quotes, then press Check. A result of 0 usually means the quotes are missing or the range points at the wrong column, and a result of 8 means the criteria matched everything.
 
 ## Questions
 

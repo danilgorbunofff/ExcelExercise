@@ -220,22 +220,22 @@
   ],
   "docs": {
     "syntax": "=SUM(range1, range2, ...) across separate blocks, or =SUM(B2:D4) across one rectangle",
-    "explain": "SUM takes as many arguments as you like, and each one can be its own block. Two quarters that sit in columns B and D are one call with a comma between them: SUM(B2:B3,D2:D3). The comma is doing the work. With no comma the two blocks become a single broken reference and the formula refuses to read. When the blocks form a rectangle, the alternative is one range across the lot. SUM(B2:D4) counts every number inside it and ignores the text in the middle and the empty cell in the corner. That is why a block total is safer than a column of subtotals. Text and blanks cannot poison it, while a chain of plus signs hits the text and returns an error. Watch for a block that includes a total row of its own. A rectangle is only too big when the extra cells are numbers, and a total row always is.",
+    "explain": "SUM takes as many arguments as you need, and each one can be its own block. Quarters sitting in columns B and D go in one call as =SUM(B2:B3,D2:D3), with the comma doing the work. Drop the comma and the two blocks make a single broken reference that Excel refuses to read.\n\nWhen the blocks form a rectangle, one range covers the lot. A formula of =SUM(B2:D4) adds every number inside and skips the text in the middle and the empty corner. That is why a block total survives cells that a chain of plus signs does not.\n\nCheck the edges of the block. A rectangle is only too big when the extra cells hold numbers, and a total row always does.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A cell in a hand-written chain holds text; SUM over a range would have skipped it."
-      },
-      {
-        "code": "#DIV/0!",
-        "text": "A division by zero in the formula stops it before a total is produced."
+        "text": "A cell in a hand-written chain holds text. SUM over a whole range would have stepped over it."
       },
       {
         "code": "#REF!",
-        "text": "A block references a range that no longer exists after rows or columns were deleted."
+        "text": "A block names a range that no longer exists after rows or columns were deleted."
+      },
+      {
+        "code": "Too wide",
+        "text": "A rectangle that swallows its own total row adds the subtotal to the detail. Check the last row of the range."
       }
     ],
-    "atWork": "A quarterly board pack whose two halves sit apart on the sheet, and an imported block with gaps in it.",
+    "atWork": "A board pack whose two halves sit apart on the sheet, and an imported block with gaps in it.",
     "outcome": "Add several separate blocks, or one block with gaps, in a single SUM call.",
     "teaches": "SUM with multiple block arguments and a rectangular range with text in it",
     "dataset": "Split quarters and a three-team block with gaps",

@@ -1,9 +1,9 @@
 ---
-title: XLOOKUP in Excel, exact match without counting columns
+title: XLOOKUP in Excel, no column counting
 summary: XLOOKUP takes the value to find, the range to search and the range to return. Two ranges instead of a table and a column number, and a fifth argument for the missing case.
-description: How XLOOKUP works in Excel with two ranges, three worked examples, what #N/A means here, and a drill that reads a price from a SKU.
+description: How XLOOKUP works in Excel with two ranges, three worked examples, what #N/A means here, and an exercise that reads a price from a SKU.
 function: XLOOKUP
-exercise: xlookup-exact-match-no-column-counting
+drills: xlookup-exact-match-no-column-counting, xlookup-with-a-fallback-when-nothing-matches, xlookup-search-from-the-bottom, vlookup-and-xlookup-on-the-same-table
 syntax: =XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found])
 updated: 2026-02-14
 ---
@@ -39,7 +39,9 @@ A SKU that is not on the list returns `#N/A`. When a blank or a note reads bette
 
 `=XLOOKUP(G2,A2:A5,D2:D5,"not on the list")`
 
-The same formula now prints those words instead of the error. This is shorter than `=IFNA(XLOOKUP(...),"not on the list")` and does the same job. The judgment call is the same one as with IFERROR. A missing SKU is often a fact someone needs to see. Use a soft message where the sheet is read by people, and leave the error where it is checked by people.
+The same formula now prints those words instead of the error. This is shorter than `=IFNA(XLOOKUP(...),"not on the list")` and does the same job.
+
+The judgment call is the same one as with IFERROR. A missing SKU is often a fact someone needs to see. Use a soft message where the sheet is read by people, and leave the error where it is checked.
 
 ### Example 3: last match, not first
 
@@ -61,9 +63,21 @@ The search starts at the bottom of the range and returns the last SKU that match
 
 The last row of that table is the one that hides. Two ranges of the same size but different starting rows line up incorrectly, and every answer after the first belongs to a neighbour. Nothing errors. Read the two ranges in the formula bar and check that both begin on row 2.
 
+## Alternatives
+
+`=FILTER(C2:C6, A2:A6 = A2)` answers the same question and spills every match instead of the first one. It needs Excel 2021 or Microsoft 365, the same floor as XLOOKUP, so the choice between them is about one answer or all of them.
+
+On a sheet that has to open in Excel 2019, the two old forms still work. `=INDEX(C2:C6, MATCH(A2, A2:A6, 0))` looks in either direction without a column number. `=VLOOKUP(A2, A2:C6, 3, FALSE)` is what the existing templates already contain. Neither has a place to say what happens when the key is missing, so people wrap them in `=IFERROR(`, and that wrapper also hides the real errors.
+
+## Other apps
+
+Google Sheets added XLOOKUP in 2022 and it takes the same arguments, so `=XLOOKUP(A2, A2:A6, C2:C6, "none")` copies over unchanged. Files exported from Excel are more likely to hold `=INDEX(` or `=VLOOKUP(`, because an export cannot assume the function exists on the other side.
+
+VBA has no XLOOKUP method that works everywhere: `WorksheetFunction.XLookup` exists only on Microsoft 365 builds. A macro that has to run anywhere finds the row with `Range.Find` and reads the cell from there.
+
 ## Practice
 
-The drill below shows the price list and asks for the price of one SKU. Type the three arguments in order, then press Check. The expected answer is a price, so a SKU returned instead means the return range points at column A rather than column D.
+The exercise below shows the price list and asks for the price of one SKU. Type the three arguments in order, then press Check. The expected answer is a price, so a SKU returned instead means the return range points at column A rather than column D.
 
 ## Questions
 

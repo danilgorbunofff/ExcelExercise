@@ -10,22 +10,21 @@
  * `noindex` is deliberate: a 404 page in the index competes with the page the reader meant to reach.
  */
 import { esc } from "./html.mjs";
-import { renderDocument, renderWaysOut } from "./shell.mjs";
+import { renderDocument } from "./shell.mjs";
 
 export function prepareNotFoundPage({ config, index }) {
   const body = `<main class="shell" id="main">
       <div class="page-head">
         <p class="eyebrow">404</p>
         <h1>That page is not here</h1>
-        <p class="lede">The address you followed does not match a page on this site. It may have been renamed, or one character may be wrong in the link.</p>
+        <p class="lede">The address you followed does not match a page on this site. The page may have moved, or one character in the link may be wrong.</p>
       </div>
 
       <div class="docs">
         <h2 id="ways-back">Two ways back</h2>
-        <p>Start from the <a href="/">front page</a>, or open the <a href="/excel-exercises">catalogue of ${index.length} Excel exercises</a> and pick a drill.</p>
+        <p>Start from the <a href="/">front page</a>, or open the <a href="/excel-exercises">catalogue of ${index.length} Excel exercises</a> and choose one.</p>
       </div>
 
-      ${renderWaysOut({ variant: "home", appUrl: config.appUrl })}
     </main>`;
 
   return {
@@ -33,9 +32,7 @@ export function prepareNotFoundPage({ config, index }) {
     page: {
       path: "/404",
       title: "Page not found",
-      description: "That address does not match a page on this site.",
-      counter: "404",
-      badge: "Not found",
+      description: `That address does not match a page on this site. The front page and the catalogue of ${index.length} Excel exercises are one click away.`,
       skipLabel: "error",
       bodyClass: "not-found",
       noindex: true,

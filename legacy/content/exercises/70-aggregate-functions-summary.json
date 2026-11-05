@@ -5,18 +5,22 @@
   "title": "Totals that multiply, skip and reconcile",
   "docs": {
     "syntax": "=SUMPRODUCT(pairs) values a table; =SUBTOTAL(9,range) adds a group; a ratio of the two is a weighted figure",
-    "explain": "This screen is the reconciliation every stock sheet ends up needing. The value column already holds each row's price times its quantity, and the total under it is a SUBTOTAL. The question is whether that column and the underlying prices and quantities agree, and the way to answer it is to compute the same total by the other route and compare. If both routes were built correctly they land on the same number, and the ratio between them is one. That single figure is a better check than eyeballing two totals on different rows: one means the two paths agree, anything else means a row was added, deleted or typed over. It also shows why the two functions are siblings rather than rivals. SUMPRODUCT reads across a row and multiplies; SUBTOTAL reads down a column and adds. Putting them in one formula makes the arithmetic explicit, which is the part of a spreadsheet that is easiest to get wrong and hardest to see. The first screen totals the value column, and the second divides the product total by it, so the learner writes the same two functions in both directions.",
+    "explain": "The sheet carries two routes to the same number. Column D already holds each row's price times its quantity, and the total under it adds those three lines to 100. SUMPRODUCT rebuilds the same 100 from the prices in B2:B4 and the quantities in C2:C4.\n\nDivide one route by the other and the answer is 1. That is the check: a line typed over, or a row added after the fact, moves the ratio away from 1 while both formulas still return a number. Rounding to one decimal place makes any drift visible at a glance.\n\nEach function starts from a different place on the sheet. SUMPRODUCT walks two ranges in step and multiplies the pairs. SUBTOTAL and AGGREGATE walk a single range, with a function number choosing the calculation, and AGGREGATE adds an options number for what to skip.",
     "errors": [
       {
         "code": "#DIV/0!",
-        "text": "The subtotal is zero, so the comparison cannot be made."
+        "text": "The subtotal under the line column is zero, so there is nothing to divide by."
       },
       {
         "code": "#VALUE!",
-        "text": "The ranges given to SUMPRODUCT do not have the same shape."
+        "text": "The two ranges in SUMPRODUCT are a different height, so the pairs cannot form."
+      },
+      {
+        "code": "Wrong ratio",
+        "text": "A line value was typed over, so the two routes disagree and the ratio drifts away from 1."
       }
     ],
-    "atWork": "Checking that a value column agrees with the prices and quantities behind it.",
+    "atWork": "Checking that a line total agrees with the prices and quantities behind it.",
     "outcome": "Reconcile two routes to the same total and read the ratio as a pass or a fail.",
     "teaches": "SUBTOTAL over a value column and a SUMPRODUCT that reproduces it",
     "dataset": "Stock list with a value column and a total row to check",
@@ -26,7 +30,7 @@
     {
       "id": "formula-1",
       "type": "formula",
-      "prompt": "In D5, total the value column with SUBTOTAL.",
+      "prompt": "In D5, total the Line column with SUBTOTAL.",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -78,11 +82,11 @@
       "requireRef": "D2",
       "rules": [],
       "hints": {
-        "syntax": "=SUBTOTAL(9,D2:D4): the number comes first, then the value column.",
-        "func-subtotal": "The total under a table is the subtotal, not a plain sum.",
-        "require-ref": "The value column is D2:D4.",
+        "syntax": "=SUBTOTAL(9,D2:D4): the number comes first, then the line column.",
+        "func-subtotal": "The total under a table that may be filtered is a SUBTOTAL, with 9 for SUM.",
+        "require-ref": "The line values are D2:D4.",
         "value": "Twenty plus twenty plus sixty is 100.",
-        "error": "Dividing the total by zero replaces it with #DIV/0!."
+        "error": "Dividing the line total by zero gives #DIV/0! in place of 100."
       },
       "fixtures": {
         "accept": [
@@ -188,11 +192,11 @@
       "rules": [],
       "hints": {
         "syntax": "=ROUND(SUMPRODUCT(B2:B4,C2:C4)/SUBTOTAL(9,D2:D4),1): the ratio sits inside the ROUND.",
-        "func-sumproduct": "The numerator is price times quantity, which is what SUMPRODUCT is for.",
-        "func-subtotal": "The denominator is the total under the value column, which is a SUBTOTAL.",
-        "require-ref": "Both routes read the table rows rather than numbers typed by hand.",
+        "func-sumproduct": "The numerator is price times quantity across the rows, which is what SUMPRODUCT does.",
+        "func-subtotal": "The denominator is the total under the line column, and that total is a SUBTOTAL.",
+        "require-ref": "Both routes read the table rows instead of numbers typed by hand.",
         "value": "100 divided by 100 is 1, so the two routes agree.",
-        "error": "A zero subtotal leaves nothing to divide by, so #DIV/0! comes back."
+        "error": "A zero in the denominator gives #DIV/0!, and the ratio never reaches the screen."
       },
       "fixtures": {
         "accept": [

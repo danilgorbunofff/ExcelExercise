@@ -10,24 +10,38 @@
  * modules, the stylesheet is one concatenation, and the pages are strings.
  */
 
-import { cpSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { FAVICON_SVG, buildStyles, readIcons, renderRobots, renderSitemap } from "./site/assets.mjs";
+import { extraKeys } from "./site/seo.mjs";
 import { siteConfig } from "./site/config.mjs";
-import { loadArticles, loadContent } from "./site/content.mjs";
+import { loadArticles, loadContent, loadFormulas, loadShortcuts } from "./site/content.mjs";
 import { renderArticlePage, renderFunctionsHub } from "./site/article-page.mjs";
+import { renderFormulaPage, renderFormulasHub } from "./site/formula-page.mjs";
+import { renderShortcutPage, renderShortcutsHub } from "./site/shortcut-page.mjs";
 import { renderExercisePage } from "./site/exercise-page.mjs";
 import { renderIndexPage } from "./site/index-page.mjs";
 import { renderAboutPage, renderExercisesHub } from "./site/hub-page.mjs";
 import { renderLegalPage } from "./site/legal-page.mjs";
 import { renderNotFoundPage } from "./site/not-found-page.mjs";
 import { renderPricingPage } from "./site/pricing-page.mjs";
+import { renderStartPage } from "./site/start-page.mjs";
+import { DEFAULT_PLAN } from "./site/offer.mjs";
+import { renderSearchPage } from "./site/search-page.mjs";
 import { dashboardGroups, renderDashboardPage } from "./site/dashboard-page.mjs";
-import { spreadsheet, workbookName } from "./xlsx.mjs";
+import { CARD_KEYS, extractCopy, SOCIAL_FILES } from "./site/social.mjs";
+import { workbook, workbookName } from "./xlsx.mjs";
+import { screenSheets } from "./site/workbook-sheets.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
+// The tree this module was loaded from, which is not necessarily `root`: a test may build a copied
+// tree from a temporary directory, and the renderer has to run from this installation so that it can
+// resolve `next/og` and `react` — ESM resolves from the importing file, not from the working directory.
+const SRC = dirname(fileURLToPath(import.meta.url));
+const HOST = resolve(SRC, "../..");
 
 /** Origins that may appear in the HTML: our own, and the vocabulary URI JSON-LD requires. */
 const ALLOWED_ORIGINS = ["https://schema.org"];
@@ -36,6 +50,32 @@ function writeFile(path, contents) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, contents);
   return contents.length;
+}
+
+/**
+ * Draws the share cards, icons and manifest into `dist/`.
+ *
+ * The renderer (`site/social-render.mjs`) runs in a child process because `next/og` is asynchronous and
+ * this build is a synchronous function that five test suites call from non-async hooks. Its failure is
+ * this build's failure: every page in `dist/` points at these files in its `<head>`, so a build that
+ * skipped them would ship previews that 404.
+ */
+function renderSocial({ root, dist, config, cards }) {
+  const result = spawnSync(process.execPath, [join(SRC, "site/social-render.mjs")], {
+    cwd: HOST,
+    input: JSON.stringify({
+      dist,
+      name: config.name,
+      host: new URL(config.baseUrl).host,
+      themeColor: config.themeColor,
+      cards,
+    }),
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
+    const why = (result.stderr || result.error?.message || "no output").trim().split("\n").slice(-4).join(" ");
+    throw new Error(`share cards, icons and manifest failed — ${why}`);
+  }
 }
 
 export function removeDotFiles(dir) {
@@ -103,8 +143,29 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
 
   const { track, exercises, index } = loadContent(contentDir);
   const articles = loadArticles(contentDir);
+  const formulas = loadFormulas(contentDir);
+  const shortcuts = loadShortcuts(contentDir);
   const icons = readIcons(join(vendorDir, "icons"));
-  for (const required of ["check", "arrow-right", "lightbulb", "lock"]) {
+  // The chrome's own glyphs are as load-bearing as the page ones: a header with no icon file still
+  // renders, but it renders as the two grey words this pass set out to stop shipping.
+  for (const required of [
+    "check",
+    "arrow-right",
+    "lightbulb",
+    "lock",
+    "magnifying-glass",
+    "user",
+    "play",
+    "list-checks",
+    "folder-simple",
+    "calendar-blank",
+    "cards",
+    "ranking",
+    "function",
+    "keyboard",
+    "seal-check",
+    "tag",
+  ]) {
     if (!icons[required]) throw new Error(`vendor/icons/${required}.svg is missing — the pages inline it`);
   }
 
@@ -130,6 +191,10 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   // may not import the Next app's `lib/`. Checkout exists on this deployment when the secret key does;
   // `lib/stripe.js` stays the authority for how a session is actually built.
   const checkout = { enabled: Boolean((process.env.STRIPE_SECRET_KEY ?? "").trim()) };
+  // The route, not the whole address: /pricing puts the plan in the query of whichever card the
+  // reader picked, and the wall sends every reader to the term that costs the least per month.
+  const CHECKOUT_PATH = "/api/stripe/checkout";
+  const WALL_CHECKOUT_PATH = `${CHECKOUT_PATH}?plan=${DEFAULT_PLAN}`;
   // This edition has no server. When `SITE_APP_URL` names the Next deployment, the pages that need one
   // (account, certificate, signup, checkout) are linked there absolutely; when it does not, they are
   // left out instead of shipped as links into a 404. One fact, read in three places.
@@ -141,16 +206,25 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     icons,
     checkout,
     signupHref: appHref("/signup?next=/pricing"),
-    checkoutAction: appHref("/api/stripe/checkout?plan=annual") ?? "/api/stripe/checkout?plan=annual",
+    signinHref: appHref("/login?next=/pricing"),
+    startHref: "/start",
+    checkoutAction: appHref(CHECKOUT_PATH) ?? CHECKOUT_PATH,
   });
   assertSelfContained(pricingHtml, config, "pricing/index.html");
   pages.push({ file: "pricing/index.html", html: pricingHtml });
+
+  // Search: the index is built from the content and written into the page, so the box works with no
+  // request of its own and on a host that only serves files.
+  const searchHtml = renderSearchPage({ config, track, index, articles, formulas, shortcuts, icons, clientAvailable, appPagesAvailable: Boolean(config.appUrl) });
+  assertSelfContained(searchHtml, config, "search/index.html");
+  pages.push({ file: "search/index.html", html: searchHtml });
 
   // The catalogue page and the page that says how the grading works. Both are indexable, both link to
   // the group hubs, and both are listed in the sitemap — the crawler's way in to the 88 lessons.
   for (const [file, render] of [
     ["excel-exercises/index.html", renderExercisesHub],
     ["about/index.html", renderAboutPage],
+    ["start/index.html", renderStartPage],
   ]) {
     const html = render({ config, track, index, icons, clientAvailable });
     assertSelfContained(html, config, file);
@@ -166,7 +240,18 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   }
 
   for (const entry of index) {
-    const html = renderExercisePage({ config, track, index, entry, icons, clientAvailable, articles });
+    const html = renderExercisePage({
+      config,
+      track,
+      index,
+      entry,
+      icons,
+      clientAvailable,
+      articles,
+      checkout,
+      checkoutAction: appHref(WALL_CHECKOUT_PATH),
+      accountHref: appHref("/account"),
+    });
     assertSelfContained(html, config, `${entry.slug}.html`);
     pages.push({ file: `excel/${entry.slug}.html`, html });
   }
@@ -180,15 +265,71 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   // The function notes, and the hub that lists them. A note links to one lesson by slug, so the page
   // gets that lesson's first screen and nothing else: the note is written, the drill is borrowed.
   if (articles.length > 0) {
-    const hubHtml = renderFunctionsHub({ config, track, index, articles, icons, clientAvailable });
+    const hubHtml = renderFunctionsHub({ config, track, index, articles, formulas, icons, clientAvailable });
     assertSelfContained(hubHtml, config, "excel-functions/index.html");
     pages.push({ file: "excel-functions/index.html", html: hubHtml });
 
     for (const article of articles) {
       const entry = index.find((item) => item.slug === article.exercise) ?? null;
-      const html = renderArticlePage({ config, track, index, articles, article, entry, icons, clientAvailable });
+      const html = renderArticlePage({
+        config,
+        track,
+        index,
+        articles,
+        formulas,
+        article,
+        entry,
+        icons,
+        clientAvailable,
+      });
       assertSelfContained(html, config, `excel-functions/${article.slug}.html`);
       pages.push({ file: `excel-functions/${article.slug}/index.html`, html });
+    }
+  }
+
+  // The problem pages, and the hub that lists them by family. Same borrowed-drill rule as a note: the
+  // page is written, the drill is a lesson's first screen, and the page links back to that lesson.
+  if (formulas.length > 0) {
+    const hubHtml = renderFormulasHub({ config, track, index, articles, formulas, icons, clientAvailable });
+    assertSelfContained(hubHtml, config, "formulas/index.html");
+    pages.push({ file: "formulas/index.html", html: hubHtml });
+
+    for (const formula of formulas) {
+      const html = renderFormulaPage({
+        config,
+        track,
+        index,
+        articles,
+        formulas,
+        formula,
+        icons,
+        clientAvailable,
+      });
+      assertSelfContained(html, config, `formulas/${formula.slug}.html`);
+      pages.push({ file: `formulas/${formula.slug}/index.html`, html });
+    }
+  }
+
+  // The shortcut families, and the hub that lists the six. The page is its table, so the renderer
+  // writes every platform's column and the client script decides which one a reader is looking at.
+  if (shortcuts.length > 0) {
+    const hubHtml = renderShortcutsHub({ config, track, index, shortcuts, icons, clientAvailable });
+    assertSelfContained(hubHtml, config, "shortcuts/index.html");
+    pages.push({ file: "shortcuts/index.html", html: hubHtml });
+
+    for (const shortcut of shortcuts) {
+      const html = renderShortcutPage({
+        config,
+        track,
+        index,
+        articles,
+        shortcuts,
+        shortcut,
+        icons,
+        clientAvailable,
+      });
+      assertSelfContained(html, config, `shortcuts/${shortcut.slug}.html`);
+      pages.push({ file: `shortcuts/${shortcut.slug}/index.html`, html });
     }
   }
 
@@ -198,6 +339,26 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
   const { css, sources } = buildStyles({ vendorDir, stylesDir: join(root, "src/styles") });
   bytes += writeFile(join(dist, "assets/styles.css"), css);
   bytes += writeFile(join(dist, "assets/favicon.svg"), FAVICON_SVG);
+
+  // The preview a link turns into, the icons a phone asks for, and the manifest. The copy is read back
+  // out of the HTML written above — the page's own `<h1>` and description — so a card cannot end up
+  // describing a page that has since been rewritten.
+  const cardSources = {
+    home: "index.html",
+    learn: "learn/index.html",
+    pricing: "pricing/index.html",
+    lesson: `excel/${index[0].slug}.html`,
+  };
+  renderSocial({
+    root,
+    dist,
+    config,
+    cards: CARD_KEYS.map((key) => ({
+      key,
+      ...extractCopy(readFileSync(join(dist, cardSources[key]), "utf8")),
+    })),
+  });
+  for (const file of SOCIAL_FILES) bytes += statSync(join(dist, file)).size;
   bytes += writeFile(
     join(dist, "sitemap.xml"),
     renderSitemap({
@@ -205,7 +366,9 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
       index,
       groups: dashboardGroups({ track, index }),
       articles: articles.map((article) => ({ path: `/excel-functions/${article.slug}`, updated: article.updated })),
-      extra: articles.length > 0 ? ["exercises", "functions", "about", "privacy", "terms"] : ["exercises", "about", "privacy", "terms"],
+      formulas,
+      shortcuts,
+      extra: extraKeys({ articles, formulas, shortcuts }),
     }),
   );
   bytes += writeFile(join(dist, "robots.txt"), renderRobots({ config }));
@@ -233,6 +396,12 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
 
   // And the dashboard's read model: packages/progress ships at assets/progress/, the path
   // client/dashboard.js imports (`../progress/index.js`).
+  // And the search engine: packages/search ships at assets/search/, the path client/search.js imports
+  // (`../search/index.js`) to rank the index the page carries.
+  const searchSource = resolve(root, "../packages/search");
+  const search = copyDir(searchSource, join(dist, "assets/search"), { filter: (name) => name.endsWith(".js") });
+  if (search === 0) throw new Error(`${searchSource} is empty — the search box cannot rank without it`);
+
   const progressSource = resolve(root, "../packages/progress");
   const progress = copyDir(progressSource, join(dist, "assets/progress"), { filter: (name) => name.endsWith(".js") });
   if (progress === 0) throw new Error(`${progressSource} is empty — the dashboard cannot read progress without it`);
@@ -263,22 +432,24 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     throw new Error(`${imagesSource} exists but holds no .svg or .png — a picture screen would render broken`);
   }
 
-  // Workbook screens ship a real .xlsx at /assets/files/<name>. The writer is deterministic, so the
+  // Every screen with a spreadsheet behind it ships one, at /assets/files/<name>: the grid as the page
+  // draws it, plus a Solution tab when the answer is a formula. The writer is deterministic, so the
   // same content always produces the same bytes and a download cannot drift between builds.
   const workbooks = new Map();
   for (const exercise of exercises) {
     for (const screen of exercise.screens) {
-      if (screen.type !== "workbook") continue;
+      const sheets = screenSheets(screen);
+      if (!sheets) continue;
       const name = workbookName(exercise.slug, screen.id);
       if (workbooks.has(name)) {
         throw new Error(`${name} is written twice — a lesson reuses a workbook screen id, so one file would win`);
       }
-      workbooks.set(name, screen);
+      workbooks.set(name, sheets);
     }
   }
   let files = 0;
-  for (const [name, screen] of workbooks) {
-    writeFile(join(dist, "assets/files", name), spreadsheet(screen.sheet));
+  for (const [name, sheets] of workbooks) {
+    writeFile(join(dist, "assets/files", name), workbook(sheets));
     files += 1;
   }
 
@@ -297,6 +468,7 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     fonts,
     grader,
     session,
+    search,
     progress,
     keys,
     sheet,
@@ -313,7 +485,8 @@ export function build({ root = ROOT, out, env = process.env, quiet = false } = {
     console.log(`  styles: ${summary.cssSources.length} sources concatenated`);
     console.log(
       `  assets: ${fonts} fonts, ${grader} grader modules, ${session} session modules, ${progress} progress modules, ` +
-        `${keys} keyboard modules, ${sheet} sheet modules, ${client} client modules, ${images} images, ` +
+        `${keys} keyboard modules, ${sheet} sheet modules, ${search} search modules, ${client} client modules, ` +
+        `${images} images, ` +
         `${files} workbooks`,
     );
     for (const warning of warnings) console.warn(`  warning: ${warning}`);

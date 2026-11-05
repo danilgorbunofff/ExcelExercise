@@ -13,7 +13,7 @@
  */
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { cpSync, mkdtempSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -35,7 +35,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const HUB = `<!doctype html><html><head>
   <link rel="stylesheet" href="/assets/app.css">
 </head><body><main>
-  <a href="/excel/what-a-formula-actually-does">Start here</a>
+  <a href="/excel/sum-basics">Start here</a>
 </main></body></html>`;
 
 const DRILL = `<!doctype html><html><head>
@@ -45,7 +45,7 @@ const DRILL = `<!doctype html><html><head>
   <section id="drill">
     <script type="application/json" id="exercise-data">${JSON.stringify({
       id: "formula-1",
-      slug: "what-a-formula-actually-does",
+      slug: "sum-basics",
       screens: [
         {
           prompt: "Total Q1.",
@@ -126,8 +126,8 @@ function healthy(overrides = {}) {
   return {
     routes: {
       "/excel-exercises": HUB,
-      "/learn/excel/what-a-formula-actually-does": DRILL,
-      "/excel/what-a-formula-actually-does": DRILL,
+      "/learn/excel/sum-basics": DRILL,
+      "/excel/sum-basics": DRILL,
       "/excel-functions": NOTES,
       "/pricing": PRICING,
       "/certificate": SHEET,
@@ -193,7 +193,7 @@ describe("smoke — what the page says about itself", () => {
     assert.deepEqual(assets.sort(), ["/a.css", "/b.js", "/d.png"]);
   });
 
-  it("reads the drill payload out of the page", () => {
+  it("reads the exercise payload out of the page", () => {
     assert.equal(firstGradableScreen(JSON.parse(/id="exercise-data">([\s\S]*?)<\/script>/.exec(DRILL)[1])).formula, "=SUM(B2:B2)");
   });
 
@@ -202,7 +202,7 @@ describe("smoke — what the page says about itself", () => {
   });
 
   it("follows the hub's own link rather than a list typed into the script", () => {
-    assert.equal(firstLessonHref(HUB), "/excel/what-a-formula-actually-does");
+    assert.equal(firstLessonHref(HUB), "/excel/sum-basics");
     assert.equal(firstLessonHref("<main>no links</main>"), null);
   });
 });
@@ -222,7 +222,7 @@ describe("smoke — a healthy origin", () => {
     assert.ok(rows.some((row) => row.name === "the release is the one that was deployed" && row.ok));
     // The refusal half is part of the row's detail: a grader that accepted the wrong answer would
     // print without it, so the detail is the witness rather than the tick alone.
-    const graded = rows.find((row) => /grades a drill/.test(row.name));
+    const graded = rows.find((row) => /grades an exercise/.test(row.name));
     assert.ok(graded.ok);
     assert.match(graded.detail, /=1 refused/);
     assert.ok(rows.some((row) => /print stylesheet/.test(row.name) && row.ok));
@@ -277,8 +277,8 @@ describe("smoke — the ways a deploy goes wrong", () => {
     }
   });
 
-  it("fails when the drill page ships no payload", async () => {
-    const site = await fakeOrigin(healthy({ routes: { "/learn/excel/what-a-formula-actually-does": "<html><main>gone</main></html>" } }));
+  it("fails when the exercise page ships no payload", async () => {
+    const site = await fakeOrigin(healthy({ routes: { "/learn/excel/sum-basics": "<html><main>gone</main></html>" } }));
     try {
       const { failures } = await smoke([site.origin]);
       assert.match(failures.join("\n"), /no #exercise-data/);
@@ -289,7 +289,7 @@ describe("smoke — the ways a deploy goes wrong", () => {
 
   it("fails when the hint formula no longer grades correct", async () => {
     const broken = DRILL.replace("=SUM(B2:B2)", "=SUM(B9:B9)");
-    const site = await fakeOrigin(healthy({ routes: { "/learn/excel/what-a-formula-actually-does": broken } }));
+    const site = await fakeOrigin(healthy({ routes: { "/learn/excel/sum-basics": broken } }));
     try {
       const { failures } = await smoke([site.origin]);
       assert.match(failures.join("\n"), /from the page's own hint was refused/);
@@ -398,7 +398,7 @@ describe("smoke — the shipped static edition", () => {
     rmSync(dist, { recursive: true, force: true });
   });
 
-  it("passes against a real build: hub, drill, grading, assets and the 404 it renders", async () => {
+  it("passes against a real build: hub, exercise, grading, assets and the 404 it renders", async () => {
     const { report, rows } = await smoke([origin]);
     assert.deepEqual(report.failures, []);
     // The two checks a static host cannot answer, named rather than quietly ticked.
@@ -410,8 +410,12 @@ describe("smoke — the shipped static edition", () => {
   it("fails against a copy of dist with its lesson page removed", async () => {
     const copy = mkdtempSync(join(tmpdir(), "smoke-broken-"));
     cpSync(dist, copy, { recursive: true });
+    // Delete the lesson the hub actually links, read from the built hub rather than typed here.
+    const hubPage = readFileSync(join(copy, "excel-exercises/index.html"), "utf8");
+    const linked = firstLessonHref(hubPage);
+    assert.ok(linked, "the built hub links no exercise, so this fixture proves nothing");
     rmSync(join(copy, "learn"), { recursive: true, force: true });
-    rmSync(join(copy, "excel/what-a-formula-actually-does.html"), { force: true });
+    rmSync(join(copy, `${linked.slice(1)}.html`), { force: true });
     const broken = spawn(process.execPath, [join(ROOT, "scripts/serve-static.mjs"), copy, "0"], {
       cwd: ROOT,
       stdio: ["ignore", "pipe", "pipe"],
@@ -429,7 +433,7 @@ describe("smoke — the shipped static edition", () => {
         broken.on("exit", (code) => reject(new Error(`the static server exited with ${code}`)));
       });
       const { failures } = await smoke([brokenOrigin]);
-      assert.match(failures.join("\n"), /serves the drill the hub links/);
+      assert.match(failures.join("\n"), /serves the exercise the hub links/);
     } finally {
       broken.kill();
       rmSync(copy, { recursive: true, force: true });

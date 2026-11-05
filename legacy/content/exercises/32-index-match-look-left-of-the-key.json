@@ -72,13 +72,13 @@
         }
       ],
       "hints": {
-        "syntax": "MATCH finds the row number, INDEX reads that row: =INDEX(A2:A5,MATCH(B6,B2:B5,0)).",
-        "func-index": "INDEX takes the range to read from and the row to read; without it you have a row number, not a product.",
-        "func-match": "MATCH supplies the row number. Without it you are hardcoding the position of 3.25 in the list.",
-        "match-exact": "The price column is not sorted, so MATCH needs 0 as its third argument for an exact match.",
-        "require-ref": "Take the price from B7 so asking about another price is a one-cell edit.",
-        "value": "3.25 is the second price down, so INDEX reads the second product name.",
-        "error": "If the price is not in the list, MATCH returns #N/A and INDEX has no row to read."
+        "syntax": "MATCH finds the second price, INDEX reads the second name: =INDEX(A2:A5,MATCH(B6,B2:B5,0)).",
+        "func-index": "INDEX needs A2:A5 and a row number. The row number is the only thing standing between B6 and the product name.",
+        "func-match": "MATCH searches the prices in B2:B5 for the value in B6 and reports 2, which is where Junction box sits in A2:A5.",
+        "match-exact": "The price column is unsorted, so 0 is required. Without it MATCH assumes an order the column does not have.",
+        "require-ref": "Take the price from B6. Typing 3.25 into the formula means a corrected price never reaches the answer.",
+        "value": "3.25 is the second price down in B2:B5, so the answer is the second product name, Junction box.",
+        "error": "A price that is not in B2:B5 leaves MATCH with #N/A, and INDEX has no row to read."
       },
       "fixtures": {
         "accept": [
@@ -131,18 +131,22 @@
   ],
   "docs": {
     "syntax": "=INDEX(range, MATCH(value, list, 0))",
-    "explain": "MATCH answers a question about position: 3.25 is the second price down. INDEX answers a question about content: the second cell of A2:A5. Nested, they find the row by looking at the prices, then read the names, which is how a lookup goes left. VLOOKUP cannot do this, because its third argument counts columns forward from the key and there is no column before the first one. The zero in MATCH is not optional here. The price column is in the order things were priced, so an approximate match would return whichever price happened to sit just below 3.25. Reading it out loud is the test: 'in this column, at the position where that value sits'. The outer function owns the answer, the inner one owns the position.",
+    "explain": "Here the answer sits to the left of the value being searched. B6 holds the price 3.25, which is the second entry in B2:B5, so MATCH returns 2. INDEX then reads the second cell of A2:A5, and B7 shows Junction box.\n\nVLOOKUP cannot make that move. Its column count starts at the key and runs forward, so no argument reaches a column sitting before the key. Choosing the two ranges separately is what lets the lookup run left.\n\nThe zero matters even more on this sheet. The price column runs 8.5, 3.25, 2.75, 5.4, which is not sorted in either direction. Approximate search stops somewhere in that order and can read a neighbouring row. With 0, a price that is not in the list gives #N/A.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "MATCH found no exact price, so INDEX was handed a row number that does not exist."
+        "text": "MATCH found no exact 3.25 in B2:B5, so INDEX was handed a position that does not exist."
       },
       {
         "code": "#REF!",
-        "text": "INDEX was given a range shorter than the matched position, so the row number points past the end."
+        "text": "INDEX was pointed at a range shorter than the position MATCH returned, so the row number runs past A5."
+      },
+      {
+        "code": "Wrong product",
+        "text": "The zero was left off, so MATCH accepted a price it never found and INDEX read a neighbouring product."
       }
     ],
-    "atWork": "A price list sorted by the order items were added, where you know the price and need the part name.",
+    "atWork": "A price list where you know what something cost and need the part name, which sits to the left of the price.",
     "outcome": "Return a value from the left of the key with INDEX and MATCH.",
     "teaches": "INDEX with MATCH",
     "dataset": "Four priced products",

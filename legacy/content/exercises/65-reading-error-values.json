@@ -70,12 +70,12 @@
       "requireRef": "A8",
       "rules": [],
       "hints": {
-        "syntax": "=IF(ISNA(test),\"missing\",\"found\"): the IS function goes inside the IF test.",
-        "func-if": "Two words come out of the formula, so it needs an IF to choose between them.",
-        "func-isna": "A match that fails raises #N/A, and ISNA is the test that recognises exactly that error.",
-        "require-ref": "Search for the code in the grid rather than typing Q-9.",
-        "value": "Q-9 is not in the code column, so the match fails with #N/A and the answer is missing.",
-        "error": "ISNA is a test, so arithmetic on its result gives #VALUE! rather than a word."
+        "syntax": "=IF(ISNA(MATCH(A8,A2:A7,0)),\"missing\",\"found\"): the test sits inside the IF.",
+        "func-if": "Two words come out of the formula, so an IF has to choose between them.",
+        "func-isna": "MATCH raises #N/A when it fails, and ISNA recognises that error alone.",
+        "require-ref": "Search for the code held in A8 rather than typing Q-9.",
+        "value": "Q-9 is not in the code column, so the match fails and the IF prints missing, not found.",
+        "error": "Swapping the two words is the common mistake: with found in the true branch, a miss prints found."
       },
       "fixtures": {
         "accept": [
@@ -123,7 +123,7 @@
     {
       "id": "formula-2",
       "type": "formula",
-      "prompt": "In B9, say out of range when the price column of the second column is not inside the table, otherwise fine.",
+      "prompt": "In B9, ask the table for a third column and say out of range when that column does not exist, otherwise fine.",
       "grid": {
         "startCell": "A1",
         "rows": [
@@ -187,11 +187,11 @@
       "rules": [],
       "hints": {
         "syntax": "=IF(ISERROR(INDEX(A2:B7,1,3)),\"out of range\",\"fine\"): the test wraps the whole call.",
-        "func-if": "The formula has to choose between two words, so an IF carries the test.",
-        "func-iserror": "Any error at all is what this question asks about, and that is ISERROR.",
-        "require-ref": "Point at the table itself rather than typing the range by hand.",
-        "value": "The table has two columns, so asking for a third raises #REF! and the answer is out of range.",
-        "error": "Dividing the word out of range by zero replaces it with #VALUE!."
+        "func-if": "The answer is one of two words, so the test goes inside an IF.",
+        "func-iserror": "ISNA would answer fine here, because a #REF! is not #N/A.",
+        "require-ref": "Point at A2:B7 itself rather than at a range you type out.",
+        "value": "A two-column table has no third column, so INDEX fails and the answer is out of range.",
+        "error": "The test on its own returns TRUE or FALSE. The grader wants the word out of range."
       },
       "fixtures": {
         "accept": [
@@ -244,23 +244,23 @@
   ],
   "docs": {
     "syntax": "=IF(ISNA(x),\"missing\",\"found\"); =IF(ISERROR(x),\"bad\",\"ok\")",
-    "explain": "An error in Excel is a value, not a crash. #N/A, #REF!, #VALUE!, #DIV/0!, #NAME? and #NUM! each sit in a cell and can be tested like anything else. Three tests matter here. ISNA answers TRUE only for #N/A, the error a lookup or a match raises when nothing matched, which is usually a data question rather than a formula question. ISERROR answers TRUE for any error at all, which is what you want when the question is simply whether the calculation worked. ISERR is the same test minus #N/A, for the rarer case where a missing match is expected and any other error is not. Reading the difference matters, because the three errors come from three different problems. #N/A is a value that is not in the list, #REF! is a reference that no longer points at anything, and #VALUE! is the wrong kind of value in an arithmetic operation. In this drill the code Q-9 is missing, so ISNA says TRUE and the formula prints missing. The second screen asks the table for a third column, which raises #REF!, and ISERROR turns that into the words out of range. Both screens leave the error visible in the logic rather than deleting it.",
+    "explain": "An error in Excel is a value sitting in a cell, so a formula can test it like a number. ISNA answers TRUE only for #N/A, the error a lookup or a match raises when nothing matched. ISERROR answers TRUE for any error at all. ISERR is the same test with #N/A taken out.\n\nThe first screen asks about Q-9, which the code column does not hold, so MATCH fails and ISNA prints missing. The second asks INDEX for a third column of A2:B7, and the table has two, so the call fails with #REF! and ISERROR prints out of range.\n\nThe three errors differ in kind. #N/A is a data question: the list does not hold the code. #REF! is a formula question: the range does not reach that far. #VALUE! is arithmetic handed text where it expected a number.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "Nothing matched: the code is not in the list the lookup searched."
+        "text": "Nothing matched: the code in A8 is not in the list MATCH searched."
       },
       {
         "code": "#REF!",
-        "text": "The reference is outside the range, as a column number past the last column is."
+        "text": "The reference lies outside the range, as a column number past the last column does."
       },
       {
         "code": "#VALUE!",
-        "text": "Arithmetic was asked to work on text or on a logical value."
+        "text": "Arithmetic was handed text, as dividing the word missing by zero does."
       }
     ],
-    "atWork": "Reporting which imported rows have no matching product code instead of showing a wall of #N/A.",
-    "outcome": "Tell a missing match apart from a broken reference, and name the error in words.",
+    "atWork": "An import log that says which rows have no matching product code, so nobody scrolls a column of #N/A.",
+    "outcome": "Tell a missing match apart from a broken reference, and print that difference as words.",
     "teaches": "ISNA versus ISERROR, and how #N/A, #REF! and #VALUE! are produced",
     "dataset": "Code and price table with one code the table does not hold",
     "reference": "=IF(ISNA(MATCH(A8,A2:A7,0)),\"missing\",\"found\")"

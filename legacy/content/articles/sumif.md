@@ -1,9 +1,9 @@
 ---
 title: SUMIF in Excel, add only the rows that match
 summary: SUMIF adds the values in one column where the matching column meets a condition. The third argument is the column to add, and leaving it out is the usual mistake.
-description: How SUMIF works in Excel with a region total, three worked examples, the errors it returns when the sum range is wrong, and a short practice drill.
+description: How SUMIF works in Excel with a region total, three worked examples, the errors it returns when the sum range is wrong, and a short practice exercise.
 function: SUMIF
-exercise: sumif-region
+drills: sumif-region, sumif-a-sum-range-on-another-column, add-only-the-positives, sumifs-two-conditions-at-once
 syntax: =SUMIF(range, criteria, [sum_range])
 updated: 2026-02-14
 ---
@@ -20,13 +20,15 @@ updated: 2026-02-14
 
 The two ranges start from their own first cell, not from each other. SUMIF lines up A2 with B2, A3 with B3, and so on, so `A2:A6` and `B2:B6` must start on the same row. Miss that and the totals silently belong to the wrong rows.
 
-The optional third argument is where most of the confusion lives. Left out, SUMIF adds the values in `range` itself. That works when the condition and the numbers are the same column, such as `=SUMIF(B2:B6,">1000")`. It fails when they are not. With no `sum_range`, `=SUMIF(A2:A6,"North")` tries to add the word North and returns 0.
+The optional third argument is where most of the confusion lives. Left out, SUMIF adds the values in `range` itself. That works when the condition and the numbers are the same column, such as `=SUMIF(B2:B6,">1000")`.
+
+It fails when they are not. With no `sum_range`, `=SUMIF(A2:A6,"North")` tries to add the word North and returns 0.
 
 ## Examples
 
 ### Example 1: total for one region
 
-A sales table holds five rows in A2:B6: North 320, South 250, North 180, East 300, North 400. To total North:
+A sales table holds five rows in A2:B6: North 320, South 250, North 180, West 300, North 400. To total North:
 
 `=SUMIF(A2:A6,"North",B2:B6)`
 
@@ -54,15 +56,27 @@ With F2 holding North, the formula returns 900. Change F2 to South and it return
 | --- | --- | --- |
 | `0` | The sum range was left out, or it points at text | Add the column with the amounts |
 | `#VALUE!` | The sum range is not a reference, such as a typed total | Pass real cells, `B2:B6` |
-| A total that is too low | The criteria has a trailing space or different case | Clean the labels, or use `"*North*"` to test |
+| A total that is too low | The criteria has a trailing space, or the label is spelled differently | Clean the labels, or use `"*North*"` to test |
 | Right total, wrong rows | The two ranges start on different rows | Start both ranges on the same row |
 | `#NAME?` | The function name is misspelled | Let Excel complete it |
 
-The off-by-one row deserves an example. If the criteria column starts at A2 but the sum range starts at B1, the row that matches A2 is added using B1's value. Every result after it shifts by one. Nothing errors. The only way to catch it is to read both ranges in the formula bar and check that they begin on the same row.
+Take the off-by-one row. If the criteria column starts at A2 but the sum range starts at B1, the row that matches A2 is added using B1's value. Every result after it shifts by one, and nothing errors. The only way to catch it is to read both ranges in the formula bar and check that they begin on the same row.
+
+## Alternatives
+
+`=SUMIFS(C2:C8, A2:A8, "North", B2:B8, ">0")` is the multi-condition version, and it puts the sum range first, which is the argument order people get wrong when they switch between the two. It has been in Excel since 2007, so a file using it opens anywhere.
+
+`=SUMPRODUCT((A2:A8 = "North") * C2:C8)` adds the same rows without a criteria string. It is the way to sum on a test a cell drives, because `=SUMPRODUCT((A2:A8 = G1) * C2:C8)` needs no quotes. Excel 365 and Excel 2021 can also do the same in one `=SUM(FILTER(C2:C8, A2:A8 = "North"))`.
+
+## Other apps
+
+Google Sheets has SUMIF and SUMIFS with the same argument order, so `=SUMIF(A2:A8, "North", C2:C8)` copies across without a change. The criteria follow Sheets' regular expression rules rather than Excel's wildcards, so a pattern with a `*` in it needs rewriting.
+
+VBA exposes `WorksheetFunction.SumIf(Range("A2:A8"), "North", Range("C2:C8"))`, and the third argument is optional there too. That repeats the trap: leave it out and the macro adds up the criteria column instead.
 
 ## Practice
 
-The drill below shows the regional table and asks for the North total. Type the three arguments in order, then press Check. The expected answer is 900 in the lesson file, so a result of 1450 means the third argument was left out and the whole table was added.
+The exercise below shows the regional table and asks for the North total. Type the three arguments in order, then press Check. The check expects 900, so a result of 1450 means the third argument was left out and the whole table was added.
 
 ## Questions
 

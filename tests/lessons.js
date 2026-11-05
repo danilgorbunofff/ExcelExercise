@@ -1,13 +1,13 @@
 /**
  * The shipped corpus, in the shapes the tests need.
  *
- * Lesson files are schema v2: the drill lives on `screens[]`. `exercise` here is the lesson with its
+ * Lesson files are schema v2: the exercise lives on `screens[]`. `exercise` here is the lesson with its
  * first screen lifted beside its own fields, which is the object a single-screen surface grades and
- * renders, so a test that wants "the drill for lesson 1" does not have to know about `screens`.
+ * renders, so a test that wants "the exercise for lesson 1" does not have to know about `screens`.
  * `screens` carries that same view for every screen, so a test that grades answers can cover all of
  * them instead of silently checking only the first.
  *
- * `toV1` writes the same lesson the old way — the drill's fields flat on the lesson — because that
+ * `toV1` writes the same lesson the old way — the exercise's fields flat on the lesson — because that
  * shape is still readable during the deprecation window and is what a validator test wants to mutate
  * one field at a time.
  */
@@ -22,8 +22,19 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const LESSON_DIR = join(ROOT, "legacy", "content", "exercises");
 export const CONTENT_DIR = join(ROOT, "legacy", "content");
 
-/** The drill fields, in the order the schema lists them. `fixtures` is absent: a v1 lesson keeps those in a sidecar. */
-const V1_FIELDS = ["prompt", "grid", "answerCell", "expect", "require", "forbid", "requireRef", "rules", "hints"];
+/** The exercise fields, in the order the schema lists them. `fixtures` is absent: a v1 lesson keeps those in a sidecar. */
+const V1_FIELDS = [
+  "prompt",
+  "grid",
+  "answerCell",
+  "expect",
+  "require",
+  "forbid",
+  "requireRef",
+  "rules",
+  "hints",
+  "variants",
+];
 
 export const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 
@@ -33,7 +44,7 @@ export const lessonFiles = readdirSync(LESSON_DIR)
 
 export const readRawLesson = (name) => readJson(join(LESSON_DIR, name));
 
-/** The lesson file written as a v1 lesson: drill fields at the top level, no `screens`, no version. */
+/** The lesson file written as a v1 lesson: exercise fields at the top level, no `screens`, no version. */
 export function toV1(raw) {
   if (!raw.screens) return raw;
   const { id, slug, level, title, docs, screens } = raw;
@@ -72,9 +83,18 @@ export const LESSONS = lessonFiles.map(loadLesson);
  * silently becomes wrong the first time a catalog lesson ships a workbook.
  */
 export function shippedWorkbooks(except = []) {
+  return shippedSheetScreens(except, { workbookOnly: true });
+}
+
+/**
+ * How many screens ship a `.xlsx`: a formula screen's grid, a workbook screen's authored sheet. A build
+ * writes one file per screen, so this is the number `summary.files` reports.
+ */
+export function shippedSheetScreens(except = [], { workbookOnly = false } = {}) {
   const skip = new Set(except);
+  const counts = (screen) => (workbookOnly ? screen.type === "workbook" : Boolean(screen.sheet || screen.grid));
   return LESSONS.filter(({ name }) => !skip.has(name)).reduce(
-    (total, { raw }) => total + (raw.screens ?? []).filter((screen) => screen.type === "workbook").length,
+    (total, { raw }) => total + (raw.screens ?? []).filter(counts).length,
     0,
   );
 }

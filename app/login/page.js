@@ -18,7 +18,7 @@ export const instant = false;
 
 export default function LoginPage({ searchParams }) {
   return (
-    <AuthShell counter={t("auth.login.title")}>
+    <AuthShell >
       <Suspense fallback={<Loading />}>
         <LoginScreen searchParams={searchParams} />
       </Suspense>

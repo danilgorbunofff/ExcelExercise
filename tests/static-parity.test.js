@@ -19,8 +19,9 @@ import { build } from "../legacy/src/build.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
 import { loadArticles, loadContent } from "../legacy/src/site/content.mjs";
 import { prepareLegalPage } from "../legacy/src/site/legal-page.mjs";
+import { DEFAULT_PLAN } from "../legacy/src/site/offer.mjs";
 import { preparePricingPage } from "../legacy/src/site/pricing-page.mjs";
-import { renderDocument, renderWaysOut } from "../legacy/src/site/shell.mjs";
+import { renderDocument, renderSiteMenu } from "../legacy/src/site/shell.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const APP = "https://app.drills.example";
@@ -45,27 +46,23 @@ describe("the static edition's address for the app", () => {
 });
 
 describe("the chrome's account doors", () => {
-  const about = renderWaysOut({ variant: "dashboard", appUrl: null });
-  const aboutApp = renderWaysOut({ variant: "dashboard", appUrl: APP });
-  const home = renderWaysOut({ variant: "home", appUrl: null });
-  const homeApp = renderWaysOut({ variant: "home", appUrl: APP });
+  const menu = (extra) => renderSiteMenu({ config: siteConfig({ ...ENV, ...extra }) });
 
   it("does not offer a page this build cannot serve", () => {
-    assert.ok(!about.includes('href="/account"'), "the dashboard offers an account page that is not here");
-    assert.ok(!about.includes('href="/certificate"'), "the dashboard offers a certificate page that is not here");
-    assert.ok(!home.includes('href="/certificate"'), "the front page offers a certificate page that is not here");
+    assert.ok(!menu({}).includes('href="/certificate"'), "the drawer offers a certificate page that is not here");
+    assert.ok(!menu({}).includes('href="/daily"'), "the drawer offers a daily page that is not here");
   });
 
   it("points at the deployment that can serve them when one is named", () => {
-    assert.ok(aboutApp.includes(`href="${APP}/account"`), "the account link is not absolute");
-    assert.ok(homeApp.includes(`href="${APP}/certificate"`), "the front page does not link the certificate");
-    assert.ok(!homeApp.includes('href="/certificate"'), "a certificate link was left relative");
+    const drawer = menu({ SITE_APP_URL: APP });
+    assert.ok(drawer.includes(`href="${APP}/certificate"`), "the drawer does not link the certificate");
+    assert.ok(!drawer.includes('href="/certificate"'), "a certificate link was left relative");
   });
 
   it("keeps the links relative on a host that serves them itself", () => {
-    const next = renderWaysOut({ variant: "dashboard", appPagesAvailable: true, appUrl: APP });
-    assert.ok(next.includes('href="/account"'), "the Next host should link its own page");
-    assert.ok(!next.includes(APP), "the Next host should not send the reader to another origin");
+    const drawer = renderSiteMenu({ config: siteConfig({ ...ENV, SITE_APP_URL: APP }), projectsAvailable: true, appPagesAvailable: true });
+    assert.ok(!drawer.includes(APP), "the Next host's drawer should not send the reader to another origin");
+    assert.ok(drawer.includes('href="/projects"'), "the Next host should link its own projects");
   });
 });
 
@@ -80,14 +77,21 @@ describe("the pricing call to action", () => {
     const body = render({ signupHref: null });
     assert.ok(!body.includes("Create an account"), "the page still offers an account it cannot create");
     assert.ok(!/href="(null|undefined|\/signup)/.test(body), "the page still points somewhere it cannot serve");
-    assert.ok(body.includes("Do drill 1"), "with no account door the free drill has to be the call to action");
+    assert.ok(
+      body.includes(`Start with the free ${track.freeLessonCount}`),
+      "with no account door the free exercises have to be the call to action",
+    );
     const next = render({ signupHref: `${APP}/signup?next=/pricing` });
     assert.ok(next.includes(`href="${APP}/signup?next=/pricing"`), "the signup button is not absolute");
   });
 
   it("posts a payment to the host that can take it", () => {
-    const body = render({ checkout: { enabled: true }, checkoutAction: `${APP}/api/stripe/checkout?plan=annual` });
-    assert.ok(body.includes(`action="${APP}/api/stripe/checkout?plan=annual"`), "the form posts to a route this build has");
+    const route = `${APP}/api/stripe/checkout`;
+    const body = render({ checkout: { enabled: true }, checkoutAction: route });
+    assert.ok(
+      body.includes(`action="${route}?plan=${DEFAULT_PLAN}"`),
+      "the form posts to a route this build has",
+    );
   });
 });
 
@@ -147,7 +151,7 @@ describe("a built static edition", () => {
 
 describe("the notes stay reachable from the static front door", () => {
   it("lists the hub in the chrome when the notes ship", () => {
-    assert.ok(renderWaysOut({ variant: "home" }).includes('href="/excel-functions"'));
+    assert.ok(renderSiteMenu({ config: siteConfig(ENV) }).includes('href="/excel-functions"'));
     assert.ok(articles.length > 0, "a hub with no notes behind it is not a page worth linking");
   });
 });

@@ -186,19 +186,19 @@ Rewritten as an evidence table on **2026-10-31** from the checklist it replaces.
 | p0-43 | Grader extracted with zero logic edits | Proven | `tests/grader.test.js:458` (M2) | n/a | — |
 | p0-50 | Content package extracted | Proven | `gate:content:check` (M17, M18) | gate | — |
 | p0-59 | Routes wired to the same templates | Proven | `e2e/routes.spec.js:67`; `next:check` 120 pages | browser | — |
-| p0-77 | Redirect map for legacy URLs | Proven | `e2e/routes.spec.js:26,31` | browser (301) | — |
+| p0-77 | Redirect map for legacy URLs | Proven | `e2e/routes.spec.js:30,31` | browser (301) | — |
 | p0-82 | 404 reuses chrome + config | Proven | `e2e/dashboard.spec.js:225` | browser | — |
 | p0-91 | CI runs three jobs | Proven | `artifact:.github/workflows/ci.yml` (four jobs now: `check`, `e2e`, `static`, `db`) | n/a (artifact) | — |
 | p0-99 | Playwright suite against Next + static | Proven | 153 passed; `e2e-static/static-drill.spec.js:33` | browser | — |
-| p0-110 | Sitemap + robots metadata routes | Proven | `tests/metadata-routes.test.js:31` (M9) | route | — |
+| p0-110 | Sitemap + robots metadata routes | Proven | `tests/metadata-routes.test.js:41` (M9) | route | — |
 | p0-132 | `.gitignore` covers build + env | Proven | `artifact:.gitignore` | n/a (artifact) | — |
 | p0-179 | `npm test` ≥280 passing | Proven | `gate:test` — 1 724 cases, count obsolete | gate | — |
-| p0-180 | Build produces "all 27 pages" | Obsolete | 120 prerendered / 144 HTML; `tests/build.test.js:56` | the capability is covered by p0-184 | Removed as obsolete: covered by p0-184 (120 prerendered, 144 HTML) |
+| p0-180 | Build produces "all 27 pages" | Obsolete | 120 prerendered / 144 HTML; `tests/build.test.js:57` | the capability is covered by p0-184 | Removed as obsolete: covered by p0-184 (120 prerendered, 144 HTML) |
 | p0-181 | Golden diff empty | Proven | `tests/golden.test.js:30` (M1) | n/a | — |
 | p0-182 | Playwright green locally and in CI | Proven | `gate:e2e` — 160 passed locally; the `e2e` CI job runs the same suite | browser | — |
 | p0-183 | Preview deploy serves lessons; `/api/health` returns SHA | Proven | `tests/smoke.test.js:388` (a real `legacy/dist` served, lessons and assets graded); `tests/metadata-routes.test.js:102` (M8) for the SHA | deploy | B12: exercised against a real `next start` — 14 passed, 0 failed, with `--sha` matching the build. The hosted origin is a host choice, written in `docs/ops/deploy.md` |
-| p0-184 | `legacy/` builds and deploys independently | Proven | `tests/build.test.js:56`; `legacy/dist` = 120 HTML | static build | — |
-| p0-185 | Sitemap/robots list every route, no redirect-only address | Proven | `tests/metadata-routes.test.js:31,48` (M9) | route | — |
+| p0-184 | `legacy/` builds and deploys independently | Proven | `tests/build.test.js:57`; `legacy/dist` = 120 HTML | static build | — |
+| p0-185 | Sitemap/robots list every route, no redirect-only address | Proven | `tests/metadata-routes.test.js:41,58` (M9) | route | — |
 | p0-187 | Bundle size documented by route | Built, unproven | no document in `docs/` carries a per-route budget table; only prose in plans | n/a | Build B2 |
 
 ## Bundle baseline

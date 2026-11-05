@@ -7,7 +7,7 @@
  * does not recognise is dropped rather than fetched.
  *
  * There is no auth gate, deliberately. A card is public lesson content: the prompt, the sheet, the
- * formula it reveals and one line of the lesson's own explanation are all in the drill's own HTML after
+ * formula it reveals and one line of the lesson's own explanation are all in the exercise's own HTML after
  * a correct answer. Gating this would not protect the content, it would only make a signed-out learner's
  * flashcards fail.
  */

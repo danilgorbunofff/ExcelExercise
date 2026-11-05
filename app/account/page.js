@@ -35,7 +35,7 @@ async function AccountScreen() {
     return (
       <AuthCard title="Your account">
         <Notice>{config.reason}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -74,26 +74,26 @@ async function AccountScreen() {
       ) : null}
       <dl className="auth-profile">
         <Row label="Email">{user.email}</Row>
-        <Row label="Username">{profile?.username ?? "—"}</Row>
+        <Row label="Username">{profile?.username ?? "Not set"}</Row>
         <Row label="LinkedIn">
           {profile?.linkedin_url ? (
             <a href={profile.linkedin_url} rel="me noopener noreferrer" target="_blank">
               {profile.linkedin_url.replace(/^https:\/\/www\.linkedin\.com/, "")}
             </a>
           ) : (
-            "—"
+            "Not set"
           )}
         </Row>
         <Row label="Plan">{entitled ? "Paid" : "Free"}</Row>
         <Row label="Member since">
-          {profile?.created_at ? new Date(profile.created_at).toISOString().slice(0, 10) : "—"}
+          {profile?.created_at ? new Date(profile.created_at).toISOString().slice(0, 10) : "Not set"}
         </Row>
       </dl>
       {weekError ? (
         <section className="auth-week" aria-labelledby="this-week">
           <h2 id="this-week">This week</h2>
           <p className="auth-week-empty">
-            Your week could not be read just now. Nothing is lost — reload to see it.
+            Your week could not be read just now. Nothing is lost. Reload to see it.
           </p>
         </section>
       ) : (
@@ -109,8 +109,8 @@ async function AccountScreen() {
           <h2 id="billing">Your plan</h2>
           <p>
             Cancel or change your card in the billing portal. Cancelling stops the next charge and
-            keeps the period you have already paid for: the drills stay open until it ends, and they
-            close when it does. A lifetime plan never renews, so it has nothing to cancel.
+            keeps the period you have already paid for: the exercises stay open until it ends, and they
+            close when it does. A lifetime plan never renews, so there is nothing to cancel.
           </p>
           <form action="/api/stripe/portal" method="post">
             <button className="auth-submit" type="submit">
@@ -151,7 +151,7 @@ async function AccountScreen() {
         items={[
           { href: "/account/profile", label: "Edit your profile" },
           { href: "/leaderboard", label: "Today's board" },
-          { href: "/learn", label: "Your drills" },
+          { href: "/learn", label: "Your exercises" },
           { href: "/reset", label: "Change your password" },
         ]}
       />
@@ -161,8 +161,8 @@ async function AccountScreen() {
 
 export default function AccountPage() {
   return (
-    <AuthShell counter="Your account" skipLabel="your account">
-      <Suspense fallback={<Skeleton label="Loading your account…" rows={6} />}>
+    <AuthShell skipLabel="your account">
+      <Suspense fallback={<Skeleton label="Loading your account" rows={6} />}>
         <AccountScreen />
       </Suspense>
     </AuthShell>

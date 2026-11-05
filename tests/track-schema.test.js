@@ -11,9 +11,23 @@ import { lessonFiles } from "./lessons.js";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TRACK = JSON.parse(readFileSync(join(ROOT, "legacy/content/track.json"), "utf8"));
 
-/** The real catalog with one entry or group swapped, so each test breaks exactly one thing. */
-function track({ lessons = TRACK.lessons, groups = TRACK.groups, ...overrides } = {}) {
-  return { ...TRACK, lessons, groups, ...overrides };
+/**
+ * The real catalog with one entry or group swapped, so each test breaks exactly one thing. Swapping the
+ * lessons means the shipped `freeLessons` and `promptLesson` no longer name anything in it, so those
+ * follow the swap unless a test names them: otherwise every fixture would fail on a dangling id before
+ * reaching the rule it is actually about.
+ */
+function track({ lessons = TRACK.lessons, groups = TRACK.groups, freeLessons, promptLesson, ...overrides } = {}) {
+  const swapped = lessons !== TRACK.lessons;
+  const authored = lessons.filter((lesson) => lesson && typeof lesson === "object" && lesson.id).map((lesson) => lesson.id);
+  return {
+    ...TRACK,
+    lessons,
+    groups,
+    freeLessons: freeLessons ?? (swapped ? authored.slice(0, 1) : TRACK.freeLessons),
+    promptLesson: promptLesson ?? (swapped ? null : TRACK.promptLesson),
+    ...overrides,
+  };
 }
 
 const fails = (raw, pattern, file = "track.json") => assert.throws(() => normalizeTrack(raw, file), pattern);
@@ -22,27 +36,28 @@ describe("track schema", () => {
   it("reads the real catalog", () => {
     const parsed = normalizeTrack(TRACK, "track.json");
     assert.equal(parsed.groups.length, 16);
-    assert.equal(parsed.lessons.length, 88);
+    assert.equal(parsed.lessons.length, 86);
     assert.equal(
       parsed.lessons.filter((lesson) => !lesson.planned).length,
       lessonFiles.length,
       "the catalog marks a different number of lessons authored than there are files on disk",
     );
-    assert.equal(parsed.freeLessonCount, 3);
+    assert.equal(parsed.freeLessons.length, 10);
+    assert.equal(parsed.freeLessonCount, parsed.freeLessons.length, "the count is derived from the list");
   });
 
   it("marks a lesson as planned purely by the absence of an id", () => {
     const parsed = normalizeTrack(
       track({
-        lessons: [{ id: "01-sum-basics", group: "sum" }, { title: "A planned drill", level: 2, group: "sum" }],
+        lessons: [{ id: "01-sum-basics", group: "sum" }, { title: "A planned exercise", level: 2, group: "sum" }],
         groups: [{ id: "sum", title: "Adding things up" }],
-        freeLessonCount: 1,
+        freeLessons: ["01-sum-basics"],
       }),
       "track.json",
     );
     assert.deepEqual(parsed.lessons, [
       { id: "01-sum-basics", group: "sum", planned: false },
-      { title: "A planned drill", level: 2, group: "sum", planned: true },
+      { title: "A planned exercise", level: 2, group: "sum", planned: true },
     ]);
   });
 
@@ -60,8 +75,8 @@ describe("track schema", () => {
   });
 
   it("refuses a planned entry with no usable level", () => {
-    fails(track({ lessons: [{ title: "A drill", group: "sum" }] }), /lessons\[0\]\.level must be 1, 2 or 3/);
-    fails(track({ lessons: [{ title: "A drill", level: 4, group: "sum" }] }), /level must be 1, 2 or 3/);
+    fails(track({ lessons: [{ title: "An exercise", group: "sum" }] }), /lessons\[0\]\.level must be 1, 2 or 3/);
+    fails(track({ lessons: [{ title: "An exercise", level: 4, group: "sum" }] }), /level must be 1, 2 or 3/);
   });
 
   it("refuses an entry filed under a group the track does not have", () => {
@@ -83,18 +98,44 @@ describe("track schema", () => {
   });
 
   it("refuses a catalog with nothing published", () => {
-    fails(track({ lessons: [{ title: "A drill", level: 1, group: "sum" }], groups: [{ id: "sum", title: "Adding things up" }] }), /at least one authored entry/);
+    fails(track({ lessons: [{ title: "An exercise", level: 1, group: "sum" }], groups: [{ id: "sum", title: "Adding things up" }] }), /at least one authored entry/);
   });
 
-  it("refuses a paywall that opens more lessons than exist", () => {
-    fails(
-      track({ lessons: [{ id: "01-sum-basics", group: "sum" }], groups: [{ id: "sum", title: "Adding things up" }], freeLessonCount: 2 }),
-      /freeLessonCount 2 exceeds the 1 authored lessons/,
-    );
+  it("refuses a free lesson the catalog does not have", () => {
+    fails(track({ freeLessons: ["01-sum-basics", "11-missing"] }), /freeLessons\[1\] "11-missing" is not an authored lesson/);
+  });
+
+  it("refuses the same lesson listed free twice", () => {
+    fails(track({ freeLessons: ["01-sum-basics", "01-sum-basics"] }), /freeLessons\[1\] "01-sum-basics" is listed twice/);
   });
 
   it("refuses a paywall of zero", () => {
-    fails(track({ freeLessonCount: 0 }), /freeLessonCount must be at least 1/);
+    fails(track({ freeLessons: [] }), /freeLessons must list at least one lesson id/);
+  });
+
+  it("refuses a free list longer than the catalog", () => {
+    const ids = TRACK.lessons.filter((lesson) => lesson.id).map((lesson) => lesson.id);
+    fails(
+      track({
+        lessons: [{ id: "01-sum-basics", group: "sum" }],
+        groups: [{ id: "sum", title: "Adding things up" }],
+        freeLessons: ["01-sum-basics", "02-average-scores"],
+      }),
+      /freeLessons\[1\] "02-average-scores" is not an authored lesson/,
+    );
+    assert.ok(ids.length > 10, "the real catalog is longer than the free list it ships");
+  });
+
+  it("refuses the old positional paywall", () => {
+    fails(track({ freeLessonCount: 3 }), /freeLessonCount is gone/);
+  });
+
+  it("refuses a prompt lesson that is already free", () => {
+    fails(track({ promptLesson: TRACK.freeLessons[0] }), /promptLesson .* is already free/);
+  });
+
+  it("refuses a prompt lesson that is not in the catalog", () => {
+    fails(track({ promptLesson: "11-missing" }), /promptLesson "11-missing" is not an authored lesson/);
   });
 
   it("reads how many misses open the answer, and defaults it to three", () => {

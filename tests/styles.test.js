@@ -70,15 +70,17 @@ describe("tokens", () => {
     }
   });
 
-  it("fixes the measure, the shell and the two radii the design system allows", () => {
+  it("fixes the measure, the shell and the three radii the design system allows", () => {
     // The measure is clamped in pixels as well as `ch`: 68ch is 693.6px here because `ch` is the width
     // of `0` (10.2px) and not the average glyph (8.49px), which printed 82-94 characters a line.
     assert.match(tokens, /--prose:\s*min\(68ch,\s*620px\);/);
     assert.match(tokens, /--artifact:\s*480px;/);
     assert.match(tokens, /--shell:\s*1080px;/);
     assert.match(tokens, /--rail:\s*260px;/);
-    assert.match(tokens, /--r-1:\s*3px;/);
-    assert.match(tokens, /--r-2:\s*5px;/);
+    // Three radii by the size of the thing they round: an inline bit, a control, a container.
+    assert.match(tokens, /--r-1:\s*4px;/);
+    assert.match(tokens, /--r-2:\s*8px;/);
+    assert.match(tokens, /--r-3:\s*12px;/);
     assert.equal(declarations(tokens, "border-radius").length, 0, "tokens define values, not rules");
   });
 
@@ -145,7 +147,7 @@ describe("visual constraints", () => {
   it("keeps one shadow and one radius scale", () => {
     for (const value of declarations(components, "border-radius")) {
       const px = /^(\d+)px$/.exec(value);
-      if (px) assert.ok(Number(px[1]) <= 5, `border-radius: ${value} is larger than the 5px ceiling`);
+      if (px) assert.ok(Number(px[1]) <= 12, `border-radius: ${value} is larger than the 12px ceiling`);
       else if (!value.startsWith("var(--r-") && value !== "0") {
         assert.fail(`border-radius: ${value} is not a token, 0, or a hairline`);
       }
@@ -170,9 +172,20 @@ describe("visual constraints", () => {
     }
   });
 
-  it("keeps uppercase for the grid headers and one eyebrow only", () => {
-    const total = authored.reduce((sum, text) => sum + (text.match(/text-transform:\s*uppercase/g) ?? []).length, 0);
-    assert.equal(total, 2);
+  it("keeps uppercase for labels only, never for prose", () => {
+    // Shouted words are a label device: the eyebrow and the sheet's column and row headers. A
+    // paragraph in caps is a design smell, so the set is pinned by selector rather than counted — a
+    // third one is a decision, not an accident. The pricing page's term switch lost its caps with the
+    // cards it replaced.
+    const owners = new Set();
+    for (const text of authored) {
+      for (const block of text.split("}")) {
+        if (!/text-transform:\s*uppercase/.test(block)) continue;
+        const selector = block.split("{")[0].split("\n").filter((line) => line.trim()).pop();
+        owners.add(selector.trim());
+      }
+    }
+    assert.deepEqual([...owners].sort(), [".eyebrow", ".sheet-grid thead th"].sort());
   });
 
   it("never uses !important except to make the hidden attribute win", () => {

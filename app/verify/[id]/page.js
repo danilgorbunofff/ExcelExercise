@@ -60,7 +60,7 @@ async function VerifyScreen({ id }) {
 
   if (!isCredentialId(credential)) {
     return (
-      <AuthCard title="Check a certificate" lede="A credential id is sixteen characters — digits and capital letters, without I, L, O or U.">
+      <AuthCard title="Check a certificate" lede="A credential id is sixteen characters: digits and capital letters, without I, L, O or U.">
         <Notice>That is not a credential id. Check the sixteen characters on the certificate for a typo.</Notice>
         <Links items={[{ href: "/certificate", label: "Your certificate" }]} />
       </AuthCard>
@@ -72,10 +72,10 @@ async function VerifyScreen({ id }) {
     return (
       <AuthCard title="Check a certificate">
         <Notice>
-          Certificates cannot be checked on this deployment — it has no database configured, so there is no
+          Certificates cannot be checked on this deployment. It has no database configured, so there is no
           record to look up here. That is a property of this deployment, not of the credential.
         </Notice>
-        <Links items={[{ href: "/learn", label: "The drills" }]} />
+        <Links items={[{ href: "/learn", label: "The exercises" }]} />
       </AuthCard>
     );
   }
@@ -93,7 +93,7 @@ async function VerifyScreen({ id }) {
     return (
       <AuthCard title="Check a certificate">
         <Notice>No certificate has that credential id. Check the sixteen characters on the certificate for a typo.</Notice>
-        <Links items={[{ href: "/learn", label: "The drills" }]} />
+        <Links items={[{ href: "/learn", label: "The exercises" }]} />
       </AuthCard>
     );
   }
@@ -116,7 +116,7 @@ async function VerifyScreen({ id }) {
           no longer a claim of completion; treat it as withdrawn.
         </Notice>
       ) : null}
-      <Links items={[{ href: "/learn", label: "The drills" }, { href: "/certificate", label: "Your certificate" }]} />
+      <Links items={[{ href: "/learn", label: "The exercises" }, { href: "/certificate", label: "Your certificate" }]} />
     </AuthCard>
   );
 }
@@ -124,7 +124,7 @@ async function VerifyScreen({ id }) {
 export default async function VerifyPage({ params }) {
   const { id } = await params;
   return (
-    <AuthShell counter="Verify" skipLabel="certificate record">
+    <AuthShell skipLabel="certificate record">
       <Suspense fallback={<Loading />}>
         <VerifyScreen id={id} />
       </Suspense>

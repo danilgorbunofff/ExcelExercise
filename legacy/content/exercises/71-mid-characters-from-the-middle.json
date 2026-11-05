@@ -5,19 +5,23 @@
   "title": "MID: characters from the middle",
   "docs": {
     "syntax": "=MID(text,start,num_chars) counts positions from 1 and reads num_chars characters",
-    "explain": "Codes hide their parts in fixed places. A product code like AN-1042 is a region letter pair, a hyphen, then a four-digit number, and each of those parts is one column away from being usable. MID is the function that reads a fixed position, and it is the one learners reach for last because LEFT and RIGHT are easier to picture. The trick that makes it worth learning is that MID counts from the left, always. The start position is a number you work out rather than a number you can see. On a code where the hyphen sits at position three, the digits start at four, and the same MID call keeps working on every row because the shape does not change. The second half of MID is the length, and length is the argument people get wrong. Too short truncates the answer, and too long is harmless because MID stops at the end of the text. Both screens here read a fixed slice of the same code column, so the only thing that changes is which slice the question asks for.",
+    "explain": "MID reads a slice of text from a position you give it, and it always counts from the left. The code in B2 is AN-1042: two letters, a hyphen, then four digits. Position 1 is A, position 3 is the hyphen, and the digits begin at 4.\n\nThe formula =MID(B2,4,4) returns 1042 in C2: start at 4, read four characters. The start number is the one people mistype, because it is counted from the left even when the slice sits on the right.\n\nLength is the argument that gets less attention. Four is exact here; a smaller number truncates the answer, and a larger one is harmless because MID stops at the end of the text. The second screen keeps the call shape and changes only the start.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The start position or the length is not a number, or the start is less than one."
+        "text": "The start position or the length is not a number, or the start is below 1."
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled, so the sheet has nothing to call."
+        "text": "The function is spelled MD or MIDD, and Excel has nothing by that name to call."
+      },
+      {
+        "code": "Wrong slice",
+        "text": "A start of 3 keeps the hyphen and returns -1042 while the formula still looks right."
       }
     ],
     "atWork": "Pulling a fixed part out of a product, order or account code.",
-    "outcome": "Read any fixed slice of a code with MID and know why the start number is the one you computed.",
+    "outcome": "Read a fixed slice from the middle of a code, from a position you worked out.",
     "teaches": "MID reading a fixed slice, with the length counted rather than guessed",
     "dataset": "Product codes that put two letters, a hyphen and four digits",
     "reference": "=MID(B2,4,4)"
@@ -69,10 +73,10 @@
       "requireRef": "B2",
       "hints": {
         "syntax": "=MID(B2,4,4): the text, the position to start at, then how many characters.",
-        "func-mid": "The digits sit inside the code, so LEFT and RIGHT are the wrong end of it.",
+        "func-mid": "The digits sit inside the code, so neither end-cutter reaches them.",
         "require-ref": "The code is in B2.",
         "value": "The hyphen is the third character, so the digits start at four.",
-        "error": "A start position below one has nothing to read."
+        "error": "Starting at 3 keeps the hyphen and returns -1042."
       },
       "fixtures": {
         "accept": [
@@ -178,11 +182,11 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=MID(B2,1,2): starting at the first character, reading two.",
-        "func-mid": "The prefix is a slice of the code, which is what MID reads.",
+        "syntax": "=MID(B2,1,2): start at the first character and read two.",
+        "func-mid": "The prefix is a slice from position 1, which MID can read as easily as the middle.",
         "require-ref": "The code is in B2.",
         "value": "The first two characters of AN-1042 are AN.",
-        "error": "MID cannot read a negative number of characters."
+        "error": "Reading three characters returns AN-, hyphen included."
       },
       "fixtures": {
         "accept": [
@@ -241,7 +245,7 @@
   ],
   "schemaVersion": 2,
   "seo": {
-    "title": "MID in Excel: read characters from the middle",
+    "title": "MID in Excel: characters from the middle",
     "description": "MID counts from the left, so the start number is one you work out, not one you can see. Too long a length is harmless; too short truncates the answer."
   },
   "updated": "2026-10-31"

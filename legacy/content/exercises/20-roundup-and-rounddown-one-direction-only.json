@@ -64,12 +64,12 @@
         }
       ],
       "hints": {
-        "syntax": "ROUNDUP takes the number and how many decimals to keep: =ROUNDUP(B5/12,0).",
-        "func-roundup": "ROUNDUP is the one that moves away from zero, and a part crate still has to be ordered.",
-        "whole-crates": "Crates are whole things, so the second argument is 0 decimals.",
-        "require-ref": "Take the total from B5 instead of typing 476, so the crate count follows the unit counts.",
-        "value": "476 units is a bit under 40 crates of twelve. A part crate still ships, so the answer is the next whole crate up.",
-        "error": "A part crate rounded with ROUNDDOWN leaves 476 units short of a crate and the order with no crates at all once the shortfall passes a full crate."
+        "syntax": "=ROUNDUP(B5/12,0): the number first, then how many decimals to keep.",
+        "func-roundup": "The part crate still ships, so the count has to move up, whatever the decimal says.",
+        "whole-crates": "Crates come in whole numbers, so the second argument is 0.",
+        "require-ref": "Divide the total in B5, so a change to the unit counts changes the crate order.",
+        "value": "476 units is 39 full crates and 8 over, so the order needs the next crate up: 40.",
+        "error": "The grader reports a wrong direction here: ROUNDDOWN answers 39 and leaves 8 units without a crate."
       },
       "fixtures": {
         "accept": [
@@ -178,12 +178,12 @@
         }
       ],
       "hints": {
-        "syntax": "=ROUNDDOWN(B5/12,0) takes the number and the decimals to keep.",
-        "func-rounddown": "A full crate is the part crate thrown away, so this is the direction that moves toward zero.",
-        "whole-crates": "Crates are counted in whole numbers, so the second argument is 0.",
-        "require-ref": "Divide the total in B5 rather than the 476 typed in, so the answer follows the sheet.",
-        "value": "476 units is 39 full crates with 8 units left over, so the count of completely full crates is 39.",
-        "error": "Dividing the answer by zero returns #DIV/0!; ROUNDDOWN itself only fails when the digits argument is not a number."
+        "syntax": "=ROUNDDOWN(B5/12,0): the number to round, then the decimals to keep.",
+        "func-rounddown": "A full crate throws the part crate away, so the count moves toward zero.",
+        "whole-crates": "Thirty-nine point six seven is not a number of crates, so 0 decimals makes it whole.",
+        "require-ref": "Take the total from B5 rather than typing 476, so the count follows the sheet.",
+        "value": "476 divided by 12 is 39.67, so 39 crates are full and 8 units are left over.",
+        "error": "Here the grader flags ROUNDUP: 40 claims a crate that is not full."
       },
       "fixtures": {
         "accept": [
@@ -236,19 +236,23 @@
   ],
   "docs": {
     "syntax": "=ROUNDUP(number, digits) and =ROUNDDOWN(number, digits)",
-    "explain": "The three items add up to 476 units and a crate holds twelve. 476 divided by 12 is 39.67, which is not a number of crates you can order, so one of the two one-way functions has to decide. ROUNDUP moves away from zero and gives 40: thirty-nine full crates and a part crate that still has to ship. ROUNDDOWN moves toward zero and gives 39: the full crates only, with 8 units left on the floor. ROUND would give 40 today, which is why it is the wrong tool here. It agrees by luck and would answer 39 the moment the total dropped below 474, so the count would change direction without anyone noticing.",
+    "explain": "ROUNDUP and ROUNDDOWN take the same two arguments as ROUND. The difference is the direction. ROUNDUP moves away from zero and ROUNDDOWN moves toward it, so at 0 decimals the answer is the next whole crate up or the last whole crate down.\n\nHere 476 units at twelve to a crate is 39.67. ROUNDUP(B5/12,0) answers 40, because the part crate still ships. ROUNDDOWN answers 39 and leaves 8 units behind.\n\nROUND would answer 40 on this sheet and 39 as soon as the total fell below 474, so the same formula changes direction when the data moves. Pick the function from what the number is for: crates to order, or crates that are full.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The digits argument was text or a range, so the number could not be rounded."
+        "text": "The digits argument is text, or a range was passed where a single number belongs."
       },
       {
-        "code": "#DIV/0!",
-        "text": "The crate count was divided by zero, usually because the units-per-crate cell it pointed at had not been filled in yet."
+        "code": "#NAME?",
+        "text": "The name is typed ROUND-UP or ROUND_UP, and the function is one word."
+      },
+      {
+        "code": "Wrong direction",
+        "text": "ROUNDDOWN returns 39 and leaves 8 units unshipped, where the order needs 40 crates."
       }
     ],
-    "atWork": "Ordering packing crates, where a part crate still costs the same as a full one and a short order means units sitting on the floor.",
-    "outcome": "Round a decimal up or down on purpose instead of letting the nearest value decide.",
+    "atWork": "A parts order packed in crates of twelve, where a part crate still costs a full one.",
+    "outcome": "Choose the direction on purpose, so the count follows the job.",
     "teaches": "ROUNDUP and ROUNDDOWN",
     "dataset": "Three items and a crate size",
     "reference": "=ROUNDUP(B5/12,0)"

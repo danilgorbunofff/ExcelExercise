@@ -75,9 +75,9 @@ function Attempt({ run, rank }) {
   if (!run) {
     return (
       <p>
-        You have not started today&apos;s run. It is {CHALLENGE_SIZE} screens, no hints, and the clock
-        starts the moment you do — one attempt, and the first answer for a screen is the answer that
-        counts.
+        You have not started today&apos;s run. It is {CHALLENGE_SIZE} screens with no hints, and the
+        clock starts the moment you do. You get one attempt, and the first answer for a screen is the
+        answer that counts.
       </p>
     );
   }
@@ -107,7 +107,7 @@ async function ChallengeScreen() {
     return (
       <AuthCard title="Daily challenge">
         <Notice>{flagCopy("dailyChallenge")}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -117,7 +117,7 @@ async function ChallengeScreen() {
     return (
       <AuthCard title="Daily challenge">
         <Notice>{config.reason}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -137,7 +137,7 @@ async function ChallengeScreen() {
     return (
       <AuthCard title="Daily challenge">
         <Notice>The challenge is unavailable on this deployment.</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -165,7 +165,7 @@ async function ChallengeScreen() {
   return (
     <AuthCard
       title="Daily challenge"
-      lede={`${DAY_LABEL.format(new Date(`${day}T00:00:00Z`))} — the same ten screens for everyone, on your own clock.`}
+      lede={`${DAY_LABEL.format(new Date(`${day}T00:00:00Z`))}. The same ten screens for everyone, on your own clock.`}
     >
       {challenge.error ? <Notice>The challenge could not be drawn just now. Try again in a moment.</Notice> : null}
       {topics.length > 0 ? <p>{`Today's topics: ${topics.join(", ")}.`}</p> : null}
@@ -175,7 +175,7 @@ async function ChallengeScreen() {
           run?.finishedAt
             ? [
                 { href: "/leaderboard", label: "Today's board" },
-                { href: "/learn", label: "Your drills" },
+                { href: "/learn", label: "Your exercises" },
               ]
             : [{ href: "/daily/run", label: open ? "Finish today's run" : "Start today's run" }]
         }
@@ -187,8 +187,8 @@ async function ChallengeScreen() {
       </section>
       <p>
         {`Fifteen minutes, no hints, one attempt. Ranked on accuracy first and time second, so a careful
-        run beats a fast one that misses. The clock is the server's, and a screen's first answer is the
-        one that counts — going back does not replace it.`}
+        run beats a fast one that misses. The clock runs on the server, and a screen's first answer is
+        the one that counts. Going back does not replace it.`}
       </p>
     </AuthCard>
   );
@@ -196,8 +196,8 @@ async function ChallengeScreen() {
 
 export default function DailyPage() {
   return (
-    <AuthShell counter="Daily challenge" skipLabel="daily challenge">
-      <Suspense fallback={<Skeleton label="Loading today's challenge…" rows={8} />}>
+    <AuthShell skipLabel="daily challenge">
+      <Suspense fallback={<Skeleton label="Loading today's challenge" rows={8} />}>
         <ChallengeScreen />
       </Suspense>
     </AuthShell>

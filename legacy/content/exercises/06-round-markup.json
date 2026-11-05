@@ -59,12 +59,12 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "=ROUND(SUM(B2:B4)*1.08,2): the arithmetic first, then how many decimals.",
-        "func-round": "ROUND takes two arguments: the number, and the number of decimals. Without it the answer runs on for four decimals.",
-        "func-sum": "Add the three line items with SUM rather than typing the total.",
-        "require-ref": "The formula has to read the cost cells so next month's invoice changes the answer.",
-        "value": "Check the order of operations: the whole total gets the markup, and ROUND applies to the result. 4120.74 × 1.08 = 4450.3992, which rounds to 4450.40.",
-        "error": "#VALUE! means ROUND was handed text instead of a number: make sure SUM(B2:B4)*1.08 is what sits inside ROUND, and that the range picked up no header cell."
+        "syntax": "=ROUND(SUM(B2:B4)*1.08,2): the calculation first, then the decimals to keep.",
+        "func-round": "The number is 4450.3992 and the answer wants two decimals, so ROUND needs both arguments.",
+        "func-sum": "Add the three costs with SUM instead of typing 4120.74 into the formula.",
+        "require-ref": "Point at B2:B4, so a changed cost changes the total.",
+        "value": "4120.74 times 1.08 is 4450.3992, and two decimals round that to 4450.4. An 8% markup is 1.08, not 1.8.",
+        "error": "A total of 4120.74 means the sum was rounded before the markup went on."
       },
       "fixtures": {
         "accept": [
@@ -137,23 +137,23 @@
   ],
   "docs": {
     "syntax": "=ROUND(number, num_digits)",
-    "explain": "The three line items are 1500.24, 1120.5 and 1500, which total 4120.74. An 8% markup means multiplying by 1.08, and 4120.74 × 1.08 = 4450.3992. ROUND with 2 decimals turns that into 4450.4. The trailing zero is a display question, so the stored value is 4450.4 either way. The important part is that ROUND changes the value while formatting the cell only changes what you see. A total that looks like 4450.40 after formatting is still 4450.3992 in the next column's sum, and a penny appears in the invoice. A negative decimal count rounds to tens, so ROUND(4450.3992,-2) gives 4500.",
+    "explain": "ROUND takes a number and a count of decimals to keep. The three costs total 4120.74, and an 8% markup multiplies that by 1.08, which gives 4450.3992. Wrapping the whole calculation, =ROUND(SUM(B2:B4)*1.08,2), stores 4450.4.\n\nROUND changes the number itself. Showing 4450.3992 with two decimals leaves every digit in the cell, so the next column still adds 4450.3992. The stored 4450.4 is what the invoice carries, and 4450.40 on screen is that value with a format applied.\n\nPut ROUND around the finished calculation. Rounding each cost after markup and then adding can land on a different figure from rounding the total, and this formula rounds once, at the end. A negative count rounds left of the point: -2 turns 4450.3992 into 4500.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "One of the two arguments is missing or the decimal count is text, for example \"2\" in quotes from a copy-paste."
+        "text": "The second argument is text, such as \"2\" in quotes after a paste from another system."
       },
       {
         "code": "#NAME?",
-        "text": "ROUNDUP, ROUNDDOWN and ROUND are different functions; a misspelling gives #NAME?."
+        "text": "The name is typed ROUNDOF or ROUND_UP, and Excel recognises only ROUND."
       },
       {
-        "code": "Half a cent",
-        "text": "Rounding each line item before adding gives a different total from rounding the sum, and invoices are disputed over exactly that."
+        "code": "Rounded twice",
+        "text": "Rounding each cost after the markup and then adding gives a different sum from rounding the total once."
       }
     ],
-    "atWork": "Quotes, invoices and price lists all live or die on two decimal places. The professional habit is to round the final figure once, not every intermediate step.",
-    "outcome": "Round money after applying the markup, not before.",
+    "atWork": "Quotes and invoices, where the number on the page has to match the number the cell stores.",
+    "outcome": "Round a marked-up total once, and know that the stored value changed.",
     "teaches": "ROUND",
     "dataset": "Cost sheet with markup",
     "reference": "=ROUND(SUM(B2:B4)*1.08,2)"

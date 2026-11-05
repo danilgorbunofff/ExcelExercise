@@ -8,7 +8,7 @@
     {
       "id": "formula-1",
       "type": "formula",
-      "prompt": "In B8, total the units of the orders whose status is Open, keeping FILTER and SUM apart in the formula.",
+      "prompt": "In B8, total the units of the orders whose status is Open, with FILTER choosing the rows and SUM adding them.",
       "reference": "=SUM(FILTER(C2:C7,B2:B7=\"Open\"))",
       "grid": {
         "startCell": "A1",
@@ -75,12 +75,12 @@
       "requireRef": "C2",
       "rules": [],
       "hints": {
-        "syntax": "Two functions, two brackets: =SUM(FILTER(C2:C7,B2:B7=\"Open\")).",
-        "func-filter": "FILTER is what keeps only the Open rows. Without it the formula has no condition to apply.",
-        "func-sum": "FILTER hands back the units, but somebody has to add them. SUM does that job.",
-        "require-ref": "The units are in column C and the statuses in column B. The first FILTER argument is what gets returned; the second is the test.",
-        "value": "That total is the wrong set of orders. Check which status the include condition tests, and that both ranges cover rows 2 to 7.",
-        "error": "#N/A means the condition matched nothing, which usually means a misspelled status. #VALUE! means the include argument returned text instead of TRUE and FALSE, so the comparison is missing."
+        "syntax": "=SUM(FILTER(C2:C7,B2:B7=\"Open\")): the units are returned, the status column is tested.",
+        "func-filter": "FILTER applies the Open condition; without it, SUM adds every unit on the sheet.",
+        "func-sum": "FILTER comes back with three unit figures, and SUM is what adds them to 170.",
+        "require-ref": "The first argument is what comes back and the second is the test: units in C2:C7, statuses in B2:B7.",
+        "value": "That is the wrong set of orders. Check the status word inside the quotes and that both ranges stop at row 7.",
+        "error": "#N/A means no order carries that status. #VALUE! means the include test came out as text, often a lost equals sign."
       },
       "fixtures": {
         "accept": [
@@ -138,33 +138,29 @@
   ],
   "docs": {
     "syntax": "=FILTER(array, include, [if_empty])",
-    "explain": "FILTER takes a block of values and a block of TRUE/FALSE tests of the same height, and returns only the rows where the test came back TRUE. Six orders sit in rows 2 to 7 with units of 40, 90, 70, 25, 60 and 12. The include argument B2:B7=\"Open\" is TRUE for the three open orders, so FILTER hands back 40, 70 and 60, and SUM turns that spill into 170. The shipped orders total 127 and every order together totals 297. That is why the rejections matter: a formula that adds the wrong set still looks like a working formula. The optional third argument is the value to return when nothing matches. Leave it out and a condition that matches no rows reports #N/A, which Excel treats as an error rather than an empty total. The comparison inside the include argument lives in the formula, not the cell, so changing the word \"Open\" to \"Shipped\" re-answers the question without touching the data.",
+    "explain": "FILTER takes a block of values and a column of TRUE and FALSE tests of the same height. It returns only the rows where the test came back TRUE. The include argument B2:B7=\"Open\" is TRUE for three orders, so FILTER hands back units of 40, 70 and 60.\n\nAdding those three is the exercise: =SUM(FILTER(C2:C7,B2:B7=\"Open\")) returns 170 in B8. Shipped orders come to 127 and all six orders to 297, so a formula that picks the wrong status still looks like a working formula. The status is typed inside the formula, so changing Open to Shipped re-answers the question without touching the data.\n\nThe optional third argument is the value to return when nothing matches. Leave it out and a status no order carries reports #N/A rather than an empty total.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "No row matched the condition and no if_empty value was given, so there was nothing to return."
+        "text": "No order carries that status and no if_empty value was given, so there is nothing to add."
       },
       {
         "code": "#VALUE!",
-        "text": "The include argument is not a column of TRUE and FALSE, usually because the comparison lost its equals sign or its quotes."
-      },
-      {
-        "code": "#CALC!",
-        "text": "A spilled FILTER would overlap another spill, so Excel refuses to place it."
+        "text": "The include argument is text or the wrong height, usually a comparison that lost its equals sign or its quotes."
       },
       {
         "code": "#NAME?",
-        "text": "The workbook predates dynamic arrays, so FILTER is not recognised."
+        "text": "FILTER arrived with dynamic arrays, so a workbook opened in an older Excel cannot run it."
       }
     ],
-    "atWork": "Open ticket counts, unbilled invoices and in-stock lines are all one-question filters, and keeping the condition inside the formula means the totals survive every new row.",
-    "outcome": "Total the rows that meet one condition, without sorting or hiding anything.",
+    "atWork": "An open ticket count that keeps up as rows arrive, and unbilled invoices asked for one client at a time.",
+    "outcome": "Add the rows that meet a condition without filtering the sheet first.",
     "teaches": "FILTER",
     "dataset": "Order status board",
     "reference": "=SUM(FILTER(C2:C7,B2:B7=\"Open\"))"
   },
   "seo": {
-    "title": "FILTER in Excel: the rows that meet a condition",
+    "title": "FILTER: the rows that meet a condition",
     "description": "FILTER keeps only rows where the test is TRUE, and SUM turns the spill into a total. The third argument replaces the #N/A when nothing matches."
   },
   "updated": "2026-10-31"

@@ -11,11 +11,11 @@
  * argued about in a diff rather than in code.
  */
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { loadContent } from "../content/index.js";
+import { loadArticles, loadContent, loadFormulas, loadShortcuts } from "../content/index.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -34,7 +34,10 @@ const TYPOGRAPHY = [
   { source: "\u00a0", name: "non-breaking space", fix: "use a normal space" },
 ];
 
-const EMOJI = /\p{Extended_Pictographic}/u;
+// A copyright line is the one place a footer needs a mark, and `©`, `®` and `™` are legal signs rather
+// than decoration. The lookahead steps over those three and leaves every other pictograph to trip it.
+const LEGAL_MARKS = "\u00A9\u00AE\u2122";
+const EMOJI = new RegExp(`(?![${LEGAL_MARKS}])\\p{Extended_Pictographic}`, "u");
 
 export function loadRules(path = RULES_PATH) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -54,6 +57,22 @@ export function splitSentences(text) {
     .flatMap((line) => line.split(/(?<=[.!?])\s+(?=[A-Z0-9"'(\[`#])/))
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
+}
+
+/**
+ * Paragraphs, split on a blank line. A single newline inside one is a hand-wrapped line, so it
+ * collapses to a space: an author who wrapped at 80 characters has not written two paragraphs.
+ */
+export function splitParagraphs(text) {
+  return String(text)
+    .split(/\n[ \t]*\n/)
+    .map((paragraph) => paragraph.replace(/\s*\n\s*/g, " ").trim())
+    .filter((paragraph) => paragraph.length > 0);
+}
+
+/** The fields authored as paragraphs: an explanation, and a markdown note's own body text. */
+function readsAsParagraphs(field) {
+  return field === "paragraph" || field.endsWith("explain");
 }
 
 export function words(text) {
@@ -131,8 +150,10 @@ export function findTypography(text) {
 }
 
 /**
- * Runs every text rule over one field. `prose` decides whether the sentence-length and readability
- * rules apply, since a prompt is one imperative sentence naming a range and is allowed to be dense.
+ * Runs every text rule over one field. `prose` decides whether the sentence-length, readability and
+ * paragraph-shape rules apply, since a prompt is one imperative sentence naming a range and is
+ * allowed to be dense. A Markdown page's paragraphs are named after the heading above them, not
+ * `explain`, so the flag is what puts them under the same ceiling a lesson's explanation sits under.
  */
 export function checkText(text, { field, where, prose, rules }) {
   if (typeof text !== "string" || text.trim() === "") return { findings: [], stats: null };
@@ -200,6 +221,33 @@ export function checkText(text, { field, where, prose, rules }) {
     }
   }
 
+  if (prose || readsAsParagraphs(field)) {
+    for (const [index, paragraph] of splitParagraphs(text).entries()) {
+      const length = words(paragraph).length;
+      if (length > rules.paragraph.maxWords) {
+        findings.push({
+          rule: "long-paragraph",
+          severity: "warn",
+          field,
+          where,
+          message: `paragraph ${index + 1} is ${length} words, over ${rules.paragraph.maxWords} — ${rules.paragraph.why}`,
+          excerpt: excerpt(paragraph, 0, 60),
+        });
+      }
+      const sentences = splitSentences(paragraph).length;
+      if (sentences > rules.paragraph.maxSentences) {
+        findings.push({
+          rule: "long-paragraph",
+          severity: "warn",
+          field,
+          where,
+          message: `paragraph ${index + 1} is ${sentences} sentences, over ${rules.paragraph.maxSentences} — split it at the idea that changes`,
+          excerpt: excerpt(paragraph, 0, 60),
+        });
+      }
+    }
+  }
+
   return { findings, stats: readingEase(text) };
 }
 
@@ -213,8 +261,17 @@ export function lessonFields(lesson) {
   for (const [index, error] of (docs.errors ?? []).entries()) {
     if (error?.text) fields.push({ field: `docs.errors[${index}].text`, text: error.text, prose: true });
   }
+  // The syntax line, the teaching note and the sheet caption are one-liners, but they print on the
+  // lesson page, so they still have to keep the house typography.
+  for (const key of ["syntax", "teaches", "dataset"]) {
+    if (docs[key]) fields.push({ field: `docs.${key}`, text: docs[key], prose: false });
+  }
   for (const [index, screen] of (lesson.screens ?? []).entries()) {
     const label = (lesson.screens.length > 1 ? `screens[${index}]` : "screens[0]");
+    // A screen may bring its own explanation, and a reader reads it as prose on the same page.
+    if (screen.docs?.explain) fields.push({ field: `${label}.docs.explain`, text: screen.docs.explain, prose: true });
+    if (screen.docs?.syntax) fields.push({ field: `${label}.docs.syntax`, text: screen.docs.syntax, prose: false });
+    if (screen.alt) fields.push({ field: `${label}.alt`, text: screen.alt, prose: false });
     if (screen.prompt) fields.push({ field: `${label}.prompt`, text: screen.prompt, prose: false });
     for (const [key, hint] of Object.entries(screen.hints ?? {})) {
       if (typeof hint === "string") fields.push({ field: `${label}.hints.${key}`, text: hint, prose: false });
@@ -278,6 +335,91 @@ function checkSeoFields(lesson, { where, rules, report }) {
 }
 
 /**
+ * The prose a Markdown page reads as: its paragraphs and its list items, named after the section they
+ * sit under. Headings say what a section is about rather than anything to read, and a table is a column
+ * of short answers, so neither is measured as prose. A list item is a whole sentence of advice, which is
+ * why it is measured on its own line rather than run together with its neighbours.
+ */
+export function markdownProse(blocks) {
+  const fields = [];
+  let section = "opening";
+  for (const block of blocks) {
+    if (block.type === "h2") section = block.id;
+    else if (block.type === "h3") section = `${section}.${block.id}`;
+    else if (block.type === "p") fields.push({ field: section, text: block.text });
+    else if (block.type === "list") {
+      block.items.forEach((item, position) => fields.push({ field: `${section}[${position + 1}]`, text: item }));
+    }
+  }
+  return fields;
+}
+
+/**
+ * A project's prose, in reading order: the brief that sits under the shelf entry, the notes at the top
+ * of the drill, then the prompt and hints of each task. A project is a lesson with a workbook attached,
+ * so it is measured on the same rules rather than shipped unread.
+ */
+export function projectFields(project) {
+  const fields = [{ field: "title", text: project.title ?? "", prose: false }];
+  for (const [index, section] of (project.brief ?? []).entries()) {
+    if (section?.body) fields.push({ field: `brief[${index}].body`, text: section.body, prose: true });
+  }
+  const docs = project.docs ?? {};
+  for (const key of ["explain", "atWork", "outcome"]) {
+    if (docs[key]) fields.push({ field: `docs.${key}`, text: docs[key], prose: true });
+  }
+  for (const [index, error] of (docs.errors ?? []).entries()) {
+    if (error?.text) fields.push({ field: `docs.errors[${index}].text`, text: error.text, prose: true });
+  }
+  // Same one-liners as a lesson, and the sheet caption in the header block.
+  for (const key of ["syntax", "teaches", "dataset"]) {
+    if (docs[key]) fields.push({ field: `docs.${key}`, text: docs[key], prose: false });
+  }
+  if (project.dataset?.description) {
+    fields.push({ field: "dataset.description", text: project.dataset.description, prose: false });
+  }
+  for (const [index, screen] of (project.screens ?? []).entries()) {
+    if (screen.docs?.explain) {
+      fields.push({ field: `screens[${index}].docs.explain`, text: screen.docs.explain, prose: true });
+    }
+    if (screen.prompt) fields.push({ field: `screens[${index}].prompt`, text: screen.prompt, prose: false });
+    for (const [key, hint] of Object.entries(screen.hints ?? {})) {
+      if (typeof hint === "string") fields.push({ field: `screens[${index}].hints.${key}`, text: hint, prose: false });
+    }
+  }
+  return fields;
+}
+
+/** The project track. Four files, read here rather than through the site loader so the gate stays standalone. */
+function projectPages(contentDir) {
+  const dir = join(contentDir, "projects");
+  let files = [];
+  try {
+    files = readdirSync(dir).filter((file) => file.endsWith(".json")).sort();
+  } catch {
+    return [];
+  }
+  return files.map((file) => ({
+    where: `content/projects/${file}`,
+    project: JSON.parse(readFileSync(join(dir, file), "utf8")),
+  }));
+}
+
+/** The Markdown pages, which are prose too and are held to the same rules as a lesson's notes. */
+function markdownPages(contentDir) {
+  const pages = [];
+  const collect = (dir, load) => {
+    for (const doc of load(join(contentDir, dir))) {
+      pages.push({ where: `content/${dir}/${doc.slug}.md`, blocks: doc.blocks });
+    }
+  };
+  collect("articles", loadArticles);
+  collect("formulas", loadFormulas);
+  collect("shortcuts", loadShortcuts);
+  return pages;
+}
+
+/**
  * The whole report. Returns findings plus the numbers a rewrite is measured against, so a before and
  * after can be compared without re-reading 88 lessons by hand.
  */
@@ -300,6 +442,20 @@ export function lintCopy(contentDir, { rules = loadRules() } = {}) {
     const warn = (where, message) => push({ rule: "seo-field", severity: "warn", field: "seo", where, message, excerpt: null });
     checkSeoFields(lesson, { where, rules, report: { warn } });
 
+    // One block of 150 words is what a reader skips. The explanation is authored as two or three
+    // paragraphs, so the report names the lessons that are still one.
+    const paragraphs = splitParagraphs(lesson.docs?.explain ?? "").length;
+    if (paragraphs < rules.paragraph.minExplain) {
+      push({
+        rule: "explain-shape",
+        severity: "warn",
+        field: "docs.explain",
+        where,
+        message: `${paragraphs} paragraph${paragraphs === 1 ? "" : "s"} — ${rules.paragraph.minExplain} to ${rules.paragraph.maxExplain} is what a reader takes in one sitting`,
+        excerpt: excerpt(lesson.docs?.explain ?? "", 0, 60),
+      });
+    }
+
     const ease = lessonEase.length
       ? Math.round((lessonEase.reduce((a, b) => a + b, 0) / lessonEase.length) * 10) / 10
       : null;
@@ -309,6 +465,22 @@ export function lintCopy(contentDir, { rules = loadRules() } = {}) {
   for (const field of groupFields(content.track)) {
     const result = checkText(field.text, { field: field.field, where: "content/track.json", prose: field.prose, rules });
     for (const finding of result.findings) push(finding);
+  }
+
+  const projects = projectPages(contentDir);
+  for (const page of projects) {
+    for (const field of projectFields(page.project)) {
+      const result = checkText(field.text, { field: field.field, where: page.where, prose: field.prose, rules });
+      for (const finding of result.findings) push(finding);
+    }
+  }
+
+  const pages = markdownPages(contentDir);
+  for (const page of pages) {
+    for (const field of markdownProse(page.blocks)) {
+      const result = checkText(field.text, { field: field.field, where: page.where, prose: true, rules });
+      for (const finding of result.findings) push(finding);
+    }
   }
 
   const duplicates = (key, label) => {
@@ -371,6 +543,8 @@ export function lintCopy(contentDir, { rules = loadRules() } = {}) {
     stats: {
       lessons: content.exercises.length,
       groups: content.track.groups?.length ?? 0,
+      pages: pages.length,
+      projects: projects.length,
       findings: findings.length,
       errors: findings.filter((finding) => finding.severity === "error").length,
       byRule,

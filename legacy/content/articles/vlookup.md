@@ -1,9 +1,9 @@
 ---
 title: VLOOKUP in Excel, exact match first
 summary: VLOOKUP finds a value in the first column of a table and returns something from the same row. The fourth argument decides whether it has to match exactly.
-description: How VLOOKUP works in Excel with the exact-match form, three worked examples, the four errors it returns, and a drill to type it yourself.
+description: How VLOOKUP works in Excel with the exact-match form, three worked examples, the four errors it returns, and an exercise to type it yourself.
 function: VLOOKUP
-exercise: vlookup-exact
+drills: vlookup-exact, vlookup-with-a-wildcard, vlookup-approximate-match-needs-a-sorted-column, two-way-lookup-with-vlookup-and-match, vlookup-and-xlookup-on-the-same-table
 syntax: =VLOOKUP(lookup_value, table_array, col_index_num, FALSE)
 updated: 2026-02-14
 ---
@@ -56,13 +56,29 @@ A missing ID is not always a mistake. Sometimes the row simply has no match yet,
 | `#VALUE!` | The block is not a range, or the column number is zero | Pass a real range such as `A2:C6` |
 | Wrong value, no error | Approximate match with an unsorted column | Put `FALSE` in the fourth argument |
 
-The `#N/A` case deserves a second look, because the text is there and still does not match. Typed or imported data carries invisible spaces, so `E-104 ` and `E-104` are two different values. `TRIM` cleans that up, and `EXACT` will show you the difference. Numbers exported as text cause the same problem in reverse: the ID looks like 10104, but it is a string, and a numeric lookup never finds it.
+The `#N/A` case is usually the text being there and still not matching. Typed or imported data carries invisible spaces, so `E-104 ` and `E-104` are two different values. `TRIM` cleans that up, and `EXACT` will show you the difference.
 
-Sorted columns are the other trap. `TRUE` is the default when the fourth argument is left out, and it assumes the first column is sorted ascending. On an unsorted list it returns the nearest value below the one you asked for. Nothing errors, the answer is simply wrong, and the sheet looks fine. If a VLOOKUP ever returns a value from the wrong row, check for a missing fourth argument before anything else.
+Numbers exported as text cause the same problem in reverse: the ID looks like 10104, but it is a string, and a numeric lookup never finds it.
+
+Sorted columns are the other trap. `TRUE` is the default when the fourth argument is left out, and it assumes the first column is sorted ascending. On an unsorted list it returns the nearest value below the one you asked for.
+
+Nothing errors, the answer is simply wrong, and the sheet looks fine. If a VLOOKUP ever returns a value from the wrong row, check for a missing fourth argument before anything else.
+
+## Alternatives
+
+`=INDEX(C2:C6, MATCH(A2, A2:A6, 0))` returns the same value with two functions instead of one. It exists for three reasons: it can look to the left, it survives a column being inserted, and it works in every version of Excel. XLOOKUP, added in Excel 2021 and Microsoft 365, does all of that in one function, so `=XLOOKUP(A2, A2:A6, C2:C6)` is what to type on a new sheet.
+
+The older pair is not legacy in a file you send out. If the person opening it has Excel 2019, XLOOKUP returns `#NAME?` and the lookup column goes blank, so VLOOKUP is still the safest formula to hand to a stranger.
+
+## Other apps
+
+Google Sheets has VLOOKUP with the same four arguments, so a formula copied out of Excel usually works there. Sheets has no XLOOKUP, which makes `=INDEX(C2:C6, MATCH(A2, A2:A6, 0))` the form that survives a trip in both directions.
+
+VBA reaches the same lookup through `Application.WorksheetFunction.VLookup`, which raises an error instead of returning `#N/A` when nothing matches. An error handler around it decides what the macro does with the missing case.
 
 ## Practice
 
-The drill below uses a five-person directory and asks for the salary that belongs to E-104. Type the formula the way you would in Excel, with the comma-separated arguments in order, and press Check. The cell reference in the label tells you where the answer belongs. If it fails, the message names the part that went wrong rather than just saying "wrong".
+The exercise below uses a five-person directory and asks for the salary that belongs to E-104. Type the formula the way you would in Excel, with the comma-separated arguments in order, and press Check. The cell reference in the label tells you where the answer belongs. If it fails, the message names the part that went wrong rather than just saying "wrong".
 
 ## Questions
 

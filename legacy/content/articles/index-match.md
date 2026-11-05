@@ -1,9 +1,9 @@
 ---
-title: INDEX and MATCH in Excel, a lookup that points either way
+title: INDEX MATCH in Excel, either direction
 summary: MATCH finds which row a value sits on, INDEX returns the value at a row and column. Nested, they look up a value and can look left, which VLOOKUP cannot do.
-description: How INDEX and MATCH work together in Excel, three worked examples, why the row numbers have to agree, and a drill on a staff directory.
+description: How INDEX and MATCH work together in Excel, three worked examples, why the row numbers have to agree, and an exercise on a staff directory.
 function: INDEX
-exercise: index-match
+drills: index-match, index-a-value-at-a-row-and-column, match-find-a-value-s-position, index-match-look-left-of-the-key, two-way-index-match
 syntax: =INDEX(return_column, MATCH(lookup_value, search_column, 0))
 updated: 2026-02-14
 ---
@@ -32,11 +32,11 @@ MATCH walks down A2:A6 and finds E-103 at position 3. INDEX then reads position 
 
 ### Example 2: looking left
 
-The same table can be read from right to left. To get the name that belongs to an ID:
+A price list has products in A2:A5 and prices in B2:B5, and someone asks which product costs 3.25:
 
-`=INDEX(B2:B6,MATCH(D3,A2:A6,0))`
+`=INDEX(A2:A5,MATCH(3.25,B2:B5,0))`
 
-B2:B6 is to the right of A2:A6 here, but nothing in the formula depends on that. Point the return range at a column to the left, such as a name in column A with the ID in column C. The formula still works. This is the case VLOOKUP cannot handle at all. It is also why the pair is worth learning even in workbooks that use XLOOKUP.
+`MATCH` searches the price column and returns 2, and `INDEX` reads the second product, Junction box. The return range sits to the left of the search range, which is the arrangement VLOOKUP cannot handle at all. That is why the pair is worth learning even in workbooks that use XLOOKUP.
 
 ### Example 3: a two-way lookup
 
@@ -56,13 +56,25 @@ The first MATCH finds the product's row, the second finds the month's column, an
 | A value from the wrong row | Two ranges start on different rows | Start both on the same row |
 | `#NAME?` | The name is misspelled, or quotes are missing | Let Excel complete the name |
 
-The `#REF!` row is specific to this pair. MATCH returns a position inside its own range, and INDEX tries to use that position inside a different range. If the search range is taller than the return range, a match near the bottom produces a position INDEX cannot reach. The result is `#REF!`, not a wrong number. That is a good failure: it points straight at the mismatch.
+MATCH returns a position inside its own range, and INDEX tries to use that position inside a different range. If the search range is taller than the return range, a match near the bottom produces a position INDEX cannot reach. The result is `#REF!` rather than a wrong number, which is a good failure: it points straight at the mismatch.
 
 `#N/A` is the quieter one. A trailing space in the ID, or one table where IDs are text and another where they are numbers, is enough. `TRIM` on the criteria and `EXACT` on two cells side by side will show you which of the two it is.
 
+## Alternatives
+
+`=XLOOKUP(A2, A2:A6, C2:C6)` replaces the nested pair with one function, and it is in Excel 2021 and Microsoft 365. It also takes a fourth argument for the missing case, so `=XLOOKUP(A2, A2:A6, C2:C6, "not on file")` removes the `=IFERROR(` wrapper that INDEX and MATCH need.
+
+`=VLOOKUP(A2, A2:C6, 3, FALSE)` is the older single-function route, and it stays fine while the return column sits to the right of the key. The pair survives because it is the only form that works in Excel 2019 and older, in exported files, and in formulas another tool has to read.
+
+## Other apps
+
+Google Sheets supports INDEX and MATCH with the same zero for an exact match, so `=INDEX(C2:C6, MATCH(A2, A2:A6, 0))` moves between the two products unchanged. Sheets also accepts a whole range as the MATCH column, which is how a two-way lookup is usually written there.
+
+VBA has no INDEX method that reads well. The usual route is `WorksheetFunction.Match` for the position and `Cells(row, column)` for the value, or `WorksheetFunction.Index` when both arguments are built as ranges.
+
 ## Practice
 
-The drill below shows the directory and asks for a salary by ID. Type the INDEX around the MATCH, with the `0` as the third argument of MATCH, then press Check. A `#N/A` message means the value was not found in the range you named.
+The exercise below shows the directory and asks for a salary by ID. Type the INDEX around the MATCH, with the `0` as the third argument of MATCH, then press Check. A `#N/A` message means the value was not found in the range you named.
 
 ## Questions
 

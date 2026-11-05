@@ -14,6 +14,7 @@ import { NextResponse } from "next/server";
 import { authConfig } from "./lib/auth/config.js";
 import { loginUrl } from "./lib/auth/redirect.js";
 import { entitledFor, paywallDecision, paywallEnforced } from "./lib/paywall.js";
+import { EVENTS, logEvent } from "./lib/log-event.js";
 import { notFoundDocument } from "./lib/not-found.js";
 import { loadProjectTrack } from "./lib/projects.js";
 import { loadSite } from "./lib/site.js";
@@ -37,7 +38,7 @@ const PUBLIC = [/^\/account\/deleted\/?$/];
 // with accounts unconfigured.
 const VERIFY = /^\/verify\/[^/]+\/?$/;
 
-// The four addresses whose last segment names something in the catalog: a drill, a project, a dashboard
+// The four addresses whose last segment names something in the catalog: an exercise, a project, a dashboard
 // group, or a function note. Everything else the app serves has a fixed path.
 const DYNAMIC = [
   [/^\/learn\/excel\/([^/]+)\/?$/, "lesson"],
@@ -45,6 +46,34 @@ const DYNAMIC = [
   [/^\/learn\/groups\/([^/]+)\/?$/, "group"],
   [/^\/excel-functions\/([^/]+)\/?$/, "note"],
 ];
+
+// The three silos whose pages carry an exercise, and the surface word the funnel report prints for each.
+// A page in one of them is the denominator of "started / completed", so this is where every rate on the
+// phase-7 scorecard begins.
+const RENDERED = [
+  [/^\/learn\/excel\/([^/]+)\/?$/, "lesson"],
+  [/^\/formulas\/([^/]+)\/?$/, "formula"],
+  [/^\/excel-functions\/([^/]+)\/?$/, "article"],
+];
+
+// A prefetch is not a reader, and a crawler that typed nothing would sit in every denominator forever.
+// The e2e run is skipped by the same rule, because Playwright's user agent contains `HeadlessChrome`.
+const BOT = /bot|crawl|spider|slurp|bingpreview|facebookexternalhit|headless|lighthouse|preview/i;
+
+/**
+ * `content_rendered`, the funnel's denominator. Nothing here reads a cookie or changes the response:
+ * the proxy can fail to write a line, never to serve a page.
+ */
+function noteRendered(request) {
+  const path = request.nextUrl.pathname;
+  const family = RENDERED.find(([pattern]) => pattern.test(path));
+  if (!family) return;
+  if (request.headers.get("next-router-prefetch") === "1") return;
+  if (request.headers.get("purpose") === "prefetch") return;
+  if (BOT.test(request.headers.get("user-agent") ?? "")) return;
+  const slug = family[0].exec(path)?.[1];
+  if (slug) logEvent(EVENTS.contentRendered, { surface: family[1], slug });
+}
 
 /**
  * Whether this path names a real entry, or `null` when the path is not one of the four families.
@@ -66,14 +95,14 @@ function knownEntry(pathname) {
     if (family === "lesson") return loadSite().entryFor(slug) !== null;
     if (family === "project") return loadProjectTrack().entryFor(slug) !== null;
     if (family === "note") return loadSite().articleFor(slug) !== null;
-    // A group is the dashboard's own grouping, and only a group that holds a drill has a page.
+    // A group is the dashboard's own grouping, and only a group that holds an exercise has a page.
     const { track, index } = loadSite();
     return track.groups.some((group) => group.id === slug && index.some((entry) => entry.group === slug));
   }
   return null;
 }
 
-// The one place a paid drill can be opened. The lesson pages are prerendered HTML, which cannot be
+// The one place a paid exercise can be opened. The lesson pages are prerendered HTML, which cannot be
 // refused once it exists, so the refusal has to happen on the request.
 const LESSON = /^\/learn\/excel\/([^/]+)\/?$/;
 
@@ -90,7 +119,7 @@ async function paywallFor(pathname, supabase, user) {
   if (!entry) return null; // an unknown slug is the route's 404, not the paywall's business
   return paywallDecision({
     entry,
-    freeLessonCount: track.freeLessonCount,
+    promptAt: track.promptAt,
     entitled: await entitledFor(supabase, user),
   });
 }
@@ -125,7 +154,11 @@ export async function proxy(request) {
   }
 
   const config = authConfig();
-  if (!config.enabled) return NextResponse.next();
+  if (!config.enabled) {
+    // Accounts off is still a deployment that serves content, so the funnel has to be counted here.
+    noteRendered(request);
+    return NextResponse.next();
+  }
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(config.url, config.anonKey, {
@@ -154,12 +187,15 @@ export async function proxy(request) {
     return NextResponse.redirect(new URL(loginUrl(next), request.url));
   }
 
-  // After the session, not before: a signed-out reader on a paid drill belongs at the offer, and a
-  // signed-in one needs their entitlement asked for. Both answers come from the same rule the drill
+  // After the session, not before: a signed-out reader on a paid exercise belongs at the offer, and a
+  // signed-in one needs their entitlement asked for. Both answers come from the same rule the exercise
   // paints in the browser (`gateFor`), so the two cannot disagree.
   const paywall = await paywallFor(request.nextUrl.pathname, supabase, user);
   if (paywall) return NextResponse.redirect(new URL(paywall, request.url));
 
+  // Last, not first: a paid exercise served as a redirect to the offer was never rendered, and counting it
+  // would put a reader in a denominator they never joined.
+  noteRendered(request);
   return response;
 }
 

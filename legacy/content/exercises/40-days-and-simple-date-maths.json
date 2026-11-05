@@ -48,11 +48,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "DAYS reads end date first, then start date: =DAYS(C2,B2).",
-        "func-days": "Name the function rather than relying on plain subtraction: DAYS says which date is the end.",
-        "require-ref": "Pass C2 and B2 rather than the two serials, so the row can be filled down.",
-        "value": "45366 minus 45352 is 14, and the arguments are the right way round: end first, start second.",
-        "error": "Dividing by zero anywhere in the formula leaves #DIV/0! instead of a count of days."
+        "syntax": "DAYS takes the end date first: =DAYS(C2,B2).",
+        "func-days": "Name DAYS rather than subtracting by hand, so the sheet says which date is the end.",
+        "require-ref": "Pass C2 and B2, so the second milestone fills down from the same pattern.",
+        "value": "15 March minus 1 March is 14 days, with C2 as the end.",
+        "error": "#VALUE! means one of the two cells holds a date as text, so DAYS has no serial to subtract."
       },
       "fixtures": {
         "accept": [
@@ -140,11 +140,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "DAYS gives the days and the /7 turns them into weeks: =DAYS(C2,B2)/7.",
-        "func-days": "Count the days with DAYS first; the weeks are arithmetic on top of that.",
-        "require-ref": "Read the two dates from B2 and C2 rather than typing the serials.",
-        "value": "63 days is 9 weeks, and 63 is what DAYS gives for 1 March to 3 May.",
-        "error": "Dividing by zero leaves #DIV/0!, so check the divisor rather than the dates."
+        "syntax": "DAYS gives the days and /7 turns them into weeks: =DAYS(C2,B2)/7.",
+        "func-days": "Count the days first; the weeks are arithmetic on the result.",
+        "require-ref": "Read the start and end from B2 and C2 rather than typing the serials.",
+        "value": "1 March to 3 May is 63 days, so 63/7 is 9 whole weeks.",
+        "error": "A negative week count means C2 and B2 are the wrong way round, since DAYS subtracts the second from the first."
       },
       "fixtures": {
         "accept": [
@@ -197,23 +197,23 @@
   ],
   "docs": {
     "syntax": "=DAYS(end, start)",
-    "explain": "DAYS and a plain subtraction answer the same question, and they answer it differently enough to matter. DAYS takes the end date first, so the answer is positive and the formula says which end is which. `C2-B2` is a difference that reads backwards the moment somebody fills it down a column the wrong way. The unit is days and only days. Turning that into weeks is ordinary arithmetic on the result, because a date is a number and everything you know about numbers applies to it. That is why date maths works at all. Adding thirty to a date gives the date thirty days later, subtracting one date from another gives the gap in days, and dividing the gap by seven gives weeks. Excel will even format the answer of a date plus a number as a date, which is the fastest way to build a due date from a term length. The trap is that a serial means nothing on its own. 45352 is only 1 March 2024 because somebody agreed on 1899 as the epoch. A cell holding a day count must never be formatted as a date, or it will claim to be a Tuesday in 1900.",
+    "explain": "DAYS takes an end date and a start date, in that order, and returns the distance between them in days. A plain subtraction C2-B2 answers the same question; naming the function makes the direction explicit. The result is an ordinary number, so arithmetic applies to it.\n\nThe first screen measures an escalation from 1 March to 15 March 2024 and expects 14. The second counts an audit from 1 March to 3 May, which is 63 days, then divides by seven for 9 weeks. Swap the arguments and DAYS returns -14 without an error.\n\nA serial is only a date because the workbook counts from 1899, so 45352 means 1 March 2024 by convention. Keep a day count formatted as a number: format 14 as a date and the cell claims 14 January 1900.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "One of the arguments was text that is not a date, so there is no serial to subtract from."
+        "text": "A date argument is text that Excel cannot read as a date, so there is no serial to subtract."
       },
       {
         "code": "#NUM!",
-        "text": "An argument was outside the range of serials this workbook can hold, so no distance can be computed."
+        "text": "An argument sits outside the range of serials this workbook can hold, so no distance can be computed."
       },
       {
-        "code": "#DIV/0!",
-        "text": "The weeks were divided by zero: a count of days survives that, a division does not."
+        "code": "Negative days",
+        "text": "The arguments are the wrong way round, so DAYS returns -14 with no error to warn you."
       }
     ],
-    "atWork": "A service-level report that measures how long each ticket stayed open, and then reports the same figure in weeks for the management summary without recomputing anything.",
-    "outcome": "Measure the distance between two dates in days, then treat that answer as the number it is.",
+    "atWork": "A service-level report that measures how long each ticket stayed open, then states the same figure in weeks.",
+    "outcome": "Measure the distance between two dates in days, then treat the answer as the number it is.",
     "teaches": "DAYS, and arithmetic on date serials",
     "dataset": "Two projects with a start and an end date",
     "reference": "=DAYS(C2,B2)"

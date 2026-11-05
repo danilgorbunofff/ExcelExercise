@@ -8,7 +8,7 @@ import { compareValues, isBlank, isRange, toBoolean, toNumber, toText } from "./
  * Cell lookup context. Missing keys resolve to a blank cell, like an empty grid.
  *
  * `clock` is the pinned "today" a screen can carry. Without one the evaluator reads this machine's
- * clock, which is what makes TODAY and NOW volatile — a drill that asks for a date has to pin the
+ * clock, which is what makes TODAY and NOW volatile — an exercise that asks for a date has to pin the
  * day it is asking about, or the answer would change overnight.
  */
 export function createContext(cells = {}, { clock } = {}) {
@@ -22,7 +22,7 @@ export function createContext(cells = {}, { clock } = {}) {
 }
 
 /**
- * A screen's `today` is written `YYYY-MM-DD`, or `YYYY-MM-DDTHH:MM` when the drill is about the time
+ * A screen's `today` is written `YYYY-MM-DD`, or `YYYY-MM-DDTHH:MM` when the exercise is about the time
  * of day as well, and read as that moment on this machine's calendar. A bare date is local midnight.
  */
 export function pinnedClock(today) {
@@ -188,7 +188,7 @@ function evaluateCall(node, ctx) {
   if (!KNOWN_FUNCTIONS.has(name)) {
     throw new FormulaError(
       CODES.NAME,
-      `"${node.name}" is not one of the functions this track covers. Check the spelling or use another approach.`,
+      `"${node.name}" is not one of the functions this track covers. Check the spelling.`,
       node.start,
     );
   }

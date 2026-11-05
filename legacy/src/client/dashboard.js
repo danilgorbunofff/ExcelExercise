@@ -1,5 +1,5 @@
 /**
- * The dashboard island. The page is already whole — every drill, its group and its badge slot are in the
+ * The dashboard island. The page is already whole — every exercise, its group and its badge slot are in the
  * HTML — so this module only fills what can only be known in the browser: the counts, the badges and the
  * up-next recommendation, all read from the progress record in `localStorage`.
  *
@@ -106,17 +106,25 @@ function renderRecent(rows) {
 }
 
 /**
- * The order gate, said on the row. The link stays: a locked drill opens its gate page, which names the
- * drill to finish and offers the one-click unlock — a row that is not a link would be a dead end with
+ * The order gate, said on the row. The link stays: a locked exercise opens its gate page, which names the
+ * exercise to finish and offers the one-click unlock — a row that is not a link would be a dead end with
  * the way out behind it.
+ *
+ * Two rows are never locked, because the exercise they open is not: a free one (the free ten are a tour,
+ * listed in their own order, so a catalog predecessor being paid blocks nothing) and the prompt (its single
+ * free pass is the door into the paid half). A row that said "Opens after exercise 1" about an exercise
+ * that opens on the click would be the page arguing with itself.
  */
 function paintLock(node, row) {
-  const start = canStart({
-    plan: state.plan,
-    progress: state.progress,
-    id: row.id,
-    unlocked: state.progress.unlocked === true,
-  });
+  const start =
+    row.free === true || row.prompt === true
+      ? { open: true, after: null }
+      : canStart({
+          plan: state.plan,
+          progress: state.progress,
+          id: row.id,
+          unlocked: state.progress.unlocked === true,
+        });
   node.dataset.locked = String(!start.open);
   const note = node.querySelector(".row-locked");
   if (start.open) {
@@ -125,14 +133,14 @@ function paintLock(node, row) {
   }
   const slot = node.querySelector(".row-body") ?? node;
   const target = note ?? el("span", { class: "row-locked" });
-  target.textContent = `Opens after drill ${start.after.number}`;
+  target.textContent = `Opens after exercise ${start.after.number}`;
   if (!note) slot.append(target);
 }
 
 /**
  * Which of the 16 groups open. The page is an index, not a scroll: every group starts closed, and the
- * reader's own record decides which ones are worth opening — the one holding the next drill, and any
- * group with a drill that has something to say. Run on first paint and after a reset, never on every
+ * reader's own record decides which ones are worth opening — the one holding the next exercise, and any
+ * group with an exercise that has something to say. Run on first paint and after a reset, never on every
  * repaint, so a group the reader closed stays closed.
  */
 function revealGroups(summary) {
@@ -177,7 +185,7 @@ function paint({ openGroups = false } = {}) {
     const onTrack = counter.closest("summary") !== null;
     counter.textContent =
       onTrack && group.completed === 0
-        ? `${group.total} drill${group.total === 1 ? "" : "s"}`
+        ? `${group.total} exercise${group.total === 1 ? "" : "s"}`
         : `${group.completed} of ${group.total}`;
   }
 
@@ -223,7 +231,7 @@ function armReset() {
     if (cleared) {
       state.progress = wiped;
       paint({ openGroups: true });
-      ui.resetNote.textContent = "Progress cleared. Every drill is unstarted again.";
+      ui.resetNote.textContent = "Progress cleared. Every exercise is unstarted again.";
     } else {
       ui.resetNote.textContent = "This browser would not let the page clear its storage.";
     }
@@ -239,7 +247,7 @@ function armReset() {
  * The signed-in half of the page: ask the server what it has, and merge it in.
  *
  * The island paints from `localStorage` first because that is what works with no account, no network
- * and on the static build. But a learner who signs in on a second browser, or who finished drills
+ * and on the static build. But a learner who signs in on a second browser, or who finished exercises
  * before signing up on another device, has a copy the browser cannot see: the server. This one request
  * closes that gap, and it is deliberately silent on every failure — a 401, a 404 (the static edition
  * has no API), an offline tab and a garbage body all mean "the local copy is all there is", which is
@@ -261,7 +269,7 @@ async function reconcile() {
   if (!changed) return;
   state.progress = progress;
   // Written back so the next page load starts from the union: otherwise every visit would re-download
-  // the same rows and re-merge them, and a drill finished while signed out would look new each time.
+  // the same rows and re-merge them, and an exercise finished while signed out would look new each time.
   writeProgress(progress);
   paint();
 }
@@ -272,7 +280,7 @@ function main() {
   state.storage = safeStorage();
   state.blocked = state.storage
     ? null
-    : "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.";
+    : "This browser blocks local storage, so nothing is saved. The exercises still work, but this page cannot remember them.";
   state.progress = readProgress();
 
   paint({ openGroups: true });

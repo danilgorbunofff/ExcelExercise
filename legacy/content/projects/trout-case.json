@@ -11,11 +11,11 @@
     },
     {
       "heading": "The work",
-      "body": "A river trust wants a one-page read of the season: which beat is producing, which species is being kept, and whether the lengths say anything. All eight tasks answer from this one sheet. This is the case-style project — the questions are the kind a volunteer coordinator would ask, and every one of them is a filter and a count over the same fifteen rows."
+      "body": "A river trust wants a one-page read of the season: which beat is producing, which species is being kept, and whether the lengths say anything. All eight tasks answer from this one sheet. This is the case-style project. The questions are the kind a volunteer coordinator would ask, and each one is a filter and a count over the same fourteen rows."
     },
     {
       "heading": "Where people go wrong",
-      "body": "Two traps. 'Released' is text, so counting the word yes is not counting fish that were kept — do the subtraction, not a guess. And the beat column repeats, so a total per beat is three or four rows at a time, never the whole column."
+      "body": "Two traps. 'Released' is text, so counting the word yes does not count fish that were kept. Do the subtraction rather than guessing. And the beat column repeats, so a total per beat is three or four rows at a time, never the whole column."
     }
   ],
   "dataset": {
@@ -50,7 +50,7 @@
   },
   "docs": {
     "syntax": "=COUNTA(D2:D15), =COUNTIF(F2:F15,\"yes\"), =ROUND(AVERAGE(E2:E15),1)",
-    "explain": "COUNTA counts the species cells, one per fish, which is the number of entries in the log. COUNTIF asks how many of the released cells say yes, and the answer is a count, not a length — the fish that were kept are what is left of fourteen once ten went back. MAX and ROUND(AVERAGE(...),1) describe the lengths without needing a second sheet. Every remaining task is those three ideas applied to a subset: filter a column to one value, then count or add what stays.",
+    "explain": "COUNTA counts the species cells, one per fish, which gives the number of entries in the log. COUNTIF asks how many of the released cells say yes. That answer is a count, not a length: the fish that were kept are what is left of fourteen once ten went back.\n\nMAX and ROUND(AVERAGE(E2:E15),1) describe the lengths without needing a second sheet. Every remaining task applies those three ideas to a subset: filter a column to one value, then count or add what stays.",
     "atWork": "A field log, a support queue export and a sales sheet are the same table with different words. 'Which subset is producing, and how big is what it produces' is the question a report answers, and it is always a filter and an aggregate.",
     "outcome": "Turn a field log into the read a river trust would put on one page.",
     "teaches": "Counting a filtered subset",
@@ -59,7 +59,7 @@
     "errors": [
       {
         "code": "Counting yes to answer a keeled question",
-        "text": "Ten fish were released, so four were kept — not ten. Read which side of the question the yes counts belong to."
+        "text": "Ten fish were released, so four were kept, not ten. Read which side of the question the yes counts belong to."
       },
       {
         "code": "Whole-column totals",
@@ -107,7 +107,7 @@
     {
       "id": "trout-beat-brown",
       "type": "workbook",
-      "prompt": "Which beat produced more Brown trout — Upper or Lower?",
+      "prompt": "Which beat produced more Brown trout, Upper or Lower?",
       "answers": ["Lower"],
       "hints": {
         "value": "Three Brown trout rows are Upper and four are Lower. Count the rows, not the centimetres."

@@ -5,19 +5,23 @@
   "title": "An inventory reorder report",
   "docs": {
     "syntax": "=MAX(0,reorder_at-on_hand) floors a shortfall at zero; MAX(0,a-b) over totals nets it out",
-    "explain": "An inventory report has one rule that a spreadsheet gets wrong on its own: it must never ask for a negative number of parts. Subtracting what is on hand from the reorder point is the right arithmetic. On a row that is over-stocked it returns a negative, which is meaningless on a purchase order. MAX wrapped around the subtraction is the whole fix. It does nothing on the rows that are short and floors the rest at zero, so the column reads as an order quantity rather than as a difference. The second screen works the same idea over the whole sheet instead of one row. Adding the reorder points and adding the stock, then taking the difference, gives the net shortfall. MAX keeps that at zero for a month where the warehouse is ahead. Both screens use the same two columns, so the learner sees a row-level formula and a sheet-level formula that share one guard. That guard is the reason a formula written this way can be filled down and totalled without ever producing an order for minus four bolts.",
+    "explain": "MAX returns the largest number it is given, so MAX(0,C2-B2) reports a shortfall and never a negative. Where the reorder point sits above stock, the subtraction stands. Where stock is higher, the zero wins. The bolt row has ten to reorder against four on hand, so it asks for six.\n\nThe second screen asks the same question of the whole sheet: the reorder column comes to 39, the stock column to 27, and the net shortfall is 12. MAX holds that at zero in a month when the warehouse is ahead. The nut's surplus cancels part of the washer's gap, which is why flooring the rows one by one would add to 16.\n\nThe guard matters because the column has to fill down. Copy C2-B2 into four rows without it and the nut asks for minus four, which no purchase order can carry. With the zero in place the same fill gives figures you can add straight into the order.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A cell in the subtracted range holds text, so the difference cannot be worked out."
+        "text": "A cell in the subtraction holds text, so there is no number to work with."
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled, so the sheet has nothing to call."
+        "text": "MAX is misspelled in the call, so Excel reads a name it does not know."
+      },
+      {
+        "code": "Negative order",
+        "text": "MAX is left off, so an over-stocked row asks for a negative number of parts."
       }
     ],
-    "atWork": "Turning on-hand stock and reorder points into an order quantity that is never negative.",
-    "outcome": "Floor a shortfall at zero on one row, then net the whole sheet the same way.",
+    "atWork": "Turning on-hand stock and reorder points into an order quantity that never goes negative.",
+    "outcome": "Floor a row's shortfall at zero, then net the whole sheet the same way.",
     "teaches": "MAX as a zero floor, over one row and then over two column totals",
     "dataset": "Four parts with stock, reorder points and one answer cell",
     "reference": "=MAX(0,C2-B2)"
@@ -79,10 +83,10 @@
       "requireRef": "B2",
       "hints": {
         "syntax": "=MAX(0,C2-B2): the shortfall, with zero as the floor.",
-        "func-max": "The order quantity never drops below zero, so a floor is needed.",
-        "require-ref": "The stock on hand is in B2.",
-        "value": "Ten to order less four in stock leaves six.",
-        "error": "A part with no numbers in its row has nothing to subtract."
+        "func-max": "The order quantity has to stop at zero on an over-stocked row.",
+        "require-ref": "Stock on hand is in B2 and the reorder point is in C2.",
+        "value": "Ten to reorder less four in stock leaves six.",
+        "error": "A text cell in the subtraction gives #VALUE! instead of an order quantity."
       },
       "fixtures": {
         "accept": [
@@ -192,12 +196,12 @@
       ],
       "requireRef": "B2",
       "hints": {
-        "syntax": "=MAX(0,SUM(C2:C5)-SUM(B2:B5)): the two column totals, with zero as the floor.",
-        "func-max": "The sheet can be ahead of its reorder points, so the net shortfall needs a floor.",
+        "syntax": "=MAX(0,SUM(C2:C5)-SUM(B2:B5)): two column totals, floored at zero.",
+        "func-max": "The sheet can be ahead of its reorder points, so the net needs a floor.",
         "func-sum": "Both sides of the subtraction are column totals.",
-        "require-ref": "The stock on hand is in B2.",
-        "value": "Thirty-nine reorder points against twenty-seven in stock leaves twelve.",
-        "error": "A total of text has no number to subtract."
+        "require-ref": "The stock column runs B2:B5.",
+        "value": "39 to reorder against 27 in stock leaves 12.",
+        "error": "The grader says the formula stops with an error, and a division by zero is the usual cause."
       },
       "fixtures": {
         "accept": [
@@ -255,7 +259,7 @@
   ],
   "schemaVersion": 2,
   "seo": {
-    "title": "A reorder report that never asks for negative stock",
+    "title": "A reorder report with no negative stock",
     "description": "MAX wrapped around reorder point minus on hand does nothing where stock is short and floors the rest at zero, so the column reads as an order quantity."
   },
   "updated": "2026-10-31"

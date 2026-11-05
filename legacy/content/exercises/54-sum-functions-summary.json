@@ -230,19 +230,19 @@
   ],
   "docs": {
     "syntax": "=SUM(range) and =SUMIF(criteria_range, condition, sum_range), combined by subtraction",
-    "explain": "The sum group is really three questions about the same column. What does the lot come to, what do the rows I care about come to, and what is left when those two are compared? SUM answers the first, SUMIF the second with one condition, and SUMIFS the second with two or more. The second screen answers the third by subtraction: 1450 in the column minus 900 of North sales leaves 550 outside the region. SUMIF with a not-equal condition does it in one call, but the subtraction is the shape that generalises. Each half can be swapped for a different filter without rewriting the other. Two habits are worth taking away. The sum range and the condition range have to line up row for row, and a condition is text in quotes even when it looks like a number. Every drill in this group is the same three arguments in a different order, which is exactly why they are worth practising together.",
+    "explain": "The group asks three questions of one column: what the whole of it comes to, what the rows you care about come to, and what is left over. SUM takes the first, SUMIF the second with one condition, SUMIFS the second with two or more.\n\nThe second screen answers the third by subtraction: 1450 in the column minus 900 of North sales leaves 550 elsewhere. SUMIF with a not-equal condition reaches the same figure in one call, and the subtraction keeps each half free to take a different filter later.\n\nTwo habits carry across the group. The sum range and the criteria range line up row for row, and a condition is text in quotes even when it looks like a number.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A range holds text where the sum expected numbers."
-      },
-      {
-        "code": "#DIV/0!",
-        "text": "A division by zero in either half of the formula stops it before the answer."
+        "text": "A range in the call holds text where numbers were expected, or a comparison has lost its quotes."
       },
       {
         "code": "#NAME?",
-        "text": "One of the two functions is misspelled, or SUMIFS was used with SUMIF's argument order."
+        "text": "SUMIF was typed as SUMIFS with SUMIF arguments, or the function is misspelled."
+      },
+      {
+        "code": "Wrong total",
+        "text": "Ranges of different shapes match the wrong rows. Nothing errors, and the figure is off by a row."
       }
     ],
     "atWork": "A regional report that needs the grand total, the headline region and everything outside it on three lines.",

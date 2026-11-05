@@ -26,6 +26,13 @@ their phase docs are stamped out of scope rather than left as promises.
 - [ ] `npm run lighthouse` at or above the thresholds in `lighthouserc.*`.
 - [ ] `SITE_URL` and `SITE_ENV=production` set for both builds; `PAYWALL` set only after accounts and
       billing are confirmed live.
+- [ ] If checkout is open, `PAYWALL=on` in the same deployment, and both editions rebuilt *after* the
+      final `STRIPE_SECRET_KEY` and price ids were set — the paywall payload is baked into prerendered
+      lesson HTML (see the checkout section of `deploy.md`).
+- [ ] `SITE_CONTACT` set for both builds, and the address it names is one a person reads (H9).
+- [ ] `SITE_AUTHOR` set to the name a buyer would find on a receipt. It prints the byline and turns on
+      the "Who runs it" section of `/about`; left unset, that section is absent and the site is
+      anonymous, which is a worse state to sell from.
 
 ## Human checks the gates cannot make
 
@@ -33,13 +40,15 @@ These are named, not ticked, until a person does them and records the date besid
 
 | # | Check | How | Why a machine cannot |
 |---|---|---|---|
-| H1 | **Safari on macOS** — a drill is playable, Tab reaches the answer field, the certificate prints | Open the candidate on real Safari | Playwright's WebKit is not Safari, and CI is Linux |
+| H1 | **Safari on macOS** — an exercise is playable, Tab reaches the answer field, the certificate prints | Open the candidate on real Safari | Playwright's WebKit is not Safari, and CI is Linux |
 | H2 | **Edge on Windows** — same three behaviours | Open the candidate on real Edge | Same; the engine matrix covers Chromium, not the OS |
 | H3 | **Rich Results** — schema.org for three notes validates (`p7-73`) | Google's Rich Results test on three live note URLs | Needs the public URL and Google's validator |
 | H4 | **LinkedIn add-licence** — the button prefills institution, title and issue date (`p6-94`) | Sign in to LinkedIn, press the button on a real certificate | LinkedIn's UI is not automatable |
 | H5 | **Search Console** — the sitemap is submitted and accepted (`p10-139`) | Search Console after the domain resolves | External account |
 | H6 | **Keyboard-only pass on a real keyboard** — the whole first lesson, including the chord matrix | A person, no mouse | Chord handling depends on real key events per OS |
 | H7 | **Print to PDF on a real printer dialogue** — A4 and Letter, no clipped name | Print preview from the owner's machine | `page.pdf()` proves the CSS, not the OS print stack |
+| H8 | **One real sign-up email and one reset** arrive at Gmail and at Outlook, headers show `spf=pass`, `dkim=pass`, `dmarc=pass` | Register a fresh address at each, read the raw message | Needs a real inbox and DNS that has propagated; the local stack writes to Mailpit and proves nothing about deliverability |
+| H9 | **`SITE_CONTACT` is set, receives mail and answers it** | Send a message to the address the footer prints, from outside the domain | The site only prints the address; whether a human reads it is not testable |
 
 ## Sign-offs to record
 
@@ -69,6 +78,6 @@ That is what the stamps are for.
 - [ ] `npm run smoke -- https://<app origin> --sha <release sha>` — every check green, SHA matches.
 - [ ] `npm run smoke -- https://<static origin> --sha <release sha>` — green; the SHA check skips with
       its reason printed, because the static edition has no `/api/health`.
-- [ ] A drill is played by a person on production, signed out, and then a certificate is printed.
+- [ ] An exercise is played by a person on production, signed out, and then a certificate is printed.
 - [ ] The launch log records the release SHA, both origins, the smoke outputs, and anything rolled
       back.

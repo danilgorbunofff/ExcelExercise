@@ -70,7 +70,7 @@ async function LeaderboardScreen() {
     return (
       <AuthCard title="Today's board">
         <Notice>{config.reason}</Notice>
-        <Links items={[{ href: "/learn", label: "Your drills" }]} />
+        <Links items={[{ href: "/learn", label: "Your exercises" }]} />
       </AuthCard>
     );
   }
@@ -130,7 +130,7 @@ async function LeaderboardScreen() {
       </p>
       <Links
         items={[
-          { href: "/learn", label: "Your drills" },
+          { href: "/learn", label: "Your exercises" },
           { href: "/account", label: "Your account" },
         ]}
       />
@@ -140,8 +140,8 @@ async function LeaderboardScreen() {
 
 export default function LeaderboardPage() {
   return (
-    <AuthShell counter="Today's board" skipLabel="leaderboard">
-      <Suspense fallback={<Skeleton label="Loading the board…" rows={8} />}>
+    <AuthShell skipLabel="leaderboard">
+      <Suspense fallback={<Skeleton label="Loading the board" rows={8} />}>
         <LeaderboardScreen />
       </Suspense>
     </AuthShell>

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "why": "Every phrase below appears in generated marketing copy far more often than in a person explaining a spreadsheet. They are not forbidden by grammar, they are a tell. `copy:report` lists each hit with the field and the words around it, so the fix is to say the plain thing instead.",
 
   "bannedPhrases": [
@@ -176,8 +176,11 @@
   },
 
   "paragraph": {
-    "maxWords": 130,
-    "why": "the docs column is about 60 characters wide; past 130 words the reader loses the thread"
+    "maxWords": 70,
+    "maxSentences": 4,
+    "minExplain": 2,
+    "maxExplain": 4,
+    "why": "one idea per paragraph; past 70 words or four sentences it is a wall the reader skips, not a paragraph"
   },
 
   "flesch": {

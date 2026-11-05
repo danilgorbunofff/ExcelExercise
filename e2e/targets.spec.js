@@ -1,7 +1,7 @@
 /**
  * Target sizes, measured rather than assumed. WCAG 2.2 AA (2.5.8) asks for 24 by 24 CSS pixels; the
  * phone branch asks 44 of the controls a thumb has to find. Both are properties of the laid-out box,
- * so no build-time test can see them: the footer links and the drill rail were 17px tall in source and
+ * so no build-time test can see them: the footer links and the exercise rail were 17px tall in source and
  * only a browser could say so.
  */
 import { expect, test } from "@playwright/test";
@@ -26,8 +26,20 @@ async function undersized(page, floor) {
       const box = element.getBoundingClientRect();
       if (!box.width || !box.height) continue;
       if (box.width >= floor && box.height >= floor) continue;
+      // A radio or checkbox is usually a 1px box behind its label: the label is the target the reader
+      // hits, and 2.5.8 measures the target a control actually offers, so the label's box is the one
+      // that counts. `label[for]` forwards the click, and a wrapping `<label>` does the same.
+      const label =
+        /^(radio|checkbox)$/.test(element.getAttribute("type") ?? "") &&
+        (element.closest("label") ||
+          (element.id && document.querySelector(`label[for="${CSS.escape(element.id)}"]`)));
+      if (label) {
+        const labelled = label.getBoundingClientRect();
+        if (labelled.width >= floor && labelled.height >= floor) continue;
+      }
       const name =
         element.getAttribute("aria-label") ||
+        (label && label.textContent.trim()) ||
         element.textContent.trim() ||
         element.getAttribute("name") ||
         element.type ||
@@ -43,7 +55,7 @@ async function undersized(page, floor) {
 const PAGES = [
   ["the index", "/"],
   ["the offer page", "/pricing"],
-  ["a drill", `/learn/excel/${freeDrill().slug}`],
+  ["an exercise", `/learn/excel/${freeDrill().slug}`],
   ["the sign-in form", "/login"],
 ];
 

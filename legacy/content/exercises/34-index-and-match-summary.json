@@ -68,13 +68,13 @@
         }
       ],
       "hints": {
-        "syntax": "=INDEX(B2:B4,MATCH(B5,A2:A4,1)): the range to read, then the row MATCH finds.",
-        "func-index": "INDEX turns the row number into the rate on that row.",
-        "func-match": "MATCH finds which band 150 falls in: the last starting point that is not above it.",
-        "match-band": "The band table is sorted from small to large on purpose, so this MATCH wants 1: approximate on a sorted column.",
-        "require-ref": "Take the units from B5 so a new total is a one-cell edit.",
-        "value": "150 is at or above 100 but below 200, so the second band applies and its rate is 0.04.",
-        "error": "A units figure below the first band start leaves MATCH with #N/A."
+        "syntax": "=INDEX(B2:B4,MATCH(B5,A2:A4,1)): the rates, then the band position MATCH finds.",
+        "func-index": "INDEX turns the position into the rate sitting on that row of B2:B4.",
+        "func-match": "MATCH finds the band 150 falls in: the last starting point that is not above it.",
+        "match-band": "The band column is sorted 0, 100, 200 on purpose, so this MATCH wants 1. A 0 would look for a row that says exactly 150.",
+        "require-ref": "Take the units from B5 so a new figure changes the rate without an edit to the formula.",
+        "value": "150 clears 100 and does not reach 200, so the second band applies and its rate in B3 is 0.04.",
+        "error": "Units under the first starting point have nowhere to land, and MATCH returns #N/A."
       },
       "fixtures": {
         "accept": [
@@ -127,18 +127,18 @@
   ],
   "docs": {
     "syntax": "=INDEX(rates, MATCH(units, bands, 1))",
-    "explain": "This is the pair doing a job neither function could do alone. MATCH says 150 belongs to the band that starts at 100, and INDEX reads the rate on that row, 0.04. The third argument is 1 rather than 0 because a band table is sorted and read as ranges. You want the last starting point at or below the value, not an exact hit. That is the opposite of the price list in the last lesson, and knowing which of the two you are holding is the whole skill. A wrong third argument here does not error. It returns a plausible rate from a neighbouring band. Band tables are always written smallest first, so a rate pulled from a neighbouring row is a data-ordering bug wearing a formula costume.",
+    "explain": "The band table in A2:B4 is read as ranges. 150 sits above the 100 in A3 and below the 200 in A4, so the band that applies starts on row 3 and pays 0.04. MATCH with 1 returns 2, the position of that starting point, and INDEX reads B3.\n\nA third argument of 1 asks for the last starting point at or below the value, which assumes the column is sorted ascending. The column here runs 0, 100, 200. Set 0 instead and MATCH looks for a row that says exactly 150, finds none, and returns #N/A.\n\nThe quiet failure is a band column that has drifted out of order. A figure below the first threshold fails loudly, because MATCH finds nothing and the cell shows #N/A. Re-sort the column and check the first row before trusting a rate that looks plausible.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The value is below the first band start, so there is no band to read a rate from."
+        "text": "The units figure is below the first starting point in A2, so no band applies and there is no rate to read."
       },
       {
-        "code": "#REF!",
-        "text": "A row number of zero was handed to INDEX, which asks for the whole column instead of one rate."
+        "code": "Wrong band",
+        "text": "The band column is not sorted ascending, so MATCH settles on a neighbouring row and returns its rate without an error."
       }
     ],
-    "atWork": "Commission or tax bands, where the rate changes at thresholds and the table is written smallest first.",
+    "atWork": "Commission and tax bands, where the rate changes at thresholds and the table is written smallest first.",
     "outcome": "Read a rate from a sorted band table with INDEX and an approximate MATCH.",
     "teaches": "INDEX and MATCH with bands",
     "dataset": "Three commission bands",

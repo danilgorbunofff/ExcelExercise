@@ -58,10 +58,10 @@
       "rules": [],
       "hints": {
         "syntax": "=SUMIF(A2:A6,\"North\",B2:B6): condition range, condition, then the numbers to add.",
-        "func-sumif": "SUMIF adds only the rows that match. SUM would give you the total of every region, which is a different question.",
+        "func-sumif": "SUMIF adds only the rows that match. SUM would give the total of every region, which is a different question.",
         "require-ref": "The sum range has to be the amount column, not the region column.",
-        "value": "That is not the North total. Check the third argument: with only two arguments SUMIF adds the region names, which is zero.",
-        "error": "#VALUE! means the criteria range and the sum range are different shapes: A2:A6 and B2:B6 have to line up row for row. If the region column is in the sum slot, expect zero rather than an error."
+        "value": "That is not the North total. With only two arguments SUMIF adds the region names, which is zero.",
+        "error": "#VALUE! means the criteria and sum ranges are different shapes: A2:A6 and B2:B6 have to line up row for row."
       },
       "fixtures": {
         "accept": [
@@ -124,22 +124,22 @@
   ],
   "docs": {
     "syntax": "=SUMIF(range, criteria, [sum_range])",
-    "explain": "SUMIF asks two questions at once: which rows match, and which column gets added. The region column is A2:A6, the condition is \"North\", and the amounts sit in B2:B6. Three rows match, 320, 180 and 400, so =SUMIF(A2:A6,\"North\",B2:B6) returns 900 while the table holds 1450. The third argument is optional, and that is the trap. Leave it out and SUMIF adds the cells in the condition range, which are words, so the answer collapses to 0. Conditions work like COUNTIF, so \">=200\" and \"N*\" are legal. The two ranges are matched by position, so both should be the same shape.",
+    "explain": "SUMIF asks two things at once: which rows match, and which column gets added. The regions sit in A2:A6, the condition is North, and the amounts sit in B2:B6.\n\n=SUMIF(A2:A6,\"North\",B2:B6) returns 900 from the three North rows of 320, 180 and 400, while the table holds 1450. The third argument is the one people drop, and dropping it makes SUMIF add the region names instead, which comes back as 0 with no error to show for it.\n\nConditions behave as they do in COUNTIF, so \">=200\" and \"N*\" both work. The two ranges are matched by position, so give them the same shape.",
     "errors": [
       {
-        "code": "0",
-        "text": "The sum range was left out, so SUMIF tried to add the region names and found no numbers."
-      },
-      {
         "code": "#VALUE!",
-        "text": "A sum range that is not a reference to cells, for example a typed total."
+        "text": "The sum range and the criteria range are different shapes, so the rows no longer line up."
       },
       {
-        "code": "Wrong column",
-        "text": "Pointing the third argument at column A adds the words North instead of the amounts, and returns 0 rather than an error."
+        "code": "#NAME?",
+        "text": "The function is misspelled, or SUMIFS was used with the argument order SUMIF keeps."
+      },
+      {
+        "code": "Wrong total",
+        "text": "Leaving out the sum range makes SUMIF add the region names. The answer is 0 and Excel reports nothing."
       }
     ],
-    "atWork": "Regional totals, one customer's spend, overtime for one team: SUMIF is what turns a flat export into a per-category summary without a pivot table.",
+    "atWork": "A flat export turned into a summary by category, without a pivot table.",
     "outcome": "Total only the rows that match a region.",
     "teaches": "SUMIF",
     "dataset": "Regional sales",

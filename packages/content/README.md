@@ -74,9 +74,9 @@ Beyond shape, types, and length limits:
 
 - a `schemaVersion` other than 1 or 2, a v2 lesson with no `screens[]`, duplicate screen ids, a screen
   type outside `SCREEN_TYPES`, or a type that is declared but does not render yet (`chord`,
-  `sequence`, `picture`, `workbook`) — the page would show a drill nothing can grade;
+  `sequence`, `picture`, `workbook`) — the page would show an exercise nothing can grade;
 - a lesson whose shape is ambiguous: `screens[]` on a lesson that is not `schemaVersion: 2` (the flat
-  drill would render and the screens would vanish), or a `schemaVersion: 2` lesson that still carries
+  exercise would render and the screens would vanish), or a `schemaVersion: 2` lesson that still carries
   `prompt`/`grid`/`answerCell`/`expect`/`require`/`forbid`/`requireRef`/`rules`/`hints`/`fixtures` at the
   top level (that copy would never render, so editing it would look broken). Ambiguity is rejected
   rather than resolved silently;

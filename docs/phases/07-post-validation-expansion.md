@@ -16,6 +16,11 @@ phase 5 decisions do not accidentally block it, not as work to do now.
 
 Below any of these, the fix is content or lesson design — not more software.
 
+Run `node scripts/content-report.mjs` before judging these thresholds: it prints each number with
+its denominator, refuses to print a rate over fewer than 100 events, and reads a search-console
+export with `--gsc` because that one is a file an operator drops in. Phase 5 built it, and the
+report is the gate's only measurement.
+
 ## Expansion order
 
 **1. Port to Next.js 16 (mechanical).**

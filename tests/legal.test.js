@@ -16,10 +16,11 @@ import { describe, it } from "node:test";
 
 import { renderSitemap } from "../legacy/src/site/assets.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
-import { loadArticles, loadContent } from "../legacy/src/site/content.mjs";
+import { loadArticles, loadContent, loadFormulas, loadShortcuts } from "../legacy/src/site/content.mjs";
 import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
+import { EXTRA_PAGES, extraKeys } from "../legacy/src/site/seo.mjs";
 import { legalSections, prepareLegalPage, renderLegalPage, RETENTION } from "../legacy/src/site/legal-page.mjs";
-import { PRICE } from "../legacy/src/site/pricing-page.mjs";
+import { GUARANTEE, planMenu } from "../legacy/src/site/offer.mjs";
 import {
   buildExport,
   CONFIRMATION,
@@ -35,7 +36,15 @@ const config = siteConfig(ENV);
 const { track, index } = loadContent(join(ROOT, "legacy/content"));
 const articles = loadArticles(join(ROOT, "legacy/content"));
 // The notes, and the `/excel-functions` hub that only exists when there are notes to list.
-const notePages = articles.length + (articles.length > 0 ? 1 : 0);
+// The notes, plus their hub — and the hub is in `extraKeys()` when there are notes, so it is counted
+// once, there.
+const formulas = loadFormulas(join(ROOT, "legacy/content"));
+const shortcuts = loadShortcuts(join(ROOT, "legacy/content"));
+const notePages = articles.length;
+const problemPages = formulas.length;
+const shortcutPages = shortcuts.length;
+const extra = extraKeys({ articles, formulas, shortcuts });
+const EXTRA_PATHS = Object.fromEntries(Object.entries(EXTRA_PAGES).map(([key, page]) => [key, page.path]));
 const KINDS = ["privacy", "terms"];
 const page = (kind) => prepareLegalPage({ config, track, index, kind });
 const source = (path) => readFileSync(join(ROOT, path), "utf8");
@@ -67,15 +76,15 @@ describe("the legal pages", () => {
 
   it("names the browser storage keys the client actually writes, and nothing invented", () => {
     const { body } = page("privacy");
-    for (const key of ["es.progress", "es.trial", "es.grace", "es.feedback"]) {
+    for (const key of ["es.progress", "es.grace", "es.feedback"]) {
       assert.ok(body.includes(`<dt>${key}</dt>`), `privacy does not name ${key}`);
     }
     // The list is the client's, so read it out of the client instead of trusting a second copy of the
     // names: every `*_KEY` constant the two modules export has to be documented, and nothing invented.
     const client = source("legacy/src/client/state.js") + source("legacy/src/client/feedback.js");
     const written = [...client.matchAll(/^(?:export )?const \w*KEY = "(es\.[a-z]+)";$/gm)].map((match) => match[1]);
-    assert.equal(written.length, 4, `expected four storage keys in the client, found ${written.join(", ")}`);
-    assert.deepEqual([...written].sort(), ["es.feedback", "es.grace", "es.progress", "es.trial"]);
+    assert.equal(written.length, 3, `expected three storage keys in the client, found ${written.join(", ")}`);
+    assert.deepEqual([...written].sort(), ["es.feedback", "es.grace", "es.progress"]);
   });
 
   it("prints the retention list verbatim, and says nothing that names the learner survives", () => {
@@ -95,7 +104,8 @@ describe("the legal pages", () => {
       "no advertising or tracking cookie",
       "no third-party font, stylesheet, image or script",
     ]) {
-      assert.ok(body.includes(probe), `privacy does not say: ${probe}`);
+      // The list is punctuated as sentences, so the first word is capitalised; the claim is the words.
+      assert.ok(body.toLowerCase().includes(probe), `privacy does not say: ${probe}`);
     }
     // One essential cookie and no banner: the page has to say which, or a banner decision looks arbitrary.
     assert.match(body, /cookie/i, "privacy never mentions cookies");
@@ -103,8 +113,12 @@ describe("the legal pages", () => {
 
   it("sells the track at the price the pricing page charges, and lists the whole track", () => {
     const { body } = page("terms");
-    assert.ok(body.includes(`>${PRICE}<`) || body.includes(`${PRICE} for the whole thing`), "terms does not name the price");
-    assert.ok(body.includes(`${track.freeLessonCount}`), "terms does not say how many drills are free");
+    // Three terms, named in the same order the pricing page prints them, from the same array.
+    assert.ok(body.includes(planMenu()), "terms does not name the three prices");
+    assert.ok(body.includes(GUARANTEE), "terms does not carry the guarantee");
+    // Each term renews, which is what a reader is agreeing to when they pay.
+    assert.ok(body.includes("renews for another term of the same length"), "terms does not say the plan renews");
+    assert.ok(body.includes(`${track.freeLessons.length}`), "terms does not say how many exercises are free");
     assert.ok(body.includes("not affiliated with, endorsed by or connected to"), "terms does not disclaim affiliation");
     assert.ok(body.includes("Excel is a trademark of Microsoft Corporation"), "terms does not name the trademark owner");
     assert.ok(body.includes("refund"), "terms has no refund term");
@@ -122,11 +136,13 @@ describe("the legal pages", () => {
     );
   });
 
-  it("sets the page metadata the shell needs, and keeps the counter honest", () => {
+  it("sets the page metadata the shell needs, and carries no header count", () => {
     for (const kind of KINDS) {
       const { page: meta } = page(kind);
       assert.equal(meta.path, `/${kind}`);
-      assert.equal(meta.counter, `${index.length} drills`);
+      // The header shows the mark and the ways in; a count in it was a fact the body already states.
+      assert.equal(meta.counter, undefined, `${kind}: a header count came back`);
+      assert.equal(meta.badge, undefined, `${kind}: a header badge came back`);
       assert.ok(meta.description.length > 20, `${kind}: description too short to be a description`);
       assert.equal(meta.bodyClass, "legal");
     }
@@ -142,7 +158,9 @@ describe("the sitemap", () => {
       index,
       groups,
       articles: articles.map((article) => ({ path: `/excel-functions/${article.slug}`, updated: article.updated })),
-      extra: articles.length > 0 ? ["exercises", "functions", "about", "privacy", "terms"] : ["exercises", "about", "privacy", "terms"],
+      formulas: formulas.map((formula) => ({ path: `/formulas/${formula.slug}`, updated: formula.updated })),
+      shortcuts,
+      extra,
     });
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
     for (const path of ["/privacy", "/terms"]) {
@@ -151,7 +169,7 @@ describe("the sitemap", () => {
     // The sitemap is `indexablePaths()` and nothing else: no dashboard, no pricing, no account, and no
     // duplicate whether a path arrives as a group or as a lesson.
     assert.equal(new Set(locs).size, locs.length, "a URL is listed twice");
-    assert.equal(locs.length, 1 + 4 + groups.length + index.length + notePages);
+    assert.equal(locs.length, 1 + extra.length + groups.length + index.length + notePages + problemPages + shortcutPages);
     for (const path of ["/learn", "/pricing", "/account"]) {
       assert.ok(!locs.includes(`${config.baseUrl}${path}`), `sitemap should not list ${path}`);
     }
@@ -161,8 +179,8 @@ describe("the sitemap", () => {
     const { default: sitemap } = await import("../app/sitemap.js");
     const groups = dashboardGroups({ track, index });
     const urls = sitemap().map((entry) => entry.url);
-    assert.equal(urls.length, 1 + 4 + groups.length + index.length + notePages);
-    for (const path of ["/privacy", "/terms", "/about", "/excel-exercises", ...(articles.length > 0 ? ["/excel-functions"] : [])]) {
+    assert.equal(urls.length, 1 + extra.length + groups.length + index.length + notePages + problemPages + shortcutPages);
+    for (const path of extra.map((key) => EXTRA_PATHS[key])) {
       assert.ok(urls.some((url) => url.endsWith(`${path}`) || url.endsWith(`${path}/`)), `next sitemap is missing ${path}`);
     }
   });

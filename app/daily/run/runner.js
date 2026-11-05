@@ -140,7 +140,7 @@ export function Runner() {
   if (state.phase === "loading") {
     return (
       <p className="auth-loading" role="status">
-        Starting today&apos;s run…
+        Starting today&apos;s run
       </p>
     );
   }
@@ -152,7 +152,7 @@ export function Runner() {
           {`The run could not continue: ${state.error}.`}
         </p>
         <p>
-          Nothing that was already answered has been lost — a screen&apos;s first answer stands whether
+          Nothing that was already answered has been lost. A screen&apos;s first answer stands whether
           or not the page survived.
         </p>
         <ul className="auth-links">
@@ -218,7 +218,7 @@ export function Runner() {
             />
           </label>
           <button className="auth-submit" type="submit" disabled={pending || timeUp || answer.trim() === ""}>
-            {pending ? "Checking…" : "Lock in"}
+            {pending ? "Checking" : "Lock in"}
           </button>
         </form>
       ) : (
@@ -230,7 +230,7 @@ export function Runner() {
           <p>
             {verdict.verdict
               ? "That screen is closed and counted."
-              : "That answer is recorded — a screen's first answer is the one that counts."}
+              : "That answer is recorded. A screen's first answer is the one that counts."}
           </p>
           <button className="auth-submit" type="button" onClick={advance} autoFocus>
             {verdict.finished ? "See the score" : "Next screen"}

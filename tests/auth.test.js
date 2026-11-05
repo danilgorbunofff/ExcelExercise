@@ -150,7 +150,7 @@ describe("validateCredentials", () => {
 describe("friendly", () => {
   it("rewrites the failures a visitor can act on", () => {
     assert.equal(friendly("Invalid login credentials"), "That email and password do not match an account.");
-    assert.equal(friendly("Email not confirmed"), "Confirm your email first — the link is in your inbox.");
+    assert.equal(friendly("Email not confirmed"), "Confirm your email first. The link is in your inbox.");
     assert.equal(friendly("User already registered"), "That email already has an account. Sign in instead.");
     assert.match(friendly("Password should be at least 6 characters."), /at least 8/);
   });

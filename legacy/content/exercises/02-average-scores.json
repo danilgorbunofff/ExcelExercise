@@ -60,8 +60,9 @@
         "syntax": "=AVERAGE(B2:B6): one function, one range, no plus signs.",
         "func-average": "Use AVERAGE. Adding the scores and dividing by five by hand works here and breaks the moment a student leaves.",
         "require-ref": "Point the formula at the score column instead of typing the number you worked out.",
-        "value": "That does not match the scores. AVERAGE divides by the count of numbers, so check nothing extra got included.",
-        "error": "#DIV/0! means AVERAGE found no numbers at all: the range is pointing at blank cells or at the header word rather than at the five scores. Text is skipped silently, not averaged."
+        "value": "The answer is 88.5. Check that the range covers all five scores and nothing else.",
+        "error": "#DIV/0! means AVERAGE found no numbers at all: the range is pointing at blank cells or at the header word rather than at the five scores. Text is skipped silently, not averaged.",
+        "hardcoded": "The formula only works for these five scores, which means a number is typed in. Average the whole range, B2:B6, so a corrected score moves the class average."
       },
       "fixtures": {
         "accept": [
@@ -107,29 +108,66 @@
             "formula": "=AVERAGE(B2:B6",
             "rule": "syntax",
             "why": "unclosed bracket"
+          },
+          {
+            "formula": "=AVERAGE(B2)+3.5",
+            "rule": "hardcoded",
+            "why": "averages one score and pads it with 3.5, so Ana going up a point misses the average"
           }
         ]
-      }
+      },
+      "variants": [
+        {
+          "id": "b2-up",
+          "cells": {
+            "B2": 86
+          },
+          "expect": {
+            "value": 88.7
+          },
+          "why": "Ana goes from 85 to 86, so the average has to move with her"
+        },
+        {
+          "id": "b3-up",
+          "cells": {
+            "B3": 91
+          },
+          "expect": {
+            "value": 88.7
+          },
+          "why": "Bo goes from 90 to 91, so the average has to move with him"
+        },
+        {
+          "id": "b4-up",
+          "cells": {
+            "B4": 89
+          },
+          "expect": {
+            "value": 88.7
+          },
+          "why": "Cy goes from 88 to 89, so the average has to move with him"
+        }
+      ]
     }
   ],
   "docs": {
     "syntax": "=AVERAGE(number1, [number2], ...)",
-    "explain": "AVERAGE adds the numbers and divides by how many it found. The five scores here are 85, 90, 88, 92 and 87.5, which come to 442.5, and 442.5 ÷ 5 = 88.5. The useful difference from typing the arithmetic yourself is the denominator. AVERAGE counts only cells holding a number, so a sixth student with no score leaves the divisor at 5. A blank cell is skipped, a zero is not. That is why a class average can be wrong while every individual score looks right.",
+    "explain": "AVERAGE adds the numbers in a range and divides by how many it found. The five scores here are 85, 90, 88, 92 and 87.5, which come to 442.5, so the answer is 88.5. The divisor is the count of cells holding a number, not the count of rows. A blank cell is skipped; a zero is not.\n\nThis exercise wants the class average in B7, taken from B2:B6. Every score is present, so nothing is skipped and the answer lands on 88.5. The count is where a typed sum goes wrong: a sixth student with no score yet leaves AVERAGE dividing by five, while SUM(B2:B6)/6 drags the mean down.\n\nPoint the formula at the range instead of typing the five numbers. A corrected score then moves the average on its own, and a student who leaves the class stops counting without anyone editing the formula.",
     "errors": [
       {
         "code": "#DIV/0!",
-        "text": "The range you pointed at holds no numbers at all, for example a column of names."
+        "text": "The range holds no numbers at all, so there is nothing to divide by: usually the formula points at the names column or at blank cells."
       },
       {
         "code": "#VALUE!",
-        "text": "A cell inside the range contains text that AVERAGE cannot read as a number."
+        "text": "A word or symbol was handed to AVERAGE as an argument, as in =AVERAGE(\"n/a\"); text sitting inside a range is skipped instead."
       },
       {
         "code": "Wrong divisor",
-        "text": "Averages built as SUM(...)/6 where the range holds five students drift the moment someone joins or leaves."
+        "text": "A total divided by a typed 6 keeps dividing by 6 after a student leaves, and the mean slides away from the scores."
       }
     ],
-    "atWork": "Score averages, average order value, average handle time: the same function covers all of them. The professional habit is to let AVERAGE count, so the number survives a blank row.",
+    "atWork": "Class averages and average order value: one function covers both, and it keeps its count straight when a row is empty.",
     "outcome": "Turn five scores into one class average that updates itself.",
     "teaches": "AVERAGE",
     "dataset": "Class test scores",

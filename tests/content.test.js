@@ -13,7 +13,7 @@ import {
   parseRef,
 } from "../packages/grader/index.js";
 import { AUDIT, auditRows } from "./audit.js";
-import { revealOf } from "../packages/content/schema.js";
+import { requireExplain, revealOf } from "../packages/content/schema.js";
 import { matchesTyped, matchesTypedSteps, parseChord, parsePress } from "../packages/keys/index.js";
 import { LESSONS, readJson } from "./lessons.js";
 
@@ -23,7 +23,7 @@ const CONTENT = join(ROOT, "content");
 const track = readJson(join(CONTENT, "track.json"));
 const lessons = LESSONS.map(({ name, exercise }) => ({ name, exercise }));
 
-/** Every screen as its own drill row: a screen is what the grader grades and the page shows. */
+/** Every screen as its own exercise row: a screen is what the grader grades and the page shows. */
 const screens = LESSONS.flatMap(({ lesson, screens: views }) =>
   views.map(({ exercise, screen }, index) => ({
     label: views.length > 1 ? `${lesson.id} screen ${index + 1}` : lesson.id,
@@ -115,7 +115,7 @@ describe("content: track", () => {
 
   it("catalogues planned lessons alongside the live ones", () => {
     assert.equal(track.groups.length, 16);
-    assert.equal(track.lessons.length, 88);
+    assert.equal(track.lessons.length, 86);
     for (const lesson of track.lessons) {
       assert.ok(track.groups.some((group) => group.id === lesson.group), `${lesson.group} is not a group`);
       if (!lesson.id) assert.ok([1, 2, 3].includes(lesson.level), `${lesson.title} has a bad level`);
@@ -126,8 +126,11 @@ describe("content: track", () => {
   });
 
   it("keeps the paywall inside the track", () => {
-    assert.ok(Number.isInteger(track.freeLessonCount));
-    assert.ok(track.freeLessonCount > 0 && track.freeLessonCount < authored.length);
+    const free = new Set(authored.map(({ id }) => id).filter((id) => track.freeLessons.includes(id)));
+    assert.equal(free.size, track.freeLessons.length, "every free id names an authored lesson");
+    assert.ok(track.freeLessons.length > 0 && track.freeLessons.length < authored.length, "some of it is free, some of it is sold");
+    assert.ok(Array.isArray(track.freeLessons) && track.freeLessons.length === 10, "ten of them are free");
+    assert.ok(!track.freeLessons.includes(track.promptLesson), "the one-click prompt opens a lesson that is otherwise sold");
   });
 
   it("carries the copy the funnel needs", () => {
@@ -137,7 +140,7 @@ describe("content: track", () => {
 
   it("advertises the number of tasks the track ships, not the number it launched with", () => {
     // The promise is the first sentence a search result shows, and it drifted once already: it said ten
-    // while sixteen drills shipped. Measured against the catalog every build, so it cannot drift again.
+    // while sixteen exercises shipped. Measured against the catalog every build, so it cannot drift again.
     const advertised = Number(track.promise.match(/^(\d+)/)?.[1]);
     assert.equal(advertised, authored.length, "the promise advertises a task count the track does not ship");
   });
@@ -220,7 +223,53 @@ describe("content: exercise schema", () => {
       assert.ok(docs.outcome.length <= 120 && !/[\r\n]/.test(docs.outcome),
         `${exercise.id} outcome must be a single line under 120 characters`);
       assert.ok(docs.teaches && docs.teaches.trim(), `${exercise.id} has no teaches label for the page metadata`);
+      // The schema enforces the shape; this asserts the contract where an author reads it, because the
+      // one-paragraph explanation is the format's oldest habit and the easiest one to fall back into.
+      const paragraphs = docs.explain.split(/\n[ \t]*\n/).filter((paragraph) => paragraph.trim());
+      assert.ok(paragraphs.length >= 2, `${exercise.id} explains itself in one paragraph`);
     }
+  });
+});
+
+describe("content: the explanation's shape", () => {
+  const where = "exercises/99-example.json";
+  const shape = (text, max = 1400) => () => requireExplain(text, "docs.explain", where, { max });
+
+  it("refuses a single block, however well written", () => {
+    assert.throws(shape("SUM adds the numbers in a range. It ignores text and blank cells."), /one paragraph/);
+  });
+
+  it("counts paragraphs, not newlines a hand-wrapped line left behind", () => {
+    const wrapped = "SUM adds the numbers in a range.\nIt ignores text and blank cells.";
+    assert.throws(shape(wrapped), /one paragraph/);
+    assert.ok(shape("SUM adds the numbers in a range.\n\nIt ignores text and blank cells.")());
+  });
+
+  it("refuses a paragraph past the word ceiling", () => {
+    const text = `${"word ".repeat(71)}end.\n\nA short close.`;
+    assert.throws(shape(text), /paragraph 1 is 72 words, limit is 70/);
+  });
+
+  it("refuses a paragraph past the sentence ceiling", () => {
+    assert.throws(shape("One. Two. Three. Four. Five.\n\nA short close."), /paragraph 1 is 5 sentences/);
+  });
+
+  it("refuses a fifth paragraph, and a field that has become an essay", () => {
+    assert.throws(shape("One.\n\nTwo.\n\nThree.\n\nFour.\n\nFive."), /5 paragraphs/);
+    assert.throws(shape(`${"a".repeat(1500)}\n\nshort`), /limit is 1400/);
+  });
+
+  it("does not count an error code's exclamation mark as the end of a sentence", () => {
+    // `#REF! is a formula question.` is one sentence. Counting the `!` as an ender reported a
+    // four-sentence paragraph as six and blocked a lesson that was already inside the limit.
+    const text = "The three differ in kind.\n\n#N/A is a data question. #REF! is a formula question. #VALUE! is arithmetic.\n\nA short close.";
+    assert.ok(shape(text)());
+  });
+
+  it("takes a single paragraph where the text is one note beside one formula", () => {
+    const note = (value) => () => requireExplain(value, "screens[1].docs.explain", where, { max: 700, minParagraphs: 1 });
+    assert.ok(note("The sixth argument stays -1, so the search starts at the last row.")());
+    assert.throws(note(`${"word ".repeat(71)}end.`), /paragraph 1 is 72 words/);
   });
 });
 
@@ -345,7 +394,13 @@ describe("content: reference answers", () => {
 
 describe("content: error copy", () => {
   it("writes an error hint that is not the wrong-answer hint", () => {
-    for (const { exercise } of lessons) {
+    for (const { exercise, screen } of LESSONS) {
+      // A screen graded on the keyboard never runs a formula, so it has no run-time error to explain
+      // and the schema refuses an error hint it could not report.
+      if (screen.type === "chord" || screen.type === "sequence") {
+        assert.ok(!exercise.hints.error, `${exercise.id} ships an error hint a shortcut screen cannot report`);
+        continue;
+      }
       const error = exercise.hints.error;
       assert.ok(error && error.trim(), `${exercise.id} has no hints.error`);
       assert.notEqual(error, exercise.hints.value, `${exercise.id} recycles the value hint for errors`);

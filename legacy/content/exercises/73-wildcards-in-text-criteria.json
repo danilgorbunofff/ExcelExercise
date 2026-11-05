@@ -5,15 +5,19 @@
   "title": "Wildcards in text criteria",
   "docs": {
     "syntax": "In a criterion, ? matches one character and * matches any run of them",
-    "explain": "A criterion is a piece of text that says which rows count, and criteria understand two marks that plain text does not. A question mark stands in for exactly one character; a star stands in for any number of them, including none. That turns a criterion into a pattern, and a pattern is what you want whenever the column is a code rather than a category. The region column here holds whole words, so Nor* and N* and North all select the same three rows. That is the surprising part: the wildcard is not fuzzy matching, it is a pattern with rules. The code column is where the patterns earn their keep. Every code is two letters, a hyphen and four digits, so ??-* selects the whole table while *-1* selects only the rows whose digits contain a one. COUNTIF and SUMIF both read criteria the same way, and the second screen swaps the count for a sum, so the learner writes the pattern once and reuses it. Wildcards are also the fastest way to spot rows that do not fit the pattern at all, which is why they appear on almost every cleanup sheet.",
+    "explain": "A criterion is the text that tells COUNTIF or SUMIF which rows count, and two marks inside it act as wildcards. A question mark stands for exactly one character, a star for any run of them including none. Quoted, they turn a plain criterion into a pattern.\n\nOn this sheet the region column holds whole words, so Nor* counts the three North rows and N* counts the same three. The code column is where patterns do real work. Every code is two letters, a hyphen and four digits, so ??-* matches all four, and the amounts come to 460.\n\nThe criterion always travels in quotes. Without them Excel reads Nor as a name and no count comes back. COUNTIF and SUMIF read criteria the same way, so one pattern serves both.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The criterion is not text that can be read as a pattern or a comparison."
+        "text": "The criterion cannot be read as text or as a comparison, usually because its quotes are unbalanced."
       },
       {
         "code": "#REF!",
         "text": "A range points at rows that no longer exist after a column was deleted."
+      },
+      {
+        "code": "Wrong count",
+        "text": "COUNTIF(B2:B5,\"N\") matches nothing, and 0 looks like a real answer on the page."
       }
     ],
     "atWork": "Counting or totalling the rows whose code or name fits one pattern.",
@@ -79,10 +83,10 @@
       "requireRef": "B2",
       "hints": {
         "syntax": "=COUNTIF(B2:B5,\"Nor*\"): the region column, then the pattern in quotes.",
-        "func-countif": "Counting rows that match a pattern is COUNTIF's own job.",
-        "require-ref": "The region column is B2:B5.",
-        "value": "Three of the four regions start with Nor.",
-        "error": "A criterion that cannot be read as text or a comparison gives #VALUE!."
+        "func-countif": "Counting rows that fit a pattern is COUNTIF's own job.",
+        "require-ref": "The regions are in B2:B5.",
+        "value": "Three regions start with Nor: rows 2, 4 and 5.",
+        "error": "A pattern that also catches South gives 4, and the grader expects 3."
       },
       "fixtures": {
         "accept": [
@@ -195,10 +199,10 @@
       "requireRef": "A2",
       "hints": {
         "syntax": "=SUMIF(A2:A5,\"??-*\",C2:C5): the code column, the pattern, then the amounts.",
-        "func-sumif": "A conditional total is SUMIF's job.",
-        "require-ref": "The code column is A2:A5.",
-        "value": "All four codes fit, so the four amounts add up to 460.",
-        "error": "A criterion that cannot be read as text or a comparison gives #VALUE!."
+        "func-sumif": "A total that depends on a pattern is SUMIF's job.",
+        "require-ref": "The codes are in A2:A5.",
+        "value": "All four codes are two letters, a hyphen and four digits, so all four amounts count.",
+        "error": "A pattern of *1* keeps three codes and totals 380, because BO-2299 has no 1 in it."
       },
       "fixtures": {
         "accept": [

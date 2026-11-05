@@ -11,6 +11,7 @@ import { before, test } from "node:test";
 
 import { buildSha, GET as health } from "../app/api/health/route.js";
 import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
+import { EXTRA_PAGES } from "../legacy/src/site/seo.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
 
@@ -21,9 +22,12 @@ process.env.SITE_BUILT_AT = "2026-01-02";
 let sitemap;
 let robots;
 let site;
+let extra;
 
 before(async () => {
-  sitemap = (await import("../app/sitemap.js")).default;
+  const routes = await import("../app/sitemap.js");
+  sitemap = routes.default;
+  extra = routes.EXTRA;
   robots = (await import("../app/robots.js")).default;
   site = (await import("../lib/site.js")).loadSite();
 });
@@ -31,10 +35,14 @@ before(async () => {
 test("lists the index, the hubs and every lesson, nothing else", async () => {
   const urls = sitemap().map((entry) => entry.url);
   const groups = dashboardGroups({ track: site.track, index: site.index });
-  // The same list `indexablePaths()` produces for the static build: home, four non-lesson pages, the
-  // notes and their hub, one hub per group, then every lesson.
-  const notePages = site.articles.length + (site.articles.length > 0 ? 1 : 0);
-  assert.equal(urls.length, 1 + 4 + groups.length + site.index.length + notePages);
+  // The same list `indexablePaths()` produces for the static build: home, the non-lesson pages the app
+  // publishes (`EXTRA`, counted rather than pinned so adding a page cannot quietly go unlisted — it
+  // holds the notes' hub and the problems' hub when those exist), one hub per group, then every lesson,
+  // every note and every problem page.
+  const notePages = site.articles.length;
+  const problemPages = site.formulas.length;
+  const shortcutPages = site.shortcuts.length;
+  assert.equal(urls.length, 1 + extra.length + groups.length + site.index.length + notePages + problemPages + shortcutPages);
   assert.equal(new Set(urls).size, urls.length, "a URL is listed twice");
   assert.equal(urls[0], "https://example.com/");
   for (const entry of site.index) {
@@ -50,8 +58,10 @@ test("advertises no address that only redirects", async () => {
     const { pathname } = new URL(url);
     assert.ok(
       pathname === "/" ||
-        ["/privacy", "/terms", "/about", "/excel-exercises", "/excel-functions"].includes(pathname) ||
+        extra.some((key) => EXTRA_PAGES[key].path === pathname) ||
         pathname.startsWith("/excel-functions/") ||
+        pathname.startsWith("/formulas/") ||
+        pathname.startsWith("/shortcuts/") ||
         pathname.startsWith("/learn/groups/") ||
         pathname.startsWith("/learn/excel/"),
       `${url} is not a route the app serves`,

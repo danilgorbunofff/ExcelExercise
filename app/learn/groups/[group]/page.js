@@ -4,6 +4,7 @@ import { dashboardGroups, prepareDashboardPage } from "../../../../legacy/src/si
 import { renderChrome } from "../../../../legacy/src/site/shell.mjs";
 
 import { loadSite } from "../../../../lib/site.js";
+import { socialImage, socialTwitter } from "../../../../lib/social.js";
 
 const { config, track, index, icons, dashboardAvailable } = loadSite();
 const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
@@ -28,8 +29,9 @@ export async function generateMetadata({ params }) {
       title: page.title,
       description: page.description,
       url: page.path,
+      images: [socialImage({ path: page.path, title: page.title })],
     },
-    twitter: { card: "summary" },
+    twitter: socialTwitter({ path: page.path, title: page.title }),
   };
 }
 
@@ -45,7 +47,7 @@ export default async function Group({ params }) {
     clientAvailable: dashboardAvailable,
     group,
   });
-  const { skip, header, footer } = renderChrome({ config, page });
+  const { skip, header, footer } = renderChrome({ config, page, appPagesAvailable: true, icons });
 
   return (
     <>

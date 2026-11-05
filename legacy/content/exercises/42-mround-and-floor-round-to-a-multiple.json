@@ -45,11 +45,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "MROUND takes the number and the multiple: =MROUND(B2,5).",
-        "func-mround": "Rounding to the nearest five is not rounding to a number of decimals: name the multiple instead.",
-        "require-ref": "Read the count from B2 rather than typing 47 into the formula.",
-        "value": "47 is two away from 45 and three away from 50, so the nearest five is 45.",
-        "error": "Dividing by zero anywhere in the formula leaves #DIV/0! instead of a rounded count."
+        "syntax": "=MROUND(B2,5): the number first, the multiple second.",
+        "func-mround": "The target here is a multiple of five, so name the five in the second argument.",
+        "require-ref": "Read the count from B2, so the second pallet gets its own answer in C3.",
+        "value": "47 sits two units above 45 and three below 50, so 45 is nearer.",
+        "error": "The grader flags FLOOR in this mode: it reaches 45 by always going down, so it only agrees while the count is nearer the lower multiple."
       },
       "fixtures": {
         "accept": [
@@ -137,11 +137,11 @@
       "requireRef": "B2",
       "rules": [],
       "hints": {
-        "syntax": "FLOOR takes the number and the pack size: =FLOOR(B2,C2).",
-        "func-floor": "You need the number of units that a whole number of packs covers, so round down to the pack size.",
-        "require-ref": "Read units and pack size from B2 and C2, so the second order follows the same rule.",
-        "value": "Seven packs of six is 42, and the five units left over do not form a pack.",
-        "error": "Dividing by zero replaces the shipment with #DIV/0!."
+        "syntax": "=FLOOR(B2,C2): the number first, then the pack size to fill.",
+        "func-floor": "Only whole packs ship, so drop the part pack instead of rounding to the nearest one.",
+        "require-ref": "Read units and pack size from B2 and C2, so the second order is calculated the same way.",
+        "value": "47 units fill seven packs of six, which is 42, and 5 units are left over.",
+        "error": "A figure above 47 means CEILING or MROUND: the shipment cannot exceed the units ordered."
       },
       "fixtures": {
         "accept": [
@@ -194,23 +194,23 @@
   ],
   "docs": {
     "syntax": "=MROUND(number, multiple) and =FLOOR(number, significance)",
-    "explain": "ROUND answers a question about decimals: how many places do you keep. MROUND and FLOOR answer a different question, which is what multiple this number belongs to. Their second argument is that multiple, not a count of places. MROUND takes the nearest one in either direction, FLOOR always goes down and CEILING always goes up. This is the arithmetic of packaging: cartons of six, pallets of forty-eight, price steps of five pence. The unit you round to is a real decision, and it lives in the formula rather than in a format. The number that leaves the sheet is already a whole number of packs. Two traps are worth naming. MROUND ties go away from zero, so 2.5 rounds to 3, and a negative number with a positive multiple is #NUM! because the signs have to agree. A significance of zero makes both functions divide by zero, so `=FLOOR(47,0)` is `#DIV/0!` rather than 47, because rounding to a multiple of nothing has no meaning. When the pack size lives in a cell, use it. Hard-coding six in twelve formulas means twelve edits when the supplier changes.",
+    "explain": "MROUND takes a number and the multiple to land on, so =MROUND(B2,5) asks which multiple of five is nearest to 47. The answer is 45, because 45 is two away and 50 is three away. FLOOR takes the same second argument and always moves down.\n\nThe second screen packs in sixes and ships only full packs. =FLOOR(B2,C2) returns 42, which is seven packs, and the five units left over do not fill another. MROUND in that column would return 48 and bill for a pack that was never filled.\n\nKeep the pack size in a cell, not in the formula. A supplier moving from sixes to eights changes one value, where a typed 6 has to be found in every row. MROUND also needs the number and the multiple to share a sign, or it returns #NUM!.",
     "errors": [
       {
         "code": "#DIV/0!",
-        "text": "The multiple was zero, so there is no grid of multiples to round onto."
+        "text": "The multiple is zero, so there is no grid of multiples to land on."
       },
       {
         "code": "#NUM!",
-        "text": "The two arguments have different signs, so FLOOR cannot decide which multiple to land on."
+        "text": "The number and the multiple have different signs, so MROUND cannot choose a multiple between them."
       },
       {
-        "code": "#VALUE!",
-        "text": "A multiple arrived as text, so the rounding grid cannot be built."
+        "code": "Wrong direction",
+        "text": "MROUND where FLOOR is needed returns 48 and promises a pack nobody filled."
       }
     ],
-    "atWork": "A warehouse that ships only whole packs, and a price list quoted in five-pence steps, both computed by formula so the rounding rule is visible and auditable.",
-    "outcome": "Round to a multiple of something real, such as a pack, a pallet or a price step, rather than to decimals.",
+    "atWork": "A warehouse that ships whole packs, and a price list quoted in five-pence steps, where the multiple is part of the calculation.",
+    "outcome": "Round to a pack size or a price step instead of to a number of decimals.",
     "teaches": "MROUND, FLOOR and CEILING",
     "dataset": "Pallet counts and order lines packed in sixes",
     "reference": "=MROUND(B2,5)"

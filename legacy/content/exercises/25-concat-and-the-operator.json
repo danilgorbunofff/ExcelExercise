@@ -45,11 +45,11 @@
       "requireRef": "A2",
       "rules": [],
       "hints": {
-        "syntax": "CONCAT takes the pieces one after another: =CONCAT(A2,\" \",B2).",
-        "func-concat": "CONCAT glues its arguments together in order, and the space between the names has to be one of the arguments.",
-        "require-ref": "Use the names in A2 and B2 rather than typing Ada and Lovelace, so the formula follows the row.",
-        "value": "That is not a first name, a space and a last name in that order. Check which cell comes first.",
-        "error": "Concatenated text divided by zero returns #VALUE!, because text cannot be a number."
+        "syntax": "=CONCAT(A2,\" \",B2): the pieces in order, with the space as one of them.",
+        "func-concat": "CONCAT glues its arguments together in order. The space has to be passed in as an argument of its own.",
+        "require-ref": "Point at A2 and B2. Typing Ada and Lovelace gives an answer that ignores the next row.",
+        "value": "That is not first name, space, last name in that order. Check which cell comes first.",
+        "error": "Text divided by zero returns #VALUE!, and the grader rejects that formula. CONCAT takes text only, so leave the arithmetic out."
       },
       "fixtures": {
         "accept": [
@@ -69,7 +69,7 @@
           {
             "formula": "=A2&\" \"&B2",
             "rule": "func-concat",
-            "why": "the & operator does join text the same way, but this drill names CONCAT, and the graded answer uses it"
+            "why": "the & operator does join text the same way, but this exercise names CONCAT, and the graded answer uses it"
           },
           {
             "formula": "=CONCAT(A2:B2)",
@@ -79,7 +79,7 @@
           {
             "formula": "=CONCATENATE(A2,\" \",B2)",
             "rule": "func-concat",
-            "why": "CONCATENATE is the older function with the same job; the drill asks for the current name"
+            "why": "CONCATENATE is the older function with the same job; the exercise asks for the current name"
           },
           {
             "formula": "=CONCAT(B2,\" \",A2)",
@@ -102,19 +102,23 @@
   ],
   "docs": {
     "syntax": "=CONCAT(text1, [text2], ...) and =text1 & text2",
-    "explain": "The full name is three pieces in order: Ada, a space, and Lovelace. CONCAT takes them as arguments and glues them together, so =CONCAT(A2,\" \",B2) answers Ada Lovelace. The space is the piece people forget, because CONCAT(A2,B2) answers AdaLovelace, which looks like a name and is not one. The & operator does the same join and is shorter to type, so =A2&\" \"&B2 answers the same text. This drill is graded on CONCAT because that is the function it names. Either way the pieces come from cells, so changing the row changes the answer without touching the formula.",
+    "explain": "CONCAT joins its arguments into one string, in the order you list them. The call =CONCAT(A2,\" \",B2) returns Ada Lovelace: the first name, a typed space, then the last name. The space is an argument of its own, so =CONCAT(A2,B2) returns AdaLovelace.\n\nThis sheet asks for the name in B4, built from A2 and B2. The space is the piece that goes missing, and AdaLovelace reads like a name at a glance. The grader compares the text, so a dropped character fails the answer with no other warning.\n\nThe & operator joins the same way and is shorter to type: A2&\" \"&B2 answers the same text. This exercise grades CONCAT because that is the function it names. Either version reads from cells, so a corrected row changes the answer without an edit.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The joined text was used where a number was expected, as when it is divided by a number."
+        "text": "The joined text was used in arithmetic, as when the whole call is divided by zero."
       },
       {
         "code": "#NAME?",
-        "text": "The function name was typed wrongly, as when CONCAT is spelled CONCATE."
+        "text": "CONCAT is typed as CONCATE, and the sheet has no function by that name."
+      },
+      {
+        "code": "No space",
+        "text": "The call =CONCAT(A2,B2) passes no separator, so the two names come out as AdaLovelace and the grader rejects it."
       }
     ],
-    "atWork": "Building a display name from two fields that a system stores separately, so the export reads as a name rather than as two columns.",
-    "outcome": "Glue cell values together and keep the spaces in the right places.",
+    "atWork": "A mailing list where first and last names arrive in separate columns and the export needs one name field.",
+    "outcome": "Join two cells into one string, with the space passed in as its own piece.",
     "teaches": "CONCAT and &",
     "dataset": "Two names in two columns",
     "reference": "=CONCAT(A2,\" \",B2)"

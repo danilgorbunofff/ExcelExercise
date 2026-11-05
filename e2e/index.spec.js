@@ -1,5 +1,5 @@
 /**
- * The index is the page a crawler and a first-time reader both land on: every drill in the corpus must
+ * The index is the page a crawler and a first-time reader both land on: every exercise in the corpus must
  * be in the server-rendered HTML, linked to routes that answer 200.
  */
 import { expect, test } from "@playwright/test";
@@ -9,7 +9,7 @@ import { loadSite } from "../lib/site.js";
 
 const SLUGS = loadSite().index.map(({ slug }) => slug);
 
-test("the index lists every drill, each one reachable", async ({ page, request }) => {
+test("the index lists every exercise, each one reachable", async ({ page, request }) => {
   await page.goto("/");
 
   const links = page.locator(".lesson-row a.lesson-link");
@@ -31,7 +31,7 @@ test("the levels are disclosures, so 88 links are not 88 rows", async ({ page })
   await expect(levels).toHaveCount(3);
   await expect(page.locator(".curriculum details.level[open]")).toHaveCount(1);
 
-  // A closed level still carries its drills — that is why the page can be short and still complete.
+  // A closed level still carries its exercises — that is why the page can be short and still complete.
   const closed = levels.nth(1);
   const rows = closed.locator(".lesson-row a.lesson-link");
   await expect(rows.first()).toHaveCount(1);
@@ -58,7 +58,7 @@ test("the progress rail appears once there is progress to report", async ({ page
 
   await expect(page.locator("#track-progress")).toBeVisible();
   await expect(page.locator("#track-progress-note")).toHaveText(
-    `1 of ${SLUGS.length} drills complete in this browser.`,
+    `1 of ${SLUGS.length} exercises complete in this browser.`,
   );
 
   const width = await page

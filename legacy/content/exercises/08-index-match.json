@@ -92,14 +92,14 @@
         }
       ],
       "hints": {
-        "syntax": "=INDEX(C2:C6,MATCH(D3,A2:A6,0)): MATCH finds the row number, INDEX reads that row.",
-        "func-index": "INDEX is the half that returns the value; it needs the column of salaries and a row number.",
-        "func-match": "MATCH supplies the row number. It needs the column of IDs and the 0 for an exact match, or the row will be approximate.",
-        "no-vlookup": "This lesson is about the alternative. VLOOKUP cannot look to the left, which is exactly why INDEX + MATCH exists.",
-        "match-exact": "The third argument of MATCH must be 0. Anything else is an approximate match, which assumes sorted data.",
-        "require-ref": "Point the formula at the ID cell and at the table, so it still works when payroll adds a row.",
-        "value": "Check which column INDEX is reading and which one MATCH is searching. They have to be the same rows.",
-        "error": "#N/A is the honest error here: MATCH did not find the ID in A2:A6. #REF! means the row number fell outside C2:C6, and #VALUE! usually means MATCH was given a range where a single cell belongs."
+        "syntax": "=INDEX(C2:C6,MATCH(D3,A2:A6,0)): the inner call produces the 3, the outer reads C4.",
+        "func-index": "INDEX needs the salaries in C2:C6 and a row number. On its own it has no way to know which row you want.",
+        "func-match": "MATCH searches A2:A6 for the ID in D3 and hands INDEX the position, which is 3.",
+        "no-vlookup": "VLOOKUP counts columns forward from the key, so it cannot reach a column to the left. That limit is what this exercise is about.",
+        "match-exact": "The third argument must be 0. Without it MATCH assumes a sorted list and never reports #N/A when an ID is missing.",
+        "require-ref": "Point at D3 for the ID and at the table for both ranges, so the formula still works when payroll adds a row.",
+        "value": "88000 is Cy's salary, on row 4 of the sheet and third in C2:C6. Check which column INDEX reads and which one MATCH searches.",
+        "error": "The cell stops with #N/A because MATCH found no E-103 in A2:A6. The grader calls that an Excel error, and a stray space in the ID is the usual cause."
       },
       "fixtures": {
         "accept": [
@@ -167,23 +167,23 @@
   ],
   "docs": {
     "syntax": "=INDEX(return_column, MATCH(lookup_value, search_column, 0))",
-    "explain": "MATCH answers which row a value sits on. Searching E-103 in A2:A6 returns 3, because it is the third row of that range. INDEX answers what is on row 3 of a column: reading C2:C6 at position 3 returns 88000. Nested, they give =INDEX(C2:C6,MATCH(D3,A2:A6,0)) and the answer 88000. The 0 in MATCH is the exact-match flag, and leaving it out is never safe. Without it MATCH assumes sorted data, so an ID that is missing returns the row before it instead of #N/A. Each half can point at any column, which is why the return column no longer has to sit to the right of the search column.",
+    "explain": "MATCH counts where a value sits inside the range you give it. E-103 sits in D3, and A2:A6 starts at E-101, so the ID lands on 3: the third cell down, which is sheet row 4. Ask MATCH on its own and 3 is all you get.\n\nINDEX turns that count into the contents of a cell. Give it C2:C6 and the number 3, and it reads C4, where Cy's salary of 88000 sits. The answer goes in E3. The two calls are separate, so you can test the 3 before wrapping INDEX around it.\n\nThe zero in MATCH decides how it searches. Without it MATCH assumes a sorted list, so a missing ID can return a neighbouring row and the salary of the wrong person. With the zero it returns #N/A. Because each range is chosen separately, the salary column can sit left of the ID, which VLOOKUP cannot manage.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "MATCH could not find the value in the search range, usually a stray space or a number-versus-text mismatch."
+        "text": "MATCH found no exact E-103 in A2:A6, usually because the ID carries a trailing space or is stored as text."
       },
       {
         "code": "#REF!",
-        "text": "The row number from MATCH is larger than the range given to INDEX, which happens when the two ranges have different heights."
+        "text": "The row number from MATCH sits past the end of C2:C6, which happens when the two ranges cover different numbers of rows."
       },
       {
         "code": "#VALUE!",
-        "text": "INDEX was given a range and no row number, or MATCH was called with only two arguments."
+        "text": "INDEX was handed no row number, or MATCH was given the whole table where a single column belongs."
       }
     ],
-    "atWork": "The upgrade to VLOOKUP that every analyst eventually makes: it survives a column being inserted, it reads leftwards, and the two halves are separate formulas you can test one at a time.",
-    "outcome": "Look up a value without being trapped by column order.",
+    "atWork": "Payroll and staff directories, where the column you need is chosen after the column you search.",
+    "outcome": "Return a value from any column, whichever side of the key it sits on.",
     "teaches": "INDEX and MATCH",
     "dataset": "Employee directory",
     "reference": "=INDEX(C2:C6,MATCH(D3,A2:A6,0))"

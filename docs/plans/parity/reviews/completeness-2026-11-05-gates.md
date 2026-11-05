@@ -13,17 +13,17 @@ records only what the gates did on this machine, at this commit.
 
 | Gate | What it proves | Result | Time |
 | --- | --- | --- | --- |
-| unit | the unit suite, with line coverage so a witness can be proved to have run | pass | 10s |
+| unit | the unit suite, with line coverage so a witness can be proved to have run | pass | 8s |
 | content | the content factory gate and the legal copy | pass | 0s |
-| build | both builds, as production on the shipped origin | pass | 6s |
+| build | both builds, as production on the shipped origin | pass | 5s |
 | budget | the byte budget | pass | 0s |
-| routes | routes match the templates | pass | 1s |
+| routes | routes match the templates | pass | 0s |
 | origin | no canonical on the fallback origin | pass | 0s |
 | secrets | no secret in either build | pass | 0s |
 | static | the static site crawls clean | pass | 0s |
-| browser | the browser suite | pass | 57s |
-| db | the database suite (the layer no other gate reaches) | skipped | -s |
-| accounts | the accounts browser suite | skipped | -s |
+| browser | the browser suite | pass | 56s |
+| db | the database suite (the layer no other gate reaches) | pass | 46s |
+| accounts | the accounts browser suite | pass | 36s |
 
 ## The db gate's own list
 
@@ -53,7 +53,7 @@ Every spec in the directory is one the gate runs.
 | p0-180 | Obsolete | 120 prerendered / 144 HTML; `tests/build.test.js:57` | not required |
 | p0-181 | Proven | `tests/golden.test.js:30` (M1) | yes: 1 test witness ran |
 | p0-182 | Proven | `gate:e2e` — 160 passed locally; the `e2e` CI job runs the same suite | yes: 1 gate ran |
-| p0-183 | Proven | `tests/smoke.test.js:388` (a real `legacy/dist` served, lessons and assets graded); `tests/metadata-routes.test.js:102` (M8) for the SHA | yes: 2 test witnesses ran |
+| p0-183 | Proven | `tests/smoke.test.js:402` (a real `legacy/dist` served, lessons and assets graded); `tests/metadata-routes.test.js:102` (M8) for the SHA | yes: 2 test witnesses ran |
 | p0-184 | Proven | `tests/build.test.js:57`; `legacy/dist` = 120 HTML | yes: 1 test witness ran |
 | p0-185 | Proven | `tests/metadata-routes.test.js:41,58` (M9) | yes: 2 test witnesses ran |
 | p0-187 | Built, unproven | no document in `docs/` carries a per-route budget table; only prose in plans | not required |
@@ -218,7 +218,7 @@ Every spec in the directory is one the gate runs.
 | p10-139 | Built, unproven | `tests/metadata-routes.test.js:41` proves the equality; Search Console submission is unrecorded | not required |
 | p10-140 | Built, unproven | `artifact:docs/ops/backup.md` — the dump/reload rehearsal with per-table counts | not required |
 | p10-142 | Absent | no monitoring client in any dependency, and no vendor is added at launch (§5.1) | not required |
-| p10-143 | Built, unproven | `tests/smoke.test.js:388` serves a real `legacy/dist` and the smoke passes; `artifact:docs/ops/rollback.md` | not required |
+| p10-143 | Built, unproven | `tests/smoke.test.js:402` serves a real `legacy/dist` and the smoke passes; `artifact:docs/ops/rollback.md` | not required |
 | p10-144 | Built, unproven | `artifact:docs/ops/launch-checklist.md` | not required |
 
 ## Defects

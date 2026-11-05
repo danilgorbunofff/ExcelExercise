@@ -12,9 +12,26 @@ import { useEffect } from "react";
  */
 export default function Error({ error, reset }) {
   useEffect(() => {
-    // Next already reports the error in development; in production this is the only record until
-    // logging lands (phase 9). The digest is the value a deploy log can be searched by.
+    // Two records, on purpose. The console line is what a developer sees in the browser; the POST is
+    // what survives it — `app/api/report-error` turns these fields into the same sanitized record the
+    // server writes, and forwards it if a sink is configured. `keepalive` because the reader may hit
+    // "Try again" or navigate before the request leaves. A failed report is swallowed: a boundary that
+    // has to handle a failed report is a second bug.
     console.error("render error", error.digest ?? "", error);
+    try {
+      fetch("/api/report-error", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          message: typeof error.message === "string" ? error.message.slice(0, 200) : "",
+          digest: typeof error.digest === "string" ? error.digest : undefined,
+          path: window.location.pathname,
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {
+      // Nothing to do: the console line above is already the fallback.
+    }
   }, [error]);
 
   return (

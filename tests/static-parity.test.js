@@ -149,6 +149,23 @@ describe("a built static edition", () => {
   });
 });
 
+describe("the host settings both deployments read", () => {
+  const config = JSON.parse(readFileSync(join(ROOT, "vercel.json"), "utf8"));
+
+  it("serves an extension-less path from its .html file", () => {
+    assert.equal(config.cleanUrls, true, "deploy.md requires /excel/<slug> to answer, not /excel/<slug>.html");
+  });
+
+  it("leaves the build shapes to the two projects, not to a shared file", () => {
+    // One vercel.json is read by *both* Vercel projects: the app on Node and the static mirror. A
+    // build command or output directory here would silently apply to the wrong project — the app
+    // would publish legacy/dist, or the mirror would try to build the Next app.
+    for (const key of ["buildCommand", "outputDirectory", "framework", "devCommand", "installCommand"]) {
+      assert.equal(key in config, false, `vercel.json must not set ${key}: it is shared by both projects`);
+    }
+  });
+});
+
 describe("the notes stay reachable from the static front door", () => {
   it("lists the hub in the chrome when the notes ship", () => {
     assert.ok(renderSiteMenu({ config: siteConfig(ENV) }).includes('href="/excel-functions"'));

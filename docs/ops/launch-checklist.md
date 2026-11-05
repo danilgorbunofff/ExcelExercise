@@ -3,7 +3,8 @@
 The review at `docs/plans/parity/reviews/completeness-2026-10-31.md` establishes what is proven; this
 page is what a person does with that, in order, on the day. Nothing here replaces a gate — every line
 is either a *human judgement* no test can make, an *external service* that only a person can query,
-or a *decision* that must be recorded.
+or a *decision* that must be recorded. `go-live-plan.md` is the sequencing that gets a repository to
+this page, and `launch-log.md` is the record of what actually happened.
 
 Scope, as ruled by the owner: phases 0–7, 9A and 10 ship; the SQL track (phase 8) and the
 organizational surface (9B: referrals, cohorts, institution seats) are **not** in this launch, and
@@ -16,9 +17,13 @@ their phase docs are stamped out of scope rather than left as promises.
 - [ ] `npx playwright test` green — all projects, both builds.
 - [ ] `npm run db:check` green against a freshly reset database. CI's `db` job runs it — that job was
       added by this review, because before it no gate ran the database suite at all. If the workflow
-      is ever edited, this job is the one thing not to drop.
+      is ever edited, this job is the one thing not to drop. Locally it needs a Docker VM with room
+      for the whole stack: three Supabase services beside another project's stack in a 2 GB VM
+      overflows, and the container dies at exit 137 mid-reset (then `docker ps` hangs). Give Docker
+      4 GB or more — `colima start --memory 6` was enough on 2026-11-05, and the gate then read 232
+      tests, 0 failures — or run it in CI and say so here.
 - [ ] `npm run e2e:accounts` green (`PW_ACCOUNTS=1`), against a candidate build that has the real
-      Supabase env.
+      Supabase env. 30 scenarios pass locally against the local stack.
 - [ ] `npm run review` green, locally, on the release commit: it re-derives the ledger, re-runs the
       gates itself, and fails when a Proven row has lost its witness or a sitemap URL or internal link
       404s in either build. It is a pre-release line rather than a CI job because it *is* the gate
@@ -76,8 +81,15 @@ That is what the stamps are for.
 ## After the deploy
 
 - [ ] `npm run smoke -- https://<app origin> --sha <release sha>` — every check green, SHA matches.
+      Pass the **full** sha (`git rev-parse HEAD`), not `--short`: a host that bakes the 40-character
+      `VERCEL_GIT_COMMIT_SHA` fails an equality check against seven characters, and the smoke now says
+      so instead of blaming a stale build.
 - [ ] `npm run smoke -- https://<static origin> --sha <release sha>` — green; the SHA check skips with
       its reason printed, because the static edition has no `/api/health`.
 - [ ] An exercise is played by a person on production, signed out, and then a certificate is printed.
 - [ ] The launch log records the release SHA, both origins, the smoke outputs, and anything rolled
       back.
+- [ ] A monitor is live on `/api/health` (asserting the SHA, not just 200), `/`, one lesson, `/pricing`
+      and the static origin, alerting to an address a person reads. The error wire is code that already
+      exists (`instrumentation.js`, `app/api/report-error`); setting `ERROR_SINK_URL` turns it on.
+      Untested, it is the same as none — see Step 7d of `go-live-plan.md`.

@@ -45,7 +45,7 @@ These are named, not ticked, until a person does them and records the date besid
 
 | # | Check | How | Why a machine cannot |
 |---|---|---|---|
-| H1 | **Safari on macOS** — an exercise is playable, Tab reaches the answer field, the certificate prints | Open the candidate on real Safari | Playwright's WebKit is not Safari, and CI is Linux |
+| H1 | **Safari on macOS** — an exercise is playable, Tab reaches the answer field, the certificate prints | Open the candidate on real Safari | All three behaviours now run on WebKit in the `webkit` project (`drill`, `keyboard`, `certificate`), so what is left is the Safari app itself. CI is Linux, so the print half still needs a Mac |
 | H2 | **Edge on Windows** — same three behaviours | Open the candidate on real Edge | Same; the engine matrix covers Chromium, not the OS |
 | H3 | **Rich Results** — schema.org for three notes validates (`p7-73`) | Google's Rich Results test on three live note URLs | Needs the public URL and Google's validator |
 | H4 | **LinkedIn add-licence** — the button prefills institution, title and issue date (`p6-94`) | Sign in to LinkedIn, press the button on a real certificate | LinkedIn's UI is not automatable |

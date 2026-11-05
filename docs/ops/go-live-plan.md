@@ -54,13 +54,16 @@ verified by a command in this repository.
 | `launch-log.md` (Step 2) | **Scaffolded.** The frames exist; they get filled at launch. |
 | The static host's clean-URL config (Step 3b) | **Done.** `vercel.json` sets `cleanUrls` and deliberately nothing else — the file is shared by both projects, so a build command there would apply to the wrong one. `tests/static-parity.test.js` guards that, and `deploy.md` now carries the per-project settings table. |
 | The error and uptime sink (Step 7d) | **Code done and proved.** `instrumentation.js` (`onRequestError`), `lib/report-error.js` and `app/api/report-error` turn a server or browser failure into one sanitized record, forwarded to `ERROR_SINK_URL` if set. Proved end to end against a live server and a real listener: 204 to the boundary, record at the sink with the query string stripped. What remains is a monitor and a destination — dashboards, not code. |
-| Tests after this work | **2,096 unit tests pass** in 315 suites (was 2,078), including 15 new ones for the error record, the wire and the route. |
+| Tests after this work | **2,099 unit tests pass** in 316 suites (was 2,078), including 15 for the error record, the wire and the route, and 3 pinning the engine matrix that H1 leans on. |
 | README §Known limits and the command table | **Corrected** to the measured numbers. |
 | The local `db` and `accounts` gates (Step 1) | **Green locally, and the full gate is green.** After restarting colima at 6 GiB: `db` 232 tests / 0 failures across 13 specs, `accounts` 30 e2e passed, and `npm run review` with **no skips** — all nine gates, zero `skipped` rows in the annex. The 2 GiB wedge was a machine limit, not a repository one. |
+| Step 3d, the canonical topology | **Decided.** Both editions stay self-canonical; no code change. Reasoning written into 3d, including the duplicate-content cost this does not solve by construction and where it gets read. |
+| The release commit (Step 2) | **Cut as `d5d353e`** on `phase-0-port-shell`, 19 files, clean tree. CI has **not** run on it — that needs a push, which is the owner's call. |
+| H1's automatable half | **Closed on WebKit.** `e2e/certificate.spec.js` now runs in the `webkit` project alongside `drill` and `keyboard`, so all three behaviours H1 names — playable exercise, Tab to the answer field, certificate prints — execute on the engine. 23 passed. The residual is the Safari app and the OS print stack. |
 | Everything needing an account, a dashboard or a second person | **Open.** Steps 3–11 below. |
 
-One consequence to carry into Step 2: the tree now differs from `962b498`, so that commit is no
-longer the release candidate. Whatever is committed next has to run CI before Steps 3–10 lean on it.
+One consequence to carry into Step 2: `d5d353e` is the release candidate, and until CI has run on that
+exact SHA, Steps 3–10 cannot cite a green commit. The check is a push and a wait, not a fix.
 
 ## Why this order
 
@@ -190,17 +193,26 @@ file exports `runtime`, so the 859 kB its trace carries is harmless rather than 
 unverified. It is discharged cheaply at Step 3's preview and again at Step 10: a lesson page that
 renders with its exercise payload proves it. No configuration is planned for it.
 
-### 3d — One decision to record: canonical topology
+### 3d — Canonical topology (decided: each build stays self-canonical)
 
 Both editions emit canonicals from their own `SITE_URL`. Two origins therefore means two URL sets —
 `static…/excel/<slug>` and `www…/learn/excel/<slug>` — and the app 301s `/excel/<slug>` to
 `/learn/excel/<slug>`.
 
-- **Default (recommended, no code change):** each build's `SITE_URL` is its own origin; both editions
-  are self-canonical. This matches deploy.md and the two-origin smoke. Duplicate-content risk between
-  the mirror and the app is read in Search Console (H5) after launch.
-- **Alternative (a code change, out of scope):** point the app's lesson canonicals at the static
-  edition. Not at launch.
+**Decided:** each build's `SITE_URL` is its own origin; both editions are self-canonical. No code
+change.
+
+The reasoning, because the alternative looks tidier than it is. Pointing the app's lesson canonicals at
+the static edition would tell a search engine that the authoritative copy of a lesson is the frozen
+mirror — the copy that cannot accept a drill answer, hold progress, issue a certificate or take a
+purchase. That inverts authority toward the surface with less of the product behind it, and it would
+have to be undone the first time the mirror ages past the app. The mirror is a distinct deliverable
+(a printable, commit-pinned edition), so it is defensible for it to canonicalise to itself.
+
+The cost is duplicate-content risk between the two, which is the one thing this decision does not
+answer by construction. It is read in Search Console after launch (H5) and revisited with coverage
+numbers rather than opinion. If it ever needs the other topology, note that `SITE_URL` is baked at
+build time, so switching costs a rebuild of both editions — cheap, but not free.
 
 **Who.** Dashboard (Vercel projects, domains, env) + Human (registrar, DNS) + Code (`vercel.json`).
 

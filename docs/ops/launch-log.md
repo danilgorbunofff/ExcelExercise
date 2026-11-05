@@ -12,7 +12,7 @@ the next person reads it as evidence.
 
 | Field | Value |
 |---|---|
-| Release commit (full sha) | `962b498` — merge of PR #2, *fill in the full sha at deploy time* |
+| Release commit (full sha) | `d5d353e` — cut 2026-11-05 on `phase-0-port-shell`, 19 files. CI pending on this sha. |
 | Tag | none yet |
 | App origin | *not assigned* |
 | Static origin | *not assigned* |
@@ -36,6 +36,17 @@ the next person reads it as evidence.
 
 Every row needs a date and a name. The four marked *(second person)* need someone other than the
 person who wrote the code — a check by its author is a self-review.
+
+What a machine has already proved, so the person signing knows what is actually left to them:
+
+- **H1** — the three behaviours named there now run on WebKit in CI (`drill`, `keyboard` and
+  `certificate` specs; 23 passed). What remains is the Safari app and this Mac's print stack, not the
+  code.
+- **H6** — `keyboard.spec.js` passes the whole first lesson with no mouse on Chromium, Firefox and
+  WebKit. What remains is a physical keyboard and a person who does not reach for the trackpad.
+- **H7** — A4 and Letter are both measured against a sixty-character unbroken name, and `page.pdf()`
+  is asserted to be a real, non-empty PDF with the verification URL on it. What remains is the OS
+  print dialogue.
 
 | # | Check | Date | Who |
 |---|---|---|---|

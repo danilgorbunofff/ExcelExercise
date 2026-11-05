@@ -146,7 +146,7 @@ describe("verify", () => {
   it("catches an index whose heading drifted", () => {
     const copy = copyOf(dist);
     try {
-      mutate(copy, "index.html", (html) => html.replace("<h1>Excel formula drills</h1>", "<h1>Drills</h1>"));
+      mutate(copy, "index.html", (html) => html.replace("<h1>Excel formula exercises</h1>", "<h1>Exercises</h1>"));
       const failures = verify({ dist: copy, env: ENV }).failures;
       assert.equal(failures.length, 1);
       assert.match(failures[0], /index\.html heading/);

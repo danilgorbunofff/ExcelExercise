@@ -20,8 +20,11 @@ import {
   lessonFields,
   lintCopy,
   loadRules,
+  markdownProse,
+  projectFields,
   readingEase,
   shingles,
+  splitParagraphs,
   splitSentences,
 } from "../packages/content-lint/copy.js";
 
@@ -46,6 +49,11 @@ describe("the rule file", () => {
     assert.ok(rules.sentence.maxWords <= 32, "a 40-word cap is not a cap");
     assert.ok(rules.flesch.min > 40 && rules.flesch.max < 95);
     assert.ok(rules.shingle.size >= 4 && rules.shingle.maxOverlap <= 0.5);
+    // The paragraph rules are the ones that keep the page from turning back into one block.
+    assert.ok(rules.paragraph.maxWords <= 80, "a 130-word paragraph is the wall this rule exists to prevent");
+    assert.ok(rules.paragraph.maxSentences <= 5);
+    assert.ok(rules.paragraph.minExplain >= 2 && rules.paragraph.maxExplain <= 4);
+    assert.ok(rules.paragraph.why && rules.paragraph.why.length > 5);
   });
 });
 
@@ -85,6 +93,14 @@ describe("typography", () => {
     ]);
   });
 
+  it("reads a copyright line as a legal mark, not decoration", () => {
+    assert.deepEqual(findTypography("\u00A9 2026 Excel Supreme"), []);
+    assert.deepEqual(findTypography("All rights reserved \u00AE"), []);
+    assert.deepEqual(findTypography("Excel Supreme\u2122"), []);
+    // The carve-out is the three marks, not the rule: a real pictograph still trips it.
+    assert.deepEqual(findTypography("\u00A9 2026 \u{1F600}").map((hit) => hit.name), ["emoji"]);
+  });
+
   it("leaves a plain sentence alone", () => {
     assert.deepEqual(findTypography("The total, 3580, is right: 'finally'."), []);
   });
@@ -120,7 +136,7 @@ describe("checkText", () => {
 
   it("passes a clean lesson paragraph", () => {
     const { findings } = checkText(
-      "SUM adds every number in the range. In this drill the Q1 column holds 1200, 1450 and 930. The total is 3580.",
+      "SUM adds every number in the range. In this exercise the Q1 column holds 1200, 1450 and 930. The total is 3580.",
       { field: "docs.explain", where, prose: true, rules },
     );
     assert.deepEqual(findings, []);
@@ -133,6 +149,45 @@ describe("checkText", () => {
     assert.equal(long.length, 1);
     assert.equal(long[0].field, "docs.explain");
     assert.equal(long[0].where, where);
+  });
+
+  it("splits an explanation on blank lines, and collapses a hand-wrapped line", () => {
+    assert.deepEqual(splitParagraphs("One idea.\n\nSecond idea.\nStill second."), ["One idea.", "Second idea. Still second."]);
+  });
+
+  it("counts a paragraph, not the field, when an explanation is too long", () => {
+    const long = `${"word ".repeat(80)}end.`;
+    const { findings } = checkText(`Short first paragraph.\n\n${long}`, {
+      field: "docs.explain",
+      where,
+      prose: true,
+      rules,
+    });
+    const paragraphs = findings.filter((finding) => finding.rule === "long-paragraph");
+    assert.equal(paragraphs.length, 1);
+    assert.match(paragraphs[0].message, /paragraph 2 is 81 words/);
+  });
+
+  it("leaves a short paragraph of four sentences alone", () => {
+    const text = "SUM adds numbers. It ignores text. It returns 0 for an empty range. That is all.";
+    const { findings } = checkText(text, { field: "paragraph", where, prose: true, rules });
+    assert.deepEqual(findings.filter((finding) => finding.rule === "long-paragraph"), []);
+  });
+
+  it("reports a fifth sentence inside one paragraph", () => {
+    const text = "One. Two. Three. Four. Five.";
+    const { findings } = checkText(text, { field: "paragraph", where, prose: true, rules });
+    const long = findings.filter((finding) => finding.rule === "long-paragraph");
+    assert.equal(long.length, 1);
+    assert.match(long[0].message, /5 sentences/);
+  });
+
+  it("does not count a list or a heading as a paragraph", () => {
+    const list = "first item\nsecond item\nthird item";
+    for (const field of ["list", "heading", "docs.atWork"]) {
+      const { findings } = checkText(list, { field, where, prose: true, rules });
+      assert.deepEqual(findings.filter((finding) => finding.rule === "long-paragraph"), [], field);
+    }
   });
 
   it("only applies length rules to prose, not to a prompt or a formula hint", () => {
@@ -180,9 +235,9 @@ describe("the real catalog", () => {
   const report = lintCopy(CONTENT);
 
   it("reports every lesson", () => {
-    assert.equal(report.stats.lessons, 88);
+    assert.equal(report.stats.lessons, 86);
     assert.equal(report.stats.groups, 16);
-    assert.equal(report.lessons.length, 88);
+    assert.equal(report.lessons.length, 86);
   });
 
   it("gives every finding a rule, a file and a message", () => {
@@ -216,18 +271,18 @@ describe("the command line", () => {
   it("prints the copy report", () => {
     const { status, stdout } = run(["copy"]);
     assert.ok(status === 0 || status === 1, `exited ${status}`);
-    assert.match(stdout, /^copy: 88 lessons, 16 groups/m);
+    assert.match(stdout, /^copy: 86 lessons, 16 groups/m);
   });
 
   it("accepts --strict on check, so the gate can demand clean prose", () => {
     const { stdout } = run(["check", "--strict"]);
-    assert.match(stdout, /^content: 88 of 88/m);
-    assert.match(stdout, /^copy: 88 lessons/m);
+    assert.match(stdout, /^content: 86 of 86/m);
+    assert.match(stdout, /^copy: 86 lessons/m);
   });
 });
 
 describe("the words that sell something we do not sell", () => {
-  // The launch ships individual accounts, three free drills and one price. An institutional seat, a
+  // The launch ships individual accounts, ten free exercises and three terms. An institutional seat, a
   // university licence, a cohort and a referral are not for sale, so no shipped string may imply one:
   // a comment is where the vocabulary comes back first, and then it turns into a sentence on a page.
   const WORDS = /\b(institution|institutional|university|universities|cohort|cohorts|referral|referrals|referring|classroom|school|campus)\b/i;
@@ -266,6 +321,120 @@ describe("the words that sell something we do not sell", () => {
     const banned = readFileSync(join(ROOT, "packages", "content-lint", "legal.js"), "utf8");
     for (const name of ["institutional seats", "universities", "cohorts", "referrals", "classrooms"]) {
       assert.ok(banned.includes(`name: "${name}"`), `the legal lint no longer refuses "${name}"`);
+    }
+  });
+});
+
+describe("the prose inside a Markdown page", () => {
+  const page = [
+    { type: "h2", id: "reading-the-chart", text: "Reading the chart" },
+    { type: "p", text: "A column chart answers one question: which bar is longest." },
+    { type: "p", text: "The axis carries labels, not values." },
+    { type: "h3", id: "labels", text: "Labels" },
+    { type: "p", text: "Labels sit on the category axis." },
+    { type: "list", items: ["Put the categories on the horizontal axis.", "Leave the value axis numeric."] },
+    { type: "table", header: ["Type", "Use"], rows: [["Column", "Comparison"]] },
+    { type: "h2", id: "common-errors", text: "Common errors" },
+    { type: "p", text: "A chart of one row is not a chart." },
+  ];
+
+  it("names each paragraph after the heading it sits under", () => {
+    const fields = markdownProse(page);
+    assert.deepEqual(fields.map((field) => field.field), [
+      "reading-the-chart",
+      "reading-the-chart",
+      "reading-the-chart.labels",
+      "reading-the-chart.labels[1]",
+      "reading-the-chart.labels[2]",
+      "common-errors",
+    ]);
+    assert.equal(fields[0].text, "A column chart answers one question: which bar is longest.");
+    assert.equal(fields.at(-1).text, "A chart of one row is not a chart.");
+  });
+
+  it("drops the headings and the table, which are not prose", () => {
+    const texts = markdownProse(page).map((field) => field.text);
+    for (const ignored of ["Reading the chart", "Labels", "Column", "Comparison"]) {
+      assert.ok(!texts.includes(ignored), `"${ignored}" was linted as prose`);
+    }
+  });
+
+  it("labels each list item by position so a long one can be found", () => {
+    const fields = markdownProse(page);
+    assert.equal(fields[3].text, "Put the categories on the horizontal axis.");
+    assert.equal(fields[4].text, "Leave the value axis numeric.");
+  });
+
+  it("returns nothing for a page that is all headings and tables", () => {
+    assert.deepEqual(markdownProse([{ type: "h2", id: "only", text: "Only" }, { type: "table", header: [], rows: [] }]), []);
+  });
+
+  it("runs the same word ceiling over a page as over a lesson", () => {
+    const long = markdownProse([{ type: "p", text: "word ".repeat(71).trim() }]);
+    const result = checkText(long[0].text, { field: long[0].field, where: "content/articles/example.md", prose: true, rules });
+    assert.ok(result.findings.some((finding) => finding.rule === "long-paragraph"), "the page escaped the paragraph ceiling");
+  });
+});
+
+describe("the prose inside a project", () => {
+  const project = {
+    title: "Wine cellar dashboard",
+    brief: [
+      { heading: "The file", body: "wine.xlsx holds one sheet, Cellar, with twelve wines in six columns." },
+      { heading: "The work", body: "Eight tasks run from reading the block to grouping the rows yourself." },
+    ],
+    docs: {
+      explain: "SUM counts bottles because bottles are one column.\n\nThe mean score is AVERAGE over the score column.",
+      atWork: "Stock, price and rating columns are the shape of every inventory sheet.",
+      outcome: "Value a cellar, then find which region is carrying it.",
+      errors: [{ code: "#N/A", text: "The wine name does not appear in the column you are looking down." }],
+    },
+    screens: [
+      { prompt: "How many bottles does the cellar hold?", hints: { value: "B15 is SUM of the bottles column." } },
+    ],
+  };
+
+  it("measures the brief, the notes and the task text, in reading order", () => {
+    assert.deepEqual(projectFields(project).map((field) => field.field), [
+      "title",
+      "brief[0].body",
+      "brief[1].body",
+      "docs.explain",
+      "docs.atWork",
+      "docs.outcome",
+      "docs.errors[0].text",
+      "screens[0].prompt",
+      "screens[0].hints.value",
+    ]);
+  });
+
+  it("treats the brief and the notes as paragraphs and the prompt as a label", () => {
+    const prose = projectFields(project).filter((field) => field.prose).map((field) => field.field);
+    assert.ok(prose.includes("brief[0].body"), "a brief is read as prose");
+    assert.ok(prose.includes("docs.explain"));
+    assert.ok(!prose.includes("screens[0].prompt"), "a prompt is one sentence, not a paragraph");
+    assert.ok(!prose.includes("title"));
+  });
+
+  it("holds a project's explanation to the same paragraph ceiling as a lesson's", () => {
+    const wall = { ...project, docs: { ...project.docs, explain: "word ".repeat(71).trim() } };
+    const [explain] = projectFields(wall).filter((field) => field.field === "docs.explain");
+    const result = checkText(explain.text, { field: explain.field, where: "content/projects/wine-dashboard.json", prose: true, rules });
+    assert.ok(result.findings.some((finding) => finding.rule === "long-paragraph"), "the project escaped the ceiling");
+  });
+
+  it("reports nothing on the four projects the track ships", () => {
+    const report = lintCopy(CONTENT);
+    assert.equal(report.stats.projects, 4, "the gate did not load the project track");
+    const fromProjects = report.findings.filter((finding) => finding.where.startsWith("content/projects/"));
+    assert.deepEqual(fromProjects.map((finding) => `${finding.where}: ${finding.message}`), []);
+  });
+
+  it("keeps every shipped project explanation in two paragraphs or more", () => {
+    for (const file of readdirSync(join(CONTENT, "projects")).filter((name) => name.endsWith(".json"))) {
+      const shipped = JSON.parse(readFileSync(join(CONTENT, "projects", file), "utf8"));
+      const paragraphs = splitParagraphs(shipped.docs.explain).length;
+      assert.ok(paragraphs >= 2, `${file} explains in ${paragraphs} paragraph`);
     }
   });
 });

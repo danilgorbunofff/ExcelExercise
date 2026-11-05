@@ -98,7 +98,7 @@ export const AUDIT = {
         ],
       },
       {
-        // The workbook screen asks for the cell the drill above finished in, so its answer is the same
+        // The workbook screen asks for the cell the exercise above finished in, so its answer is the same
         // 44.8 — read out of the file rather than worked out on the page. A workbook screen is graded
         // by its answer list, exactly as a picture screen is, so `reference` is that answer.
         expected: "44.8",
@@ -284,21 +284,6 @@ export const AUDIT = {
     expected: "no price",
     reference: '=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),"no price")',
     wrong: ["=VLOOKUP(A4,A2:B3,2,FALSE)", '=IFERROR(VLOOKUP(A4,A2:B3,2,FALSE),"missing")', '=IFERROR(A4,"no price")'],
-  },
-  "27-what-a-formula-actually-does": {
-    expected: 35, // 12 + 9 + 14
-    reference: "=SUM(B2:B4)",
-    wrong: ["=SUM(B2:B3)", "=SUM(B2:B4)-1", "=SUM(B2:B4)+1"],
-  },
-  "28-cell-references-relative-and-absolute": {
-    expected: 126.5, // Friday's 110 crates at 1.15 a crate
-    reference: "=ROUND(B6*$C$7,2)",
-    wrong: ["=B6*$C$7", "=ROUND(B6*$C$7,0)", "=ROUND(B5*$C$7,2)"],
-  },
-  "29-autosum-and-the-status-bar-total": {
-    expected: 476, // 120 + 95 + 60 + 145 + 40 + 12.5 + 3.5
-    reference: "=SUM(B2:B8)",
-    wrong: ["=SUM(B2:B7)", "=B9", "=SUM(B2:B8)+1"],
   },
   "30-vlookup-and-xlookup-on-the-same-table": {
     screens: [
@@ -1084,5 +1069,23 @@ export const AUDIT = {
     expected: "Mia", // 95 is the highest of 88, 95, 72, 91, 61 and 80
     reference: "=INDEX(SORT(A2:B7,2,-1),1,1)",
     wrong: ["=INDEX(SORT(A2:B7,2,1),1,1)", "=INDEX(SORT(A2:B7,1,-1),1,1)", "=MAX(B2:B7)"],
+  },
+  "89-shortcut-select-to-edge": {
+    screens: [
+      {
+        // A2 to A40 in one press: the modifier jumps to the edge of the filled block and Shift holds
+        // what it passed. The three near misses drop one of the two modifiers or turn the arrow round.
+        expected: "Ctrl + Shift + ↓",
+        reference: "Mod+Shift+Down",
+        wrong: ["Mod+Shift+Up", "Mod+Down", "Shift+Down"],
+      },
+      {
+        // Alt, W, F, R is View ▸ Freeze Panes ▸ Freeze Top Row. The near misses drop the last step,
+        // swap the arrow of the block for the sheet, and open the View tab one key too late.
+        expected: "Alt then W then F then R",
+        reference: "Alt, W, F, R",
+        wrong: ["Alt, W, F", "Alt, W, R, F", "Alt, F, W, R"],
+      },
+    ],
   },
 };

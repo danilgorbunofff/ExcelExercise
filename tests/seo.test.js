@@ -110,6 +110,7 @@ describe("the SEO contract of a rendered page", () => {
       "BreadcrumbList",
       "ItemList",
       "Article",
+      "SoftwareApplication",
     ]);
     const seen = new Set();
     for (const [path, html] of pages) {
@@ -139,9 +140,14 @@ describe("the exercises hub", () => {
     }
   });
 
-  it("answers the first questions in visible headings, not in FAQ markup", () => {
+  it("answers the first questions as headings in folds, not in FAQ markup", () => {
     const faq = html.slice(html.indexOf('id="questions-heading"'));
     assert.ok((faq.match(/<h3>/g) ?? []).length >= 3, "at least three questions are answered");
+    // The questions are folds now, and the question is still a heading inside the summary: it survives
+    // in the outline a screen reader jumps through, which is the reason this stayed a `<h3>` and was
+    // not flattened into summary text. Nothing claims `FAQPage` markup: these are not an FAQ, they are
+    // the last screen of an explanation.
+    assert.match(faq, /<details class="faq">\s*<summary><h3>/, "the questions are not folds");
     assert.ok(html.includes('href="/about"'), "the page that explains the checking is one link away");
     assert.doesNotMatch(html, /FAQPage/);
   });
@@ -151,7 +157,7 @@ describe("a lesson's way out", () => {
   const entry = index.find((candidate) => candidate.group === "lookup");
   const html = pages.get(entry.path);
 
-  it("offers drills that teach the same skill, plus the next group's opener", () => {
+  it("offers exercises that teach the same skill, plus the next group's opener", () => {
     const related = html.slice(html.indexOf('id="related-heading"'));
     const links = [...related.matchAll(/<li><a href="([^"]+)"/g)].map((match) => match[1]).slice(0, 4);
     assert.equal(links.length, 4);

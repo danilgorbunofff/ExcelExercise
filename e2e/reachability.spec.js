@@ -9,7 +9,7 @@
 import { expect, test } from "@playwright/test";
 
 import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
-import { indexablePaths } from "../legacy/src/site/seo.mjs";
+import { extraKeys, indexablePaths } from "../legacy/src/site/seo.mjs";
 import { loadSite } from "../lib/site.js";
 
 const site = loadSite();
@@ -20,7 +20,9 @@ const PUBLISHED_PATHS = indexablePaths({
   index: site.index,
   groups: dashboardGroups({ track: site.track, index: site.index }),
   articles: site.articles.map((article) => ({ path: NOTE_PATH(article), updated: article.updated })),
-  extra: site.articles.length > 0 ? ["exercises", "functions", "about", "privacy", "terms"] : ["exercises", "about", "privacy", "terms"],
+  formulas: site.formulas.map((formula) => ({ path: `/formulas/${formula.slug}`, updated: formula.updated })),
+  shortcuts: site.shortcuts.map((shortcut) => ({ path: `/shortcuts/${shortcut.slug}`, updated: shortcut.updated })),
+  extra: extraKeys({ articles: site.articles, formulas: site.formulas, shortcuts: site.shortcuts }),
 }).map((entry) => entry.path);
 
 const DEPTH = 3;
@@ -75,6 +77,27 @@ test("every published page and every gated surface renders the site chrome", asy
     if (!ok) chrome.push(`${response.status()} ${path}`);
   }
   expect(chrome).toEqual([]);
+});
+
+test("every page offers the account way in from the header", async ({ request }) => {
+  test.setTimeout(300_000);
+  const gated = ["/account", "/daily", "/leaderboard", "/certificate", "/flashcards", "/login", "/signup", "/reset"];
+  const paths = [...new Set([...PUBLISHED_PATHS.map(normalize), ...gated])].filter(Boolean);
+
+  // The header, not the page body: a link in one page's prose is not a way in from anywhere else.
+  const headerOf = (html) => {
+    const open = html.indexOf('<header class="site"');
+    if (open === -1) return "";
+    return html.slice(open, html.indexOf("</header>", open));
+  };
+
+  const missing = [];
+  for (const path of paths) {
+    const response = await request.get(path);
+    const header = headerOf(await response.text());
+    if (!header.includes('href="/account"')) missing.push(`${response.status()} ${path}`);
+  }
+  expect(missing).toEqual([]);
 });
 
 test("the front door does not leak the credential or reset addresses", async ({ page }) => {

@@ -8,11 +8,11 @@ import { SCHEMA_VERSION, normalizeLesson, referenceOf, revealOf, screenAt } from
 import { readRawLesson, toV1 } from "./lessons.js";
 
 const FILE = "01-sum-basics.json";
-/** The same drill written both ways: a v1 lesson (drill flat, fixtures in a sidecar) and the file on disk. */
+/** The same exercise written both ways: a v1 lesson (exercise flat, fixtures in a sidecar) and the file on disk. */
 const V2 = readRawLesson(FILE);
 const V1 = toV1(V2);
 
-/** The fields a screen owns in v2, lifted off the v1 lesson so both versions describe the same drill. */
+/** The fields a screen owns in v2, lifted off the v1 lesson so both versions describe the same exercise. */
 const SCREEN_FIELDS = [
   "prompt",
   "grid",
@@ -24,6 +24,7 @@ const SCREEN_FIELDS = [
   "rules",
   "hints",
   "fixtures",
+  "variants",
 ];
 
 function screenFrom(raw, overrides = {}) {
@@ -76,7 +77,7 @@ const workbook = (overrides = {}) => ({ ...WORKBOOK, ...overrides });
 /** A lesson with no formula screen names a shortcut where a formula lesson names its formula. */
 const SHORTCUT_DOCS = { ...V1.docs, reference: "Mod+Shift+Plus" };
 
-/** A v2 lesson carries its drill on the screens and nowhere else — the loader rejects both halves. */
+/** A v2 lesson carries its exercise on the screens and nowhere else — the loader rejects both halves. */
 function v2({ screens = [screenFrom(V1)], ...overrides } = {}) {
   const lesson = { ...V1, schemaVersion: 2, ...overrides, screens };
   for (const field of SCREEN_FIELDS) delete lesson[field];
@@ -104,12 +105,13 @@ describe("lesson schema v2", () => {
         "requireRef",
         "rules",
         "type",
+        "variants",
       ]);
       assert.equal(lesson.screens[0].id, "formula-1");
       assert.equal(lesson.screens[0].type, "formula");
     });
 
-    it("keeps the drill a v1 lesson describes, field for field", () => {
+    it("keeps the exercise a v1 lesson describes, field for field", () => {
       const screen = normalizeLesson(V1, FILE).screens[0];
 
       assert.equal(screen.prompt, V1.prompt);
@@ -446,10 +448,74 @@ describe("lesson schema v2", () => {
       );
     });
 
+    it("files a hint for hardcoded only on a screen that re-sends the table", () => {
+      const withVariant = { ...V1.hints, hardcoded: "Add the three cells, not the total they make now." };
+      assert.deepEqual(normalizeLesson(hintScreen(withVariant), FILE).screens[0].hints, withVariant);
+
+      // Without a re-send nothing can ever report `hardcoded`, so the hint would be dead copy.
+      const { variants, ...screen } = screenFrom(V1);
+      throws(
+        v2({ screens: [{ ...screen, hints: withVariant }] }),
+        /hints\.hardcoded is not a failure this screen reports/,
+      );
+    });
+
     it("still demands the general hint and text under every key", () => {
       throws(hintScreen({ syntax: "Start with =." }), /screens\[0\]\.hints\.value must be a non-empty string/);
       throws(hintScreen({ value: "" }), /hints\.value must be a non-empty string/);
       throws(hintScreen("Add them up."), /hints must be an object/);
+    });
+  });
+
+  describe("the re-sends a screen is graded on", () => {
+    const variantScreen = (variants) => v2({ screens: [screenFrom(V1, { variants })] });
+    const throws = (raw, pattern) => assert.throws(() => normalizeLesson(raw, FILE), pattern);
+    const RE_SEND = { id: "north-up", cells: { B2: 1300 }, expect: { value: 3680 }, why: "North is revised up" };
+
+    it("keeps each re-send as the author wrote it", () => {
+      const lesson = normalizeLesson(variantScreen([RE_SEND]), FILE);
+      assert.deepEqual(lesson.screens[0].variants, [RE_SEND]);
+    });
+
+    it("rejects an empty list, on both versions of the file", () => {
+      throws(variantScreen([]), /screens\[0\]\.variants must be a non-empty array/);
+      throws({ ...V1, variants: [] }, /variants must be a non-empty array/);
+    });
+
+    it("asks for at most three, so the pass stays a check and not a second lesson", () => {
+      const four = ["a", "b", "c", "d"].map((id) => ({ ...RE_SEND, id }));
+      throws(variantScreen(four), /screens\[0\]\.variants carries 4; a screen may carry at most 3/);
+    });
+
+    it("rejects an id it cannot name in a message", () => {
+      throws(variantScreen([{ ...RE_SEND, id: "North Up" }]), /\.id "North Up" must be lowercase-with-dashes/);
+      throws(variantScreen([RE_SEND, RE_SEND]), /\.variants\[1\]\.id "north-up" is used twice/);
+    });
+
+    it("rejects a change to no cell, to a cell off the sheet, or to the answer itself", () => {
+      throws(variantScreen([{ ...RE_SEND, cells: {} }]), /\.cells must name at least one cell to change/);
+      throws(variantScreen([{ ...RE_SEND, cells: { Q99: 1 } }]), /cells "Q99" is outside the 5x3 grid/);
+      throws(
+        variantScreen([{ ...RE_SEND, cells: { B5: 9999 } }]),
+        /\.cells\.B5 is the cell the learner fills in — change an input instead/,
+      );
+    });
+
+    it("rejects a value a grid cell cannot hold", () => {
+      throws(variantScreen([{ ...RE_SEND, cells: { B2: NaN } }]), /cells\.B2 is not a finite number/);
+      throws(variantScreen([{ ...RE_SEND, cells: { B2: "  " } }]), /cells\.B2 is blank/);
+      throws(variantScreen([{ ...RE_SEND, cells: { B2: { amount: 1 } } }]), /cells\.B2 must be a number, some text or true\/false/);
+    });
+
+    it("demands the answer the reference gives on the changed cells", () => {
+      throws(variantScreen([{ ...RE_SEND, expect: {} }]), /\.expect\.value is required/);
+      throws(variantScreen([{ ...RE_SEND, expect: { value: 1, tolerance: 0 } }]), /\.expect\.tolerance must be a positive number/);
+      throws(variantScreen([{ ...RE_SEND, expect: { value: 1, tolerance: "0.01" } }]), /\.expect\.tolerance must be a positive number/);
+      throws(variantScreen([{ ...RE_SEND, why: "" }]), /\.why must be a non-empty string/);
+    });
+
+    it("rejects a second copy of the re-sends at the top level", () => {
+      throws({ ...v2(), variants: [RE_SEND] }, /variants belongs on a screen once schemaVersion 2 is set/);
     });
   });
 
@@ -486,7 +552,7 @@ describe("lesson schema v2", () => {
     });
 
     it("is not read on a v1 lesson, whose docs block is the lesson's", () => {
-      // The flat drill *is* the screen, so its `docs` is the block `validateDocs` already read.
+      // The flat exercise *is* the screen, so its `docs` is the block `validateDocs` already read.
       assert.equal(normalizeLesson(V1, FILE).screens[0].docs, undefined);
     });
   });

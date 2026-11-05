@@ -38,7 +38,12 @@ function sandbox(mutate, { persist = false } = {}) {
 const lessonPath = (content, id) => join(content, "exercises", `${id}.json`);
 
 /** File numbers are dense, so the next lesson a scaffold can write is one past the count it finds. */
-const nextNumber = (content) => readJson(join(content, "track.json")).lessons.filter((entry) => entry.id).length + 1;
+/**
+ * The number a scaffold would stamp on its file: one past the highest in the catalog. It is not the
+ * authored count, because deleting a lesson leaves its number unused rather than handing it on.
+ */
+const nextNumber = (content) =>
+  Math.max(...readJson(join(content, "track.json")).lessons.filter((entry) => entry.id).map(({ id }) => Number(id.split("-")[0]))) + 1;
 const sidecarPath = (fixtures, id) => join(fixtures, `${id}.json`);
 
 /** Rewrites one lesson, handing the test its first screen — where v2 keeps the prompt and fixtures. */
@@ -99,7 +104,8 @@ describe("content-lint: the real corpus", () => {
 
   it("reports the catalog the lessons sit in", () => {
     assert.equal(report.stats.groups, 16);
-    assert.equal(report.stats.planned, 88 - report.stats.lessons, "every slot is either authored or planned");
+    const slots = readJson(join(CONTENT, "track.json")).lessons.length;
+    assert.equal(report.stats.planned, slots - report.stats.lessons, "every slot is either authored or planned");
   });
 });
 
@@ -250,7 +256,7 @@ describe("content-lint: prompts and links", () => {
     const { report } = sandbox(({ content }) => {
       const path = lessonPath(content, "04-if-pass-fail");
       const lesson = readJson(path);
-      writeJson(path, { ...lesson, docs: { ...lesson.docs, explain: `${lesson.docs.explain} See [the lookup drill](/learn/excel/no-such-drill).` } });
+      writeJson(path, { ...lesson, docs: { ...lesson.docs, explain: `${lesson.docs.explain} See [the lookup exercise](/learn/excel/no-such-drill).` } });
     });
     assert.match(messages(report).join("\n"), /links to "\/learn\/excel\/no-such-drill", which is not a page that exists/);
   });
@@ -259,7 +265,7 @@ describe("content-lint: prompts and links", () => {
     const { report } = sandbox(({ content }) => {
       const path = lessonPath(content, "04-if-pass-fail");
       const lesson = readJson(path);
-      const explain = `${lesson.docs.explain} Then try [SUM](/learn/excel/sum-basics) or [the same drill](/excel/sum-basics).`;
+      const explain = `${lesson.docs.explain} Then try [SUM](/learn/excel/sum-basics) or [the same exercise](/excel/sum-basics).`;
       writeJson(path, { ...lesson, docs: { ...lesson.docs, explain } });
     });
     assert.deepEqual(report.errors, []);
@@ -313,6 +319,105 @@ describe("content-lint: per-screen references", () => {
       messages(report).join("\n"),
       /docs\.reference must match screens\[0\]\.reference \("=XLOOKUP\(A7,A2:A6,B2:B6,,0,-1\)"\)/,
     );
+  });
+});
+
+describe("content-lint: the anti-hardcoding pass", () => {
+  const SUM = "01-sum-basics";
+  const AVERAGE = "02-average-scores";
+  const COMMISSION = "77-a-commission-sheet-that-updates-itself";
+
+  /** Rewrites one named variant, so a test breaks exactly one re-send. */
+  const editVariant = (content, id, variantId, edit) => {
+    editScreen(content, id, (screen) => ({
+      ...screen,
+      variants: screen.variants.map((variant) => (variant.id === variantId ? edit(variant) : variant)),
+    }));
+  };
+
+  it("checks every shipped re-send against the reference it was authored from", () => {
+    const { report } = sandbox();
+    assert.deepEqual(report.errors, [], "the pilot screens and their re-sends lint clean");
+  });
+
+  it("fails a re-send that changes a cell the reference never reads", () => {
+    const { report } = sandbox(({ content }) => {
+      editVariant(content, SUM, "west-down", (variant) => ({ ...variant, cells: { C2: 1 } }));
+    });
+    assert.match(
+      messages(report).join("\n"),
+      /variants\.west-down changes C2 and =SUM\(B2:B4\) reads none of them, so the variant proves nothing/,
+    );
+  });
+
+  it("fails a re-send its own reference cannot survive", () => {
+    const { report } = sandbox(({ content }) => {
+      // The commission reference multiplies B2 by a looked-up rate, so turning B2 into words stops it.
+      editScreen(content, COMMISSION, (screen) => ({
+        ...screen,
+        variants: [
+          ...(screen.variants ?? []),
+          {
+            id: "b2-words",
+            cells: { B2: "a big order" },
+            expect: { value: 0 },
+            why: "the order size becomes words, and the rate is looked up from it",
+          },
+        ],
+      }));
+    });
+    assert.match(
+      messages(report).join("\n"),
+      /variants\.b2-words makes its own reference =ROUND\(B2\*VLOOKUP\(B2,\$A\$7:\$B\$9,2,TRUE\),2\) stop with #VALUE!/,
+    );
+  });
+
+  it("fails a re-send whose expected value the reference does not produce", () => {
+    const { report } = sandbox(({ content }) => {
+      editVariant(content, AVERAGE, "b2-up", (variant) => ({ ...variant, expect: { value: 999 } }));
+    });
+    assert.match(messages(report).join("\n"), /variants\.b2-up expects 999, but =AVERAGE\(B2:B6\) returns 88\.7 on it/);
+  });
+
+  it("fails a re-send that changes nothing a typed-in answer would notice", () => {
+    // Two of the three cells trade values, so the total is the one already on screen: a learner who
+    // typed 3580 would pass this re-send, which is exactly what it must not do.
+    const { report } = sandbox(({ content }) => {
+      editVariant(content, SUM, "west-down", (variant) => ({
+        ...variant,
+        cells: { B2: 1490, B3: 1160 },
+        expect: { value: 3580 },
+      }));
+    });
+    assert.match(
+      messages(report).join("\n"),
+      /variants\.west-down expects 3580, the same answer as the unchanged table, so a typed-in number would pass it/,
+    );
+  });
+
+  it("fails a screen whose fixtures never reach the hardcoded failure", () => {
+    const { report } = sandbox(({ content }) => {
+      editFixtures(content, SUM, (fixtures) => ({
+        ...fixtures,
+        reject: fixtures.reject.filter((entry) => entry.rule !== "hardcoded"),
+      }));
+    });
+    assert.match(
+      messages(report).join("\n"),
+      /never exercises the "hardcoded" failure, so that path ships untested/,
+    );
+  });
+
+  it("stops rejecting a typed-in total once the re-sends are gone", () => {
+    // `=SUM(B2:B3)+930` only differs from the answer on the table where B4 changes, so without the
+    // re-sends the fixture is no longer a rejection at all — and the author has to be told.
+    const { report } = sandbox(({ content }) => {
+      editScreen(content, SUM, ({ variants, hints, ...screen }) => {
+        const { hardcoded, ...keptHints } = hints;
+        return { ...screen, hints: keptHints };
+      });
+    });
+    assert.match(messages(report).join("\n"), /rejects "=SUM\(B2:B3\)\+930" but the grader accepts it/);
   });
 });
 
@@ -544,9 +649,10 @@ describe("content-lint: the catalog", () => {
         lessons: [...track.lessons, { title: "  sum: TOTAL a column ", level: 1, group: "sum" }],
       }));
     });
+    const at = readJson(join(CONTENT, "track.json")).lessons.length;
     assert.deepEqual(
       report.errors.filter(({ where }) => where === "content/track.json").map(({ message }) => message),
-      ['lessons[88] "sum: TOTAL a column" repeats the title of lessons[3]'],
+      [`lessons[${at}] "sum: TOTAL a column" repeats the title of lessons[0]`],
     );
   });
 
@@ -554,10 +660,14 @@ describe("content-lint: the catalog", () => {
     const { report } = sandbox(({ content }) => {
       editTrack(content, (track) => ({
         ...track,
-        lessons: [...track.lessons, { title: "A drill", level: 1, group: "count" }, { title: "a drill", level: 2, group: "date" }],
+        lessons: [...track.lessons, { title: "An exercise", level: 1, group: "count" }, { title: "an exercise", level: 2, group: "date" }],
       }));
     });
-    assert.match(report.errors.map(({ message }) => message).join("\n"), /lessons\[89\] "a drill" repeats the title of lessons\[88\]/);
+    const at = readJson(join(CONTENT, "track.json")).lessons.length;
+    assert.match(
+      report.errors.map(({ message }) => message).join("\n"),
+      new RegExp(`lessons\\[${at + 1}\\] "an exercise" repeats the title of lessons\\[${at}\\]`),
+    );
   });
 });
 
@@ -584,7 +694,7 @@ describe("content-lint: CLI", () => {
     assert.match(
       run.stdout,
       new RegExp(
-        `content: ${stats.lessons} of 88 catalogued lessons, 16 groups, ${stats.screens} screens, ${stats.accepted + stats.rejected} fixtures replayed`,
+        `content: ${stats.lessons} of ${stats.lessons + stats.planned} catalogued lessons, 16 groups, ${stats.screens} screens, ${stats.accepted + stats.rejected} fixtures replayed`,
       ),
     );
     assert.match(run.stdout, /✓ content passes/);
@@ -656,9 +766,12 @@ describe("content-lint: the authoring CLI", () => {
       const created = run(["new", "--lesson", String(number), "--group", group], { content, fixtures });
       assert.equal(created.status, 0, created.stdout + created.stderr);
       assert.match(created.stdout, new RegExp(`✓ created content\\/exercises\\/${number}-[a-z0-9-]+\\.json`));
+      const publishedTotal = before.lessons.filter((entry) => entry.id).length + 1;
       assert.match(
         created.stdout,
-        new RegExp(`takes catalog slot ${slot + 1}, published as lesson ${before.lessons.slice(0, slot).filter((entry) => entry.id).length + 1} of ${number}`),
+        new RegExp(
+          `takes catalog slot ${slot + 1}, published as lesson ${before.lessons.slice(0, slot).filter((entry) => entry.id).length + 1} of ${publishedTotal}`,
+        ),
       );
 
       const track = readJson(join(content, "track.json"));
@@ -684,7 +797,7 @@ describe("content-lint: the authoring CLI", () => {
       const screens = readdirSync(join(content, "exercises"))
         .filter((name) => name.endsWith(".json"))
         .reduce((sum, name) => sum + readJson(join(content, "exercises", name)).screens.length, 0);
-      assert.match(check.stdout, new RegExp(`content: ${number} of ${before.lessons.length} catalogued lessons, `));
+      assert.match(check.stdout, new RegExp(`content: ${publishedTotal} of ${before.lessons.length} catalogued lessons, `));
       assert.match(check.stdout, new RegExp(`16 groups, ${screens} screens, `));
     }, addPlannedSlot);
   });
@@ -743,6 +856,78 @@ describe("content-lint: the authoring CLI", () => {
       assert.match(preview.stdout, /✓ =SUM\(B2:B3\)\s+accepted/);
       assert.match(preview.stdout, /· =SUM\(120,180\)\s+rejected \(require-ref\)/);
     }, addPlannedSlot);
+  });
+
+  it("derives the re-sends a screen could carry, and writes nothing on a dry run", () => {
+    withSandbox(({ content, fixtures }) => {
+      // A screen that answers with a formula but has not been through the pilot yet.
+      const before = readFileSync(lessonPath(content, "48-sumifs-two-conditions-at-once"), "utf8");
+      const derived = run(["variants", "--lesson", "48", "--screen", "0"], { content, fixtures });
+      assert.equal(derived.status, 0, derived.stdout + derived.stderr);
+      assert.match(derived.stdout, /^48-sumifs-two-conditions-at-once · screen 0 · reference =SUMIFS\(C2:C6,A2:A6,"North",B2:B6,"Ada"\)$/m);
+      assert.match(derived.stdout, /^   answer C7 · 720$/m);
+      // Every input gets one edit before any input gets a second.
+      assert.match(derived.stdout, /^   a2-swap: A2 → "South" → 400$/m);
+      assert.match(derived.stdout, /^   b2-swap: B2 → "Ben" → 400$/m);
+      assert.match(derived.stdout, /^   c2-up: C2 → 420 → 820$/m);
+      assert.match(derived.stdout, /still by hand: one rejection filed under "hardcoded"/);
+      assert.equal(
+        readFileSync(lessonPath(content, "48-sumifs-two-conditions-at-once"), "utf8"),
+        before,
+        "a dry run writes nothing",
+      );
+    });
+  });
+
+  it("writes the re-sends on --write, leaving only the rejection to write by hand", () => {
+    withSandbox(({ content, fixtures }) => {
+      const written = run(["variants", "--lesson", "48", "--screen", "0", "--write"], { content, fixtures });
+      assert.equal(written.status, 0, written.stdout + written.stderr);
+      assert.match(written.stdout, /1 screen\(s\) rewritten/);
+
+      const [screen] = readJson(lessonPath(content, "48-sumifs-two-conditions-at-once")).screens;
+      assert.equal(screen.variants.length, 3, "one edit per input");
+      for (const variant of screen.variants) {
+        assert.match(variant.id, /^[a-c][2-6]-(up|swap)$/);
+        assert.match(variant.why, /so the answer has to move with it$/, "the why says what the edit does");
+        assert.notEqual(variant.expect.value, screen.expect.value, "an inert edit is not a re-send");
+      }
+
+      // The derived block passes the schema, the grid and the tolerance rules; only the fixture is left.
+      const check = run(["check"], { content, fixtures });
+      assert.equal(check.status, 1, check.stdout);
+      assert.match(check.stdout, /48-sumifs-two-conditions-at-once\.json: screens\[0\]\.never exercises the "hardcoded" failure/);
+      assert.match(check.stdout, /✖ 1 error — content is not shippable/);
+    });
+  });
+
+  it("leaves authored re-sends alone on a sweep, and says so when no edit survives", () => {
+    withSandbox(({ content, fixtures }) => {
+      const sweep = run(["variants"], { content, fixtures });
+      assert.equal(sweep.status, 0, sweep.stdout + sweep.stderr);
+      // The pilot screens answer already; a sweep must never bury a hand-written why.
+      for (const id of ["01-sum-basics", "02-average-scores", "07-vlookup-exact"]) {
+        assert.ok(!sweep.stdout.includes(id), `${id} already carries its re-sends`);
+      }
+      assert.match(sweep.stdout, /48-sumifs-two-conditions-at-once · screen 0 · reference/);
+      // Counting a block gives the same answer whichever number you change, and that is not a bug.
+      assert.match(sweep.stdout, /18-count-numbers-only-and-what-it-skips · screen 0 — nothing to propose/);
+    });
+  });
+
+  it("derives one screen when --screen names it", () => {
+    withSandbox(({ content, fixtures }) => {
+      const one = run(["variants", "--lesson", "48", "--screen", "1"], { content, fixtures });
+      assert.equal(one.status, 0, one.stdout + one.stderr);
+      assert.match(one.stdout, /^48-sumifs-two-conditions-at-once · screen 1 · reference /m);
+      assert.ok(!one.stdout.includes("· screen 0 ·"), "only the screen that was asked for");
+    });
+  });
+
+  it("refuses a --screen that is not a screen number", () => {
+    const refused = spawnSync(process.execPath, [CLI, "variants", "--screen", "one"], { encoding: "utf8" });
+    assert.equal(refused.status, 2);
+    assert.match(refused.stderr, /--screen takes a screen number from 0/);
   });
 
   it("previews a shipped lesson from its inline fixtures", () => {

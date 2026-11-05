@@ -1,7 +1,7 @@
 /**
  * The notes one screen brings, on a real lesson page.
  *
- * The last drill of the track teaches two XLOOKUP variants on two screens, and the second screen
+ * The last exercise of the track teaches two XLOOKUP variants on two screens, and the second screen
  * carries its own syntax and formula: the lesson-level docs describe the first one, so a screen with
  * nothing of its own would be teaching the wrong function. The page is rendered from the shipped
  * catalog, because that lesson is the case the feature exists for — a screen's notes are read where

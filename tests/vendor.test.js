@@ -33,13 +33,13 @@ describe("vendor manifest", () => {
     const result = checkVendor();
     assert.deepEqual(result.problems, []);
     assert.equal(result.ok, true);
-    assert.equal(result.checked, 25);
+    assert.equal(result.checked, 37);
   });
 
   it("lists every file in vendor/ except the manifest itself", () => {
     const files = listVendorFiles(VENDOR);
     assert.equal(files.includes("manifest.json"), false);
-    assert.equal(files.length, 25);
+    assert.equal(files.length, 37);
     assert.ok(files.every((file) => !file.split("/").some((part) => part.startsWith("."))));
     assert.deepEqual(files, [...files].sort());
   });

@@ -106,13 +106,10 @@ describe("the message catalogue", () => {
 
   it("passes the copy gate the lessons pass", () => {
     const rules = loadRules();
-    // One tolerated character: "Loading the form…" predates the catalogue and the ellipsis is the cue
-    // that the section is still filling. Recorded here rather than by weakening the rule.
-    const allowed = new Map([["chrome.loading.form", "ellipsis character"]]);
     for (const [key, value] of Object.entries(catalogue)) {
       const banned = findBanned(value, rules);
       assert.deepEqual(banned.map((hit) => hit.phrase), [], `${key} uses a banned phrase`);
-      const slop = findTypography(value).filter((hit) => allowed.get(key) !== hit.name);
+      const slop = findTypography(value);
       assert.deepEqual(slop.map((hit) => hit.name), [], `${key} carries typography the copy gate bans`);
     }
   });
@@ -121,12 +118,22 @@ describe("the message catalogue", () => {
 describe("the strings the tests read", () => {
   // A handful of specs and snapshots name the chrome by its words; if one of those strings moves, this
   // says which one moved instead of leaving a locator to time out in another file.
-  it("still say what the footer and the ways-out block promised", () => {
+  it("still say what the footer and the drawer promised", () => {
     assert.equal(t("chrome.footer.privacy"), "Privacy");
     assert.equal(t("chrome.footer.terms"), "Terms");
     assert.equal(t("chrome.footer.feedback"), "Send feedback");
-    assert.equal(t("chrome.ways.exercises"), "All Excel exercises");
-    assert.equal(t("chrome.footer.claim", { name: "Excel Supreme" }), "Excel Supreme grades formulas in the browser. Nothing you type is sent anywhere.");
-    assert.equal(t("chrome.skip", { what: "drill" }), "Skip to the drill");
+    assert.equal(t("chrome.ways.exercises"), "All exercises");
+    assert.equal(t("chrome.menu.toggle"), "Menu");
+    assert.equal(t("chrome.menu.close"), "Close");
+    // Destination nouns, in sentence case: the drawer's rows name pages, so none of them is a phrase
+    // the reader has to decode ("Ways in", "Look it up") or a sentence cut in half.
+    for (const key of ["start", "exercises", "projects", "daily", "flashcards", "board", "functions", "shortcuts", "certificate", "account", "pricing"]) {
+      const label = t(`chrome.ways.${key}`);
+      assert.match(label, /^[A-Z][a-z]/, `chrome.ways.${key} is not a sentence-case label: ${label}`);
+      assert.ok(label.length <= 18, `chrome.ways.${key} is too long for a menu row: ${label}`);
+      assert.equal(label.endsWith("."), false, `chrome.ways.${key} is a sentence, not a label`);
+    }
+    assert.equal(t("chrome.footer.copyright", { year: "2026", name: "Excel Supreme" }), "© 2026 Excel Supreme");
+    assert.equal(t("chrome.skip", { what: "exercise" }), "Skip to the exercise");
   });
 });

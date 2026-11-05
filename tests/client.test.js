@@ -1,6 +1,6 @@
 /**
- * The client's non-DOM half: progress, trial, gating, normalisation, and the guard on
- * the payload shape. Drill rendering is verified in the browser, not here — what is
+ * The client's non-DOM half: progress, gating, normalisation, and the guard on
+ * the payload shape. Exercise rendering is verified in the browser, not here — what is
  * worth asserting in Node is everything that can silently corrupt stored state.
  */
 
@@ -17,8 +17,6 @@ import { loadLesson } from "./lessons.js";
 import {
   GRACE_KEY,
   PROGRESS_KEY,
-  TRIAL_KEY,
-  TRIAL_DAYS,
   attemptsFor,
   canGrade,
   caretLine,
@@ -33,19 +31,13 @@ import {
   parseGrace,
   parsePayload,
   parseProgress,
-  parseTrial,
   registerAttempt,
   registerCompletion,
   serializeProgress,
-  startTrial,
-  trialActive,
-  trialDaysLeft,
-  validEmail,
 } from "../legacy/src/client/state.js";
 import { rewardFrom, rewardLine } from "../legacy/src/client/reward.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const DAY = 24 * 60 * 60 * 1000;
 
 describe("progress storage", () => {
   it("treats every kind of junk as an empty progress", () => {
@@ -122,74 +114,40 @@ describe("progress storage", () => {
 
   it("uses the documented storage keys", () => {
     assert.equal(PROGRESS_KEY, "es.progress");
-    assert.equal(TRIAL_KEY, "es.trial");
-  });
-});
-
-describe("trial", () => {
-  const start = new Date("2026-10-28T10:00:00.000Z");
-
-  it("is inactive until it is started", () => {
-    assert.equal(trialActive(null), false);
-    assert.equal(trialDaysLeft(null), 0);
-    assert.equal(gateFor({ free: false }, null), "paywall");
-    assert.equal(gateFor({ free: true }, null), "open");
-  });
-
-  it("runs for seven days and then stops", () => {
-    const trial = startTrial(start);
-    assert.equal(trialActive(trial, start), true);
-    assert.equal(trialActive(trial, new Date(start.getTime() + (TRIAL_DAYS - 1) * DAY)), true);
-    assert.equal(trialActive(trial, new Date(start.getTime() + TRIAL_DAYS * DAY)), false);
-    assert.equal(gateFor({ free: false }, trial, new Date(start.getTime() + TRIAL_DAYS * DAY)), "paywall");
-  });
-
-  it("rounds the remaining days up so the last day is not '0'", () => {
-    const trial = startTrial(start);
-    assert.equal(trialDaysLeft(trial, start), 7);
-    assert.equal(trialDaysLeft(trial, new Date(start.getTime() + 6.5 * DAY)), 1);
-    assert.equal(trialDaysLeft(trial, new Date(start.getTime() + 8 * DAY)), 0);
-  });
-
-  it("ignores a trial started in the future or with a broken date", () => {
-    assert.equal(trialActive(startTrial(new Date(start.getTime() + DAY)), start), false);
-    assert.equal(parseTrial('{"startedAt":"yesterday"}'), null);
-    assert.equal(parseTrial('{"startedAt":5}'), null);
-    assert.equal(parseTrial("{}"), null);
-    assert.equal(parseTrial(""), null);
-  });
-
-  it("opens a trial record for the current time", () => {
-    assert.deepEqual(startTrial(start), { startedAt: "2026-10-28T10:00:00.000Z" });
-    assert.deepEqual(parseTrial(JSON.stringify(startTrial(start))), { startedAt: "2026-10-28T10:00:00.000Z" });
   });
 });
 
 describe("gating", () => {
-  it("opens the free drills and the prompt drill, and walls the rest", () => {
-    const free = { free: true, number: 1 };
-    assert.equal(gateFor({ ...free, number: 1, freeLessonCount: 3 }, null), "open");
-    assert.equal(gateFor({ free: false, number: 4, freeLessonCount: 3 }, null), "prompt");
-    assert.equal(gateFor({ free: false, number: 5, freeLessonCount: 3 }, null), "paywall");
-    assert.equal(gateFor({ free: false, number: 16, freeLessonCount: 3 }, null), "paywall");
+  it("opens the free exercises wherever they sit, and walls the rest", () => {
+    // The free ten are a curated list, not the first ten: a free lesson sits at number 1 and at 40,
+    // and both are open. `number` decides nothing about free.
+    assert.equal(gateFor({ free: true, number: 1 }), "open");
+    assert.equal(gateFor({ free: true, number: 40 }), "open");
+    assert.equal(gateFor({ free: false, number: 5, promptAt: 4 }), "paywall");
   });
 
-  it("keeps a running trial ahead of the prompt and the wall", () => {
-    const trial = startTrial(new Date("2026-10-28T10:00:00.000Z"));
-    assert.equal(gateFor({ free: false, number: 4, freeLessonCount: 3 }, trial), "open");
-    assert.equal(gateFor({ free: false, number: 5, freeLessonCount: 3 }, trial), "open");
+  it("prompts on the one paid exercise the track nominates, not on the first paid one", () => {
+    const track = { free: false, number: 5, promptAt: 5 };
+    assert.equal(gateFor(track), "prompt");
+    assert.equal(gateFor({ free: false, number: 6, promptAt: 5 }), "paywall");
   });
 
-  it("needs the free count to make the prompt, so an entry without one walls", () => {
-    // `track.freeLessonCount` is config. A payload that arrives without it must fall back to the
-    // wall rather than to the free pass.
-    assert.equal(gateFor({ free: false, number: 5 }, null), "paywall");
-    assert.equal(gateFor({ free: false, number: 5, freeLessonCount: "3" }, null), "paywall");
+  it("needs the prompt position to make the prompt, so an entry without one walls", () => {
+    // `track.promptAt` is config, read from `promptLesson`. A payload that arrives without it must
+    // fall back to the wall rather than to the free pass.
+    assert.equal(gateFor({ free: false, number: 5 }), "paywall");
+    assert.equal(gateFor({ free: false, number: 5, promptAt: "5" }), "paywall");
+    assert.equal(gateFor({ free: false, number: 5, promptAt: null }), "paywall");
+  });
+
+  it("stops prompting once the pass is spent, which the caller checks, not this rule", () => {
+    // `gateFor` has no memory: the once-only pass is `graceUsed`, and the exercise page asks both.
+    assert.equal(gateFor({ free: false, number: 5, promptAt: 5 }), "prompt");
   });
 });
 
 describe("grace", () => {
-  it("starts empty and remembers one drill per prompt", () => {
+  it("starts empty and remembers one exercise per prompt", () => {
     assert.deepEqual(emptyGrace(), { v: 1, used: [] });
     assert.equal(graceUsed(emptyGrace(), "05-sumif-region"), false);
     const once = grantGrace(emptyGrace(), "05-sumif-region");
@@ -210,10 +168,9 @@ describe("grace", () => {
     assert.equal(parseGrace(undefined).used.length, 0);
   });
 
-  it("does not reach for a key the trial or the progress already own", () => {
+  it("does not reach for a key the progress already owns", () => {
     assert.equal(GRACE_KEY, "es.grace");
     assert.notEqual(GRACE_KEY, PROGRESS_KEY);
-    assert.notEqual(GRACE_KEY, TRIAL_KEY);
   });
 });
 
@@ -256,15 +213,6 @@ describe("formula input", () => {
     for (const position of [null, undefined, 0, -2, 1.5, "3"]) {
       assert.equal(caretLine("=1+", position), "");
     }
-  });
-
-  it("accepts plausible addresses only", () => {
-    assert.equal(validEmail("someone@company.com"), true);
-    assert.equal(validEmail("  someone@company.co.uk  "), true);
-    for (const bad of ["", "someone", "someone@", "@company.com", "someone@company", "a@b.c", "a b@c.com"]) {
-      assert.equal(validEmail(bad), false, `${bad} should be rejected`);
-    }
-    assert.equal(validEmail(`${"a".repeat(250)}@company.com`), false);
   });
 });
 
@@ -410,8 +358,6 @@ describe("drill.js source", () => {
       "solution_reveal",
       "lesson_exhausted",
       "paywall_view",
-      "paywall_email",
-      "trial_start",
       "gate_view",
       "track_unlock",
     ]) {
@@ -439,7 +385,7 @@ describe("drill.js source", () => {
     assert.equal(/value/.test(props), false, "a field's value is in the event");
   });
 
-  it("reads the shared clock instead of timing the drill itself", () => {
+  it("reads the shared clock instead of timing the exercise itself", () => {
     assert.match(code, /import \{[^}]*\bcreateClock\b[^}]*\} from "\.\.\/session\/index\.js"/s);
     assert.match(code, /const clock = createClock\(\);/);
     assert.doesNotMatch(code, /\bnew Date\(\).*elapsed/i);
@@ -628,11 +574,11 @@ describe("drill.js source", () => {
     assert.doesNotMatch(code, /track\("paywall_email"[^)]*input\.value/);
   });
 
-  it("prompts at the first paid drill and lets the reader through once", () => {
-    // The boundary is `gateFor`'s verdict, not a second copy of the rule: a drill that hardcoded
-    // `number === 4` would keep prompting after `track.json` moved the free count.
-    assert.match(code, /const verdict = gateFor\(payload\.track, trial\);/);
-    assert.match(code, /if \(verdict === "prompt" && !graceUsed\(grace, lessonId\)\) return \{ kind: "prompt" \};/);
+  it("prompts on the nominated paid exercise and lets the reader through once", () => {
+    // The boundary is `gateFor`'s verdict, not a second copy of the rule: an exercise that hardcoded
+    // `number === 11` would keep prompting after `track.json` moved the free set.
+    assert.match(code, /const verdict = gateFor\(payload\.track\);/);
+    assert.match(code, /if \(verdict === "prompt"\) \{\s*if \(!graceUsed\(grace, lessonId\)\) return \{ kind: "prompt" \};/);
     assert.match(code, /"data-gate": blocked\.kind/);
     // The pass is written to the store the trial and the progress already use, and it is recorded
     // as an event so the funnel can tell a prompted reader from a walled one.
@@ -642,21 +588,37 @@ describe("drill.js source", () => {
     assert.match(code, /track\("gate_view", \{ id: lessonId, reason: "prompt", after: null \}\);/);
   });
 
-  it("points both walls at the offer page", () => {
-    // A wall with nowhere to go is a dead end: the prompt and the trial gate both name the price page.
-    assert.match(code, /class: "btn", href: "\/pricing", text: "See what the rest costs"/);
-    assert.match(code, /href: "\/pricing", text: "what it costs"/);
+  it("asks the paywall before the order gate, so the free tour is walkable", () => {
+    // Two locks can stand in front of an exercise. The paywall is the one that knows whether the reader
+    // may be here at all; the order gate only makes sense inside the paid track, whose sequence the free
+    // ten are not a prefix of. Reading them in the other order asked a free exercise for its paid
+    // predecessor ("exercise 23"), which nobody who follows `/start` has finished.
+    const gate = code.slice(code.indexOf("function blockingGate()"), code.indexOf("function openAfterGate"));
+    const verdict = gate.indexOf("gateFor(payload.track)");
+    const order = gate.indexOf("canStart(");
+    assert.ok(verdict > -1 && order > -1, "both locks are asked in blockingGate");
+    assert.ok(verdict < order, "the paywall verdict comes first");
   });
 
-  it("says storage is blocked on the drill page instead of losing the save in silence", () => {
+  it("points both walls at the offer page", () => {
+    // A wall with nowhere to go is a dead end: the prompt and the pre-launch gate both name the price page.
+    assert.match(code, /class: "btn", href: "\/pricing", text: "See what the rest costs"/);
+    // The hard wall buys one plan, so the other two are one link away rather than unreachable.
+    assert.match(code, /el\("a", \{ href: "\/pricing", text: "pricing page" \}\)/);
+    // And a returning buyer is pointed at the account rather than told to buy again.
+    assert.match(code, /const account = payload\.paywall\?\.account;/);
+    assert.match(code, /Already bought it\?/);
+  });
+
+  it("says storage is blocked on the exercise page instead of losing the save in silence", () => {
     // `createStore().write` still swallows a quota/private-mode throw — that is the recorded
     // behaviour, not something to change here. What was missing is the warning: the dashboard
-    // owns the sentence, and the drill must say the same one once the probe has failed.
+    // owns the sentence, and the exercise must say the same one once the probe has failed.
     const sentence =
-      "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.";
+      "This browser blocks local storage, so nothing is saved. The exercises still work, but this page cannot remember them.";
     const dashboard = stripComments(readFileSync(join(ROOT, "legacy/src/client/dashboard.js"), "utf8"));
     assert.ok(dashboard.includes(sentence), "the dashboard sentence moved; update both pages together");
-    assert.ok(code.includes(sentence), "the drill does not repeat the dashboard's blocked-storage sentence");
+    assert.ok(code.includes(sentence), "the exercise does not repeat the dashboard's blocked-storage sentence");
     assert.match(code, /const storage = safeStorage\(\);\s*const store = createStore\(storage\);\s*if \(!storage\) mountStorageWarning\(\);/);
     assert.match(code, /rail\.querySelector\("\.rail-count"\)/);
     // The note is prose, not a count. It shares the rail meta typography through `.rail-note`;

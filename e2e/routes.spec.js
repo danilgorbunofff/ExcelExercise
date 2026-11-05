@@ -5,7 +5,7 @@
 import { expect, test } from "@playwright/test";
 
 import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
-import { indexablePaths } from "../legacy/src/site/seo.mjs";
+import { extraKeys, indexablePaths } from "../legacy/src/site/seo.mjs";
 import { loadProjectTrack } from "../lib/projects.js";
 import { loadSite } from "../lib/site.js";
 
@@ -20,7 +20,9 @@ const EXPECTED_PATHS = indexablePaths({
   index: site.index,
   groups: dashboardGroups({ track: site.track, index: site.index }),
   articles: site.articles.map((article) => ({ path: NOTE_PATH(article), updated: article.updated })),
-  extra: site.articles.length > 0 ? ["exercises", "functions", "about", "privacy", "terms"] : ["exercises", "about", "privacy", "terms"],
+  formulas: site.formulas,
+  shortcuts: site.shortcuts,
+  extra: extraKeys({ articles: site.articles, formulas: site.formulas, shortcuts: site.shortcuts }),
 }).map((entry) => entry.path);
 
 test("the legacy lesson URLs redirect to the ported route", async ({ request }) => {
@@ -38,7 +40,7 @@ test("/index.html redirects to the root", async ({ request }) => {
 test("an unknown path answers 404 with the site chrome", async ({ page }) => {
   const response = await page.goto("/nothing-here");
   expect(response.status()).toBe(404);
-  await expect(page.locator("h1")).toHaveText("That page is not a drill");
+  await expect(page.locator("h1")).toHaveText("That page does not exist");
   await expect(page.locator(".site .brand")).toBeVisible();
   await expect(page.locator("a.btn-primary")).toHaveAttribute("href", "/");
 });
@@ -61,7 +63,7 @@ test("an invented slug in each dynamic family is a 404 the first time it is aske
     const response = await request.get(path);
     expect(response.status(), `${path} answered with a success status (a soft 404)`).toBe(404);
     expect(response.headers()["content-type"]).toContain("text/html");
-    expect(await response.text()).toContain("That page is not a drill");
+    expect(await response.text()).toContain("That page does not exist");
   }
 });
 
@@ -103,17 +105,16 @@ test("no page asks a third-party origin for anything", async ({ page }) => {
 });
 
 /**
- * The menu blocks are the site's navigation — the header is the mark, the count and the badge — so a
- * page they name is a page a visitor can reach, and a page they do not name is a page only a typed URL
- * finds. This asserts both halves: the home page's "More ways in" and the dashboard's "Your tools"
- * between them name every surface, every name resolves, and the footer stays the colophon it now is
- * rather than growing a second navigation row again.
+ * The drawer is the site's navigation — the header is the mark, the count and the badge — so a page it
+ * names is a page a visitor can reach, and a page it does not name is a page only a typed URL finds.
+ * This asserts both halves: the drawer names every surface, every name resolves on the page it is
+ * opened from, and the footer stays the colophon it now is rather than growing a second navigation row.
  */
-test("every way out the page menus offer is a page that exists", async ({ page, request }) => {
+test("every way out the drawer offers is a page that exists", async ({ page, request }) => {
   const menu = async (path) => {
     await page.goto(path);
     return page
-      .locator("nav.ways a[href^='/']")
+      .locator("#site-menu a[href^='/']")
       .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
   };
   const hrefs = [...(await menu("/")), ...(await menu("/learn"))];
@@ -136,7 +137,7 @@ test("every way out the page menus offer is a page that exists", async ({ page, 
 
 /**
  * The footer test above proves the one navigation row. It does not prove the body links on the pages
- * only the app has — the dashboard cards, the project shelf, the drill rail, the legal pages' account
+ * only the app has — the dashboard cards, the project shelf, the exercise rail, the legal pages' account
  * links — and those are exactly where a route can vanish without any assertion noticing. So walk a
  * representative page from each surface and resolve every internal href it emits.
  */
@@ -189,10 +190,24 @@ test("the sitemap and robots the app serves describe the routes it actually has"
     // A sitemap full of redirects is worse than none: `/excel/*` only ever 308s.
     const served =
       pathname === "/" ||
-      ["/privacy", "/terms", "/about", "/excel-exercises", "/excel-functions"].includes(pathname) ||
+      [
+        "/privacy",
+        "/terms",
+        "/about",
+        "/excel-exercises",
+        "/excel-functions",
+        "/formulas",
+        "/shortcuts",
+        "/search",
+        "/start",
+      ].includes(
+        pathname,
+      ) ||
       pathname.startsWith("/learn/groups/") ||
       pathname.startsWith("/learn/excel/") ||
-      pathname.startsWith("/excel-functions/");
+      pathname.startsWith("/excel-functions/") ||
+      pathname.startsWith("/formulas/") ||
+      pathname.startsWith("/shortcuts/");
     expect(served, `${loc} is not a served route`).toBe(true);
   }
   for (const page of ["/privacy", "/terms", "/about", "/excel-exercises"]) {

@@ -100,7 +100,7 @@ describe("createCollector", () => {
     collector.restore(lesson, sent);
     const events = collector.take(lesson);
     assert.equal(events.length, 2);
-    assert.equal(events[0], refused, "the retried event goes first, so the drill order survives");
+    assert.equal(events[0], refused, "the retried event goes first, so the exercise order survives");
     assert.equal(events[1].type, "lesson_complete");
   });
 

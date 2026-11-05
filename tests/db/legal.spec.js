@@ -171,7 +171,7 @@ describe('deleting the account', () => {
 
   it('revokes entitlement immediately, before the identity is deleted', async () => {
     const { body } = await write('rpc/is_entitled', alice, { uid: alice.id });
-    assert.equal(body, false, 'a deleted account is still served the paid drills');
+    assert.equal(body, false, 'a deleted account is still served the paid exercises');
     const { body: bobStill } = await write('rpc/is_entitled', bob, { uid: bob.id });
     assert.equal(bobStill, true, 'deleting one account revoked another');
   });

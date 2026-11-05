@@ -19,7 +19,7 @@ import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 
 import { grade } from "../packages/grader/grade.js";
-import { shippedWorkbooks } from "./lessons.js";
+import { shippedSheetScreens } from "./lessons.js";
 import { gradeAnswer } from "../packages/grader/answers.js";
 import { matchesTyped, matchesTypedSteps, parseChord, parsePress } from "../packages/keys/index.js";
 import { createSession, recordVerdict } from "../packages/session/index.js";
@@ -115,7 +115,7 @@ describe("a lesson that uses all five screen types", () => {
 
     const page = readFileSync(join(out, "excel/xlookup-search-from-the-bottom.html"), "utf8");
     const payload = page.match(/<script type="application\/json" id="exercise-data">([\s\S]*?)<\/script>/);
-    assert.ok(payload, "the page ships no drill payload");
+    assert.ok(payload, "the page ships no exercise payload");
     screens = JSON.parse(payload[1]).screens;
   });
 
@@ -124,7 +124,8 @@ describe("a lesson that uses all five screen types", () => {
   });
 
   it("builds, writes the workbook and passes the post-build verifier", () => {
-    assert.equal(summary.files, 1 + shippedWorkbooks([LESSON]), "the summary does not count the workbook");
+    // Three of the seven screens carry a grid or a sheet; the shortcut and picture screens do not.
+    assert.equal(summary.files, 3 + shippedSheetScreens([LESSON]), "the summary does not count the workbooks");
     assert.ok(existsSync(join(out, "assets/files/xlookup-search-from-the-bottom-book-total.xlsx")));
     assert.deepEqual(verify({ root: join(work, "legacy"), dist: out, env: ENV }).failures, []);
   });

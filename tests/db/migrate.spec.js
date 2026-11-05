@@ -103,7 +103,7 @@ describe('import_lesson_progress writes the roll-up and nothing else', () => {
 
 describe('migrating merges instead of overwriting', () => {
   it('keeps the earliest completion, the higher score and the sticky help flag', async () => {
-    // A real batch first: the learner finished this drill while signed in, today.
+    // A real batch first: the learner finished this exercise while signed in, today.
     const recorded = await rest('rpc/record_progress', {
       as: 'service',
       method: 'POST',

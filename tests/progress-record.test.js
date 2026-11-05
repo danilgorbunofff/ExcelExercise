@@ -2,7 +2,7 @@
  * Two stores, one shape: the record `GET /api/progress` answers from `lesson_progress`, and the union
  * of that record with what the browser kept.
  *
- * The cases that matter are the ones a learner meets as a wrong dashboard: a drill finished before
+ * The cases that matter are the ones a learner meets as a wrong dashboard: an exercise finished before
  * sign-up vanishing on the second device (D10), a completion without a timestamp arriving as a done
  * row the dashboard cannot draw, and a merge that reports "changed" on every load so the page repaints
  * forever.
@@ -68,7 +68,7 @@ describe("mergeProgress", () => {
     unlocked: false,
   });
 
-  it("keeps a drill finished only in this browser (D10: sign-up must not erase it)", () => {
+  it("keeps an exercise finished only in this browser (D10: sign-up must not erase it)", () => {
     const { progress, changed } = mergeProgress(local(), { done: {}, tries: {} });
     assert.deepEqual(progress.done.mine, { at: AT, tries: 1, helped: false });
     assert.equal(progress.tries.started, 2);

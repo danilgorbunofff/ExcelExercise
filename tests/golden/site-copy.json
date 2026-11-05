@@ -1,0 +1,5878 @@
+[
+ [
+  "label:/",
+  "Q1 revenue by region, read-only data"
+ ],
+ [
+  "label:/excel/match-find-a-value-s-position",
+  "Answer cell B7, empty"
+ ],
+ [
+  "label:/excel/match-find-a-value-s-position",
+  "Four months and their units, read-only data"
+ ],
+ [
+  "label:/excel/match-find-a-value-s-position",
+  "Your formula for B7"
+ ],
+ [
+  "label:/excel/shortcut-select-to-edge",
+  "Press the keys in order, or type them in the bar"
+ ],
+ [
+  "label:/excel/shortcut-select-to-edge",
+  "Press the shortcut, or type it in the bar"
+ ],
+ [
+  "label:/excel/shortcut-select-to-edge",
+  "Type the shortcut"
+ ],
+ [
+  "label:/excel/sum-basics",
+  "Answer cell B5, empty"
+ ],
+ [
+  "label:/excel/sum-basics",
+  "Your formula for B5"
+ ],
+ [
+  "label:/learn/groups/aggregate",
+  "SUMPRODUCT and friends"
+ ],
+ [
+  "label:/learn/groups/date",
+  "Dates and deadlines"
+ ],
+ [
+  "label:/learn/groups/errors",
+  "Errors and blanks"
+ ],
+ [
+  "label:/learn/groups/index-match",
+  "INDEX and MATCH"
+ ],
+ [
+  "label:/learn/groups/logical",
+  "Decisions with IF"
+ ],
+ [
+  "label:/learn/groups/lookup",
+  "Looking values up"
+ ],
+ [
+  "label:/learn/groups/statistical",
+  "Averages and ranks"
+ ],
+ [
+  "label:/learn/groups/sum",
+  "Adding things up"
+ ],
+ [
+  "label:/search",
+  "sum one region"
+ ],
+ [
+  "label:/shortcuts",
+  "Freeze, filter, Ctrl + Shift + L"
+ ],
+ [
+  "label:/start",
+  "Full access to the whole course"
+ ],
+ [
+  "meta:/",
+  "86 Excel formula exercises, graded in your browser. A wrong answer comes back with the rule it broke. 10 are free, with no account and no card."
+ ],
+ [
+  "meta:/404",
+  "Page not found"
+ ],
+ [
+  "meta:/404",
+  "That address does not match a page on this site. The front page and the catalogue of 86 Excel exercises are one click away."
+ ],
+ [
+  "meta:/about",
+  "What Excel Supreme is, how the formula checker grades an answer, and how the exercises are written and tested."
+ ],
+ [
+  "meta:/excel-exercises",
+  "Hand-checked Excel exercises for 16 skills: SUM, IF, VLOOKUP, COUNTIF and more. Type a formula, get told exactly what is wrong."
+ ],
+ [
+  "meta:/excel-functions",
+  "Plain-language notes on the Excel functions that do most of the work, each ending in an exercise you can try on the page. No signup."
+ ],
+ [
+  "meta:/excel-functions/countif",
+  "How COUNTIF works in Excel, counting text, numbers and blank cells, three worked examples, its common errors, and an exercise on a ticket log."
+ ],
+ [
+  "meta:/excel/match-find-a-value-s-position",
+  "Mar is the third entry of Jan, Feb, Mar, Apr, so MATCH answers 3. The third argument 0 demands an exact match, and 1 needs a list sorted ascending."
+ ],
+ [
+  "meta:/excel/match-find-a-value-s-position",
+  "MATCH in Excel: find a value's position"
+ ],
+ [
+  "meta:/excel/shortcut-select-to-edge",
+  "Select every row of a list with one chord, then freeze a header row with the ribbon's access keys. Two presses, graded as you make them."
+ ],
+ [
+  "meta:/excel/shortcut-select-to-edge",
+  "Select to the edge of a block in Excel"
+ ],
+ [
+  "meta:/excel/sum-basics",
+  "SUM adds a whole range in one cell. This exercise totals 3580 from three rows, then shows why a number stored as text never reaches the total."
+ ],
+ [
+  "meta:/excel/sum-basics",
+  "SUM in Excel: total a column in one cell"
+ ],
+ [
+  "meta:/formulas",
+  "Look up a value, count what a range holds, round to a whole crate. Each problem gets one formula, the reason it works, and an exercise you can try."
+ ],
+ [
+  "meta:/formulas/count-only-the-numbers-with-count",
+  "How COUNT counts numbers only, why text arrives invisible to it, why SUM disagrees, and the errors to expect."
+ ],
+ [
+  "meta:/learn",
+  "What you have finished, what wants another look, and which exercise to open next."
+ ],
+ [
+  "meta:/pricing",
+  "10 exercises free, the rest from $9.99"
+ ],
+ [
+  "meta:/pricing",
+  "10 of the 86 Excel exercises are free, with no account and no card. The other 76 come with the track, from $9.99 a month."
+ ],
+ [
+  "meta:/privacy",
+  "What Excel Supreme stores, what stays in your browser, which cookies exist (one, essential), how to export your data and how to delete your account."
+ ],
+ [
+  "meta:/search",
+  "Search 86 Excel exercises by the job you need done: lookups, counts, dates, text, totals. Every result is an exercise you can start in one click."
+ ],
+ [
+  "meta:/search",
+  "Search the exercises"
+ ],
+ [
+  "meta:/shortcuts",
+  "Excel keyboard shortcuts, by family"
+ ],
+ [
+  "meta:/shortcuts",
+  "Six pages of Excel keys: the Windows and macOS chord for every action, a note where a platform has no default, and an exercise that asks for the keys."
+ ],
+ [
+  "meta:/shortcuts/navigation",
+  "The keyboard shortcuts for moving around an Excel workbook on Windows and macOS, and what Google Sheets offers instead."
+ ],
+ [
+  "meta:/start",
+  "Start here: the ten free Excel exercises"
+ ],
+ [
+  "meta:/start",
+  "The ten free Excel exercises from the track, in the order to take them: SUM, COUNTIF, IF, VLOOKUP and a level-3 SUMIFS to finish. No account needed."
+ ],
+ [
+  "meta:/terms",
+  "The terms for using Excel Supreme: the free exercises, the paid track, acceptable use, the limits of a teaching grader, and how to end your account."
+ ],
+ [
+  "module:app/account/deleted/page.js",
+  "are free and need no account."
+ ],
+ [
+  "module:app/account/deleted/page.js",
+  "Back to the exercises"
+ ],
+ [
+  "module:app/account/deleted/page.js",
+  "If you want to start again, the first"
+ ],
+ [
+  "module:app/account/deleted/page.js",
+  "Signed out, erased, and not coming back."
+ ],
+ [
+  "module:app/account/deleted/page.js",
+  "Two things were kept: your payment and entitlement records, now with no name or email attached to them, and the notes you sent us. They are what a refund or a tax record needs. You can read the whole list on the"
+ ],
+ [
+  "module:app/account/deleted/page.js",
+  "What was erased, and what was kept without your name."
+ ],
+ [
+  "module:app/account/deleted/page.js",
+  "Your account is gone"
+ ],
+ [
+  "module:app/account/deleted/page.js",
+  "Your profile, your progress, every saved answer and your points are gone from the database. Nothing will be graded against that account again, and there is no copy to restore."
+ ],
+ [
+  "module:app/account/page.js",
+  "Change your password"
+ ],
+ [
+  "module:app/account/page.js",
+  "Edit your profile"
+ ],
+ [
+  "module:app/account/page.js",
+  "Finish your profile"
+ ],
+ [
+  "module:app/account/page.js",
+  "Loading your account"
+ ],
+ [
+  "module:app/account/page.js",
+  "Manage billing or cancel"
+ ],
+ [
+  "module:app/account/page.js",
+  "me noopener noreferrer"
+ ],
+ [
+  "module:app/account/page.js",
+  "Signed in as N."
+ ],
+ [
+  "module:app/account/page.js",
+  "What is kept, and for how long"
+ ],
+ [
+  "module:app/account/page.js",
+  "Your profile, your plan, and the way out."
+ ],
+ [
+  "module:app/account/profile/screen.js",
+  "Add a display name if you want one."
+ ],
+ [
+  "module:app/account/profile/screen.js",
+  "Pick the name other learners will see. You can change it later."
+ ],
+ [
+  "module:app/account/profile/screen.js",
+  "Skip for now"
+ ],
+ [
+  "module:app/account/profile/screen.js",
+  "Your username is how other learners see you. Everything else is optional, and you can change it later."
+ ],
+ [
+  "module:app/account/week.js",
+  "across N of the last N days."
+ ],
+ [
+  "module:app/account/week.js",
+  "First-try accuracy over the last N days: N."
+ ],
+ [
+  "module:app/account/week.js",
+  "N% of N N first try,"
+ ],
+ [
+  "module:app/account/week.js",
+  "No accuracy to show for the last seven days."
+ ],
+ [
+  "module:app/account/week.js",
+  "Nothing was attempted in the last seven days, so there is no accuracy to show. A finished exercise fills this in."
+ ],
+ [
+  "module:app/auth/actions.js",
+  "Check N for the confirmation link, then sign in."
+ ],
+ [
+  "module:app/auth/actions.js",
+  "If N can receive mail, a sign-in link is on its way."
+ ],
+ [
+  "module:app/auth/actions.js",
+  "If N has an account, a reset link is on its way."
+ ],
+ [
+  "module:app/auth/actions.js",
+  "Keep the display name under 80 characters."
+ ],
+ [
+  "module:app/auth/actions.js",
+  "That username is taken. Try another."
+ ],
+ [
+  "module:app/auth/actions.js",
+  "Your session has ended. Sign in again to save your profile."
+ ],
+ [
+  "module:app/certificate/form.js",
+  "Name as it should appear"
+ ],
+ [
+  "module:app/certificate/form.js",
+  "Same name again"
+ ],
+ [
+  "module:app/certificate/form.js",
+  "The certificate could not be issued just now. Try again in a moment."
+ ],
+ [
+  "module:app/certificate/form.js",
+  "Twice, because the name is printed as typed and cannot be changed afterwards."
+ ],
+ [
+  "module:app/certificate/page.js",
+  ", finished over N dayN"
+ ],
+ [
+  "module:app/certificate/page.js",
+  "A certificate names an account. Sign in and your finished lessons are already waiting."
+ ],
+ [
+  "module:app/certificate/page.js",
+  "Check the public record"
+ ],
+ [
+  "module:app/certificate/page.js",
+  "Every one of the N lessons is recorded as finished. Type your name twice. It is printed as written and cannot be changed afterwards."
+ ],
+ [
+  "module:app/certificate/page.js",
+  "N lessons are left."
+ ],
+ [
+  "module:app/certificate/page.js",
+  "on an unrecorded date"
+ ],
+ [
+  "module:app/certificate/page.js",
+  "One certificate, for the whole N track. N of N lessons are recorded as finished."
+ ],
+ [
+  "module:app/certificate/page.js",
+  "One lesson is left."
+ ],
+ [
+  "module:app/certificate/page.js",
+  "The certificate of completion for the Excel track: what it records, and how to check one."
+ ],
+ [
+  "module:app/daily/page.js",
+  "Fifteen minutes, no hints, one attempt. Ranked on accuracy first and time second, so a careful run beats a fast one that misses. The clock runs on the server, and a screen's first answer is the one that counts. Going back does not replace it."
+ ],
+ [
+  "module:app/daily/page.js",
+  "Finish today's run"
+ ],
+ [
+  "module:app/daily/page.js",
+  "Five topics, ten screens, fifteen minutes. One run a day, ranked on accuracy then time."
+ ],
+ [
+  "module:app/daily/page.js",
+  "Loading today's challenge"
+ ],
+ [
+  "module:app/daily/page.js",
+  "Nobody has finished today's run yet. The first score takes the top of the board."
+ ],
+ [
+  "module:app/daily/page.js",
+  "Start today's run"
+ ],
+ [
+  "module:app/daily/page.js",
+  "The board could not be loaded just now."
+ ],
+ [
+  "module:app/daily/page.js",
+  "The challenge could not be drawn just now. Try again in a moment."
+ ],
+ [
+  "module:app/daily/page.js",
+  "Today's fastest accurate runs"
+ ],
+ [
+  "module:app/daily/page.js",
+  "Today's topics: N."
+ ],
+ [
+  "module:app/daily/page.js",
+  "You are not on today's board yet."
+ ],
+ [
+  "module:app/daily/page.js",
+  "You are number N today."
+ ],
+ [
+  "module:app/daily/page.js",
+  "You finished today's run with N of N correct (N%) in N."
+ ],
+ [
+  "module:app/daily/page.js",
+  "You have a run open: N of N answered, N left. There is no second attempt today, so finishing it is the only way onto the board."
+ ],
+ [
+  "module:app/daily/page.js",
+  "Your run is not on the board."
+ ],
+ [
+  "module:app/daily/run/page.js",
+  "Loading today's run"
+ ],
+ [
+  "module:app/daily/run/page.js",
+  "Starting today's run"
+ ],
+ [
+  "module:app/daily/run/page.js",
+  "Ten screens, fifteen minutes, one attempt. No hints and no going back."
+ ],
+ [
+  "module:app/daily/run/page.js",
+  "Ten screens, fifteen minutes, one attempt. The clock is the server's and a screen's first answer is the one that counts."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "Answer in N."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "Finished: N of N correct (N%) in N."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "Not this time."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "request failed (N)"
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "Screen N of N · N left"
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "See the score"
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "That answer is recorded. A screen's first answer is the one that counts."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "That screen is closed and counted."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "The clock ran out, so the run closed with the answers it had."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "The reference answer: N"
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "The run could not continue: N."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "There is no screen left in this run."
+ ],
+ [
+  "module:app/daily/run/runner.js",
+  "Time is up. The run closes with the answers it already has."
+ ],
+ [
+  "module:app/error.js",
+  "Back to the track"
+ ],
+ [
+  "module:app/error.js",
+  "Excel Supreme grades formulas in the browser. Nothing you type is sent anywhere."
+ ],
+ [
+  "module:app/error.js",
+  "Skip to the exercise"
+ ],
+ [
+  "module:app/excel-exercises/page.js",
+  "Excel exercises ·"
+ ],
+ [
+  "module:app/excel-functions/page.js",
+  "Excel functions, explained in plain words ·"
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "Card N of N · N due · N new · N in the deck"
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "Finish an exercise and its screens become cards: the question and the sheet on the front, the formula and one line of the lesson on the back."
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "Flashcards come from lessons you have finished, and there are none in this browser yet."
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "How did that feel? Left is the worse grade, right the better."
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "Lesson N · N"
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "Nothing is due right now."
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "Nothing is scheduled yet. Finish an exercise to add cards."
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "You went through N N this session."
+ ],
+ [
+  "module:app/flashcards/deck.js",
+  "Your cards could not be loaded just now (N). Try again in a moment."
+ ],
+ [
+  "module:app/flashcards/page.js",
+  "Accounts are off here, so your cards come from this browser only."
+ ],
+ [
+  "module:app/flashcards/page.js",
+  "Shuffling your cards"
+ ],
+ [
+  "module:app/flashcards/page.js",
+  "The screens you have finished, one card at a time: the question and sheet in front, the formula behind."
+ ],
+ [
+  "module:app/formulas/page.js",
+  "Excel problems, answered with one formula ·"
+ ],
+ [
+  "module:app/leaderboard/page.js",
+  "A streak counts a day on which you finished at least one lesson, and it survives a day off in your timezone."
+ ],
+ [
+  "module:app/leaderboard/page.js",
+  "Loading the board"
+ ],
+ [
+  "module:app/leaderboard/page.js",
+  "Nobody is on this board today yet. The first lesson of the day takes the top of it."
+ ],
+ [
+  "module:app/leaderboard/page.js",
+  "The board could not be loaded just now. Try again in a moment."
+ ],
+ [
+  "module:app/leaderboard/page.js",
+  "The top three by points and by streak today, and where you are."
+ ],
+ [
+  "module:app/leaderboard/page.js",
+  "Today's top N by N"
+ ],
+ [
+  "module:app/leaderboard/page.js",
+  "You are not on this board today."
+ ],
+ [
+  "module:app/reset/password/page.js",
+  "Checking your link"
+ ],
+ [
+  "module:app/reset/password/page.js",
+  "Send me a new link"
+ ],
+ [
+  "module:app/reset/password/page.js",
+  "Set a new password"
+ ],
+ [
+  "module:app/search/page.js",
+  "Search the exercises ·"
+ ],
+ [
+  "module:app/shortcuts/page.js",
+  "Excel keyboard shortcuts, by family ·"
+ ],
+ [
+  "module:app/verify/[id]/page.js",
+  ", recorded N"
+ ],
+ [
+  "module:app/verify/[id]/page.js",
+  "A credential id is sixteen characters: digits and capital letters, without I, L, O or U."
+ ],
+ [
+  "module:app/verify/[id]/page.js",
+  "Check a certificate"
+ ],
+ [
+  "module:app/verify/[id]/page.js",
+  "Check an Excel Supreme certificate of completion by its credential id."
+ ],
+ [
+  "module:app/verify/[id]/page.js",
+  "This credential resolves to a record. That is what the certificate claims."
+ ],
+ [
+  "module:app/verify/[id]/page.js",
+  "This credential resolves, and it has been revoked."
+ ],
+ [
+  "module:app/verify/[id]/page.js",
+  "Verify a certificate"
+ ],
+ [
+  "module:legacy/src/client/article-drill.js",
+  "Correct. The whole exercise has more screens: open it from the link below."
+ ],
+ [
+  "module:legacy/src/client/article-drill.js",
+  "Hide the hint"
+ ],
+ [
+  "module:legacy/src/client/article-drill.js",
+  "Not yet. Check the references and try again."
+ ],
+ [
+  "module:legacy/src/client/article-drill.js",
+  "Type a formula first."
+ ],
+ [
+  "module:legacy/src/client/dashboard.js",
+  "Click again to erase"
+ ],
+ [
+  "module:legacy/src/client/dashboard.js",
+  "Opens after exercise N"
+ ],
+ [
+  "module:legacy/src/client/dashboard.js",
+  "Progress cleared. Every exercise is unstarted again."
+ ],
+ [
+  "module:legacy/src/client/dashboard.js",
+  "This browser would not let the page clear its storage."
+ ],
+ [
+  "module:legacy/src/client/dashboard.js",
+  "This deletes every completion in this browser. Click again within six seconds."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Already bought it?"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Already bought it? Sign in to the account you bought it with."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Answer cell N, N: N"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Attempt N of N."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Back to all exercises"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Completed with help."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Continue free this once"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "cover rounding, lookups, and text splitting"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Every exercise is unlocked in this browser. Your progress is kept here too."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Every plan, and what stays free, is on the"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Function ruled out"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N attempts on this screen. The reference answer is available below."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N Counted as completed with the reference answer."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N N is open. The other N come with the track."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N N opens after N N"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N Ns come with the track. One free pass, remembered in this browser. Nothing is sent anywhere."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N of N exercises completeN"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N of the N Ns come with the track. They N. The N free ones stay free for good."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N Screen N of N."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N The answer is in the bar and in the cell. Edit either one to practise it again."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "N This counts as completed with help."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Not the answer"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Nothing to check yet"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "On your record since N, completed with the reference answer."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "On your record since N."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "One click below opens the whole track in this browser."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "One free pass used"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "One N from the paid half, open"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "One purchase opens the whole track, on every device you sign in to."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Press the keys in order. Escape starts the run again."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Press the shortcut, or type it in the bar."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Right first time."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "screen N of N ·"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "See what the rest costs"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Sign in to your account"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Solved after N N."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Solved again. This lesson was already on your record."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Solved on the first attempt."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Step N wanted a different key. Start the run again from the first one."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "That formula is not right yet. Check the hint and try again."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "That formula stopped the checker. Simplify it and try again."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "That is not the sequence. Type every press in order, separated by commas, like Alt, H, O."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "That is not the shortcut this screen wants."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "That is not the shortcut. Type the keys that are held, then the key, like Ctrl + Shift + L."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "The answer is N."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "The formula cannot be read"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "The keys are N."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "The N free Ns stay free for good. This one opens on a click, once, so you can judge the rest before deciding anything."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "The rest of the track is paid"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "The shortcut is N."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "The track is in order, so finishing \"N\" opens this one."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "The track is open"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "This browser blocks local storage, so nothing is saved. The exercises still work, but this page cannot remember them."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "This browser will not pass these keys to the page. Type the keys in the bar, in order, separated by commas."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "This browser will not pass these keys to the page. Type the shortcut in the bar instead."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Type a formula in the bar, starting with =, then press Enter."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Type the answer in the bar, then press Enter."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Type the keys in order"
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Type the keys in order, separated by commas, then press Enter."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Type the shortcut, then press Enter."
+ ],
+ [
+  "module:legacy/src/client/drill.js",
+  "Your formula for N"
+ ],
+ [
+  "module:legacy/src/client/feedback.js",
+  "Choose one of the three first. The note on its own is not enough."
+ ],
+ [
+  "module:legacy/src/client/feedback.js",
+  "N of N characters"
+ ],
+ [
+  "module:legacy/src/client/feedback.js",
+  "Saved in this browser, and nowhere else: this copy of the site has no way to receive it yet. Thank you for writing. That is all this form can do here."
+ ],
+ [
+  "module:legacy/src/client/feedback.js",
+  "Sent. Thank you. A person reads these, and the page you were on came with it."
+ ],
+ [
+  "module:legacy/src/client/feedback.js",
+  "This browser refused to keep the note, so it is gone as soon as you close this. Nothing was sent."
+ ],
+ [
+  "module:legacy/src/client/search.js",
+  "N N for \"N\"."
+ ],
+ [
+  "module:legacy/src/client/search.js",
+  "No exercise covers \"N\" yet. Every exercise is listed below."
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "exercise payload is missing id"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "exercise payload is missing track.free"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "exercise payload is not JSON: N"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "exercise payload must be an object"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "exercise payload must carry at least one screen"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "exercise payload screen N"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "Free while the store is closed. It is remembered in this browser, not on an account."
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "N is missing answerCell"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "N is missing answers"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "N is missing expect.value"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "N is missing grid.rows"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "N is missing N"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "N must be an object"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "Unlock the track: N"
+ ],
+ [
+  "module:legacy/src/client/state.js",
+  "Unlock the whole track for this browser"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "An account keeps your progress on any device. The free exercises stay free either way."
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Anything to add? Optional."
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Back to sign in"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Clear in parts"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Create an account to keep your exercise progress on every device."
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Display name (optional)"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Easy to follow"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Email me a sign-in link instead"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Forgot your password?"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Hard to follow"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "How easy was this page to follow?"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "How is this going?"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "I already have an account"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Loading the form"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "messages: no entry for \"N\""
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Print the certificate"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Print this record"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Request a password reset link for your Excel exercise account."
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Reset your password"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Send reset link"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Sign in to keep your exercise progress on every device you use."
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Sign in to pick up the track where you stopped, on any device."
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "Skip to the N"
+ ],
+ [
+  "module:legacy/src/site/messages.mjs",
+  "We email a link that signs you in once, so you can choose a new password."
+ ],
+ [
+  "module:legacy/src/site/social.mjs",
+  "Excel formula practice in a spreadsheet, graded as you type."
+ ],
+ [
+  "module:lib/auth/credentials.js",
+  "Enter your email address."
+ ],
+ [
+  "module:lib/auth/credentials.js",
+  "Enter your password."
+ ],
+ [
+  "module:lib/auth/credentials.js",
+  "That does not look like an email address."
+ ],
+ [
+  "module:lib/auth/credentials.js",
+  "Use at most 72 characters."
+ ],
+ [
+  "module:lib/auth/errors.js",
+  "Confirm your email first. The link is in your inbox."
+ ],
+ [
+  "module:lib/auth/errors.js",
+  "Sign-ups are closed on this site."
+ ],
+ [
+  "module:lib/auth/errors.js",
+  "That did not work. Try again."
+ ],
+ [
+  "module:lib/auth/errors.js",
+  "That email already has an account. Sign in instead."
+ ],
+ [
+  "module:lib/auth/errors.js",
+  "That email and password do not match an account."
+ ],
+ [
+  "module:lib/auth/errors.js",
+  "Too many attempts. Wait a minute, then try again."
+ ],
+ [
+  "module:lib/auth/errors.js",
+  "Use at least 8 characters."
+ ],
+ [
+  "module:lib/auth/profile.js",
+  "Choose a username."
+ ],
+ [
+  "module:lib/auth/profile.js",
+  "Point at your profile, not the front page."
+ ],
+ [
+  "module:lib/auth/profile.js",
+  "That does not look like a LinkedIn address."
+ ],
+ [
+  "module:lib/auth/profile.js",
+  "That username is reserved. Pick another."
+ ],
+ [
+  "module:lib/auth/profile.js",
+  "Use a linkedin.com address."
+ ],
+ [
+  "module:lib/auth/profile.js",
+  "Use at least N characters."
+ ],
+ [
+  "module:lib/auth/profile.js",
+  "Use at most N characters."
+ ],
+ [
+  "module:lib/auth/profile.js",
+  "Use letters, digits, dots, underscores and hyphens, and start and end with a letter or digit."
+ ],
+ [
+  "module:lib/certificate/eligibility.js",
+  "Excel Supreme: Certificate of Completion"
+ ],
+ [
+  "module:lib/certificate/eligibility.js",
+  "The two entries do not match. The name cannot be changed after the certificate is issued."
+ ],
+ [
+  "module:lib/certificate/eligibility.js",
+  "Use at least N characters, exactly as it should appear on the certificate."
+ ],
+ [
+  "module:lib/flags.js",
+  "Flashcards are switched off on this deployment. Your finished lessons are still recorded."
+ ],
+ [
+  "module:lib/flags.js",
+  "Streaks are switched off on this deployment. Finished lessons are still recorded and points are still paid."
+ ],
+ [
+  "module:lib/flags.js",
+  "The daily challenge is switched off on this deployment. The exercises are unaffected."
+ ],
+ [
+  "module:lib/flags.js",
+  "unknown feature flag: N (known: N)"
+ ],
+ [
+  "module:lib/not-found.js",
+  "Every exercise is on the track page, and each one grades in your browser: no account, no upload."
+ ],
+ [
+  "module:lib/not-found.js",
+  "That page does not exist"
+ ],
+ [
+  "module:packages/grader/address.js",
+  "bad column index N"
+ ],
+ [
+  "module:packages/grader/address.js",
+  "bad range N:N"
+ ],
+ [
+  "module:packages/grader/address.js",
+  "N:N covers N cells. Use the columns your table fills, not a whole block."
+ ],
+ [
+  "module:packages/grader/answers.js",
+  "That is not what the cell holds."
+ ],
+ [
+  "module:packages/grader/answers.js",
+  "That is not what the image shows."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "\"N\" is not a cell reference or a function. Check the spelling."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "\"N\" is not one of the functions this track covers. Check the spelling."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "a spilled block of N rowN by N columnN"
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "an empty cell"
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "bad startCell N"
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "Cannot evaluate a \"N\" node."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "Dividing by zero. A cell in the divisor is empty or holds 0."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "IFS found no TRUE condition."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "IFS: every condition needs a value after it."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "SWITCH found no matching case and no default."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "That power is too large to calculate."
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "the block N:N"
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "The left side of the calculation"
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "The right side of the calculation"
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "The value after \"N\""
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "The value before %"
+ ],
+ [
+  "module:packages/grader/evaluate.js",
+  "Unknown operator \"N\"."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "\"N\" is text, and N cannot add text."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "\"N\" is text, and N needs a block of numbers."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "AGGREGATE's option N is not one of 0 to 7."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "argument N is NxN but must be NxN, the size of the range it filters."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "argument N must be a range of cells."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "argument N must be a reference to cells."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "argument N runs off the edge of the sheet."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "AVERAGEIFS found no numbers that match every criterion."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "every criterion range needs a criterion after it."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "expected N argumentN, got N."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "FILTER found no rows that match, and no value was given for that case."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "FIND could not locate \"N\" in \"N\"."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "FIND's start position begins at 1."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "give at least a row number."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "give at least one range followed by its criterion."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "INDEX is outside the range: the range is N×N cells."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "INDEX needs a row and column of 1 or more."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "LARGE and SMALL need the block and a position."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "LEFT needs a character count of 0 or more."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "MATCH found no exact match for N."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "MATCH found no value large enough for N."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "MATCH found no value small enough for N."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "MEDIAN found no numbers to work with."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "MID needs a character count of 0 or more."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "MID's start position begins at 1."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "MODE found no value repeated more than once."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N cannot round N to a multiple of N: the two numbers have different signs."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N cannot round to a multiple of 0."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N cannot use N. Use 1 to 11 (1 AVERAGE, 2 COUNT, 3 COUNTA, 4 MAX, 5 MIN, 6 PRODUCT, 9 SUM)."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N could not find delimiter N in \"N\"."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N found no exact match for N in the first N."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N found no numbers to average."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N found no numbers to work with."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N needs an instance number that is not 0."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N needs at least two numbers for that code."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N: \"N\" is not a unit DATEDIF knows."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N: N is not a date this sheet can hold."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N: N-N-N is before the first date this sheet can hold."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N: the start date is after the end date."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N's N number must be 1 or more."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "N's N number N is N than the table (N)."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "NA() writes #N/A on purpose."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "no logical values were given."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "RANK found no N in that block."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "RIGHT needs a character count of 0 or more."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "SEARCH could not locate \"N\" in \"N\"."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "SEARCH's start position begins at 1."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "SORT's sort index must be from 1 to N."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "SUBSTITUTE's instance number begins at 1."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "That number cannot be rounded."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "the include argument is NxN but must be a single column with N rows."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "the lookup and return ranges must be the same size."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "the third argument must be -1, 0 or 1."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "UNIQUE found no value left after filtering."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "WEEKDAY: N is not a week numbering Excel knows."
+ ],
+ [
+  "module:packages/grader/functions.js",
+  "XLOOKUP found no match for N."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "exercise.expect.value is required"
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "N changed to N"
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "N has no N argument, so Excel uses its default instead. Add the argument and check again."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "N is missing from the formula. Add it and check again."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "N needs at least N N here. Yours has N."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "N's N argument is N, but this lesson needs N."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "N's N argument points at an empty cell, so this lesson cannot use it. Fill the cell or point at another one."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "N's N argument points at N instead of a single value. Point at one cell."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "One of the arguments is not what this lesson needs."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "That answer is right for this table but not for the same table with different numbers. Point the formula at the cells instead of typing the result."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "That formula cannot be read yet. Check the brackets and commas."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "The checker could not read that formula. Try a shorter version."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "The formula does not point at the data it is meant to use."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "The formula does not use the function this lesson is teaching."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "The formula runs, but the answer is not the one this lesson expects."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "The formula stops with an error instead of a value."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "The formula uses a function this lesson asks you not to use."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "This lesson asks for a solution without N."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "This lesson compares two values with N. Your formula does not."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "This lesson is about N. Your formula does not use it."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "With N, your formula stops with N instead of returning N."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "Your formula does not refer to N. Point at that cell instead of typing the number."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "Your formula points at N instead of producing one value. Point at the single cell that holds the answer."
+ ],
+ [
+  "module:packages/grader/grade.js",
+  "Your formula returns N, but this lesson expects N."
+ ],
+ [
+  "module:packages/grader/parse.js",
+  "\"N\" cannot start a formula."
+ ],
+ [
+  "module:packages/grader/parse.js",
+  "Inside N, expected \",\" or \")\", found N."
+ ],
+ [
+  "module:packages/grader/parse.js",
+  "N is missing its closing \")\"."
+ ],
+ [
+  "module:packages/grader/parse.js",
+  "That formula is nested more than N levels deep. Break it into smaller steps."
+ ],
+ [
+  "module:packages/grader/parse.js",
+  "The : operator needs a cell reference on each side, like A1:B4."
+ ],
+ [
+  "module:packages/grader/parse.js",
+  "The formula is empty."
+ ],
+ [
+  "module:packages/grader/parse.js",
+  "Unexpected N after the formula."
+ ],
+ [
+  "module:packages/grader/tokenize.js",
+  "\"N\" cannot appear in a formula."
+ ],
+ [
+  "module:packages/grader/tokenize.js",
+  "\"N\" is not a valid cell reference or function."
+ ],
+ [
+  "module:packages/grader/tokenize.js",
+  "A formula has to be text."
+ ],
+ [
+  "module:packages/grader/tokenize.js",
+  "the end of the formula"
+ ],
+ [
+  "module:packages/grader/tokenize.js",
+  "The text is missing its closing quote."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "\"N\" is text, and a condition needs TRUE or FALSE."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "A whole range cannot be compared as a single value."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "A whole range cannot be used where one piece of text is expected."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "N is a range of cells. A single value is needed here."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "N is empty text, not a number."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "N is not a finite number."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "N is not a number."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "N is text (\"N\"), not a number."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "That value cannot be used as a condition."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "The result is not a number."
+ ],
+ [
+  "module:packages/grader/values.js",
+  "The result is too large to calculate."
+ ],
+ [
+  "page:/",
+  "01 SUM: total a column Total a column with one function instead of typing every cell."
+ ],
+ [
+  "page:/",
+  "02 SUMIFS: two conditions at once Total the rows that meet two conditions at once instead of filtering the table first."
+ ],
+ [
+  "page:/",
+  "03 SUMIF: a sum range on another column Paid Total one column while testing a different column for the condition."
+ ],
+ [
+  "page:/",
+  "04 Add only the positives Paid Total the positive and negative rows separately instead of netting a column."
+ ],
+ [
+  "page:/",
+  "05 Debug a total that skips a row Paid Find the row a broken total skips and cover it without double-counting a subtotal."
+ ],
+ [
+  "page:/",
+  "06 SUM across several blocks Paid Add several separate blocks, or one block with gaps, in a single SUM call."
+ ],
+ [
+  "page:/",
+  "07 Running total down a column Paid Build a running total that can be filled down without editing each row."
+ ],
+ [
+  "page:/",
+  "08 Sum functions summary Paid Combine SUM and SUMIF to total a column, a subset of it, and the remainder."
+ ],
+ [
+  "page:/",
+  "09 AVERAGE: mean of a score list Turn five scores into one class average that updates itself."
+ ],
+ [
+  "page:/",
+  "10 MIN and MAX: fastest and slowest Paid Return the smallest or largest number in a range without sorting the sheet first."
+ ],
+ [
+  "page:/",
+  "10 of the 86 are free, with no account and no card. The other 76 come with a paid plan."
+ ],
+ [
+  "page:/",
+  "11 LARGE and SMALL: the nth highest Paid Pick the nth value in an unsorted list instead of sorting it to read one number."
+ ],
+ [
+  "page:/",
+  "12 MEDIAN: the middle value Paid Summarise a list with a middle value that an outlier cannot drag."
+ ],
+ [
+  "page:/",
+  "13 MODE: the most common value Paid Find the value that repeats most often, which is neither the biggest nor the middle."
+ ],
+ [
+  "page:/",
+  "14 Rank a list without sorting it Paid Put a place number on every row of an unsorted list, in either direction."
+ ],
+ [
+  "page:/",
+  "15 Average functions summary Paid Join two summary functions into one answer, reading the nesting inside-out."
+ ],
+ [
+  "page:/",
+  "16 COUNTIF: count one condition Count the rows that meet one condition, and get the edges of the range right."
+ ],
+ [
+  "page:/",
+  "17 COUNT: numbers only, and what it skips Paid Count the cells that hold real numbers, and read a short count as evidence of text."
+ ],
+ [
+  "page:/",
+  "18 COUNTA: count the non-empty cells Paid Count filled cells rather than numbers, so a checklist reports real progress."
+ ],
+ [
+  "page:/",
+  "19 COUNTIFS: several conditions Paid Count the rows that satisfy two conditions at once instead of filtering the table first."
+ ],
+ [
+  "page:/",
+  "20 COUNTIF with wildcards Paid Count partial matches on text instead of listing every exact value that qualifies."
+ ],
+ [
+  "page:/",
+  "21 Count functions summary Paid Tell counting values from counting rows, then use both together to find gaps."
+ ],
+ [
+  "page:/",
+  "22 IF: one test, two answers Write a decision that returns one of two values, chosen by a single test."
+ ],
+ [
+  "page:/",
+  "23 TRUE and FALSE: what a comparison returns Paid Read a comparison as a logical value that other formulas can act on."
+ ],
+ [
+  "page:/",
+  "24 AND, OR and NOT: combining tests Paid Combine several tests into one answer, and choose AND or OR to match the question."
+ ],
+ [
+  "page:/",
+  "25 IFS: more than two outcomes Paid Read a score into one of several bands with a single ordered function."
+ ],
+ [
+  "page:/",
+  "26 SWITCH: match a list of values Paid Translate a short fixed list of codes into labels in one formula."
+ ],
+ [
+  "page:/",
+  "27 ISBLANK, ISNUMBER, ISTEXT: reading a cell's type Paid Tell an empty cell from a text cell and a number, and read the answer as a logical value."
+ ],
+ [
+  "page:/",
+  "28 Logical functions: putting the pieces together Paid Combine a logical test, a combined test and a rounded calculation in one formula."
+ ],
+ [
+  "page:/",
+  "29 SUMIF: total one region Total only the rows that match a region."
+ ],
+ [
+  "page:/",
+  "30 ROUND: money to two decimals Round a marked-up total once, and know that the stored value changed."
+ ],
+ [
+  "page:/",
+  "31 ROUNDUP and ROUNDDOWN: one direction only Paid Choose the direction on purpose, so the count follows the job."
+ ],
+ [
+  "page:/",
+  "32 MROUND and FLOOR: round to a multiple Paid Round to a pack size or a price step instead of to a number of decimals."
+ ],
+ [
+  "page:/",
+  "33 VLOOKUP: exact match Pull a salary out of a table by its ID, with the exact-match flag written out."
+ ],
+ [
+  "page:/",
+  "34 VLOOKUP: approximate match needs a sorted column Paid Read a rate off a band table with approximate match, on a column that rises."
+ ],
+ [
+  "page:/",
+  "35 HLOOKUP: look across a row Paid Pull a price out of a row table by naming the row it sits on."
+ ],
+ [
+  "page:/",
+  "36 VLOOKUP with a wildcard Paid Match a name you half know, and keep the pattern in a cell so it can change."
+ ],
+ [
+  "page:/",
+  "37 Two-way lookup with VLOOKUP and MATCH Paid Return one cell of a grid from a row key and a column key."
+ ],
+ [
+  "page:/",
+  "38 XLOOKUP: exact match, no column counting Paid Return a value from a column anywhere in the table, with no column number to count."
+ ],
+ [
+  "page:/",
+  "39 XLOOKUP: search from the bottom Paid Return the latest entry for a repeated key without sorting the log first."
+ ],
+ [
+  "page:/",
+  "40 XLOOKUP with a fallback when nothing matches Paid Answer a missing SKU with a sentence instead of an error."
+ ],
+ [
+  "page:/",
+  "41 VLOOKUP and XLOOKUP on the same table Paid Read a price with either lookup and know which argument does which job."
+ ],
+ [
+  "page:/",
+  "42 Lookup functions summary Paid Pick the lookup that can return a column to the left of its key."
+ ],
+ [
+  "page:/",
+  "43 INDEX + MATCH: lookup either way Paid Return a value from any column, whichever side of the key it sits on."
+ ],
+ [
+  "page:/",
+  "44 MATCH: find a value's position Paid Find where a value sits in a list, counting the first cell as 1."
+ ],
+ [
+  "page:/",
+  "45 INDEX: a value at a row and column Paid Read any single cell of a grid from a row number and a column number."
+ ],
+ [
+  "page:/",
+  "46 INDEX MATCH: look left of the key Paid Return a value from the left of the key with INDEX and MATCH."
+ ],
+ [
+  "page:/",
+  "47 Two-way INDEX MATCH Paid Read one cell out of a grid by matching its row and column labels."
+ ],
+ [
+  "page:/",
+  "48 INDEX and MATCH summary Paid Read a rate from a sorted band table with INDEX and an approximate MATCH."
+ ],
+ [
+  "page:/",
+  "49 LEFT + FIND: pull out a prefix Paid Pull a prefix of any length out of a code with LEFT and FIND."
+ ],
+ [
+  "page:/",
+  "50 LEN, LEFT and RIGHT: count and cut Measure a string, then cut fixed pieces from either end."
+ ],
+ [
+  "page:/",
+  "51 MID: characters from the middle Paid Read a fixed slice from the middle of a code, from a position you worked out."
+ ],
+ [
+  "page:/",
+  "52 FIND and SEARCH: case-sensitive or not Paid Choose FIND for a case-sensitive position, SEARCH when case should not matter."
+ ],
+ [
+  "page:/",
+  "53 Wildcards in text criteria Paid Write a wildcard criterion in COUNTIF and reuse the same pattern in SUMIF."
+ ],
+ [
+  "page:/",
+  "54 TEXTBEFORE and TEXTAFTER: split on a delimiter Paid Split a code at its delimiter, taking either the part before or the part after."
+ ],
+ [
+  "page:/",
+  "55 Text search summary Paid Combine FIND with MID for a slice, and a wildcard criterion for a filtered average."
+ ],
+ [
+  "page:/",
+  "56 Capstone: North gross margin Paid Total by region, divide to a margin percentage, and leave a blank where revenue is missing."
+ ],
+ [
+  "page:/",
+  "57 Sales summary end to end Paid Total a region with SUMIFS, then answer which region leads with one IF around two totals."
+ ],
+ [
+  "page:/",
+  "58 Lookup dashboard from three tables Paid Read a keyed value with INDEX and MATCH, then chain the pair to reach a third table."
+ ],
+ [
+  "page:/",
+  "59 Clean up an imported list Paid Tidy spacing and case with TRIM and PROPER, then build a lower-case key from the same text."
+ ],
+ [
+  "page:/",
+  "60 Budget versus actual with a variance flag Paid Size a variance as a share of budget, then flag it with one threshold both ways."
+ ],
+ [
+  "page:/",
+  "61 Formula audit: fix five broken sheets Paid Repair five broken cells, one per error code, by choosing the test each code implies."
+ ],
+ [
+  "page:/",
+  "62 CONCAT and the & operator Join two cells into one string, with the space passed in as its own piece."
+ ],
+ [
+  "page:/",
+  "63 TEXTJOIN: join a range and skip blanks Paid Join a column into one line and decide what happens to the blanks."
+ ],
+ [
+  "page:/",
+  "64 UPPER, LOWER and PROPER Paid Normalise capitalisation with UPPER, LOWER and PROPER, and know which one a code needs."
+ ],
+ [
+  "page:/",
+  "65 SUBSTITUTE: replace one piece of text Paid Replace a separator everywhere, then name a single occurrence with the fourth argument."
+ ],
+ [
+  "page:/",
+  "66 IFERROR: catch the error, show your text Paid Replace a failed lookup with words you chose, and know which faults those words will hide."
+ ],
+ [
+  "page:/",
+  "67 IFNA: catch only a missing match Paid Replace a missing lookup match and leave every other error visible."
+ ],
+ [
+  "page:/",
+  "68 Read #N/A, #VALUE! and #REF! Paid Tell a missing match apart from a broken reference, and print that difference as words."
+ ],
+ [
+  "page:/",
+  "69 Error handling: which net catches what Paid Choose the wide net or the narrow one on purpose, and wrap the whole calculation in it."
+ ],
+ [
+  "page:/",
+  "70 TODAY and NOW: the volatile clock Paid Tell today's date from this moment, and read the clock out of a date number."
+ ],
+ [
+  "page:/",
+  "71 DATE: build a date from parts Paid Build a real date from three numbers and let DATE roll the overflow."
+ ],
+ [
+  "page:/",
+  "72 DATEDIF: days, months or years between Paid Ask for the gap between two dates in whole years, months or days, with the leftovers when needed."
+ ],
+ [
+  "page:/",
+  "73 DAYS and simple date maths Paid Measure the distance between two dates in days, then treat the answer as the number it is."
+ ],
+ [
+  "page:/",
+  "74 Date functions summary Paid Combine today's date, a distance and a month edge in formulas that still work tomorrow."
+ ],
+ [
+  "page:/",
+  "75 SUMPRODUCT: multiply the pair, then add them up Paid Value a table and take a weighted average from the same two columns."
+ ],
+ [
+  "page:/",
+  "76 SUBTOTAL: one function number, six answers Paid Read the function number first, so one range can be added or searched for its largest value."
+ ],
+ [
+  "page:/",
+  "77 AGGREGATE: a total that says what to ignore Paid Write a three-argument aggregate and know which cells the options number leaves out."
+ ],
+ [
+  "page:/",
+  "78 Totals that multiply, skip and reconcile Paid Reconcile two routes to the same total and read the ratio as a pass or a fail."
+ ],
+ [
+  "page:/",
+  "79 UNIQUE: one row per distinct value Paid Count the distinct couriers in a column without retyping the list."
+ ],
+ [
+  "page:/",
+  "80 FILTER: the rows that meet a condition Paid Add the rows that meet a condition without filtering the sheet first."
+ ],
+ [
+  "page:/",
+  "81 SORT and spilled ranges Paid Rank a table without touching it, then read one cell out of the ranked block."
+ ],
+ [
+  "page:/",
+  "82 A commission sheet that updates itself Paid Read a rate from a banded table, then multiply it by the sales figure."
+ ],
+ [
+  "page:/",
+  "83 A headcount and payroll summary Paid Total a payroll across two columns, then divide it by the headcount."
+ ],
+ [
+  "page:/",
+  "84 An inventory reorder report Paid Floor a row's shortfall at zero, then net the whole sheet the same way."
+ ],
+ [
+  "page:/",
+  "85 A monthly close checklist in formulas Paid Flag a reconciliation from its variance, then count the rows still out."
+ ],
+ [
+  "page:/",
+  "86 real spreadsheet tasks. Type the formula or the keys, and get told exactly what is wrong."
+ ],
+ [
+  "page:/",
+  "86 Select to the edge of a block Paid Select a whole column of data with two keys instead of the mouse."
+ ],
+ [
+  "page:/",
+  "A small spreadsheet is drawn in the page. Nothing is uploaded, and there is no file to open."
+ ],
+ [
+  "page:/",
+  "Advanced 39 exercises"
+ ],
+ [
+  "page:/",
+  "B5 fx =SUM(B2:B4) Accepted"
+ ],
+ [
+  "page:/",
+  "Beginner 9 exercises"
+ ],
+ [
+  "page:/",
+  "Browse the exercises"
+ ],
+ [
+  "page:/",
+  "Check it. The grader runs in this browser and names the rule the formula broke: the wrong function, the wrong range, or a typed number where a reference belongs."
+ ],
+ [
+  "page:/",
+  "Excel formula exercises"
+ ],
+ [
+  "page:/",
+  "How an exercise works"
+ ],
+ [
+  "page:/",
+  "Intermediate 38 exercises"
+ ],
+ [
+  "page:/",
+  "Start exercise 1 Your progress"
+ ],
+ [
+  "page:/",
+  "SUM: total a column Exercise 01 · B5"
+ ],
+ [
+  "page:/",
+  "The task names the cell, and you type one formula in the formula bar under the sheet."
+ ],
+ [
+  "page:/",
+  "Type =SUM(1200,1450,930) and the grader answers with the rule it broke: types the numbers into SUM instead of pointing at B2:B4"
+ ],
+ [
+  "page:/404",
+  "Start from the front page , or open the catalogue of 86 Excel exercises and choose one."
+ ],
+ [
+  "page:/404",
+  "That page is not here"
+ ],
+ [
+  "page:/404",
+  "The address you followed does not match a page on this site. The page may have moved, or one character in the link may be wrong."
+ ],
+ [
+  "page:/404",
+  "Two ways back"
+ ],
+ [
+  "page:/about",
+  "86 exercises across 16 skills. Each one is a single job you would meet in a real workbook. Total a column, flag the rows that miss a target, or look a price up from another sheet."
+ ],
+ [
+  "page:/about",
+  "A practice site for spreadsheet formulas. Short tasks, a checker that tells you what went wrong, and nothing to install."
+ ],
+ [
+  "page:/about",
+  "About Excel Supreme"
+ ],
+ [
+  "page:/about",
+  "Each exercise is written by hand around one function or one habit, then tested. The expected formula has to pass, and a wrong one has to fail with a reason you can act on. Every screen names the function, the range or the cell it checks, and a rejected answer points at the rule that failed."
+ ],
+ [
+  "page:/about",
+  "Free. The 10 exercises on the start page , with their notes and answer explanations. No card and no email."
+ ],
+ [
+  "page:/about",
+  "Grading runs in your browser. The checker reads the formula itself, not only the number it returns: it confirms the function you used and the cells you referred to. That is why typing the answer by hand is rejected, and why a correct total from the wrong range still fails."
+ ],
+ [
+  "page:/about",
+  "How the checking works"
+ ],
+ [
+  "page:/about",
+  "How the exercises are written"
+ ],
+ [
+  "page:/about",
+  "Not for someone who has never used a spreadsheet, and not a course: there are no videos and no chapters to work through in order. It is also not for macros, Power Query or VBA, and not for Google Sheets or LibreOffice. The grader follows Excel's rules and one locale, so a formula that works elsewhere may be marked wrong here."
+ ],
+ [
+  "page:/about",
+  "Nothing you type is uploaded. The formula is checked on the page, so the site never receives your answers. Clearing your browser data clears the progress it holds."
+ ],
+ [
+  "page:/about",
+  "Paid. The rest of the track, for as long as a term runs. The pricing page has the full terms."
+ ],
+ [
+  "page:/about",
+  "The exercises are ordered, so a group builds from its first exercise to its last. The 10 free exercises are open from start to finish, with their notes and their explanations. The rest open with a paid plan."
+ ],
+ [
+  "page:/about",
+  "The notes name the syntax, the traps, and the error codes the function really returns. Where Excel and Google Sheets differ, they say so. No filler paragraphs, no invented statistics, and no claims about Excel that the checker cannot back up."
+ ],
+ [
+  "page:/about",
+  "What it costs"
+ ],
+ [
+  "page:/about",
+  "What this is"
+ ],
+ [
+  "page:/about",
+  "Who it is for"
+ ],
+ [
+  "page:/about",
+  "Written for the person who already opens a spreadsheet and wants the formulas to come back without looking them up. You can type SUM without thinking, then stall on XLOOKUP's fourth argument, or on a COUNTIFS that returns zero."
+ ],
+ [
+  "page:/excel-exercises",
+  "10 exercises are free forever, with no account and no card, and every payment carries a 100% refund guarantee inside 30 days. The other 76 come with the track, one price for all of them: $9.99 a month, $39.99 every six months or $59.99 a year."
+ ],
+ [
+  "page:/excel-exercises",
+  "10 of the 86 are free, with the grading and the notes. The free ones are spread through the whole track, not taken from the front, and the start page puts them in the order to take them."
+ ],
+ [
+  "page:/excel-exercises",
+  "86 spreadsheet tasks, sorted by the skill each one teaches. Type a formula, find out what is wrong, and move on. There is nothing to install, and you do not need an account to start."
+ ],
+ [
+  "page:/excel-exercises",
+  "Are the exercises free?"
+ ],
+ [
+  "page:/excel-exercises",
+  "Do I need Excel installed?"
+ ],
+ [
+  "page:/excel-exercises",
+  "Each group is a run of exercises that build on each other. Start at the top of a group, or jump to the exercise you came for."
+ ],
+ [
+  "page:/excel-exercises",
+  "Every plan renews for another term of the same length unless you cancel: a month, six months or a year, whichever you bought. Cancel from your account page in one click, and the time you already paid for runs to its end. The price does not change for the term you are in."
+ ],
+ [
+  "page:/excel-exercises",
+  "Excel exercises with instant answers"
+ ],
+ [
+  "page:/excel-exercises",
+  "Get told what is wrong. The checker reads the function, the cell references and the result, so a right number from the wrong range still fails."
+ ],
+ [
+  "page:/excel-exercises",
+  "How is an answer checked?"
+ ],
+ [
+  "page:/excel-exercises",
+  "No. The sheet is on the page and the checking runs in your browser. The notes cover Excel and Google Sheets, and they say where the two differ. A workbook exercise gives you a file to open in Excel, Sheets or LibreOffice."
+ ],
+ [
+  "page:/excel-exercises",
+  "Pick the skill you need"
+ ],
+ [
+  "page:/excel-exercises",
+  "Questions before you start"
+ ],
+ [
+  "page:/excel-exercises",
+  "Read the reason. A rejected answer names the rule it broke, so you know what to change."
+ ],
+ [
+  "page:/excel-exercises",
+  "Start with SUM: total a column"
+ ],
+ [
+  "page:/excel-exercises",
+  "The formula is what gets checked. A right total from the wrong function or the wrong range is rejected, and the reason you get names the rule it broke. The about page explains how the checker works."
+ ],
+ [
+  "page:/excel-exercises",
+  "Type the formula. Each task names a cell and gives you the numbers already in the sheet."
+ ],
+ [
+  "page:/excel-functions",
+  "476 units at twelve to a crate is 39.67. ROUNDUP orders 40 crates because the part crate ships, ROUNDDOWN counts the 39 full ones, and ROUND agrees with ROUNDUP today by luck."
+ ],
+ [
+  "page:/excel-functions",
+  "A column of six readings, and COUNT answers 3. The words, the blank and the seven that arrived as text are all skipped. SUM still adds 35.7, so a short count is the fastest way to find bad cells."
+ ],
+ [
+  "page:/excel-functions",
+  "A7&\"*\" turns a partial name into a pattern, and VLOOKUP returns the first row that matches it. The wildcard lives in the lookup value, so the cell stays editable."
+ ],
+ [
+  "page:/excel-functions",
+  "Approximate match walks down the first column and stops at the last band that does not overshoot. So 4200 lands in the band that starts at 1000, and the rate is 0.05. A sorted first column is the whole contract."
+ ],
+ [
+  "page:/excel-functions",
+  "Are these notes beginner level?"
+ ],
+ [
+  "page:/excel-functions",
+  "COUNTIF counts the cells in one range that meet one condition. The criteria decides everything, and text criteria need quotation marks."
+ ],
+ [
+  "page:/excel-functions",
+  "COUNTIF counts the rows that meet one condition. Four of these eight tickets read Open, so it returns 4, and the quoting of the condition is the part people get wrong."
+ ],
+ [
+  "page:/excel-functions",
+  "COUNTIF in Excel, count the rows that match"
+ ],
+ [
+  "page:/excel-functions",
+  "Do I need Excel installed to follow a note?"
+ ],
+ [
+  "page:/excel-functions",
+  "Each note says what a function does, shows it in a formula, and names where that formula goes wrong. Every note carries an exercise you can try on the page."
+ ],
+ [
+  "page:/excel-functions",
+  "Each page starts from a question and gives one formula that answers it. It ends on the same exercise the note uses."
+ ],
+ [
+  "page:/excel-functions",
+  "Every Excel problem page"
+ ],
+ [
+  "page:/excel-functions",
+  "Every function note"
+ ],
+ [
+  "page:/excel-functions",
+  "Excel functions, explained in plain words"
+ ],
+ [
+  "page:/excel-functions",
+  "HLOOKUP searches the first row and reads down the row number you give it, so Feb against a month header row returns the price and not the units. The row number counts rows the way VLOOKUP counts columns."
+ ],
+ [
+  "page:/excel-functions",
+  "How do I add up only the rows that match one value?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I always round up instead of to the nearest number?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I count how many cells have anything in them, dates included?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I count how many rows have a particular value?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I look a value up when the labels run across the top row instead of down a column?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I look up a number that is at the crossing of a row and a column?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I look up a value that sits to the left of the key?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I look up a value when I only know the start of the name?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I look up the latest entry when a key appears more than once?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I look up which band a number falls into?"
+ ],
+ [
+  "page:/excel-functions",
+  "How do I stop a lookup showing #N/A when the value is not in the list?"
+ ],
+ [
+  "page:/excel-functions",
+  "IF in Excel, one test and two answers"
+ ],
+ [
+  "page:/excel-functions",
+  "IF runs a single comparison and returns one value when it is true and another when it is false. The order of the two results is the part people get wrong."
+ ],
+ [
+  "page:/excel-functions",
+  "INDEX MATCH in Excel, either direction"
+ ],
+ [
+  "page:/excel-functions",
+  "MATCH finds which row a value sits on, INDEX returns the value at a row and column. Nested, they look up a value and can look left, which VLOOKUP cannot do."
+ ],
+ [
+  "page:/excel-functions",
+  "MATCH returns the row a price sits on, INDEX reads the product name from that row, and the answer comes from a column VLOOKUP cannot reach."
+ ],
+ [
+  "page:/excel-functions",
+  "No. The sheet in each exercise is drawn by the page, and it grades what you type. Open Excel when you want to try the same thing on your own file."
+ ],
+ [
+  "page:/excel-functions",
+  "One MATCH finds the row label, the other finds the column label, and INDEX reads the cell where they meet. It works on a region-by-quarter grid with no helper column."
+ ],
+ [
+  "page:/excel-functions",
+  "Practise on the exercise track"
+ ],
+ [
+  "page:/excel-functions",
+  "Reading a formula does not make you remember it. Each note carries an exercise from the 86-exercise track, so you type the formula on a sheet that answers back."
+ ],
+ [
+  "page:/excel-functions",
+  "Search mode -1 walks the key column from the bottom, so a repeated SKU returns its newest price. The same formula with the default search mode returns an old price with no error."
+ ],
+ [
+  "page:/excel-functions",
+  "See the whole track"
+ ],
+ [
+  "page:/excel-functions",
+  "Start with the first exercise"
+ ],
+ [
+  "page:/excel-functions",
+  "SUM adds the numbers in a range and ignores anything that is not a number. It is the first formula most people type and the one most often pointed at the wrong range."
+ ],
+ [
+  "page:/excel-functions",
+  "SUM in Excel, the whole column in one number"
+ ],
+ [
+  "page:/excel-functions",
+  "SUMIF adds the rows whose condition matches, which is why the third argument exists. Three North rows add to 900 while the whole table holds 1450."
+ ],
+ [
+  "page:/excel-functions",
+  "SUMIF adds the values in one column where the matching column meets a condition. The third argument is the column to add, and leaving it out is the usual mistake."
+ ],
+ [
+  "page:/excel-functions",
+  "SUMIF in Excel, add only the rows that match"
+ ],
+ [
+  "page:/excel-functions",
+  "The questions these notes answer"
+ ],
+ [
+  "page:/excel-functions",
+  "They start at the first formula and stay in the order the track uses them. If a note assumes something, it points at the exercise that teaches it."
+ ],
+ [
+  "page:/excel-functions",
+  "Three dates and two blanks, and COUNTA answers 3 because it counts anything filled. COUNT answers 0 on the same column, since these entries arrived as text."
+ ],
+ [
+  "page:/excel-functions",
+  "TRIM in Excel, remove the breaking spaces"
+ ],
+ [
+  "page:/excel-functions",
+  "TRIM removes spaces from the ends of a cell and collapses doubled spaces inside it. Imported lists arrive full of them, and they are the usual reason two values that look identical do not match."
+ ],
+ [
+  "page:/excel-functions",
+  "VLOOKUP finds a value in the first column of a table and returns something from the same row. The fourth argument decides whether it has to match exactly."
+ ],
+ [
+  "page:/excel-functions",
+  "VLOOKUP in Excel, exact match first"
+ ],
+ [
+  "page:/excel-functions",
+  "Why is my count lower than the number of rows?"
+ ],
+ [
+  "page:/excel-functions",
+  "XLOOKUP in Excel, no column counting"
+ ],
+ [
+  "page:/excel-functions",
+  "XLOOKUP takes the value to find, the range to search and the range to return. Two ranges instead of a table and a column number, and a fifth argument for the missing case."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "0 when matches exist"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "A count that is one short"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "A support log has eight tickets in B2:B9 with five different statuses. To count the open ones:"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "A text criterion has to match the cell, stray spaces included: \"Open\" does not count \"Open \" with a space on the end."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "All Excel exercises in Counting rows"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Can COUNTIF use more than one condition?"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Case is not a factor: COUNTIF treats \"open\" and \"Open\" as the same criterion. If you need a case-sensitive count, use SUMPRODUCT with EXACT , which is a different formula and rarely needed on a status column."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Check answer Show a hint"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "COUNT: numbers only, and what it skips"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "COUNTA: count the non-empty cells"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "COUNTIF counts the cells in one range that meet one condition. The criteria decides everything, and text criteria need quotation marks. =COUNTIF(range, criteria)"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "criteria is what a cell has to be. Text goes in quotes, a number does not."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Do the whole exercise (COUNTIFS: several conditions)"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Does COUNTIF work with wildcards?"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Download the sheet for this exercise (.xlsx) Two tabs: the grid, and the answer."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Example 1: counting one status"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Example 2: counting above a limit"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Example 3: a count that follows a cell"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Extend the range, or use a whole column"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "F2 holds 48, the & joins the operator and the cell into one piece of text, and COUNTIF reads the result. Change F2 to 12 and the count updates. This is the form to use for anything that will be tuned later, because the number lives in one visible place instead of inside six formulas."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Hard-coding 48 makes the sheet rigid. Put the threshold in a cell and build the criteria from it:"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "How do I count cells that are not blank?"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "In B10, count how many tickets have the status \"Open\". Cell B10 holds"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "In B9, count the products whose name starts with \"Widget\" using one wildcard. Cell B9 holds"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "In D9, count the North orders that are still open with one function taking two conditions. Cell D9 holds"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Let Excel complete the name for you"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Look for a space. A cell that reads Open with a trailing space is not equal to \"Open\" , and the difference is invisible in the grid. Widen the column, or click the cell and read the formula bar. Excel's own filter shows the same trap: two entries that look identical appear as separate items in the list."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Not on its own. COUNTIFS takes pairs of range and criteria and counts the rows that satisfy all of them: =COUNTIFS(B2:B9,\"Open\",C2:C9,\">48\") . Use COUNTIF for one condition and COUNTIFS as soon as there is a second, rather than trying to squeeze two tests into one."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Numbers can be written as a comparison in quotes, which looks odd but works: \">10\" , \"<=100\" , \"<>0\" . The quotes are needed because the whole thing, operator and number, is a piece of text that COUNTIF parses. Comparing to a cell reference drops the quotes and keeps the operator: =\">\"&D2 ."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "On this page"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Open this exercise in the lesson (COUNTIF with wildcards)"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Open this exercise in the lesson (COUNTIF: count one condition)"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Pass a range such as B2:B9"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "range is the block of cells to read. Only this block is searched."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Rows 2, 6 and 8 are North and open. Row 4 is North but closed, so it does not count."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Show the answer Cell B10 holds 4"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Show the answer Cell B9 holds 4"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Show the answer Cell D9 holds 3"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The answer is 4. Nothing in the formula changes if the log grows, as long as the range covers the new rows. That is the difference between a count and a typed number someone maintains by hand."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The count is short by one. Check that the range reaches B9, where the last ticket sits."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The criteria is \"*\" , which matches any text"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The criteria is not what the cells contain, most often a trailing space"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The exercise below shows the ticket log and asks how many tickets are Open. Type the formula with the range and the word in quotes, then press Check. A result of 0 usually means the quotes are missing or the range points at the wrong column, and a result of 8 means the criteria matched everything."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The first argument is a single value, not a range, or the quotes are missing"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The name is misspelled, for example COUNTIFF"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The one-short count is the most common of these. A range typed as B2:B8 on a log with nine rows misses the newest ticket, and the number is wrong by exactly one until someone notices. Selecting the range with the mouse and dragging instead of typing the address avoids most of it."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The range stops a row before the last entry"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The same function counts numbers with a comparison. If the log also carried the hours each ticket has been open in column C:"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "The star covers the rest of each name, so all four Widget rows count."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "This returns how many tickets have passed two days. The > sits inside the quotes, together with the number, because COUNTIF reads the criteria as text and decides what to do with it. Typing >48 without quotes is a syntax error."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Try \"*Open*\" to see if spacing is the problem"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Try it: exercise 1 of 3"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Try it: exercise 2 of 3"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Try it: exercise 3 of 3"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Use \"<>\" to count non-blank cells instead"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Use =COUNTIF(A2:A100,\"<>\") . The <> operator inside quotes means not equal to nothing, which covers any cell holding text or a number. COUNTA does the same job and is shorter, but it also counts cells whose formula returns an empty string."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "VBA goes through WorksheetFunction.CountIf(Range(\"A2:A8\"), \"Open\") , and it raises a run-time error rather than returning 0 when the criteria are malformed. That is easier to debug than a silent zero, but a loop needs an error handler around it."
+ ],
+ [
+  "page:/excel-functions/countif",
+  "What goes wrong"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "What it means"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Where to go next"
+ ],
+ [
+  "page:/excel-functions/countif",
+  "Why does COUNTIF return 0 when I can see the word in the cell?"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "A month that is not in the list returns #N/A. There is no position for a value the list does not hold, so anything built on MATCH fails visibly. INDEX, in the next exercise, takes this 3 and reads the third cell of another column."
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "All 6 in this group"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "Download this grid (.xlsx) Two tabs: the grid you see, and the answer. B7 fx Check"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "Error codes for MATCH"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "Excel track · Exercise 44 of 86 Paid"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "Feeding a row number to INDEX without typing 3 into the formula by hand."
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "Find where a value sits in a list, counting the first cell as 1."
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "Four months and their units"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "In B7, find the position of the month in B6 within A2:A5, counting the first row as 1."
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "INDEX + MATCH: lookup either way INDEX and MATCH"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "INDEX MATCH: look left of the key INDEX and MATCH"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "INDEX: a value at a row and column INDEX and MATCH"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "LEFT + FIND: pull out a prefix Finding text"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "MATCH counts how far down a list a value sits. The months in A2:A5 run Jan, Feb, Mar, Apr, and B6 holds Mar, so MATCH returns 3. That 3 is a position inside A2:A5, which is row 4 on the sheet."
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "MATCH: find a value's position"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "More in INDEX and MATCH"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "No cell in A2:A5 holds the month, so MATCH has no position to return."
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "On Four months and their units , =MATCH(B6,A2:A5,0) returns 3 . =MATCH(B6,A2:A5,0)"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "Previous INDEX + MATCH: lookup either way Next INDEX: a value at a row and column"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "Read-only data · answer in B7"
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "The match type was left out or set to 1, so MATCH searched a calendar-order list as though it were ascending and picked a neighbouring month."
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "The searched range was a block rather than one row or column, or the match type was text."
+ ],
+ [
+  "page:/excel/match-find-a-value-s-position",
+  "The third argument decides how much tolerance MATCH allows. A zero asks for an exact match and is the safe choice here, because Jan to Apr is calendar order and approximate search assumes ascending sort. Set 1 and MATCH returns the last entry it judges to be at or below the value."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "All 1 in this group"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Ctrl + Shift + ↓"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Error codes for Shift + modifier + arrow keys"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Every cleanup, sort and format you run on a column starts with selecting it. Two keys beat four thousand rows of dragging, and they still work when the list grows."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Excel track · Exercise 86 of 86 Paid"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "From A2 of a price list that runs down to A40, select every row to the last filled cell with one chord, without dragging."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Keep row 1 in view while you scroll, using the ribbon's access keys one press at a time."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "More in Getting started"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "On Price list, 40 rows , Mod+Shift+Down returns . Mod+Shift+Down"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "One cell only"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Press it, or type it in the bar."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Press the keys in order, or type them in the bar. fx Check"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Previous A monthly close checklist in formulas End of the track Back to all exercises"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Price list, 40 rows"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "screen 1 of 2 · answer with the keys , or type it in the bar"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Select a whole column of data with two keys instead of the mouse."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Select to the edge of a block"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Shift extends a selection, and Ctrl or Command turns the arrow key from one step into a jump to the end of the filled block. Pressed together in A2 of a list that runs to A40, they select A2 to A40 in one move. Windows and the Mac disagree only about the modifier: Ctrl on one, Command on the other."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "SUM: total a column Adding things up"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "Syntax Mod + Shift + Down"
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "The chord was pressed without Shift, so the active cell moved to the edge of the block and nothing was selected."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "The second exercise takes the ribbon route instead. Alt shows the key tips, W picks the View tab, F opens Freeze Panes and R freezes the top row. That way is slower than the mouse, and it is also the one you can repeat from memory without hunting for the ribbon."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "The selection ended above row 40 because a cell in the column is empty. The arrow keys read blanks as the end of the block."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "The selection ran to the last cell in the sheet, which means the arrow key was pressed once the block had already ended. Press the reverse arrow to pull it back."
+ ],
+ [
+  "page:/excel/shortcut-select-to-edge",
+  "The selection stops at the first empty cell, so a blank row in the middle of the data ends it early. That is the failure worth knowing about. Select from the top, look at where the highlight stopped, and extend again from there."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "01 SUM: total a column"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "02 SUMIFS: two conditions at once"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "03 SUMIF: a sum range on another column (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "04 Add only the positives (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "05 Debug a total that skips a row (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "06 SUM across several blocks (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "07 Running total down a column (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "08 Sum functions summary (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "09 AVERAGE: mean of a score list"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "10 MIN and MAX: fastest and slowest (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "11 LARGE and SMALL: the nth highest (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "12 MEDIAN: the middle value (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "13 MODE: the most common value (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "14 Rank a list without sorting it (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "15 Average functions summary (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "16 COUNTIF: count one condition"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "17 COUNT: numbers only, and what it skips (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "18 COUNTA: count the non-empty cells (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "19 COUNTIFS: several conditions (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "20 COUNTIF with wildcards (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "21 Count functions summary (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "22 IF: one test, two answers"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "23 TRUE and FALSE: what a comparison returns (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "24 AND, OR and NOT: combining tests (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "25 IFS: more than two outcomes (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "26 SWITCH: match a list of values (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "27 ISBLANK, ISNUMBER, ISTEXT: reading a cell's type (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "28 Logical functions: putting the pieces together (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "29 SUMIF: total one region"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "30 ROUND: money to two decimals"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "31 ROUNDUP and ROUNDDOWN: one direction only (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "32 MROUND and FLOOR: round to a multiple (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "33 VLOOKUP: exact match"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "34 VLOOKUP: approximate match needs a sorted column (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "35 HLOOKUP: look across a row (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "36 VLOOKUP with a wildcard (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "37 Two-way lookup with VLOOKUP and MATCH (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "38 XLOOKUP: exact match, no column counting (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "39 XLOOKUP: search from the bottom (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "40 XLOOKUP with a fallback when nothing matches (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "41 VLOOKUP and XLOOKUP on the same table (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "42 Lookup functions summary (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "43 INDEX + MATCH: lookup either way (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "44 MATCH: find a value's position (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "45 INDEX: a value at a row and column (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "46 INDEX MATCH: look left of the key (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "47 Two-way INDEX MATCH (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "48 INDEX and MATCH summary (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "49 LEFT + FIND: pull out a prefix (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "50 LEN, LEFT and RIGHT: count and cut"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "51 MID: characters from the middle (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "52 FIND and SEARCH: case-sensitive or not (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "53 Wildcards in text criteria (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "54 TEXTBEFORE and TEXTAFTER: split on a delimiter (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "55 Text search summary (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "56 Capstone: North gross margin (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "57 Sales summary end to end (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "58 Lookup dashboard from three tables (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "59 Clean up an imported list (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "60 Budget versus actual with a variance flag (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "61 Formula audit: fix five broken sheets (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "62 CONCAT and the & operator"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "63 TEXTJOIN: join a range and skip blanks (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "64 UPPER, LOWER and PROPER (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "65 SUBSTITUTE: replace one piece of text (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "66 IFERROR: catch the error, show your text (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "67 IFNA: catch only a missing match (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "68 Read #N/A, #VALUE! and #REF! (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "69 Error handling: which net catches what (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "70 TODAY and NOW: the volatile clock (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "71 DATE: build a date from parts (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "72 DATEDIF: days, months or years between (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "73 DAYS and simple date maths (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "74 Date functions summary (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "75 SUMPRODUCT: multiply the pair, then add them up (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "76 SUBTOTAL: one function number, six answers (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "77 AGGREGATE: a total that says what to ignore (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "78 Totals that multiply, skip and reconcile (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "79 UNIQUE: one row per distinct value (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "80 FILTER: the rows that meet a condition (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "81 SORT and spilled ranges (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "82 A commission sheet that updates itself (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "83 A headcount and payroll summary (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "84 An inventory reorder report (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "85 A monthly close checklist in formulas (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "86 Select to the edge of a block (paid lesson)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "A cell in the range holds text where SUM expected a number, usually the heading or the Region column in place of the Q1 figures."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Add only the positives Adding things up"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "All 9 in this group"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Back to All exercises Next SUMIFS: two conditions at once"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "COUNTIF: count one condition Counting rows"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Download this grid (.xlsx) Two tabs: the grid you see, and the answer. B5 fx Check"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Error codes for SUM"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Every Excel exercise"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Every monthly close: one row per branch, one column per period, and a total at the bottom that updates itself."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Excel track · Exercise 1 of 86"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "In B5, total Q1 revenue for all three regions with one function."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "More in Adding things up"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "On Q1 revenue by region , =SUM(B2:B4) returns 3580 . =SUM(B2:B4)"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Out of range"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Point at the range rather than at three cells. 1200+1450+930 breaks when a row is inserted, while B2:B4 grows to take the new row in."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Q1 revenue by region"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Read the note"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Read-only data · answer in B5"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Show a hint Show me the answer"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "SUM adds the numbers in the range you give it. Any text or blank cell inside that range is stepped over rather than counted. =SUM(B2:B4) covers 1200, 1450 and 930 and returns 3580. Change South to 1500 and the total follows."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "SUM(B2:B5) would reach the label in B5 as well. A range that runs one cell long is how a total quietly doubles itself."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "SUMIF: a sum range on another column Adding things up"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "SUMIFS: two conditions at once Adding things up"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "The failure runs the other way. A number stored as text looks like a number and is skipped without a warning, so the total comes out low and nothing on screen says why. A region missing from a total is usually a left-aligned figure in the column."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "The function name is misspelled as SUMM or SU. Excel reads what is there and does not guess at the rest."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "Total a column with one function instead of typing every cell."
+ ],
+ [
+  "page:/excel/sum-basics",
+  "What it does"
+ ],
+ [
+  "page:/excel/sum-basics",
+  "What it means and how to fix it"
+ ],
+ [
+  "page:/formulas",
+  "Adding up rows that match"
+ ],
+ [
+  "page:/formulas",
+  "Counting rows and cells"
+ ],
+ [
+  "page:/formulas",
+  "Do I need Excel installed to try one of these?"
+ ],
+ [
+  "page:/formulas",
+  "Each page takes a question you would type into a search box and gives the formula that answers it. Then it says why the formula works, and ends on an exercise that grades what you type."
+ ],
+ [
+  "page:/formulas",
+  "Every page is built on an exercise from the track, so the formula shown is the one that exercise grades. A page that leans on a function note links to it."
+ ],
+ [
+  "page:/formulas",
+  "Excel problems, answered with one formula"
+ ],
+ [
+  "page:/formulas",
+  "Looking up a value"
+ ],
+ [
+  "page:/formulas",
+  "No. The sheet in each exercise is drawn by the page, and it grades what you type. Open Excel when you want to try the same formula on your own file."
+ ],
+ [
+  "page:/formulas",
+  "Read the function notes"
+ ],
+ [
+  "page:/formulas",
+  "Reading a formula does not make you remember it. Every page uses an exercise from the 86-exercise track, so you type the formula on a sheet that answers back."
+ ],
+ [
+  "page:/formulas",
+  "Rounding to a usable number"
+ ],
+ [
+  "page:/formulas",
+  "Where does the answer come from?"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "A count lower than the rows you can see"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "A count of 0 for a column of dates"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "A hidden row changes the answer"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "convert with DATEVALUE or Text to Columns, then count again"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "COUNT counts hidden cells but not filtered ones"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "COUNT never errors on text, which is what makes it useful. Point it at a column pasted in from somewhere else and the shortfall lists the cells that arrived broken. Point it at a column of dates that arrived as text and it returns 0, which is the same symptom as an empty column."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Count the non-empty cells a checklist filled"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Count the open tickets with COUNTIF"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "COUNT was called with no argument at all"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "COUNTA answers the other question, counting anything that is not empty. On this column it returns 5, because it counts the words and the text-formatted seven. The gap between COUNT and COUNTA is the number of non-numeric cells, which is sometimes the number you wanted all along."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "COUNTIF on the ticket log"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "counting the non-empty cells"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Do the whole exercise (COUNT: numbers only, and what it skips)"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Excel keeps the type of a cell with the cell, not with its appearance. A seven pasted from a system that exports everything as text looks like a seven. It aligns to the left instead of the right, and COUNT does not count it."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "give it a range: =COUNT(B2:B7)"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "guard the divisor with IF(count=0,\"\",0)"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "How many tickets share a status."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "if the filtered count matters, use SUBTOTAL(2,B2:B7)"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "In B8, count how many readings in B2:B7 are really numbers. Cell B8 holds"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "More exercises like this one"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Say \"not stocked\" instead of #N/A"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Show the answer Cell B8 holds 3"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "some cells are text: an apostrophe prefix, a pasted import, a stray space"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "SUM over the same range returns 35.7, from the 12.5, the 8.2 and the 15, because SUM ignores text too. The two functions agreeing on the same three cells is the useful signal: if SUM's total looks short against your own estimate, COUNT tells you how many cells it added."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "The blank in the middle of the range is skipped because it is nothing at all, not because it failed a test. COUNT counts what is there, and nothing is not a number."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "The count is short. Read down B2:B7 and ask of each cell whether Excel holds it as a number."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "the count was used as a divisor and came back zero, so there was nothing to divide by"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "The counting note that does exist: rows that match a condition, not cells that hold numbers."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "the dates arrived as text, so no cell is a number"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "The exercise below is the six-reading column with all three traps in it. Type the formula and it is graded against the reference. Pointing COUNT at the wrong range comes back with a message about reading the column cell by cell."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "The first row is the everyday case and the fourth is the one that takes a site down. A count used as a divisor divides by however many rows arrived this month. The month one row arrives as text is the month the average breaks."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "The function you compare COUNT against when a total looks short."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "The same column and the opposite question."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "There is no COUNT note of its own on this site yet, so the table below points at the nearest explanations."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Try it: exercise 1 of 1"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "What COUNT counts, and what it skips"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "What you see"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Whole columns are safe here: =COUNT(B:B) counts the numbers in the column and ignores the header, because the header is text. Counting a whole column is how you avoid deciding where the data ends."
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Why it helps"
+ ],
+ [
+  "page:/formulas/count-only-the-numbers-with-count",
+  "Why it works"
+ ],
+ [
+  "page:/learn",
+  "0 of 86 complete"
+ ],
+ [
+  "page:/learn",
+  "01 SUM: total a column Total a column with one function instead of typing every cell. Not started"
+ ],
+ [
+  "page:/learn",
+  "02 SUMIFS: two conditions at once Total the rows that meet two conditions at once instead of filtering the table first. Not started"
+ ],
+ [
+  "page:/learn",
+  "03 SUMIF: a sum range on another column Paid Total one column while testing a different column for the condition. Not started"
+ ],
+ [
+  "page:/learn",
+  "04 Add only the positives Paid Total the positive and negative rows separately instead of netting a column. Not started"
+ ],
+ [
+  "page:/learn",
+  "05 Debug a total that skips a row Paid Find the row a broken total skips and cover it without double-counting a subtotal. Not started"
+ ],
+ [
+  "page:/learn",
+  "06 SUM across several blocks Paid Add several separate blocks, or one block with gaps, in a single SUM call. Not started"
+ ],
+ [
+  "page:/learn",
+  "07 Running total down a column Paid Build a running total that can be filled down without editing each row. Not started"
+ ],
+ [
+  "page:/learn",
+  "08 Sum functions summary Paid Combine SUM and SUMIF to total a column, a subset of it, and the remainder. Not started"
+ ],
+ [
+  "page:/learn",
+  "09 AVERAGE: mean of a score list Turn five scores into one class average that updates itself. Not started"
+ ],
+ [
+  "page:/learn",
+  "10 MIN and MAX: fastest and slowest Paid Return the smallest or largest number in a range without sorting the sheet first. Not started"
+ ],
+ [
+  "page:/learn",
+  "11 LARGE and SMALL: the nth highest Paid Pick the nth value in an unsorted list instead of sorting it to read one number. Not started"
+ ],
+ [
+  "page:/learn",
+  "12 MEDIAN: the middle value Paid Summarise a list with a middle value that an outlier cannot drag. Not started"
+ ],
+ [
+  "page:/learn",
+  "13 MODE: the most common value Paid Find the value that repeats most often, which is neither the biggest nor the middle. Not started"
+ ],
+ [
+  "page:/learn",
+  "14 Rank a list without sorting it Paid Put a place number on every row of an unsorted list, in either direction. Not started"
+ ],
+ [
+  "page:/learn",
+  "15 Average functions summary Paid Join two summary functions into one answer, reading the nesting inside-out. Not started"
+ ],
+ [
+  "page:/learn",
+  "16 COUNTIF: count one condition Count the rows that meet one condition, and get the edges of the range right. Not started"
+ ],
+ [
+  "page:/learn",
+  "17 COUNT: numbers only, and what it skips Paid Count the cells that hold real numbers, and read a short count as evidence of text. Not started"
+ ],
+ [
+  "page:/learn",
+  "18 COUNTA: count the non-empty cells Paid Count filled cells rather than numbers, so a checklist reports real progress. Not started"
+ ],
+ [
+  "page:/learn",
+  "19 COUNTIFS: several conditions Paid Count the rows that satisfy two conditions at once instead of filtering the table first. Not started"
+ ],
+ [
+  "page:/learn",
+  "20 COUNTIF with wildcards Paid Count partial matches on text instead of listing every exact value that qualifies. Not started"
+ ],
+ [
+  "page:/learn",
+  "21 Count functions summary Paid Tell counting values from counting rows, then use both together to find gaps. Not started"
+ ],
+ [
+  "page:/learn",
+  "22 IF: one test, two answers Write a decision that returns one of two values, chosen by a single test. Not started"
+ ],
+ [
+  "page:/learn",
+  "23 TRUE and FALSE: what a comparison returns Paid Read a comparison as a logical value that other formulas can act on. Not started"
+ ],
+ [
+  "page:/learn",
+  "24 AND, OR and NOT: combining tests Paid Combine several tests into one answer, and choose AND or OR to match the question. Not started"
+ ],
+ [
+  "page:/learn",
+  "25 IFS: more than two outcomes Paid Read a score into one of several bands with a single ordered function. Not started"
+ ],
+ [
+  "page:/learn",
+  "26 SWITCH: match a list of values Paid Translate a short fixed list of codes into labels in one formula. Not started"
+ ],
+ [
+  "page:/learn",
+  "27 ISBLANK, ISNUMBER, ISTEXT: reading a cell's type Paid Tell an empty cell from a text cell and a number, and read the answer as a logical value. Not started"
+ ],
+ [
+  "page:/learn",
+  "28 Logical functions: putting the pieces together Paid Combine a logical test, a combined test and a rounded calculation in one formula. Not started"
+ ],
+ [
+  "page:/learn",
+  "29 SUMIF: total one region Total only the rows that match a region. Not started"
+ ],
+ [
+  "page:/learn",
+  "30 ROUND: money to two decimals Round a marked-up total once, and know that the stored value changed. Not started"
+ ],
+ [
+  "page:/learn",
+  "31 ROUNDUP and ROUNDDOWN: one direction only Paid Choose the direction on purpose, so the count follows the job. Not started"
+ ],
+ [
+  "page:/learn",
+  "32 MROUND and FLOOR: round to a multiple Paid Round to a pack size or a price step instead of to a number of decimals. Not started"
+ ],
+ [
+  "page:/learn",
+  "33 VLOOKUP: exact match Pull a salary out of a table by its ID, with the exact-match flag written out. Not started"
+ ],
+ [
+  "page:/learn",
+  "34 VLOOKUP: approximate match needs a sorted column Paid Read a rate off a band table with approximate match, on a column that rises. Not started"
+ ],
+ [
+  "page:/learn",
+  "35 HLOOKUP: look across a row Paid Pull a price out of a row table by naming the row it sits on. Not started"
+ ],
+ [
+  "page:/learn",
+  "36 VLOOKUP with a wildcard Paid Match a name you half know, and keep the pattern in a cell so it can change. Not started"
+ ],
+ [
+  "page:/learn",
+  "37 Two-way lookup with VLOOKUP and MATCH Paid Return one cell of a grid from a row key and a column key. Not started"
+ ],
+ [
+  "page:/learn",
+  "38 XLOOKUP: exact match, no column counting Paid Return a value from a column anywhere in the table, with no column number to count. Not started"
+ ],
+ [
+  "page:/learn",
+  "39 XLOOKUP: search from the bottom Paid Return the latest entry for a repeated key without sorting the log first. Not started"
+ ],
+ [
+  "page:/learn",
+  "40 XLOOKUP with a fallback when nothing matches Paid Answer a missing SKU with a sentence instead of an error. Not started"
+ ],
+ [
+  "page:/learn",
+  "41 VLOOKUP and XLOOKUP on the same table Paid Read a price with either lookup and know which argument does which job. Not started"
+ ],
+ [
+  "page:/learn",
+  "42 Lookup functions summary Paid Pick the lookup that can return a column to the left of its key. Not started"
+ ],
+ [
+  "page:/learn",
+  "43 INDEX + MATCH: lookup either way Paid Return a value from any column, whichever side of the key it sits on. Not started"
+ ],
+ [
+  "page:/learn",
+  "44 MATCH: find a value's position Paid Find where a value sits in a list, counting the first cell as 1. Not started"
+ ],
+ [
+  "page:/learn",
+  "45 INDEX: a value at a row and column Paid Read any single cell of a grid from a row number and a column number. Not started"
+ ],
+ [
+  "page:/learn",
+  "46 INDEX MATCH: look left of the key Paid Return a value from the left of the key with INDEX and MATCH. Not started"
+ ],
+ [
+  "page:/learn",
+  "47 Two-way INDEX MATCH Paid Read one cell out of a grid by matching its row and column labels. Not started"
+ ],
+ [
+  "page:/learn",
+  "48 INDEX and MATCH summary Paid Read a rate from a sorted band table with INDEX and an approximate MATCH. Not started"
+ ],
+ [
+  "page:/learn",
+  "49 LEFT + FIND: pull out a prefix Paid Pull a prefix of any length out of a code with LEFT and FIND. Not started"
+ ],
+ [
+  "page:/learn",
+  "50 LEN, LEFT and RIGHT: count and cut Measure a string, then cut fixed pieces from either end. Not started"
+ ],
+ [
+  "page:/learn",
+  "51 MID: characters from the middle Paid Read a fixed slice from the middle of a code, from a position you worked out. Not started"
+ ],
+ [
+  "page:/learn",
+  "52 FIND and SEARCH: case-sensitive or not Paid Choose FIND for a case-sensitive position, SEARCH when case should not matter. Not started"
+ ],
+ [
+  "page:/learn",
+  "53 Wildcards in text criteria Paid Write a wildcard criterion in COUNTIF and reuse the same pattern in SUMIF. Not started"
+ ],
+ [
+  "page:/learn",
+  "54 TEXTBEFORE and TEXTAFTER: split on a delimiter Paid Split a code at its delimiter, taking either the part before or the part after. Not started"
+ ],
+ [
+  "page:/learn",
+  "55 Text search summary Paid Combine FIND with MID for a slice, and a wildcard criterion for a filtered average. Not started"
+ ],
+ [
+  "page:/learn",
+  "56 Capstone: North gross margin Paid Total by region, divide to a margin percentage, and leave a blank where revenue is missing. Not started"
+ ],
+ [
+  "page:/learn",
+  "57 Sales summary end to end Paid Total a region with SUMIFS, then answer which region leads with one IF around two totals. Not started"
+ ],
+ [
+  "page:/learn",
+  "58 Lookup dashboard from three tables Paid Read a keyed value with INDEX and MATCH, then chain the pair to reach a third table. Not started"
+ ],
+ [
+  "page:/learn",
+  "59 Clean up an imported list Paid Tidy spacing and case with TRIM and PROPER, then build a lower-case key from the same text. Not started"
+ ],
+ [
+  "page:/learn",
+  "60 Budget versus actual with a variance flag Paid Size a variance as a share of budget, then flag it with one threshold both ways. Not started"
+ ],
+ [
+  "page:/learn",
+  "61 Formula audit: fix five broken sheets Paid Repair five broken cells, one per error code, by choosing the test each code implies. Not started"
+ ],
+ [
+  "page:/learn",
+  "62 CONCAT and the & operator Join two cells into one string, with the space passed in as its own piece. Not started"
+ ],
+ [
+  "page:/learn",
+  "63 TEXTJOIN: join a range and skip blanks Paid Join a column into one line and decide what happens to the blanks. Not started"
+ ],
+ [
+  "page:/learn",
+  "64 UPPER, LOWER and PROPER Paid Normalise capitalisation with UPPER, LOWER and PROPER, and know which one a code needs. Not started"
+ ],
+ [
+  "page:/learn",
+  "65 SUBSTITUTE: replace one piece of text Paid Replace a separator everywhere, then name a single occurrence with the fourth argument. Not started"
+ ],
+ [
+  "page:/learn",
+  "66 IFERROR: catch the error, show your text Paid Replace a failed lookup with words you chose, and know which faults those words will hide. Not started"
+ ],
+ [
+  "page:/learn",
+  "67 IFNA: catch only a missing match Paid Replace a missing lookup match and leave every other error visible. Not started"
+ ],
+ [
+  "page:/learn",
+  "68 Read #N/A, #VALUE! and #REF! Paid Tell a missing match apart from a broken reference, and print that difference as words. Not started"
+ ],
+ [
+  "page:/learn",
+  "69 Error handling: which net catches what Paid Choose the wide net or the narrow one on purpose, and wrap the whole calculation in it. Not started"
+ ],
+ [
+  "page:/learn",
+  "70 TODAY and NOW: the volatile clock Paid Tell today's date from this moment, and read the clock out of a date number. Not started"
+ ],
+ [
+  "page:/learn",
+  "71 DATE: build a date from parts Paid Build a real date from three numbers and let DATE roll the overflow. Not started"
+ ],
+ [
+  "page:/learn",
+  "72 DATEDIF: days, months or years between Paid Ask for the gap between two dates in whole years, months or days, with the leftovers when needed. Not started"
+ ],
+ [
+  "page:/learn",
+  "73 DAYS and simple date maths Paid Measure the distance between two dates in days, then treat the answer as the number it is. Not started"
+ ],
+ [
+  "page:/learn",
+  "74 Date functions summary Paid Combine today's date, a distance and a month edge in formulas that still work tomorrow. Not started"
+ ],
+ [
+  "page:/learn",
+  "75 SUMPRODUCT: multiply the pair, then add them up Paid Value a table and take a weighted average from the same two columns. Not started"
+ ],
+ [
+  "page:/learn",
+  "76 SUBTOTAL: one function number, six answers Paid Read the function number first, so one range can be added or searched for its largest value. Not started"
+ ],
+ [
+  "page:/learn",
+  "77 AGGREGATE: a total that says what to ignore Paid Write a three-argument aggregate and know which cells the options number leaves out. Not started"
+ ],
+ [
+  "page:/learn",
+  "78 Totals that multiply, skip and reconcile Paid Reconcile two routes to the same total and read the ratio as a pass or a fail. Not started"
+ ],
+ [
+  "page:/learn",
+  "79 UNIQUE: one row per distinct value Paid Count the distinct couriers in a column without retyping the list. Not started"
+ ],
+ [
+  "page:/learn",
+  "80 FILTER: the rows that meet a condition Paid Add the rows that meet a condition without filtering the sheet first. Not started"
+ ],
+ [
+  "page:/learn",
+  "81 SORT and spilled ranges Paid Rank a table without touching it, then read one cell out of the ranked block. Not started"
+ ],
+ [
+  "page:/learn",
+  "82 A commission sheet that updates itself Paid Read a rate from a banded table, then multiply it by the sales figure. Not started"
+ ],
+ [
+  "page:/learn",
+  "83 A headcount and payroll summary Paid Total a payroll across two columns, then divide it by the headcount. Not started"
+ ],
+ [
+  "page:/learn",
+  "84 An inventory reorder report Paid Floor a row's shortfall at zero, then net the whole sheet the same way. Not started"
+ ],
+ [
+  "page:/learn",
+  "85 A monthly close checklist in formulas Paid Flag a reconciliation from its variance, then count the rows still out. Not started"
+ ],
+ [
+  "page:/learn",
+  "86 Select to the edge of a block Paid Select a whole column of data with two keys instead of the mouse. Not started"
+ ],
+ [
+  "page:/learn",
+  "A stale exercise is one you finished two weeks ago or longer. One that needs practice took a hint, or more than one try."
+ ],
+ [
+  "page:/learn",
+  "About this group"
+ ],
+ [
+  "page:/learn",
+  "Adding things up 9 exercises"
+ ],
+ [
+  "page:/learn",
+  "Averages and ranks 7 exercises"
+ ],
+ [
+  "page:/learn",
+  "Capstone projects 6 exercises"
+ ],
+ [
+  "page:/learn",
+  "Counting rows 6 exercises"
+ ],
+ [
+  "page:/learn",
+  "Dates and deadlines 5 exercises"
+ ],
+ [
+  "page:/learn",
+  "Decisions with IF 7 exercises"
+ ],
+ [
+  "page:/learn",
+  "Dynamic arrays 3 exercises"
+ ],
+ [
+  "page:/learn",
+  "Errors and blanks 4 exercises"
+ ],
+ [
+  "page:/learn",
+  "Every exercise you finish is remembered in this browser, and an account carries the same record to your other devices. This page reads it and tells you what to open next."
+ ],
+ [
+  "page:/learn",
+  "Finding text 7 exercises"
+ ],
+ [
+  "page:/learn",
+  "Getting started 1 exercise"
+ ],
+ [
+  "page:/learn",
+  "INDEX and MATCH 6 exercises"
+ ],
+ [
+  "page:/learn",
+  "Looking values up 10 exercises"
+ ],
+ [
+  "page:/learn",
+  "Nothing started yet. The first exercise is one formula and about two minutes."
+ ],
+ [
+  "page:/learn",
+  "Real workbooks 4 exercises"
+ ],
+ [
+  "page:/learn",
+  "Resetting clears every completion in this browser. If you are signed in, your account keeps its own copy, and that copy comes back the next time this page loads."
+ ],
+ [
+  "page:/learn",
+  "Rounding money 3 exercises"
+ ],
+ [
+  "page:/learn",
+  "Start exercise 1 · SUM: total a column"
+ ],
+ [
+  "page:/learn",
+  "SUMPRODUCT and friends 4 exercises"
+ ],
+ [
+  "page:/learn",
+  "Tidying text 4 exercises"
+ ],
+ [
+  "page:/learn/groups/aggregate",
+  "Excel exercises: SUMPRODUCT and friends"
+ ],
+ [
+  "page:/learn/groups/aggregate",
+  "Four exercises at level 3, and every answer is graded on the number the formula returns."
+ ],
+ [
+  "page:/learn/groups/aggregate",
+  "Some totals need two columns multiplied before they are added, and some need to ignore rows a filter has hidden."
+ ],
+ [
+  "page:/learn/groups/aggregate",
+  "SUMPRODUCT multiplies arrays element by element and adds the results, which replaces a helper column. SUBTOTAL takes a function number first, so 9 adds and 1 averages, and it recalculates against the rows a filter leaves visible. AGGREGATE adds an options number that can ignore errors, hidden rows, or both. Choose the wrong option and the total is quietly wrong."
+ ],
+ [
+  "page:/learn/groups/aggregate",
+  "The two argument counts are what people mix up. A function number is a choice from a fixed list, an options number is a set of switches, and neither is a cell address. Write the pair down before building the formula. The group is short because each of these formulas is one argument away from a believable wrong answer."
+ ],
+ [
+  "page:/learn/groups/arrays",
+  "A current version of Excel lets one formula return a block of cells, and this group uses that for three jobs."
+ ],
+ [
+  "page:/learn/groups/arrays",
+  "Excel exercises: Dynamic arrays"
+ ],
+ [
+  "page:/learn/groups/arrays",
+  "The spill needs the room below it. Leave one row of data in the way and the whole result becomes an error rather than a short list. That is why the group checks where the answer lands and not only what it says. A spilled range holds no formula of its own, so typing over a cell inside it destroys the block."
+ ],
+ [
+  "page:/learn/groups/arrays",
+  "Three exercises at level 3, all graded on the block a formula returns."
+ ],
+ [
+  "page:/learn/groups/arrays",
+  "UNIQUE returns one copy of each distinct value in the order it met them, and an optional third argument keeps only values that appear once. FILTER returns the rows that meet a condition and stays live as the data changes. SORT returns a new block in the order you ask for and leaves the source alone. Typing inside a spilled block raises #SPILL!."
+ ],
+ [
+  "page:/learn/groups/capstone",
+  "Excel exercises: Capstone projects"
+ ],
+ [
+  "page:/learn/groups/capstone",
+  "Nobody tells you which function to reach for. A sales summary, a lookup dashboard, a cleanup of an imported list and a budget against actuals each take two screens. The first builds the answer and the second reads it back off the sheet."
+ ],
+ [
+  "page:/learn/groups/capstone",
+  "The audit gives you five sheets, each with one broken cell, and asks you to repair it from the error code. A division by an empty cell, a lookup with no matching row and text where a number belongs each need a different repair. Six exercises at level 3."
+ ],
+ [
+  "page:/learn/groups/capstone",
+  "The capstones give you a business question and a workbook, with less scaffolding than the exercises before them."
+ ],
+ [
+  "page:/learn/groups/capstone",
+  "Treat each one as a brief rather than a drill. Decide the shape of the answer first, write the formula second, and use the reading screen as the check that the first decision was right. The brief is the hard part and the formula is the easy part."
+ ],
+ [
+  "page:/learn/groups/count",
+  "0 of 6 complete"
+ ],
+ [
+  "page:/learn/groups/count",
+  "COUNT counts cells holding a number and passes over text, blanks and logical values. COUNTA counts anything that is not empty, so a date stored as text counts there and not here. COUNTIF adds one condition, and COUNTIFS adds as many as you like, provided each range covers the same rows. Wildcards go inside the quotes: a star for any run of characters, a question mark for exactly one."
+ ],
+ [
+  "page:/learn/groups/count",
+  "Counting gets harder as soon as the column has gaps, text that looks like a number, or a condition attached."
+ ],
+ [
+  "page:/learn/groups/count",
+  "Excel exercises: Counting rows"
+ ],
+ [
+  "page:/learn/groups/count",
+  "Six exercises at levels 1 to 3, and the last one asks which count answers a given question."
+ ],
+ [
+  "page:/learn/groups/count",
+  "The pair that trips people is COUNT and COUNTA on the same column. Run both on a list with three blanks and look at the gap, because that gap is the only reliable sign that some values are stored as text. Fixing the types changes the total, which is why the count comes first."
+ ],
+ [
+  "page:/learn/groups/date",
+  "0 of 5 complete"
+ ],
+ [
+  "page:/learn/groups/date",
+  "A date in Excel is a number with a format on it, and every date problem is a problem with that number."
+ ],
+ [
+  "page:/learn/groups/date",
+  "DAYS subtracts one date from another. DATEDIF counts whole months or years between two dates, which is what an age column needs."
+ ],
+ [
+  "page:/learn/groups/date",
+  "Excel exercises: Dates and deadlines"
+ ],
+ [
+  "page:/learn/groups/date",
+  "Five exercises at levels 2 and 3. The summary asks which distance between two dates a question needs."
+ ],
+ [
+  "page:/learn/groups/date",
+  "TODAY and NOW recalculate whenever the file does. That suits one cell at the top of a report, and it costs time down a long column. DATE builds a date from a year, a month and a day, so you can construct a period instead of typing it."
+ ],
+ [
+  "page:/learn/groups/date",
+  "Widen a date column and the number behind the format appears, usually in the forty-thousands. That is the check to make before any subtraction. A date typed as text will not subtract at all, and the error points at the formula rather than the cell."
+ ],
+ [
+  "page:/learn/groups/errors",
+  "#N/A means nothing matched, #VALUE! means a type is wrong, and #REF! means the reference no longer points at a cell. ISNA, ISERROR and ISERR test for them, and IFERROR catches every error and shows your own text. IFNA catches only the missing match, which is usually what people meant. A wide net hides a broken reference along with a missing code."
+ ],
+ [
+  "page:/learn/groups/errors",
+  "An error value is still a value, and this group is about reading one before deciding to hide it."
+ ],
+ [
+  "page:/learn/groups/errors",
+  "Excel exercises: Errors and blanks"
+ ],
+ [
+  "page:/learn/groups/errors",
+  "Four exercises at levels 2 and 3, and the summary asks which handler a given failure deserves."
+ ],
+ [
+  "page:/learn/groups/errors",
+  "The order matters more than the function. Read the code first, repair the cause where you can, and wrap only the failure you expect. A sheet of IFERROR wrappers is a sheet that no longer tells you when something breaks. Repair the cause first, then decide whether a wrapper earns its place at all."
+ ],
+ [
+  "page:/learn/groups/index-match",
+  "Excel exercises: INDEX and MATCH"
+ ],
+ [
+  "page:/learn/groups/index-match",
+  "INDEX and MATCH are two ordinary functions that combine into a lookup you can point in any direction."
+ ],
+ [
+  "page:/learn/groups/index-match",
+  "Later exercises cover the two-way lookup, with MATCH on rows, MATCH on columns and INDEX at the intersection. Six exercises at levels 2 and 3."
+ ],
+ [
+  "page:/learn/groups/index-match",
+  "MATCH returns the position of a value in a range, and INDEX returns the value at a row and column. Put those together and you can read left of the key column, which VLOOKUP cannot do. The two ranges are chosen separately, so no column count can drift. The group builds them one at a time so the combination arrives as a conclusion."
+ ],
+ [
+  "page:/learn/groups/index-match",
+  "The zero in the third MATCH argument is the exact match, and leaving it out is the mistake that survives testing. A match type of one finds the nearest value below the key and returns a row that looks believable. Type the zero every time."
+ ],
+ [
+  "page:/learn/groups/intro",
+  "0 of 1 complete"
+ ],
+ [
+  "page:/learn/groups/intro",
+  "All Excel exercises"
+ ],
+ [
+  "page:/learn/groups/intro",
+  "Excel exercises: Getting started"
+ ],
+ [
+  "page:/learn/groups/intro",
+  "The first screen asks you to select A2 to A40 in one chord. Shift extends the selection, and Ctrl or Command turns the arrow key into a jump to the last filled cell. The jump stops at the first blank row, so a gap in the data ends the selection early. Press it, look at where the highlight stopped, and extend again from there."
+ ],
+ [
+  "page:/learn/groups/intro",
+  "The second screen keeps row 1 in view using the ribbon key tips: Alt, then W, then F, then R. A key tip is the letter each tab shows while Alt is held, so the route reads as a left-to-right walk across the ribbon. Freeze panes sits two levels in, and the same keys bring you back to unfreeze it."
+ ],
+ [
+  "page:/learn/groups/intro",
+  "This group has one exercise about moving around a sheet without the mouse."
+ ],
+ [
+  "page:/learn/groups/intro",
+  "Two screens, one at level 1, and no formula to type. The grader checks the range or the view you finish with, so a near miss is visible on the sheet rather than in a message."
+ ],
+ [
+  "page:/learn/groups/logical",
+  "A comparison such as B2>100 already returns TRUE or FALSE, so IF is often a wrapper around one. AND, OR and NOT combine tests without stacking IFs inside each other. IFS handles more than two outcomes, SWITCH matches a list of names, and the IS functions ask what a cell holds before you ask what it is worth."
+ ],
+ [
+  "page:/learn/groups/logical",
+  "Excel exercises: Decisions with IF"
+ ],
+ [
+  "page:/learn/groups/logical",
+  "IF turns a comparison into a decision, and this group builds the functions around it."
+ ],
+ [
+  "page:/learn/groups/logical",
+  "Seven exercises at levels 1 to 3. The pass-fail exercise is the shortest way to see the shape of the function, and the summary asks which one a question needs."
+ ],
+ [
+  "page:/learn/groups/logical",
+  "Two details carry most of the marks. The true and false results are evaluated left to right, so the first test that passes wins and the rest never run. Text returned by a test needs quotes around it and a number does not. Getting either wrong gives a result that looks right in one row and wrong in the next."
+ ],
+ [
+  "page:/learn/groups/lookup",
+  "0 of 10 complete"
+ ],
+ [
+  "page:/learn/groups/lookup",
+  "Excel exercises: Looking values up"
+ ],
+ [
+  "page:/learn/groups/lookup",
+  "Looking a value up is routine work, and most of what goes wrong sits in the arguments people leave out."
+ ],
+ [
+  "page:/learn/groups/lookup",
+  "Read every formula from the inside out: the value being matched, the block it is matched against, then the column it returns. Almost every wrong answer in this group is the third of those pointing somewhere plausible."
+ ],
+ [
+  "page:/learn/groups/lookup",
+  "The last exercise puts VLOOKUP and XLOOKUP on one table and compares what each asks you to know. Ten exercises at levels 2 and 3, more than any other group."
+ ],
+ [
+  "page:/learn/groups/lookup",
+  "VLOOKUP's fourth argument defaults to approximate match. A formula that works on sorted data can return a neighbour's number on unsorted data without an error. The group teaches both modes first, then HLOOKUP across rows, wildcards for partial keys, and a two-way lookup built from VLOOKUP and MATCH. XLOOKUP gets three exercises: exact match without counting columns, a search from the bottom, and a fallback that replaces IFERROR."
+ ],
+ [
+  "page:/learn/groups/modeling",
+  "Each one combines functions from earlier groups: VLOOKUP against a tier table, SUMPRODUCT over paired ranges, MAX with a zero guard, IF and COUNTIF for a checklist. No new functions arrive. What changes is the size of the question, and one range that starts a row late still produces a plausible total. Checking the edges is most of the work."
+ ],
+ [
+  "page:/learn/groups/modeling",
+  "Excel exercises: Real workbooks"
+ ],
+ [
+  "page:/learn/groups/modeling",
+  "Four exercises at level 3, each with two screens: build the sheet, then read a number back out of it."
+ ],
+ [
+  "page:/learn/groups/modeling",
+  "The reading screen is the one to take slowly. A wrong total is often a right formula applied to a range that missed its last row, and a number read off the sheet will not say so. Recompute one line by hand and compare. Two screens also mean two chances to notice that a total is wrong."
+ ],
+ [
+  "page:/learn/groups/modeling",
+  "This group is four small workbooks where the formulas have to agree with each other."
+ ],
+ [
+  "page:/learn/groups/rounding",
+  "0 of 3 complete"
+ ],
+ [
+  "page:/learn/groups/rounding",
+  "Excel exercises: Rounding money"
+ ],
+ [
+  "page:/learn/groups/rounding",
+  "ROUND changes the value: 4450.3992 becomes 4450.4 in the cell, while a cell format only changes what you see. ROUNDUP and ROUNDDOWN move a price in one direction only. MROUND and FLOOR round to a multiple, so 47 can land on 45 or 50, and a pack of six ships 42 rather than a part-filled 48."
+ ],
+ [
+  "page:/learn/groups/rounding",
+  "Rounding to two decimals on screen and rounding the stored number are different operations, and money cares about the difference."
+ ],
+ [
+  "page:/learn/groups/rounding",
+  "The test worth running after each one is a sum of the rounded column against the rounded sum of the column. When the two totals disagree, a format is standing in for a calculation. That gap is exactly what a reconciliation at work looks for. Do it once on a price column and the habit sticks."
+ ],
+ [
+  "page:/learn/groups/rounding",
+  "Three exercises, all at level 2. Each prompt names the rule and the unit, because nearest and up to the nearest produce different answers down a column."
+ ],
+ [
+  "page:/learn/groups/statistical",
+  "0 of 7 complete"
+ ],
+ [
+  "page:/learn/groups/statistical",
+  "A mean sent to a meeting that needed a median tells the room the wrong thing. The habit worth building is to look at the column before choosing the function, because one order ten times the usual size decides the answer. Each prompt in the group hides a distribution like that. Compare the two summaries on one column and the cost of the wrong choice shows."
+ ],
+ [
+  "page:/learn/groups/statistical",
+  "AVERAGE can be dragged anywhere by one large value, and MEDIAN stays in the middle when it happens. MODE answers a different question: which value appears most often. LARGE and SMALL return the nth value from either end without sorting the list, and RANK turns a value into a position. MIN and MAX give the two ends of the column."
+ ],
+ [
+  "page:/learn/groups/statistical",
+  "Excel exercises: Averages and ranks"
+ ],
+ [
+  "page:/learn/groups/statistical",
+  "Seven exercises at levels 1 and 2, and the summary asks for the right number rather than the familiar one."
+ ],
+ [
+  "page:/learn/groups/statistical",
+  "This group is about choosing which summary a column of numbers deserves."
+ ],
+ [
+  "page:/learn/groups/sum",
+  "0 of 9 complete"
+ ],
+ [
+  "page:/learn/groups/sum",
+  "Excel exercises: Adding things up"
+ ],
+ [
+  "page:/learn/groups/sum",
+  "Later exercises add several blocks in one call, build a running total with a locked starting row, and close with a summary asking which summing function a question needs."
+ ],
+ [
+  "page:/learn/groups/sum",
+  "Nine exercises run from level 1 to level 3, so the group starts at the smallest possible formula. Every prompt names the cell the total belongs in, and the answer is checked against the number the grader computed separately."
+ ],
+ [
+  "page:/learn/groups/sum",
+  "SUM skips text and blanks inside the range it is given. A number stored as text therefore disappears from a total with no warning, which is the failure the debugging exercise sets up. SUMIF takes the range to test first and the range to add second. SUMIFS reverses that order, and getting the two the wrong way round is the common mistake."
+ ],
+ [
+  "page:/learn/groups/sum",
+  "This group covers addition in a spreadsheet: one column, several blocks, and totals that include only the rows meeting a condition."
+ ],
+ [
+  "page:/learn/groups/text-change",
+  "0 of 4 complete"
+ ],
+ [
+  "page:/learn/groups/text-change",
+  "Excel exercises: Tidying text"
+ ],
+ [
+  "page:/learn/groups/text-change",
+  "Four exercises at level 2. Each prompt shows the output you should see, so a tidy-up that changes a value is caught straight away."
+ ],
+ [
+  "page:/learn/groups/text-change",
+  "Imported text arrives with its own casing, spacing and punctuation, and this group is the clean-up pass."
+ ],
+ [
+  "page:/learn/groups/text-change",
+  "The ampersand and CONCAT join values and do not care what type they are. TEXTJOIN joins a whole range and can skip empty cells, which is the difference between a list and a list with gaps. UPPER, LOWER and PROPER normalise case, and PROPER is the one people forget until a mail merge prints names in capitals. SUBSTITUTE swaps every match, and a fourth argument picks one instance."
+ ],
+ [
+  "page:/learn/groups/text-change",
+  "TRIM removes the spaces at the ends and collapses any run inside to one, which is what a pasted report needs. It does nothing for a non-breaking space, the character copied tables hide. When TRIM leaves a value looking unchanged, that space is the likely reason."
+ ],
+ [
+  "page:/learn/groups/text-search",
+  "A lot of the text in a spreadsheet has to be measured or cut before it can be used."
+ ],
+ [
+  "page:/learn/groups/text-search",
+  "Excel exercises: Finding text"
+ ],
+ [
+  "page:/learn/groups/text-search",
+  "LEN, LEFT and RIGHT give length and edges, enough to pull an order code apart. MID takes characters from the middle, and FIND and SEARCH locate a delimiter. FIND is case-sensitive, SEARCH is not, which decides whether a formula survives a typo, and wildcards in criteria find a name you only half remember. TEXTBEFORE and TEXTAFTER do the same split in one step."
+ ],
+ [
+  "page:/learn/groups/text-search",
+  "Seven exercises at levels 1 to 3, and the summary asks which of these a task needs."
+ ],
+ [
+  "page:/learn/groups/text-search",
+  "The hard part is the empty case. A delimiter that is missing returns an error from FIND, and LEFT built on that error fails too, so the fix is one test around the whole thing. Each exercise in the group has at least one row like that. Read one of them before you write the formula and the error handling writes itself."
+ ],
+ [
+  "page:/pricing",
+  "$39.99 every six months"
+ ],
+ [
+  "page:/pricing",
+  "$5.00 a month save 50%"
+ ],
+ [
+  "page:/pricing",
+  "$59.99 a year"
+ ],
+ [
+  "page:/pricing",
+  "$6.67 a month save 33%"
+ ],
+ [
+  "page:/pricing",
+  "$9.99 a month"
+ ],
+ [
+  "page:/pricing",
+  "10 exercises free. The rest from $9.99/month"
+ ],
+ [
+  "page:/pricing",
+  "100% refund guarantee inside 30 days, cancel anytime."
+ ],
+ [
+  "page:/pricing",
+  "All 76 paid exercises, graded the way the free ones are"
+ ],
+ [
+  "page:/pricing",
+  "Already have an account? Sign in and the paid exercises are open, or open your account to change the plan."
+ ],
+ [
+  "page:/pricing",
+  "As many as you sign in on. The account carries your progress between them, so there is no device limit and no second seat to buy."
+ ],
+ [
+  "page:/pricing",
+  "Ask within 30 days and the payment is refunded. A person reads the request, and no reason is required."
+ ],
+ [
+  "page:/pricing",
+  "Before you pay"
+ ],
+ [
+  "page:/pricing",
+  "Can I use it offline?"
+ ],
+ [
+  "page:/pricing",
+  "Cancelling stops the next charge, not the time you paid for"
+ ],
+ [
+  "page:/pricing",
+  "Checkout is not open on this copy of the site yet. Read the terms here, and start with the 10 that need no account."
+ ],
+ [
+  "page:/pricing",
+  "Create an account"
+ ],
+ [
+  "page:/pricing",
+  "Excel for Microsoft 365, Excel 2021 and Excel for Mac 2021. The grader runs in your browser, so it does not check your version. An exercise that needs a newer function says so on its own page."
+ ],
+ [
+  "page:/pricing",
+  "Free lessons All exercises"
+ ],
+ [
+  "page:/pricing",
+  "How long to pay for"
+ ],
+ [
+  "page:/pricing",
+  "How many devices can I use?"
+ ],
+ [
+  "page:/pricing",
+  "No. The track teaches Excel's grammar. Sheets spells several of those functions differently, so what you learn here will not carry over unchanged."
+ ],
+ [
+  "page:/pricing",
+  "One month Six months One year"
+ ],
+ [
+  "page:/pricing",
+  "Renews every month until you cancel"
+ ],
+ [
+  "page:/pricing",
+  "There is no trial and no per-exercise unlock. Pick a term and the paid half opens on every device you sign in on."
+ ],
+ [
+  "page:/pricing",
+  "What if it is not for me?"
+ ],
+ [
+  "page:/pricing",
+  "When does it renew?"
+ ],
+ [
+  "page:/pricing",
+  "Which Excel versions does this work in?"
+ ],
+ [
+  "page:/pricing",
+  "Will it work in Google Sheets?"
+ ],
+ [
+  "page:/pricing",
+  "Yes, once an exercise is open. The grader and your progress live in this browser. Opening a new exercise, or syncing an account, needs a connection."
+ ],
+ [
+  "page:/pricing",
+  "Your progress follows your account to any device"
+ ],
+ [
+  "page:/privacy",
+  "A username, an optional display name, an optional LinkedIn URL, and a timezone"
+ ],
+ [
+  "page:/privacy",
+  "amount, currency, kind, refunded, date, tax and refunds have a legal life of their own, and a refund needs the payment it refunds."
+ ],
+ [
+  "page:/privacy",
+  "An account stores exactly these rows, and nothing else:"
+ ],
+ [
+  "page:/privacy",
+  "Changes to this page"
+ ],
+ [
+  "page:/privacy",
+  "Clearing site data in your browser deletes all six, and the exercises keep working. Your browser decides how long they last. Nothing here expires them on its own."
+ ],
+ [
+  "page:/privacy",
+  "Cookies, and why there is no banner"
+ ],
+ [
+  "page:/privacy",
+  "Deleting your account"
+ ],
+ [
+  "page:/privacy",
+  "Erased: the profile, every progress row, every attempt, the daily points, the streak, and any feedback you sent through the account."
+ ],
+ [
+  "page:/privacy",
+  "Every row is scoped to your account by a row-level security policy. That is a database rule rather than a promise in the application code. A request carrying your session cannot read another learner's rows. Yours cannot be read by theirs."
+ ],
+ [
+  "page:/privacy",
+  "Grading happens in your browser. Nothing you type into a cell is sent anywhere. The exercises need JavaScript, and they need no account."
+ ],
+ [
+  "page:/privacy",
+  "If you buy the track once billing opens, a payment processor (Stripe) handles the card. The card number never reaches this site. The processor returns an identifier and a payment record, which is the row listed under retention below."
+ ],
+ [
+  "page:/privacy",
+  "If you create an account, this site stores your progress so it follows you to another device. That is the only reason a server is involved."
+ ],
+ [
+  "page:/privacy",
+  "Kept rows lose the link to your account in the same transaction that removes it. What remains is a payment and a plan with no person attached. Your email address and your name are gone with the profile."
+ ],
+ [
+  "page:/privacy",
+  "Kept, unlinked from you:"
+ ],
+ [
+  "page:/privacy",
+  "No advertising or tracking cookie, and nothing that survives you closing the tab."
+ ],
+ [
+  "page:/privacy",
+  "No analytics script, and no page-view counter of any kind."
+ ],
+ [
+  "page:/privacy",
+  "no name, no username, no email, no LinkedIn URL, no group, the profile row is deleted with the sign-in itself, and the kept rows are unlinked first."
+ ],
+ [
+  "page:/privacy",
+  "No profile built from your behaviour, and nothing sold or handed to a data broker."
+ ],
+ [
+  "page:/privacy",
+  "No third-party font, stylesheet, image or script: every page loads only from this site."
+ ],
+ [
+  "page:/privacy",
+  "Nothing that names you"
+ ],
+ [
+  "page:/privacy",
+  "One row per screen you submitted, which is where first-try accuracy comes from"
+ ],
+ [
+  "page:/privacy",
+  "Per exercise: whether it is complete, the score, how many checks you missed, whether the answer was opened"
+ ],
+ [
+  "page:/privacy",
+  "Points and streaks"
+ ],
+ [
+  "page:/privacy",
+  "Questions, corrections, or a deletion request: the feedback button in the footer."
+ ],
+ [
+  "page:/privacy",
+  "Signed in, the auth server sets one first-party session cookie. It is the only way to know that the next request is still you, so it is strictly necessary. A consent banner exists to ask permission for cookies that are not. There is nothing here to ask about, so there is no banner."
+ ],
+ [
+  "page:/privacy",
+  "Signed out, this site sets no cookies at all."
+ ],
+ [
+  "page:/privacy",
+  "Taking your data out"
+ ],
+ [
+  "page:/privacy",
+  "That you closed the keyboard-shortcut note"
+ ],
+ [
+  "page:/privacy",
+  "That you used the one free pass past the wall"
+ ],
+ [
+  "page:/privacy",
+  "The application writes its own operational lines: that a checkout started or failed, that a note arrived. They carry a plan name and an outcome, never an address, an account id or an IP. The host's log retention keeps them, not the database."
+ ],
+ [
+  "page:/privacy",
+  "The daily points total and the streak, both derived from the attempts above"
+ ],
+ [
+  "page:/privacy",
+  "The database and the sign-in service are the Supabase project this deployment is configured against. They process the rows listed above on this site's behalf."
+ ],
+ [
+  "page:/privacy",
+  "The document also lists what would survive a deletion, so the copy in your hands and the copy on the server say the same thing."
+ ],
+ [
+  "page:/privacy",
+  "The exercise you left half finished, so it reopens where you stopped"
+ ],
+ [
+  "page:/privacy",
+  "The exercises grade in your browser. An account is the only thing that puts your work on a server, and you can take it out or delete it."
+ ],
+ [
+  "page:/privacy",
+  "The flashcard schedule: when each card is due next"
+ ],
+ [
+  "page:/privacy",
+  "The host that serves the pages may keep access logs of requests, as any web server does. Nothing in this application reads those logs or joins them to an account."
+ ],
+ [
+  "page:/privacy",
+  "The note you typed in the feedback box"
+ ],
+ [
+  "page:/privacy",
+  "The pages are checked for this mechanically: the build fails if any page, stylesheet or script refers to an origin other than this one."
+ ],
+ [
+  "page:/privacy",
+  "the plan, its status and when it ran out, it is what the payment bought, and it is what a dispute is argued from."
+ ],
+ [
+  "page:/privacy",
+  "The same applies to storage: the keys above are this site's own functionality, not tracking. A banner offering to switch them off would have to switch the exercises off with them."
+ ],
+ [
+  "page:/privacy",
+  "The same page deletes the account. It happens immediately, with no grace period to wait out and no support ticket to open."
+ ],
+ [
+  "page:/privacy",
+  "The short version"
+ ],
+ [
+  "page:/privacy",
+  "There are no analytics, no advertising and no third-party requests on this site. The only cookie is the one that keeps you signed in."
+ ],
+ [
+  "page:/privacy",
+  "There is no other recipient. Nothing is sold, shared for advertising, or sent to an analytics provider, because none is configured and none could be added without this page changing."
+ ],
+ [
+  "page:/privacy",
+  "This is a study tool for people learning spreadsheets, and it is not directed at children under 13. This site does not knowingly keep an account for a child. If you believe a child has one, write to the address below and it will be deleted."
+ ],
+ [
+  "page:/privacy",
+  "This page is part of the repository and carries the date of the build you are reading. When what the code stores changes, this page changes in the same commit. A policy that drifts from the schema is a bug, not a revision."
+ ],
+ [
+  "page:/privacy",
+  "This site keeps six keys of its own in localStorage for the work you do signed out. They never leave the device unless you sign in. At that point the progress key is sent once, so your history survives the sign-in."
+ ],
+ [
+  "page:/privacy",
+  "What an account adds on the server"
+ ],
+ [
+  "page:/privacy",
+  "What stays in your browser"
+ ],
+ [
+  "page:/privacy",
+  "What this site keeps, and what it never sees"
+ ],
+ [
+  "page:/privacy",
+  "What this site never does"
+ ],
+ [
+  "page:/privacy",
+  "Which exercises you finished, the last score, and whether you opened the answer"
+ ],
+ [
+  "page:/privacy",
+  "Who else can see it"
+ ],
+ [
+  "page:/privacy",
+  "You can export everything as one JSON file, and delete the account and the data behind it, from your account page ."
+ ],
+ [
+  "page:/privacy",
+  "Your account page has a download that returns everything in one JSON file: the profile, every progress row, every recorded attempt, points, streaks, and the entitlement and payment history. It is the same data the code reads, in a format you can compare."
+ ],
+ [
+  "page:/privacy",
+  "Your email address, and the password the auth server stores as a hash you and we cannot read"
+ ],
+ [
+  "page:/projects",
+  "04 Advanced Paid"
+ ],
+ [
+  "page:/projects",
+  "8 tasks · Fourteen logged fish across two beats and three anglers"
+ ],
+ [
+  "page:/projects",
+  "8 tasks · Fourteen sightings, one sheet, with a computed summary block"
+ ],
+ [
+  "page:/projects",
+  "8 tasks · Twelve Q1 orders with a formula-driven net column"
+ ],
+ [
+  "page:/projects",
+  "8 tasks · Twelve wines with a computed stock block"
+ ],
+ [
+  "page:/projects",
+  "Four spreadsheets, eight tasks each. The work a hiring test would ask for."
+ ],
+ [
+  "page:/projects",
+  "Project track · 4 projects"
+ ],
+ [
+  "page:/projects",
+  "Read a raw sightings log, find the rows behind its summary, and report what it says."
+ ],
+ [
+  "page:/projects",
+  "Report a quarter's revenue, its gross, and the money the discounts cost."
+ ],
+ [
+  "page:/projects",
+  "Trout river case"
+ ],
+ [
+  "page:/projects",
+  "Turn a field log into the read a river trust would put on one page."
+ ],
+ [
+  "page:/projects",
+  "UFO sightings dashboard"
+ ],
+ [
+  "page:/projects",
+  "Value a cellar, then find which region, vintage and price are carrying it."
+ ],
+ [
+  "page:/projects",
+  "Wine cellar dashboard"
+ ],
+ [
+  "page:/search",
+  "A commission sheet that updates itself paid"
+ ],
+ [
+  "page:/search",
+  "A headcount and payroll summary paid"
+ ],
+ [
+  "page:/search",
+  "A monthly close checklist in formulas paid"
+ ],
+ [
+  "page:/search",
+  "Add only the positives paid"
+ ],
+ [
+  "page:/search",
+  "AGGREGATE: a total that says what to ignore paid"
+ ],
+ [
+  "page:/search",
+  "An inventory reorder report paid"
+ ],
+ [
+  "page:/search",
+  "AND, OR and NOT: combining tests paid"
+ ],
+ [
+  "page:/search",
+  "Arrow keys move through the results, Enter opens one, Escape clears the box."
+ ],
+ [
+  "page:/search",
+  "Average functions summary paid"
+ ],
+ [
+  "page:/search",
+  "AVERAGE: mean of a score list"
+ ],
+ [
+  "page:/search",
+  "Browse by skill instead"
+ ],
+ [
+  "page:/search",
+  "Budget versus actual with a variance flag paid"
+ ],
+ [
+  "page:/search",
+  "Capstone: North gross margin paid"
+ ],
+ [
+  "page:/search",
+  "Clean up an imported list paid"
+ ],
+ [
+  "page:/search",
+  "CONCAT and the & operator"
+ ],
+ [
+  "page:/search",
+  "Count functions summary paid"
+ ],
+ [
+  "page:/search",
+  "COUNT: numbers only, and what it skips paid"
+ ],
+ [
+  "page:/search",
+  "COUNTA: count the non-empty cells paid"
+ ],
+ [
+  "page:/search",
+  "COUNTIF with wildcards paid"
+ ],
+ [
+  "page:/search",
+  "COUNTIF: count one condition"
+ ],
+ [
+  "page:/search",
+  "COUNTIFS: several conditions paid"
+ ],
+ [
+  "page:/search",
+  "Date functions summary paid"
+ ],
+ [
+  "page:/search",
+  "DATE: build a date from parts paid"
+ ],
+ [
+  "page:/search",
+  "DATEDIF: days, months or years between paid"
+ ],
+ [
+  "page:/search",
+  "DAYS and simple date maths paid"
+ ],
+ [
+  "page:/search",
+  "Debug a total that skips a row paid"
+ ],
+ [
+  "page:/search",
+  "Error handling: which net catches what paid"
+ ],
+ [
+  "page:/search",
+  "Every exercise, in order"
+ ],
+ [
+  "page:/search",
+  "FILTER: the rows that meet a condition paid"
+ ],
+ [
+  "page:/search",
+  "FIND and SEARCH: case-sensitive or not paid"
+ ],
+ [
+  "page:/search",
+  "Find the exercise"
+ ],
+ [
+  "page:/search",
+  "Formula audit: fix five broken sheets paid"
+ ],
+ [
+  "page:/search",
+  "HLOOKUP: look across a row paid"
+ ],
+ [
+  "page:/search",
+  "IF: one test, two answers"
+ ],
+ [
+  "page:/search",
+  "IFERROR: catch the error, show your text paid"
+ ],
+ [
+  "page:/search",
+  "IFNA: catch only a missing match paid"
+ ],
+ [
+  "page:/search",
+  "IFS: more than two outcomes paid"
+ ],
+ [
+  "page:/search",
+  "INDEX + MATCH: lookup either way paid"
+ ],
+ [
+  "page:/search",
+  "INDEX and MATCH summary paid"
+ ],
+ [
+  "page:/search",
+  "INDEX MATCH: look left of the key paid"
+ ],
+ [
+  "page:/search",
+  "INDEX: a value at a row and column paid"
+ ],
+ [
+  "page:/search",
+  "ISBLANK, ISNUMBER, ISTEXT: reading a cell's type paid"
+ ],
+ [
+  "page:/search",
+  "LARGE and SMALL: the nth highest paid"
+ ],
+ [
+  "page:/search",
+  "LEFT + FIND: pull out a prefix paid"
+ ],
+ [
+  "page:/search",
+  "LEN, LEFT and RIGHT: count and cut"
+ ],
+ [
+  "page:/search",
+  "Logical functions: putting the pieces together paid"
+ ],
+ [
+  "page:/search",
+  "Lookup dashboard from three tables paid"
+ ],
+ [
+  "page:/search",
+  "Lookup functions summary paid"
+ ],
+ [
+  "page:/search",
+  "MATCH: find a value's position paid"
+ ],
+ [
+  "page:/search",
+  "MEDIAN: the middle value paid"
+ ],
+ [
+  "page:/search",
+  "MID: characters from the middle paid"
+ ],
+ [
+  "page:/search",
+  "MIN and MAX: fastest and slowest paid"
+ ],
+ [
+  "page:/search",
+  "MODE: the most common value paid"
+ ],
+ [
+  "page:/search",
+  "MROUND and FLOOR: round to a multiple paid"
+ ],
+ [
+  "page:/search",
+  "Rank a list without sorting it paid"
+ ],
+ [
+  "page:/search",
+  "Read #N/A, #VALUE! and #REF! paid"
+ ],
+ [
+  "page:/search",
+  "ROUND: money to two decimals"
+ ],
+ [
+  "page:/search",
+  "ROUNDUP and ROUNDDOWN: one direction only paid"
+ ],
+ [
+  "page:/search",
+  "Running total down a column paid"
+ ],
+ [
+  "page:/search",
+  "Sales summary end to end paid"
+ ],
+ [
+  "page:/search",
+  "Search the exercises Search"
+ ],
+ [
+  "page:/search",
+  "Select to the edge of a block paid"
+ ],
+ [
+  "page:/search",
+  "SORT and spilled ranges paid"
+ ],
+ [
+  "page:/search",
+  "SUBSTITUTE: replace one piece of text paid"
+ ],
+ [
+  "page:/search",
+  "SUBTOTAL: one function number, six answers paid"
+ ],
+ [
+  "page:/search",
+  "SUM across several blocks paid"
+ ],
+ [
+  "page:/search",
+  "Sum functions summary paid"
+ ],
+ [
+  "page:/search",
+  "SUM: total a column"
+ ],
+ [
+  "page:/search",
+  "SUMIF: a sum range on another column paid"
+ ],
+ [
+  "page:/search",
+  "SUMIF: total one region"
+ ],
+ [
+  "page:/search",
+  "SUMIFS: two conditions at once"
+ ],
+ [
+  "page:/search",
+  "SUMPRODUCT: multiply the pair, then add them up paid"
+ ],
+ [
+  "page:/search",
+  "SWITCH: match a list of values paid"
+ ],
+ [
+  "page:/search",
+  "Text search summary paid"
+ ],
+ [
+  "page:/search",
+  "TEXTBEFORE and TEXTAFTER: split on a delimiter paid"
+ ],
+ [
+  "page:/search",
+  "TEXTJOIN: join a range and skip blanks paid"
+ ],
+ [
+  "page:/search",
+  "TODAY and NOW: the volatile clock paid"
+ ],
+ [
+  "page:/search",
+  "Totals that multiply, skip and reconcile paid"
+ ],
+ [
+  "page:/search",
+  "TRUE and FALSE: what a comparison returns paid"
+ ],
+ [
+  "page:/search",
+  "Two-way INDEX MATCH paid"
+ ],
+ [
+  "page:/search",
+  "Two-way lookup with VLOOKUP and MATCH paid"
+ ],
+ [
+  "page:/search",
+  "Type what you are trying to do (\"remove duplicates\", \"days between dates\", \"sum one region\") and the exercise that teaches it comes up. No results means no exercise covers it yet, which is worth knowing too."
+ ],
+ [
+  "page:/search",
+  "UNIQUE: one row per distinct value paid"
+ ],
+ [
+  "page:/search",
+  "UPPER, LOWER and PROPER paid"
+ ],
+ [
+  "page:/search",
+  "VLOOKUP and XLOOKUP on the same table paid"
+ ],
+ [
+  "page:/search",
+  "VLOOKUP with a wildcard paid"
+ ],
+ [
+  "page:/search",
+  "VLOOKUP: approximate match needs a sorted column paid"
+ ],
+ [
+  "page:/search",
+  "VLOOKUP: exact match"
+ ],
+ [
+  "page:/search",
+  "Wildcards in text criteria paid"
+ ],
+ [
+  "page:/search",
+  "XLOOKUP with a fallback when nothing matches paid"
+ ],
+ [
+  "page:/search",
+  "XLOOKUP: exact match, no column counting paid"
+ ],
+ [
+  "page:/search",
+  "XLOOKUP: search from the bottom paid"
+ ],
+ [
+  "page:/shortcuts",
+  "Accept the entry and stay in the cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Add a second range to what is already selected"
+ ],
+ [
+  "page:/shortcuts",
+  "Apply a currency format"
+ ],
+ [
+  "page:/shortcuts",
+  "Apply a date format"
+ ],
+ [
+  "page:/shortcuts",
+  "Apply a percentage format"
+ ],
+ [
+  "page:/shortcuts",
+  "Apply a scientific format"
+ ],
+ [
+  "page:/shortcuts",
+  "Apply a time format"
+ ],
+ [
+  "page:/shortcuts",
+  "Apply a two-decimal number format"
+ ],
+ [
+  "page:/shortcuts",
+  "Arrow keys, Ctrl and the End key move the active cell anywhere in the used range. Five combinations cover almost every trip you make across a sheet."
+ ],
+ [
+  "page:/shortcuts",
+  "Cancel the entry you are typing"
+ ],
+ [
+  "page:/shortcuts",
+  "Close the workbook window"
+ ],
+ [
+  "page:/shortcuts",
+  "Copy the value from the cell above"
+ ],
+ [
+  "page:/shortcuts",
+  "Cycle back through the open workbooks"
+ ],
+ [
+  "page:/shortcuts",
+  "Do these work in Google Sheets?"
+ ],
+ [
+  "page:/shortcuts",
+  "Each page ends with the versions and the date its keys were checked. Shortcuts drift between releases, so check that line before you trust a row."
+ ],
+ [
+  "page:/shortcuts",
+  "Edit the active cell instead of typing over it"
+ ],
+ [
+  "page:/shortcuts",
+  "Excel keyboard shortcuts, one page per family"
+ ],
+ [
+  "page:/shortcuts",
+  "Expand or collapse the formula bar"
+ ],
+ [
+  "page:/shortcuts",
+  "Extend the selection by one cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Extend the selection down one screen"
+ ],
+ [
+  "page:/shortcuts",
+  "Extend the selection to the edge of the block"
+ ],
+ [
+  "page:/shortcuts",
+  "Extend the selection to the last used cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Fill the cell below from the cell above"
+ ],
+ [
+  "page:/shortcuts",
+  "Fill the cell to the right from the cell on the left"
+ ],
+ [
+  "page:/shortcuts",
+  "Fill the column from the pattern you typed"
+ ],
+ [
+  "page:/shortcuts",
+  "Find a shortcut"
+ ],
+ [
+  "page:/shortcuts",
+  "Find text in the sheet"
+ ],
+ [
+  "page:/shortcuts",
+  "Formatting what you selected"
+ ],
+ [
+  "page:/shortcuts",
+  "Freeze the rows above the active cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Go back to the General format"
+ ],
+ [
+  "page:/shortcuts",
+  "Go to a cell you name"
+ ],
+ [
+  "page:/shortcuts",
+  "Go to the last cell that holds data"
+ ],
+ [
+  "page:/shortcuts",
+  "Group the selected rows"
+ ],
+ [
+  "page:/shortcuts",
+  "Hide or show the ribbon"
+ ],
+ [
+  "page:/shortcuts",
+  "Hide the current worksheet"
+ ],
+ [
+  "page:/shortcuts",
+  "How current is the table?"
+ ],
+ [
+  "page:/shortcuts",
+  "Insert a function from a dialog"
+ ],
+ [
+  "page:/shortcuts",
+  "Insert the argument names of the function"
+ ],
+ [
+  "page:/shortcuts",
+  "Jump to the edge of the block of data"
+ ],
+ [
+  "page:/shortcuts",
+  "Jump to the next worksheet"
+ ],
+ [
+  "page:/shortcuts",
+  "Jump to the previous worksheet"
+ ],
+ [
+  "page:/shortcuts",
+  "Look up a formula instead"
+ ],
+ [
+  "page:/shortcuts",
+  "Make the text bold"
+ ],
+ [
+  "page:/shortcuts",
+  "Make the text italic"
+ ],
+ [
+  "page:/shortcuts",
+  "Move one screen down"
+ ],
+ [
+  "page:/shortcuts",
+  "Move one screen left"
+ ],
+ [
+  "page:/shortcuts",
+  "Move one screen right"
+ ],
+ [
+  "page:/shortcuts",
+  "Move the active cell inside the selection"
+ ],
+ [
+  "page:/shortcuts",
+  "Move the active cell one cell in any direction"
+ ],
+ [
+  "page:/shortcuts",
+  "Move to column A of the current row"
+ ],
+ [
+  "page:/shortcuts",
+  "Move to the last cell of the current row"
+ ],
+ [
+  "page:/shortcuts",
+  "Move to the next pane of a split window"
+ ],
+ [
+  "page:/shortcuts",
+  "Moving around the workbook"
+ ],
+ [
+  "page:/shortcuts",
+  "Numbers are formatting, not values. The six Ctrl + Shift keys set the format of a range in one press, which is faster than any dialog."
+ ],
+ [
+  "page:/shortcuts",
+  "Open a second window on the same workbook"
+ ],
+ [
+  "page:/shortcuts",
+  "Open the data validation dialog"
+ ],
+ [
+  "page:/shortcuts",
+  "Open the filter menu on a column"
+ ],
+ [
+  "page:/shortcuts",
+  "Open the Format Cells dialog"
+ ],
+ [
+  "page:/shortcuts",
+  "Open the Sort dialog"
+ ],
+ [
+  "page:/shortcuts",
+  "Open the zoom dialog"
+ ],
+ [
+  "page:/shortcuts",
+  "Paste values instead of formulas"
+ ],
+ [
+  "page:/shortcuts",
+  "Practise the keys"
+ ],
+ [
+  "page:/shortcuts",
+  "Reading a table of keys does not build the habit. Each family ends on an exercise that asks for its keys, and that exercise grades the presses the way the formula ones grade what you type."
+ ],
+ [
+  "page:/shortcuts",
+  "Refresh every data connection"
+ ],
+ [
+  "page:/shortcuts",
+  "Remove duplicate rows"
+ ],
+ [
+  "page:/shortcuts",
+  "Rename the current worksheet"
+ ],
+ [
+  "page:/shortcuts",
+  "Replace text in the sheet"
+ ],
+ [
+  "page:/shortcuts",
+  "Return to the top left corner"
+ ],
+ [
+  "page:/shortcuts",
+  "See what part of the formula evaluates to"
+ ],
+ [
+  "page:/shortcuts",
+  "Select everything on the sheet"
+ ],
+ [
+  "page:/shortcuts",
+  "Select only the rows a filter left visible"
+ ],
+ [
+  "page:/shortcuts",
+  "Select the whole column"
+ ],
+ [
+  "page:/shortcuts",
+  "Select the whole row"
+ ],
+ [
+  "page:/shortcuts",
+  "Selecting cells and ranges"
+ ],
+ [
+  "page:/shortcuts",
+  "Selecting is the half of the keyboard people skip. Bolding the wrong range is almost always a selection mistake, not a formatting one."
+ ],
+ [
+  "page:/shortcuts",
+  "Show every formula instead of its result"
+ ],
+ [
+  "page:/shortcuts",
+  "Shrink the selection back to the active cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Six pages of keys: moving around, selecting, formatting, writing formulas, cleaning data and arranging windows. Each page gives the Windows and macOS chord for every action, and ends on an exercise that asks for the keys."
+ ],
+ [
+  "page:/shortcuts",
+  "Some do. A family shows a Google Sheets tab only when it has keys that work there, and the rows that differ say so in the note."
+ ],
+ [
+  "page:/shortcuts",
+  "Sorting, filtering and cleaning data"
+ ],
+ [
+  "page:/shortcuts",
+  "Split one column into several"
+ ],
+ [
+  "page:/shortcuts",
+  "Split the window at the active cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Start a formula in the cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Start a new line inside the cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Strike through the text"
+ ],
+ [
+  "page:/shortcuts",
+  "Switch to the next open workbook"
+ ],
+ [
+  "page:/shortcuts",
+  "The keys that change what you are looking at rather than what the sheet holds: frozen panes, split windows, the ribbon, and the tabs."
+ ],
+ [
+  "page:/shortcuts",
+  "The keys that turn a range into a table, a filter, and a set of values you can paste somewhere else. Most of them are Alt sequences."
+ ],
+ [
+  "page:/shortcuts",
+  "The row says so and names the menu the command lives on. A guessed chord is worse than a menu path, because you would believe it."
+ ],
+ [
+  "page:/shortcuts",
+  "Three keys do most of the work here: F4 locks a reference, F2 opens the cell for editing, and Ctrl + Enter keeps the cursor where it is."
+ ],
+ [
+  "page:/shortcuts",
+  "Toggle a reference between relative and absolute"
+ ],
+ [
+  "page:/shortcuts",
+  "Total the column above the cell"
+ ],
+ [
+  "page:/shortcuts",
+  "Turn extend-selection mode on"
+ ],
+ [
+  "page:/shortcuts",
+  "Turn filters on or off for the range"
+ ],
+ [
+  "page:/shortcuts",
+  "Turn the range into a table"
+ ],
+ [
+  "page:/shortcuts",
+  "Underline the text"
+ ],
+ [
+  "page:/shortcuts",
+  "What if my Excel has no default for a shortcut?"
+ ],
+ [
+  "page:/shortcuts",
+  "Windows, panes and sheets"
+ ],
+ [
+  "page:/shortcuts",
+  "Writing and checking formulas"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Alt + Page Down"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Alt + Page Up"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Command + Arrow key"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Command + End Fn + Command + Right Arrow on a laptop"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Command + Home Fn + Command + Left Arrow on a laptop"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Ctrl + Arrow key"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Ctrl + Page Down"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Ctrl + Page Up"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Every shortcut family"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Keyboard shortcuts need a keyboard. On a tablet you can still do the exercises, because they grade what you type with a touch keyboard."
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Microsoft 365 Apps for Windows, version 2501, checked on 24 February 2026. Excel for Mac 16.91 on the same day, where Fn stands in for the End and Home keys a laptop does not have. Google Sheets in Chrome 131, where the sheet tabs have no default chord and the menu is the honest answer."
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "No default click the tab instead"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "No default Ctrl + Right Arrow stops at the end of the block"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "No default drag the scrollbar instead"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "No default type the address in the Name box"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Option + Left Arrow"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Option + Page Down"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Option + Page Up"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Option + Right Arrow"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Practise formulas instead Dismiss"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Practise it: Select to the edge of a block"
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Reach for these before you touch the scrollbar. A sheet with four thousand rows is mostly empty below the data, so scrolling lands you in blank space. Ctrl + Arrow stops at the last cell that holds something."
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "Select to the edge of a block asks for the extended version of these keys and grades the press itself."
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "The trip that surprises people is a sheet imported from another tool. A column arrives with trailing spaces in some rows, and Ctrl + Down stops early at the row where those spaces begin. If you land somewhere unexpected, look for a cell that looks empty and is not."
+ ],
+ [
+  "page:/shortcuts/navigation",
+  "When to use it"
+ ],
+ [
+  "page:/start",
+  "01 SUM: total a column Total a column with one function instead of typing every cell. Beginner"
+ ],
+ [
+  "page:/start",
+  "02 SUMIFS: two conditions at once Total the rows that meet two conditions at once instead of filtering the table first. Advanced"
+ ],
+ [
+  "page:/start",
+  "09 AVERAGE: mean of a score list Turn five scores into one class average that updates itself. Beginner"
+ ],
+ [
+  "page:/start",
+  "16 COUNTIF: count one condition Count the rows that meet one condition, and get the edges of the range right. Beginner"
+ ],
+ [
+  "page:/start",
+  "22 IF: one test, two answers Write a decision that returns one of two values, chosen by a single test. Beginner"
+ ],
+ [
+  "page:/start",
+  "29 SUMIF: total one region Total only the rows that match a region. Intermediate"
+ ],
+ [
+  "page:/start",
+  "30 ROUND: money to two decimals Round a marked-up total once, and know that the stored value changed. Intermediate"
+ ],
+ [
+  "page:/start",
+  "33 VLOOKUP: exact match Pull a salary out of a table by its ID, with the exact-match flag written out. Intermediate"
+ ],
+ [
+  "page:/start",
+  "50 LEN, LEFT and RIGHT: count and cut Measure a string, then cut fixed pieces from either end. Beginner"
+ ],
+ [
+  "page:/start",
+  "62 CONCAT and the & operator Join two cells into one string, with the space passed in as its own piece. Intermediate"
+ ],
+ [
+  "page:/start",
+  "Full access opens the other 76 exercises, in the same one-task shape."
+ ],
+ [
+  "page:/start",
+  "Get full access to the whole course"
+ ],
+ [
+  "page:/start",
+  "Start exercise 1: SUM: total a column Get full access"
+ ],
+ [
+  "page:/start",
+  "Start with these ten"
+ ],
+ [
+  "page:/start",
+  "Take them in this order"
+ ],
+ [
+  "page:/start",
+  "Ten exercises from the track, free, in the order they are meant to be taken. Type a formula, press Check, and the page names the rule you missed. What you finish is kept in this browser, and signing in carries it to the others."
+ ],
+ [
+  "page:/terms",
+  "A grader is a teaching aid, not an authority"
+ ],
+ [
+  "page:/terms",
+  "A set of Excel exercises that grade a formula in your browser and name the rule you missed. It is a functional copy of excelexercises.com, rebuilt from scratch. It is not affiliated with, endorsed by or connected to that site or to Microsoft."
+ ],
+ [
+  "page:/terms",
+  "An account can be suspended for the fair-use items above, in practice for attacking the site or another learner. A suspension is not a deletion. Your progress is still there, and the message says what happened."
+ ],
+ [
+  "page:/terms",
+  "Attempt to reach another learner's rows, or probe for one."
+ ],
+ [
+  "page:/terms",
+  "Excel is a trademark of Microsoft Corporation. This site teaches spreadsheet formulas and is not an official Microsoft product or training material."
+ ],
+ [
+  "page:/terms",
+  "Feedback you write"
+ ],
+ [
+  "page:/terms",
+  "Free exercises, and the paid track"
+ ],
+ [
+  "page:/terms",
+  "If it does not do what this page says it does, the remedy is a refund under the guarantee above. That is the extent of the remedy, and it is stated here rather than buried in capitals."
+ ],
+ [
+  "page:/terms",
+  "It was written by reading the code that enforces it: the schema in supabase/migrations/ , the routes in app/api/ , and the grading rules in packages/grader/ . That makes it accurate about this build. It has not been reviewed by a lawyer, and before money changes hands it should be."
+ ],
+ [
+  "page:/terms",
+  "Keep other people's information out of it."
+ ],
+ [
+  "page:/terms",
+  "Keep your password to yourself. Anyone holding it can read the progress on the account. If you think it has leaked, change it from the account page and sign the other device out."
+ ],
+ [
+  "page:/terms",
+  "No warranty, and the remedy"
+ ],
+ [
+  "page:/terms",
+  "Resell, sublicense or republish the exercises, the copy or the grading logic."
+ ],
+ [
+  "page:/terms",
+  "Scrape the site at a rate that degrades it for other people, or run it through a load test without asking first."
+ ],
+ [
+  "page:/terms",
+  "So a red verdict means this site's rules were not met. It does not mean Excel will reject the formula, or that your spreadsheet is wrong. If a verdict looks wrong, say so: a grader that punishes a correct formula is a bug worth fixing, and the feedback box reaches the person who can fix it."
+ ],
+ [
+  "page:/terms",
+  "The exercise scripts, the lesson text, the design and the grading rules are this project's work. You may read the source, learn from it and run it yourself. You may not republish it as your own teaching product."
+ ],
+ [
+  "page:/terms",
+  "The feedback button in the footer reaches the person who can fix what looks wrong."
+ ],
+ [
+  "page:/terms",
+  "The formulas you write are yours, and always were. Nothing here claims any right over a spreadsheet you made."
+ ],
+ [
+  "page:/terms",
+  "The note you type in the feedback box is yours. Sending it lets this site read it and act on it. In practice that means fixing the exercise it is about, and nothing more. The note is not published, not attributed, and not used for advertising."
+ ],
+ [
+  "page:/terms",
+  "The status of this page"
+ ],
+ [
+  "page:/terms",
+  "These terms are part of the repository and carry the build date you are reading. A material change lands as a commit with the reason in it."
+ ],
+ [
+  "page:/terms",
+  "This is a study aid offered as it is. There is no promise that every exercise matches the current version of Excel, that the site is uninterrupted, or that it will teach you everything about spreadsheets."
+ ],
+ [
+  "page:/terms",
+  "Try to break the grader into showing a verdict the formula does not deserve: it is the thing being taught."
+ ],
+ [
+  "page:/terms",
+  "Use an email address you can receive mail at, because that is how a password reset reaches you. One account per person."
+ ],
+ [
+  "page:/terms",
+  "What belongs to this project"
+ ],
+ [
+  "page:/terms",
+  "What you agree to"
+ ],
+ [
+  "page:/terms",
+  "What you are using"
+ ],
+ [
+  "page:/terms",
+  "What you get, what it costs, what you may do with it, and what happens when the grader and Excel disagree."
+ ],
+ [
+  "page:/terms",
+  "Where checkout is not open, the price above is what the page says rather than what it charges, and the paid exercises open free in this browser. Where it is open, the term you pick is the one that gets charged."
+ ],
+ [
+  "page:/terms",
+  "Which ten are free is not a matter of position. The set is curated and named on the start page, and it runs from the opener to a two-condition sum. Nothing in this repository moves one of them behind the wall later."
+ ],
+ [
+  "page:/terms",
+  "You can delete the account whenever you like, without asking, from the account page ."
+ ],
+ [
+  "page:/terms",
+  "You can end it whenever you like: delete the account and the sessions end with it."
+ ],
+ [
+  "page:chrome",
+  "© 2026 Excel Supreme"
+ ],
+ [
+  "page:chrome",
+  "0 of 500 characters"
+ ],
+ [
+  "page:chrome",
+  "How is this going? How easy was this page to follow? Hard to follow Clear in parts Easy to follow Anything to add? Optional."
+ ],
+ [
+  "page:chrome",
+  "Privacy · Terms · Send feedback"
+ ],
+ [
+  "page:chrome",
+  "Search Account Menu"
+ ],
+ [
+  "page:chrome",
+  "Skip to the exercises"
+ ],
+ [
+  "page:chrome",
+  "Your note goes to a person, with this page and your account if you are signed in."
+ ]
+]

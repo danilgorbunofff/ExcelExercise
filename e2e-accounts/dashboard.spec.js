@@ -4,7 +4,7 @@
 //
 //   * The dashboard counts what the *database* holds, so a second browser or a fresh machine shows the
 //     real total instead of an empty track (D10 / B13 — the read path `/api/progress` GET exists for this).
-//   * A drill reopens where it was left, and a finished drill opens at the top rather than mid-sentence.
+//   * An exercise reopens where it was left, and a finished exercise opens at the top rather than mid-sentence.
 //
 // The server-side rows are seeded through the service role: the write path is proved by `tests/db/`,
 // and this spec is about the read path it fills.
@@ -74,24 +74,24 @@ test("a signed-in learner on a second browser sees the progress the database hol
   await second.close();
 });
 
-test("a drill reopens on the screen it was left on, and a finished one opens at the top", async ({
+test("an exercise reopens on the screen it was left on, and a finished one opens at the top", async ({
   page,
   request,
 }) => {
   const email = address("resume");
   made.push(email);
   await signUpThroughForm(page, email, "Resume Learner");
-  // The only drills with more than one screen are past the free three, so this learner buys one the
-  // same way a real one does: a signed webhook, then a navigation.
+  // This learner needs a paid exercise with a second screen, so they buy one the same way a real one
+  // does: a signed webhook, then a navigation.
   await deliver(request, lifetimeEvent(userIdOf(email), "resume"));
 
   const slug = TWO_SCREEN_LESSON.split("/").pop();
   const lessonId = lessonIdFor(slug);
 
-  // Same origin, so the keys the drill reads are the keys this sets.
+  // Same origin, so the keys the exercise reads are the keys this sets.
   await page.goto("/learn");
 
-  // Part one: booting the drill records a position, even at the start.
+  // Part one: booting the exercise records a position, even at the start.
   await page.goto(TWO_SCREEN_LESSON);
   await expect(page.locator("#screen-position")).toContainText("screen 1 of");
   const boot = await page.evaluate(() => JSON.parse(window.localStorage.getItem("es.resume") ?? "null"));
@@ -107,7 +107,7 @@ test("a drill reopens on the screen it was left on, and a finished one opens at 
   await page.reload();
   await expect(page.locator("#screen-position")).toContainText("screen 2 of");
 
-  // Part three: a complete drill has nothing to resume, so it opens at the first screen again.
+  // Part three: a complete exercise has nothing to resume, so it opens at the first screen again.
   await page.evaluate(
     ({ id }) => {
       const progress = { v: 1, done: {}, tries: {}, unlocked: false };

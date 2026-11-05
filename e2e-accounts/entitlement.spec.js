@@ -1,4 +1,4 @@
-// The paywall, end to end: a price is charged, the webhook says so, the drill opens, a refund closes it.
+// The paywall, end to end: a price is charged, the webhook says so, the exercise opens, a refund closes it.
 //
 // The entitlement is a database fact read by the request (`is_entitled`), so this suite never has to
 // trust a cookie: after the signed webhook lands, the *next* navigation is a different answer. That is
@@ -32,7 +32,7 @@ test.afterAll(async () => {
   forget(...made);
 });
 
-test("a walled drill is refused to a signed-out visitor before any session work happens", async ({
+test("a walled exercise is refused to a signed-out visitor before any session work happens", async ({
   page,
 }) => {
   await page.goto(PAID_LESSON);
@@ -40,10 +40,10 @@ test("a walled drill is refused to a signed-out visitor before any session work 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
 
-test("the prompt drill is served, because its wall is a button the browser paints", async ({ page }) => {
-  // The exception is deliberate and easy to lose: lesson 4 is past the free three, but its drill
-  // offers "continue free this once", and a redirect on the request would make that button
-  // unreachable. So the offer is served and only lesson 5 is refused.
+test("the prompt exercise is served, because its wall is a button the browser paints", async ({ page }) => {
+  // The exception is deliberate and easy to lose: the nominated prompt lesson is in the paid half, but its
+  // exercise offers "continue free this once", and a redirect on the request would make that button
+  // unreachable. So the offer is served, and every other paid lesson is refused.
   const response = await page.goto(PROMPT_LESSON);
   expect(response.status()).toBe(200);
   expect(new URL(page.url()).pathname).toBe(PROMPT_LESSON);
@@ -80,6 +80,34 @@ test("a signed-in learner without a purchase is still refused, and a purchase op
   await expect(page.getByRole("button", { name: "Manage billing or cancel" })).toBeVisible();
 });
 
+test("a learner who already owns the track cannot buy it twice", async ({ page, request }) => {
+  const email = address("twice");
+  made.push(email);
+
+  await signUpThroughForm(page, email, "Twice Learner");
+  await deliver(request, lifetimeEvent(userIdOf(email), "twice"));
+
+  // The gate's own button posts a form, so that is the request a second click makes. It must land on
+  // the account page — where a paid learner manages billing — rather than in a second checkout.
+  const form = await page.request.post("/api/stripe/checkout?plan=annual", {
+    form: { plan: "annual" },
+    maxRedirects: 0,
+  });
+  expect(form.status()).toBe(303);
+  expect(form.headers()["location"]).toBe("/account");
+
+  // And the JSON door says the same thing, so a scripted caller cannot charge either. It goes through
+  // the page's cookie jar: the bare `request` fixture is a second context with no session, and a
+  // signed-out script is correctly refused with 401 before entitlement is ever read.
+  const json = await page.request.post("/api/stripe/checkout?plan=annual", { data: { plan: "annual" } });
+  expect(json.status()).toBe(409);
+  expect((await json.json()).error).toBe("already_entitled");
+
+  const anonymous = await request.post("/api/stripe/checkout?plan=annual", { data: { plan: "annual" } });
+  expect(anonymous.status()).toBe(401);
+  expect((await anonymous.json()).error).toBe("sign_in_required");
+});
+
 test("a replayed delivery grants nothing twice", async ({ request }) => {
   const email = address("replay");
   made.push(email);
@@ -99,7 +127,7 @@ test("a replayed delivery grants nothing twice", async ({ request }) => {
   expect(again.body.reason).toBe("duplicate");
 });
 
-test("a refund takes the entitlement away and the drill closes again", async ({ page, request }) => {
+test("a refund takes the entitlement away and the exercise closes again", async ({ page, request }) => {
   const email = address("refund");
   made.push(email);
 

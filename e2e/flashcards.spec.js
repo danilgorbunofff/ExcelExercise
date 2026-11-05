@@ -8,10 +8,10 @@ import { loadSite } from "../lib/site.js";
  * What only a browser can prove: a card built from a finished lesson renders, space turns it over, an
  * arrow grades it, the session advances, and a reload remembers the grade. The e2e environment has no
  * Supabase, so the completed lessons come from `es.progress` — which is exactly the store a signed-out
- * learner has, and the one the drill writes.
+ * learner has, and the one the exercise writes.
  */
 
-const LESSON = "27-what-a-formula-actually-does";
+const LESSON = "01-sum-basics";
 /** The card says the lesson's title, and the title is copy: reading it from the content means a
  *  rewrite moves this assertion with it instead of turning a passing page into a failing test. */
 const LESSON_TITLE = loadSite().index.find((entry) => entry.exercise.id === LESSON).exercise.title;
@@ -41,7 +41,7 @@ test("a browser with nothing finished is told why there are no cards", async ({ 
   await page.goto("/flashcards");
   await expect(page.getByRole("heading", { name: "Flashcards" })).toBeVisible();
   await expect(page.getByText(/lessons you have finished, and there are none/)).toBeVisible();
-  await expect(page.getByRole("link", { name: "Your drills" })).toHaveAttribute("href", "/learn");
+  await expect(page.getByRole("link", { name: "Your exercises" })).toHaveAttribute("href", "/learn");
   await expect(page.getByRole("button", { name: "Turn over" })).toHaveCount(0);
 });
 
@@ -49,7 +49,7 @@ test("a finished lesson becomes a card, space turns it over, an arrow grades it"
   await seed(page, progress(LESSON));
   await page.goto("/flashcards");
 
-  await expect(page.getByRole("heading", { name: /total the crates delivered this week/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /total Q1 revenue for all three regions/i })).toBeVisible();
   await expect(page.getByText(`Lesson 1 · ${LESSON_TITLE}`)).toBeVisible();
   await expect(page.getByText(/Card 1 of 1/)).toBeVisible();
   // The answer is not on the front of the card.
@@ -97,7 +97,7 @@ test("grading `again` brings the card back next session", async ({ page }) => {
 
   await page.getByRole("button", { name: "Check what is due" }).click();
   await expect(page.getByText(/Card 1 of 1/)).toBeVisible();
-  await expect(page.getByRole("heading", { name: /total the crates delivered this week/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /total Q1 revenue for all three regions/i })).toBeVisible();
 });
 
 test("the cards API answers about the lessons it was asked for, and nothing else", async ({ request }) => {

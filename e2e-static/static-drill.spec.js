@@ -15,10 +15,10 @@ import { freeDrill, loadSite } from "../lib/site.js";
 const ANSWER_CELL = ".cell[data-cell='B5']";
 // The count the rail prints is how many lessons the build shipped, so it moves with the catalog.
 const LESSONS = loadSite().index.length;
-/** The free half is the intro drills, so the static drill the specs open is the first of those. */
+/** The free half is the intro exercises, so the static exercise the specs open is the first of those. */
 const FREE = freeDrill();
 const SENTENCE =
-  "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.";
+  "This browser blocks local storage, so nothing is saved. The exercises still work, but this page cannot remember them.";
 
 async function openStatic(page, slug) {
   await page.goto(`/excel/${slug}`);
@@ -42,7 +42,7 @@ test("the static build loads its module graph and grades a formula", async ({ pa
   await check(page, "=SUM(B2:B4)");
 
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
-  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 35.");
+  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 3580.");
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-correct/);
   // A module served with the wrong MIME type is a console error, not a visible failure, so the
   // empty list is the assertion that the static host serves `text/javascript`.
@@ -112,22 +112,42 @@ test.describe("with the OS asking for dark", () => {
   });
 });
 
-test("the static build serves a note and grades its drill", async ({ page }) => {
+test("the static build serves a note and grades its exercise", async ({ page }) => {
   const failures = [];
   page.on("pageerror", (error) => failures.push(`pageerror: ${error.message}`));
   page.on("requestfailed", (request) => failures.push(`request: ${request.url()}`));
 
   await page.goto("/excel-functions/sum");
   await expect(page.locator("#main h1")).toContainText("SUM");
-  await expect(page.locator("#article-answer")).toBeEditable();
+  await expect(page.locator("#article-answer-1")).toBeEditable();
 
-  await page.fill("#article-answer", "=SUM(B2:B3)");
-  await page.locator('#article-drill-form button[type="submit"]').click();
-  await expect(page.locator("#article-feedback")).toHaveAttribute("data-tone", "err");
+  await page.fill("#article-answer-1", "=SUM(B2:B3)");
+  await page.locator('#article-drill-form-1 button[type="submit"]').click();
+  await expect(page.locator("#article-feedback-1")).toHaveAttribute("data-tone", "err");
 
-  await page.fill("#article-answer", "=SUM(B2:B4)");
-  await page.locator('#article-drill-form button[type="submit"]').click();
-  await expect(page.locator("#article-feedback")).toHaveAttribute("data-tone", "ok");
+  await page.fill("#article-answer-1", "=SUM(B2:B4)");
+  await page.locator('#article-drill-form-1 button[type="submit"]').click();
+  await expect(page.locator("#article-feedback-1")).toHaveAttribute("data-tone", "ok");
   // The island is a separate module on both builds; a 404 for it is silent on the page and loud here.
   expect(failures).toEqual([]);
+});
+
+/**
+ * The static edition has no server, so its feedback dialog can only do the local half. This proves the
+ * fallback rather than the copy: the request is made, it fails, and the note ends up in the queue with
+ * the dialog saying exactly that.
+ */
+test("a note filed on the static edition stays in the browser, and the dialog says so", async ({ page }) => {
+  await page.goto("/learn");
+  await page.click("#feedback-open");
+  await page.check("input[name='mood'][value='progress']");
+  await page.fill("#feedback-text", "this copy has no server and I can see that");
+  await page.click("#feedback-form button[type='submit']");
+
+  await expect(page.locator("#feedback-done-note")).toContainText("Saved in this browser, and nowhere else");
+  await expect(page.locator("#feedback-done-note")).toContainText("no way to receive it yet");
+
+  const queue = await page.evaluate(() => JSON.parse(localStorage.getItem("es.feedback") ?? "[]"));
+  expect(queue).toHaveLength(1);
+  expect(queue[0]).toMatchObject({ mood: "progress", text: "this copy has no server and I can see that" });
 });

@@ -2,7 +2,7 @@
  * The account routes in the state CI runs them in: no Supabase project configured.
  *
  * That is not a degenerate case to skip past — it is the state a fresh clone and every CI run are in,
- * and it is the one that decides whether the drills keep working for someone who never signs up. The
+ * and it is the one that decides whether the exercises keep working for someone who never signs up. The
  * configured path is proved against the real stack by `tests/db/auth.spec.js`; this file proves the
  * pages render, say what is wrong, and cannot be used as an open redirect.
  */

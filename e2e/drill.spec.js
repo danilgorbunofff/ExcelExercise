@@ -1,5 +1,5 @@
 /**
- * The drill loop, end to end, in a real browser: type a formula, check it, read the verdict. The
+ * The exercise loop, end to end, in a real browser: type a formula, check it, read the verdict. The
  * grader itself is covered by `tests/golden/`; this proves the shipped page wires the input, the
  * button and the verdict together without a build-time shortcut.
  */
@@ -9,8 +9,8 @@ import { passGate, seedBefore } from "../lib/seed.js";
 import { freeDrill, loadSite } from "../lib/site.js";
 
 const LESSONS = loadSite().index.length;
-/** The opening intro drill: the free half is the three intro lessons, so this one has no gate in
- *  front of it and the literals below are hand-computed against `what-a-formula-actually-does`. */
+/** The opening intro drill: it is one of the ten free exercises, so it has no gate in front of it and
+ *  the literals below are hand-computed against `sum-basics`. */
 const FREE = freeDrill();
 
 const ANSWER_CELL = ".cell[data-cell='B5']";
@@ -20,10 +20,9 @@ async function openDrill(page, slug) {
   await expect(page.locator("#formula")).toBeVisible();
 }
 
-/** A drill past the free ones: the paywall opens the first time an email is entered, and the trial
- *  is remembered in this browser, so this is the real path to a later lesson. The drills before it are
- *  finished first, because the order gate is asked before the trial form and would otherwise be the
- *  only wall this test ever sees. */
+/** A paid exercise: the gate in front of it is either the one free pass (`#grace-pass`) or the wall,
+ *  and `passGate` walks whichever the page shows. The exercises before it are finished first, because
+ *  the order gate is asked before the paywall and would otherwise be the only wall this test sees. */
 async function openGatedDrill(page, slug) {
   await seedBefore(page, slug);
   await page.goto(`/learn/excel/${slug}`);
@@ -42,7 +41,7 @@ test("a correct formula is accepted and reported", async ({ page }) => {
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
   await expect(page.locator("#feedback-head")).toHaveText("Correct");
-  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 35.");
+  await expect(page.locator("#feedback-body")).toHaveText("B5 holds 3580.");
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-correct/);
   // Only a rejection marks the bar; a verdict that is not one leaves it out of the invalid state.
   await expect(page.locator("#formula")).not.toHaveAttribute("aria-invalid", "true");
@@ -55,7 +54,7 @@ test("a wrong total keeps the SUM and names the value rule", async ({ page }) =>
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await expect(page.locator("#feedback-head")).toHaveText("Not the answer");
   await expect(page.locator("#feedback-body")).toHaveText(
-    "Your formula returns 21, but this lesson expects 35.",
+    "Your formula returns 2650, but this lesson expects 3580.",
   );
   await expect(page.locator(ANSWER_CELL)).toHaveClass(/cell-wrong/);
   // The verdict is a live region, so it is announced once; the flag is what is still there when a
@@ -67,7 +66,7 @@ test("a wrong total keeps the SUM and names the value rule", async ({ page }) =>
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
   await expect(page.locator("#formula")).not.toHaveAttribute("aria-invalid", "true");
 
-  // Time on task is reported twice: for the drill and for the screen that spent it. The second cannot
+  // Time on task is reported twice: for the exercise and for the screen that spent it. The second cannot
   // exceed the first, and neither can be negative.
   const event = await page.evaluate(() =>
     [...(window.__esEvents ?? [])].reverse().find((entry) => entry.type === "check_wrong"),
@@ -116,7 +115,7 @@ test("a lesson the record already holds reads as a revisit, not as a first attem
   await expect(feedback).not.toHaveClass(/is-correct|is-wrong/);
   await expect(page.locator("#feedback-head")).toHaveText("Already solved");
   await expect(page.locator("#feedback-body")).toContainText(
-    "The answer is in the bar and in the cell — edit either one to practise it again.",
+    "The answer is in the bar and in the cell. Edit either one to practise it again.",
   );
   await expect(page.locator("#feedback .feedback-meta")).toContainText("On your record since");
   // The answer is handed back rather than asked for again.
@@ -127,13 +126,13 @@ test("a lesson the record already holds reads as a revisit, not as a first attem
   await check(page, "=SUM(B2:B4)");
   await expect(feedback).toHaveClass(/is-correct/);
   await expect(page.locator("#feedback .feedback-meta")).toHaveText(
-    "Solved again — this lesson was already on your record.",
+    "Solved again. This lesson was already on your record.",
   );
 });
 
 test("the award the server reports lands in the finished verdict, above the way out", async ({ page }) => {
   // The sender is the only thing that knows the page's origin, so the event it dispatches is faked
-  // here — what is under test is the drill's half: that the line appears, where, and for whom.
+  // here — what is under test is the exercise's half: that the line appears, where, and for whom.
   const reward = (lessonId) =>
     page.evaluate(
       ([id]) =>
@@ -163,7 +162,7 @@ test("the award the server reports lands in the finished verdict, above the way 
   await reward(FREE.exercise.id);
   const line = page.locator("#feedback .feedback-reward");
   await expect(line).toHaveText("+12 points · 3-day streak");
-  // The next drill is what the panel ends on, so the award goes above it — and the reward does not
+  // The next exercise is what the panel ends on, so the award goes above it — and the reward does not
   // take the focus the next link was given.
   const order = await page.evaluate(() => {
     const panel = document.getElementById("feedback");
@@ -172,9 +171,11 @@ test("the award the server reports lands in the finished verdict, above the way 
   expect(order.indexOf("feedback-reward")).toBeLessThan(order.findIndex((name) => name.includes("next-cta")));
   await expect(page.locator("#feedback .next-cta")).toBeFocused();
 
-  // Replacing the verdict clears the award with it: it described the lesson that just ended.
-  await page.fill("#formula", "=SUM(B2:B3)");
-  await page.click("#check");
+  // Replacing the verdict clears the award with it: it described the lesson that just ended. The
+  // verdict is asserted first so a failure says which half broke — a click that never landed, or an
+  // award that outlived the answer it was paid for.
+  await check(page, "=SUM(B2:B3)");
+  await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
   await expect(page.locator(".feedback-reward")).toHaveCount(0);
 });
 
@@ -191,7 +192,7 @@ test("a multi-screen lesson walks to its picture screen and completes on typed t
   await check(page, "=XLOOKUP(A7,A2:A6,B2:B6,,0,-1)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
   await expect(page.locator("#feedback .feedback-meta")).toHaveText("Right first time. Screen 2 of 3.");
-  // The trial opened the drill, so the first screen view has to come from the paywall's exit.
+  // The gate opened the exercise, so the first screen view has to come from the paywall's exit.
   const firstView = await page.evaluate(() =>
     (globalThis.__esEvents ?? []).find((event) => event.type === "screen_view"),
   );
@@ -253,7 +254,7 @@ test("a multi-screen lesson walks to its picture screen and completes on typed t
   await expect(page.locator(".rail-item[data-lesson='16-xlookup-search-from-the-bottom']")).toHaveClass(/is-done/);
 });
 
-/** The funnel buffer the drill fills, newest last. */
+/** The funnel buffer the exercise fills, newest last. */
 function lastElapsed(page, type) {
   return page.evaluate((wanted) => {
     const all = globalThis.__esEvents ?? [];
@@ -301,10 +302,10 @@ test("progress survives a reload on the same device", async ({ page }) => {
   await expect(page.locator("#progress-count")).toHaveText(`1 of ${LESSONS}`);
 });
 
-test("a drill in a browser that refuses storage warns before the work evaporates", async ({ page }) => {
+test("an exercise in a browser that refuses storage warns before the work evaporates", async ({ page }) => {
   // The failure mode this closes: `createStore().write` swallows the throw by design, so a finished
   // lesson vanishes on reload with no explanation. The dashboard already owned the honest sentence;
-  // the drill repeats it where the save happens.
+  // the exercise repeats it where the save happens.
   await page.addInitScript(() => {
     Object.defineProperty(window, "localStorage", {
       configurable: true,
@@ -317,9 +318,9 @@ test("a drill in a browser that refuses storage warns before the work evaporates
 
   await expect(page.locator("#rail-blocked")).toBeVisible();
   await expect(page.locator("#rail-blocked")).toHaveText(
-    "This browser blocks local storage, so nothing is saved. The drills still work, but this page cannot remember them.",
+    "This browser blocks local storage, so nothing is saved. The exercises still work, but this page cannot remember them.",
   );
-  // Only the memory is gone; the drill still grades.
+  // Only the memory is gone; the exercise still grades.
   await check(page, "=SUM(B2:B4)");
   await expect(page.locator("#feedback")).toHaveClass(/is-correct/);
 });
@@ -343,14 +344,16 @@ test("arrow keys move the selection and stop at the edge of the block", async ({
   expect(await press("ArrowUp", "A3")).toBe("A2");
   expect(await press("ArrowRight", "A2")).toBe("B2");
 
-  // The block is A1:B5, so the selection stops at each edge instead of wrapping to the far side.
-  expect(await press("ArrowRight", "B2")).toBe("B2");
-  expect(await press("ArrowUp", "B2")).toBe("B1");
-  expect(await press("ArrowUp", "B1")).toBe("B1");
+  // The block is A1:C5, so the selection stops at each edge instead of wrapping to the far side.
+  expect(await press("ArrowRight", "B2")).toBe("C2");
+  expect(await press("ArrowRight", "C2")).toBe("C2");
+  expect(await press("ArrowUp", "C2")).toBe("C1");
+  expect(await press("ArrowUp", "C1")).toBe("C1");
+  expect(await press("ArrowLeft", "C1")).toBe("B1");
   expect(await press("ArrowLeft", "B1")).toBe("A1");
   expect(await press("ArrowLeft", "A1")).toBe("A1");
-  expect(await press("End", "A1")).toBe("B1");
-  expect(await press("Home", "B1")).toBe("A1");
+  expect(await press("End", "A1")).toBe("C1");
+  expect(await press("Home", "C1")).toBe("A1");
   for (let step = 0; step < 4; step += 1) await press("ArrowDown", "A1");
   expect(await press("ArrowDown", "A5")).toBe("A5");
 
@@ -364,8 +367,8 @@ test("arrow keys move the selection and stop at the edge of the block", async ({
 });
 
 test("a shortcut lesson grades the keys it asks for, and keeps its steps in order", async ({ page }) => {
-  // This drill carries the chord and sequence screens, and the catalog now puts it past the free
-  // three, so the trial form is part of reaching it.
+  // This exercise carries the chord and sequence screens and sits in the paid half, so the gate is
+  // part of reaching it.
   await openGatedDrill(page, "countif-open-tickets");
 
   await check(page, '=COUNTIF(B2:B9,"Open")');
@@ -387,7 +390,7 @@ test("a shortcut lesson grades the keys it asks for, and keeps its steps in orde
   // it wanted, which only the reveal may do.
   await page.keyboard.press("Control+Alt+L");
   await expect(page.locator("#feedback")).toHaveClass(/is-wrong/);
-  await expect(page.locator("#feedback-body")).toHaveText("That is not the shortcut this task wants.");
+  await expect(page.locator("#feedback-body")).toHaveText("That is not the shortcut this screen wants.");
 
   // The real shortcut, pressed on the keyboard, completes the screen — and the line that reports it
   // names the keys rather than the formula the lesson opened with.

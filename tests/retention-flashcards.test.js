@@ -149,7 +149,7 @@ describe("buildDeck", () => {
   });
 
   it("builds real cards for a real lesson, each with an answer", () => {
-    const lesson = index.find((entry) => entry.exercise.id === "27-what-a-formula-actually-does");
+    const lesson = index.find((entry) => entry.exercise.id === "01-sum-basics");
     const deck = buildDeck(index, [lesson.exercise.id]);
     assert.equal(deck.length, 1);
     assert.equal(deck[0].lessonNumber, lesson.number);
@@ -168,15 +168,15 @@ describe("completedLessons", () => {
     const text = JSON.stringify({
       v: 1,
       done: {
-        "27-what-a-formula-actually-does": { at: "2026-11-01T10:00:00.000Z", tries: 2 },
-        "28-cell-references-relative-and-absolute": { at: "2026-11-04T10:00:00.000Z", tries: 1 },
+        "01-sum-basics": { at: "2026-11-01T10:00:00.000Z", tries: 2 },
+        "11-vlookup-approximate-match-needs-a-sorted-column": { at: "2026-11-04T10:00:00.000Z", tries: 1 },
       },
       tries: {},
       unlocked: true,
     });
     assert.deepEqual(completedLessons(parseProgress(text)), [
-      "28-cell-references-relative-and-absolute",
-      "27-what-a-formula-actually-does",
+      "11-vlookup-approximate-match-needs-a-sorted-column",
+      "01-sum-basics",
     ]);
   });
 
@@ -193,11 +193,11 @@ describe("completedLessons", () => {
   });
 
   it("feeds a deck with only finished lessons", () => {
-    const text = JSON.stringify({ v: 1, done: { "27-what-a-formula-actually-does": { at: "2026-11-01T10:00:00.000Z" } } });
+    const text = JSON.stringify({ v: 1, done: { "01-sum-basics": { at: "2026-11-01T10:00:00.000Z" } } });
     const deck = buildDeck(index, completedLessons(parseProgress(text)));
     assert.equal(deck.length, 1);
-    assert.equal(deck[0].lessonId, "27-what-a-formula-actually-does");
-    assert.ok(!deck.some((card) => card.lessonId === "28-cell-references-relative-and-absolute"));
+    assert.equal(deck[0].lessonId, "01-sum-basics");
+    assert.ok(!deck.some((card) => card.lessonId === "11-vlookup-approximate-match-needs-a-sorted-column"));
   });
 });
 

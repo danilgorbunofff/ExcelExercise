@@ -9,6 +9,7 @@
 
 import { createHmac } from "node:crypto";
 
+import { loadSite } from "../lib/site.js";
 import { psql, purgeUsers, resetFixtures, stack } from "../tests/db/harness.mjs";
 
 /** Re-exported so a spec can create an account without a browser. */
@@ -20,17 +21,21 @@ export const WEBHOOK_SECRET = "whsec_local_accounts";
 export const PASSWORD = "password123";
 
 /**
- * The gate has three states, and the catalog decides which lesson is in which: `freeLessonCount` is 3,
- * so lesson 4 is served with a prompt the drill paints in the browser (a redirect here would make its
- * "continue free this once" button unreachable), and lesson 5 is the wall the request refuses.
+ * The gate has three states, and the catalog decides which lesson is in which: the ten free ids are open,
+ * the one nominated prompt lesson is served with a button the exercise paints in the browser (a redirect
+ * here would make its "continue free this once" door unreachable), and everything else is the wall the
+ * request refuses. The three are read from `track.json` rather than written out, so moving the free set
+ * fails here instead of quietly testing a free page as if it were walled.
  */
-export const FREE_LESSON = "/learn/excel/what-a-formula-actually-does";
-export const PROMPT_LESSON = "/learn/excel/sum-basics";
-export const PAID_LESSON = "/learn/excel/sumifs-two-conditions-at-once";
-/**
- * Every free lesson is a single screen, so a real "second screen" only exists behind the wall — the
- * specs that need a position other than zero grant an entitlement first (`deliver(lifetimeEvent)`).
- */
+const site = loadSite();
+const freeEntries = site.index.filter((entry) => entry.free);
+const promptEntry = site.index.find((entry) => entry.exercise.id === site.track.promptLesson);
+const wallEntries = site.index.filter((entry) => !entry.free && entry !== promptEntry);
+
+export const FREE_LESSON = freeEntries[0].path;
+export const PROMPT_LESSON = promptEntry.path;
+/** A paid exercise with more than one screen, so the resume specs have a real second screen to land on. */
+export const PAID_LESSON = wallEntries.find((entry) => entry.exercise.screens.length > 1).path;
 export const TWO_SCREEN_LESSON = PAID_LESSON;
 
 /** One address per run, so a leftover account cannot make the next run's username collide. */
@@ -135,7 +140,7 @@ export function refundEvent(name = "refund") {
  * Mark lessons finished for a user, straight into `lesson_progress`.
  *
  * The service role is used deliberately: this is setup for a browser assertion (does the dashboard
- * paint the count?), and driving the drill UI to write it would make every screen's grader a
+ * paint the count?), and driving the exercise UI to write it would make every screen's grader a
  * dependency of the dashboard's rendering — which is the coupling this suite is meant to break.
  */
 export async function finishLessons(userId, lessonIds) {

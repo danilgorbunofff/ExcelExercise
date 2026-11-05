@@ -62,7 +62,7 @@ test("a learner with points is ranked on the board, and the account shows their 
        values ('${userId}', 3, 5, current_date)
        on conflict (user_id) do update set current = 3, longest = 5, last_day = current_date;
      insert into attempts (user_id, lesson_id, screen_id, attempt_seq, started_at, ended_at, correct_first_try)
-       values ('${userId}', 'what-a-formula-actually-does', 'screen-1', 1, now() - interval '1 minute', now(), true)
+       values ('${userId}', '01-sum-basics', 'screen-1', 1, now() - interval '1 minute', now(), true)
        on conflict do nothing;`,
   );
 

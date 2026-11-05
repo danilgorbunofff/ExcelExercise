@@ -21,7 +21,7 @@ test.afterAll(async () => {
   forget(...made);
 });
 
-test("signing up with a display name lands the learner in the drills, signed in", async ({ page }) => {
+test("signing up with a display name lands the learner in the exercises, signed in", async ({ page }) => {
   const email = address("signup");
   made.push(email);
 

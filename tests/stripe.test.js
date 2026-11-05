@@ -18,6 +18,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import { loadContent } from "../legacy/src/site/content.mjs";
+import { PLANS as SITE_PLANS } from "../legacy/src/site/offer.mjs";
 import { preparePricingPage } from "../legacy/src/site/pricing-page.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
 import {
@@ -298,15 +299,22 @@ describe("the pricing page", () => {
 
   it("says checkout is closed when this deployment cannot take money", () => {
     const { body } = preparePricingPage(args);
-    assert.match(body, /Checkout is not open yet/);
+    assert.match(body, /Checkout is not open on this copy/);
     assert.doesNotMatch(body, /in this build/, "build vocabulary is not buyer-facing copy");
     assert.doesNotMatch(body, /\/api\/stripe\/checkout/, "no button may point at a disabled route");
   });
 
-  it("offers the button, as a plain form, when it can", () => {
+  it("offers one plain form per plan when it can", () => {
     const { body } = preparePricingPage({ ...args, checkout: stripeConfig(ENV) });
-    assert.doesNotMatch(body, /Checkout is not open yet/);
-    assert.match(body, /<form class="cta-row" method="post" action="\/api\/stripe\/checkout\?plan=annual">/);
+    assert.doesNotMatch(body, /Checkout is not open on this copy/);
+    for (const plan of SITE_PLANS) {
+      const action = `/api/stripe/checkout\?plan=${plan.id}`;
+      assert.ok(
+        body.includes(`<form class="term-buy" method="post" action="${action}">`),
+        `no form buys the ${plan.id} plan`,
+      );
+      assert.ok(body.includes(`Pay $${plan.amount}`), `the ${plan.id} form does not name its price`);
+    }
     assert.match(body, /type="submit"/, "a form with no submit button is not a form a keyboard can use");
   });
 });

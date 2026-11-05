@@ -10,10 +10,11 @@ import { assertSelfContained, build, removeDotFiles } from "../legacy/src/build.
 import { createStaticServer, resolvePath, startServer } from "../legacy/src/serve.mjs";
 import { buildStyles, readIcons } from "../legacy/src/site/assets.mjs";
 import { siteConfig } from "../legacy/src/site/config.mjs";
-import { loadArticles, loadContent } from "../legacy/src/site/content.mjs";
+import { loadArticles, loadContent, loadFormulas, loadShortcuts } from "../legacy/src/site/content.mjs";
+import { EXTRA_PAGES, extraKeys } from "../legacy/src/site/seo.mjs";
 import { dashboardGroups } from "../legacy/src/site/dashboard-page.mjs";
 import { renderIndexPage } from "../legacy/src/site/index-page.mjs";
-import { esc } from "../legacy/src/site/html.mjs";
+import { esc, renderParagraphs } from "../legacy/src/site/html.mjs";
 import { LESSONS, readRawLesson, toV1 } from "./lessons.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -57,10 +58,20 @@ describe("build", () => {
     const pages = htmlFiles(out).map((file) => file.slice(out.length + 1));
     const { index } = loadContent(join(ROOT, "legacy/content"));
     const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
-    // The index, the dashboard, the offer, the legal pages, the two hubs and the host's 404 document,
-    // plus one page per lesson and one per group.
+    // The index, the dashboard, the offer and the host's 404 document have no sitemap entry; every other
+    // non-lesson page comes from `extraKeys()`, so a new one is counted the moment it is declared.
     const articles = loadArticles(join(ROOT, "legacy/content"));
-    const expected = lessons.length + 8 + groupIds.length + (articles.length > 0 ? articles.length + 1 : 0);
+    const formulas = loadFormulas(join(ROOT, "legacy/content"));
+    const shortcuts = loadShortcuts(join(ROOT, "legacy/content"));
+    const shellPages = ["index", "learn", "pricing", "404"].length;
+    const expected =
+      lessons.length +
+      shellPages +
+      extraKeys({ articles, formulas, shortcuts }).length +
+      groupIds.length +
+      articles.length +
+      formulas.length +
+      shortcuts.length;
     assert.equal(pages.length, expected, `expected ${expected} pages, got ${pages.length}`);
     assert.ok(pages.includes("index.html"));
     assert.ok(pages.includes("learn/index.html"));
@@ -69,9 +80,14 @@ describe("build", () => {
     assert.ok(pages.includes("terms/index.html"));
     assert.ok(pages.includes("excel-exercises/index.html"));
     assert.ok(pages.includes("about/index.html"));
+    assert.ok(pages.includes("search/index.html"));
     // Not part of the site: the page a static host serves for an address it cannot find.
     assert.ok(pages.includes("404.html"));
+    assert.ok(pages.includes("shortcuts/index.html"));
     for (const exercise of lessons) assert.ok(pages.includes(`excel/${exercise.slug}.html`), `${exercise.slug} page is missing`);
+    for (const shortcut of shortcuts) {
+      assert.ok(pages.includes(`shortcuts/${shortcut.slug}/index.html`), `${shortcut.slug} shortcut page is missing`);
+    }
     for (const id of groupIds) assert.ok(pages.includes(`learn/groups/${id}.html`), `${id} group page is missing`);
     assert.equal(summary.pages, expected);
   });
@@ -122,8 +138,9 @@ describe("build", () => {
       assert.match(html, /<textarea[^>]*id="feedback-text"[^>]*maxlength="500"/, `${page} has no capped note`);
       assert.match(html, /name="mood" value="stuck"/, `${page} has no satisfaction choice`);
       assert.match(html, /src="\/assets\/client\/feedback\.js"/, `${page} does not load the dialog`);
-      // The promise and the behaviour have to be the same sentence.
-      assert.match(html, /Nothing is sent yet/, `${page} does not say nothing is sent`);
+      // The dialog promises only what the send does: a note reaches a person. What happens without a
+      // server is the send's own outcome and is reported when it happens, not claimed up front.
+      assert.match(html, /goes to a person/, `${page} does not say where a note goes`);
     }
   });
 
@@ -198,6 +215,18 @@ describe("build", () => {
     assert.ok((html.match(/<td/g) ?? []).length > 0, "the error table has no rows");
   });
 
+  it("opens the explanation with a lede and at least one more paragraph under it", () => {
+    // The schema refuses a one-block explanation, but counting newlines cannot tell whether the page
+    // prints them. This is the assertion the reader depends on: the section between "What it does" and
+    // "Syntax" holds two or more paragraphs, not one wall.
+    for (const exercise of lessons) {
+      const html = readFileSync(join(out, "excel", `${exercise.slug}.html`), "utf8");
+      const what = html.split('id="docs-what"')[1]?.split('id="docs-syntax"')[0] ?? "";
+      const paragraphs = what.match(/<p>/g) ?? [];
+      assert.ok(paragraphs.length >= 2, `${exercise.slug}: the explanation printed ${paragraphs.length} paragraph(s)`);
+    }
+  });
+
   it("emits the mount contract the client will use", () => {
     const html = readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8");
     for (const id of ["drill", "drill-screens", "sheet-0", "sheet-grid-0", "screen-answer-cell", "formula-bar", "ref-chip", "formula", "check", "feedback", "hint", "solution", "progress-count", "exercise-data"]) {
@@ -233,10 +262,12 @@ describe("build", () => {
     ]) {
       assert.doesNotThrow(() => readFileSync(join(out, file)), `${file} was not written`);
     }
+    // drill.js, its state and reward modules, the dashboard island, the feedback dialog, the note exercise
+    // and the search box on /search: one file each, no bundler.
     assert.equal(
       summary.client,
-      6,
-      "drill.js, its state and reward modules, the dashboard island, the feedback dialog, the note drill",
+      readdirSync(join(ROOT, "legacy/src/client")).filter((file) => file.endsWith(".js")).length,
+      "every client module in legacy/src/client/ must reach dist/",
     );
 
     for (const page of ["excel/sum-basics.html", "index.html"]) {
@@ -312,6 +343,12 @@ describe("build", () => {
           assert.deepEqual(sent.grid.rows, screen.grid.rows);
           assert.deepEqual(sent.require, screen.require);
           assert.equal(sent.reference, screen.reference ?? exercise.docs.reference);
+          // Grading happens in the browser, so a variant the page drops is a variant nobody is graded on.
+          assert.deepEqual(
+            sent.variants,
+            screen.variants,
+            `${exercise.slug} screen ${position + 1} ships the re-sends it is graded on`,
+          );
         }
       });
       assert.equal(payload.docs.reference, exercise.docs.reference);
@@ -365,13 +402,13 @@ describe("build", () => {
     assert.equal(trail.at(-1).item, `${BASE}/excel/${lessons[0].slug}`);
 
     const gated = one(`excel/${lessons.at(-1).slug}.html`, "LearningResource");
-    assert.equal(gated.isAccessibleForFree, false, "the last lesson is behind the trial");
+    assert.equal(gated.isAccessibleForFree, false, "the last lesson is behind the paywall");
 
-    // The group hubs are indexable, so each one has to say what it is: a list of drills that belong to
+    // The group hubs are indexable, so each one has to say what it is: a list of exercises that belong to
     // it, and nothing that claims a rating or a price.
     const hub = one("learn/groups/lookup.html", "ItemList");
     assert.ok(hub.name.includes("Excel"), "a hub's name should carry the keyword");
-    assert.ok(hub.itemListElement.length > 0, "a hub's list should name its drills");
+    assert.ok(hub.itemListElement.length > 0, "a hub's list should name its exercises");
   });
 
   it("fetches nothing from a third party", () => {
@@ -412,15 +449,26 @@ describe("build", () => {
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
     const { index } = loadContent(join(ROOT, "legacy/content"));
     const groupIds = dashboardGroups({ track, index }).map((group) => group.id);
-    // Home, four non-lesson pages, one hub per group, one entry per lesson — the list `indexablePaths()`
-    // builds. No dashboard, no pricing: both are `noindex`.
+    // Home, the non-lesson pages `extraKeys()` declares, one hub per group, one entry per lesson, one per
+    // article — the list `indexablePaths()` builds. No dashboard, no pricing: both are `noindex`.
     const articles = loadArticles(join(ROOT, "legacy/content"));
-    assert.equal(locs.length, 1 + 4 + groupIds.length + lessons.length + articles.length + (articles.length > 0 ? 1 : 0));
+    const formulas = loadFormulas(join(ROOT, "legacy/content"));
+    const shortcuts = loadShortcuts(join(ROOT, "legacy/content"));
+    assert.equal(
+      locs.length,
+      1 +
+        extraKeys({ articles, formulas, shortcuts }).length +
+        groupIds.length +
+        lessons.length +
+        articles.length +
+        formulas.length +
+        shortcuts.length,
+    );
     assert.equal(new Set(locs).size, locs.length, "a URL is listed twice");
     for (const loc of locs) assert.ok(loc.startsWith(`${BASE}/`), `${loc} is not absolute against the configured base`);
     assert.ok(locs.includes(`${BASE}/`));
     for (const exercise of lessons) assert.ok(locs.includes(`${BASE}/excel/${exercise.slug}`));
-    for (const path of ["/privacy", "/terms", "/about", "/excel-exercises"]) {
+    for (const path of Object.values(EXTRA_PAGES).map((page) => page.path)) {
       assert.ok(locs.includes(`${BASE}${path}`), `${path} is not in the sitemap`);
     }
     for (const id of groupIds) assert.ok(locs.includes(`${BASE}/learn/groups/${id}`), `${id} hub is not in the sitemap`);
@@ -430,7 +478,12 @@ describe("build", () => {
     const lastmods = [...xml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((match) => match[1]);
     assert.equal(lastmods.length, locs.length);
     assert.ok(lastmods.every((date) => /^\d{4}-\d{2}-\d{2}$/.test(date)), "a lastmod is not a date");
-    const dated = lessons.filter((exercise) => exercise.updated).map((exercise) => exercise.updated);
+    // Lessons and shortcut pages both state the date their content was last checked, and both show it;
+    // every other page falls back to the build stamp, which this loop does not count.
+    const dated = [
+      ...lessons.filter((exercise) => exercise.updated).map((exercise) => exercise.updated),
+      ...shortcuts.filter((shortcut) => shortcut.updated).map((shortcut) => shortcut.updated),
+    ];
     assert.ok(dated.length > 0, "no lesson sets a date, so the sitemap can only repeat the build stamp");
     for (const date of new Set(dated)) {
       const expected = dated.filter((value) => value === date).length;
@@ -484,15 +537,14 @@ describe("build", () => {
     }
   });
 
-  it("keeps the author off the byline when no author is configured", () => {
+  it("opens a lesson on its difficulty, and on nothing else", () => {
     const html = readFileSync(join(out, "excel", `${lessons[0].slug}.html`), "utf8");
+    // The line above the task used to carry a revision date, a count of every exercise on the site and
+    // the author. Only the difficulty was ever doing work there, so only the difficulty is rendered.
+    assert.match(html, /<p class="lesson-level"><span class="chip chip-level">[A-Z][a-z]+<\/span><\/p>/);
+    assert.ok(!/class="byline"/.test(html), "a lesson no longer carries a byline");
     assert.ok(!/\bBy \w/.test(html), "no author is configured, so no name may be claimed");
-    // A lesson dates its own page with its revision date; only a lesson without one falls back to the
-    // build stamp. Asserting the stamp would pin a date the page no longer claims.
-    const claimed = lessons[0].updated ?? ENV.SITE_BUILT_AT;
-    const [year, month, day] = claimed.split("-").map(Number);
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    assert.match(html, new RegExp(`Updated ${day} ${months[month - 1]} ${year}`));
+    assert.ok(!/Updated \d+ [A-Z][a-z]{2} \d{4}/.test(html), "a lesson no longer dates itself");
     assert.ok(!/~\d+ min/.test(html), "the index must not claim a duration");
   });
 
@@ -501,7 +553,10 @@ describe("build", () => {
     try {
       build({ out: other, env: { ...ENV, SITE_AUTHOR: "Dana Silva", SITE_URL: "https://excel.example.org" }, quiet: true });
       const html = readFileSync(join(other, "excel", "sum-basics.html"), "utf8");
-      assert.match(html, /By Dana Silva/);
+      // The configured author is named once, on the about page, rather than repeated on 86 lessons.
+      const about = readFileSync(join(other, "about", "index.html"), "utf8");
+      assert.match(about, /Dana Silva writes, checks and maintains every exercise here/);
+      assert.ok(!/By Dana Silva/.test(html), "a lesson no longer signs itself");
       assert.match(html, /<link rel="canonical" href="https:\/\/excel\.example\.org\/excel\/sum-basics">/);
       const xml = readFileSync(join(other, "sitemap.xml"), "utf8");
       assert.ok(xml.includes("https://excel.example.org/"), "the sitemap must follow the configured base");
@@ -546,14 +601,15 @@ describe("build validation", () => {
   // time; the loader still reads that shape during the deprecation window.
   const exercise = toV1(readRawLesson("01-sum-basics.json"));
 
-  /** A one-lesson catalog: real groups, only the lesson under test, opened up. */
+  /** A one-lesson catalog: real groups, only the lesson under test, and that lesson the free one. */
   function only(copy, { extraLessons = [], ...overrides } = {}) {
     const group = track.lessons.find((lesson) => lesson.id === copy.id).group;
     return {
       ...track,
       groups: track.groups.filter((entry) => entry.id === group),
       lessons: [{ id: copy.id, group }, ...extraLessons],
-      freeLessonCount: 1,
+      freeLessons: [copy.id],
+      promptLesson: null,
       ...overrides,
     };
   }
@@ -636,14 +692,15 @@ describe("build validation", () => {
             { id: second.id, group: "statistical" },
             { id: first.id, group: "sum" },
           ],
-          freeLessonCount: 1,
+          freeLessons: [second.id],
+          promptLesson: null,
         }),
       );
 
       const { index } = loadContent(dir);
       assert.deepEqual(index.map((entry) => entry.exercise.id), [second.id, first.id]);
       assert.equal(index[0].slug, second.slug);
-      assert.ok(index[0].free && !index[1].free, "the free drill is the first one in the catalog");
+      assert.ok(index[0].free && !index[1].free, "the free exercise is the first one in the catalog");
       assert.equal(index[0].nextPath, `/excel/${first.slug}`);
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -675,7 +732,7 @@ describe("build validation", () => {
   });
 
   it("fails loudly when nothing is free", () => {
-    fails((copy) => ({ track: only(copy, { freeLessonCount: 0 }) }), /freeLessonCount must be at least 1/);
+    fails((copy) => ({ track: only(copy, { freeLessons: [] }) }), /freeLessons must list at least one lesson id/);
   });
 
   it("fails loudly on an impossible build date", () => {
@@ -709,16 +766,38 @@ describe("build validation", () => {
     }
   });
 
-  it("does not promise a trial when the whole track is open", () => {
+  it("says the whole track is open when nothing is behind the wall", () => {
     const { track: realTrack, index } = loadContent(join(ROOT, "legacy/content"));
     const html = renderIndexPage({
       config: siteConfig(ENV),
-      track: { ...realTrack, freeLessonCount: index.length },
+      track: { ...realTrack, freeLessons: index.map((entry) => entry.exercise.id), freeLessonCount: index.length },
       index,
       icons: readIcons(join(ROOT, "legacy/vendor/icons")),
     });
-    assert.match(html, new RegExp(`All ${index.length} drills are open`));
-    assert.ok(!html.includes("free trial"), "no lesson is gated, so the page must not mention a trial");
+    assert.match(html, new RegExp(`All ${index.length} exercises are open`));
+    assert.ok(!html.includes("free trial"), "there is no trial, so the page must not mention one");
+  });
+
+  it("counts what is behind the wall, not the whole track", () => {
+    const { track: realTrack, index } = loadContent(join(ROOT, "legacy/content"));
+    const html = renderIndexPage({
+      config: siteConfig(ENV),
+      track: realTrack,
+      index,
+      icons: readIcons(join(ROOT, "legacy/vendor/icons")),
+    });
+    const paid = index.length - realTrack.freeLessonCount;
+    // The offer is stated once, and the count in it is the paid remainder. A reader who had just been
+    // offered ten free exercises was told, three lines later, that "the other 86" were paid — and then
+    // told a third time by the paragraph under the list.
+    // Phrase-agnostic on purpose: the sentence gets reworded, the two facts in it may not change. It
+    // says one thing about the paid half, and the number in it is the remainder, not the roster.
+    const offers = [...html.matchAll(/The other (\d+) come with/g)].map((match) => Number(match[1]));
+    assert.deepEqual(offers, [paid], "the offer is stated once, and it counts the paid exercises");
+    assert.ok(!html.includes(`The other ${index.length} `), "the paid count must not be the whole roster");
+    // Nor is it said a third time anywhere else on the page: the note beside the level list is the
+    // only place the offer appears, and nothing sits under the list to repeat it.
+    assert.equal([...html.matchAll(/come with/g)].length, 1, "the offer is stated more than once");
   });
 
   it("refuses a relative SITE_URL instead of shipping a broken canonical", () => {
@@ -739,7 +818,7 @@ describe("build validation", () => {
     try {
       for (const dir of ["content", "vendor", "src"]) cpSync(join(ROOT, "legacy", dir), join(real, dir), { recursive: true });
       // The build reads the packages from ../packages/, so the copy needs both as siblings.
-      for (const name of ["grader", "content", "keys", "progress", "sheet"]) {
+      for (const name of ["grader", "content", "keys", "progress", "sheet", "search"]) {
         cpSync(join(ROOT, "packages", name), join(container, "packages", name), { recursive: true });
       }
       try {
@@ -853,5 +932,33 @@ describe("serve", () => {
 
     assert.equal((await fetch(`${base}/excel/does-not-exist`)).status, 404);
     assert.equal((await fetch(`${base}/`, { method: "POST" })).status, 405);
+  });
+});
+
+// The explanation is the one prose field allowed blank lines, so the split has to survive the
+// renderer and stay a paragraph the browser can space. One block is still a legal page: the older
+// single-paragraph notes were written before the shape changed and must keep rendering as one <p>.
+describe("docs paragraphs", () => {
+  it("prints one <p> per blank-line block", () => {
+    const html = renderParagraphs("First thought.\n\nSecond thought.", { className: "note" });
+    const blocks = html.split("\n").map((line) => line.trim());
+    assert.deepEqual(blocks, ['<p class="note">First thought.</p>', '<p class="note">Second thought.</p>']);
+  });
+
+  it("collapses a hand-wrapped line rather than breaking the paragraph", () => {
+    const html = renderParagraphs("One sentence\nwrapped by hand.", { className: "note" });
+    assert.equal(html, '<p class="note">One sentence wrapped by hand.</p>');
+  });
+
+  it("escapes every block it emits", () => {
+    const html = renderParagraphs("A < B & C.\n\nD > E.", { className: "note" });
+    assert.ok(!html.includes("< B"));
+    assert.ok(html.includes("A &lt; B &amp; C."));
+    assert.ok(html.includes("D &gt; E."));
+  });
+
+  it("leaves a single-paragraph note as one paragraph", () => {
+    const html = renderParagraphs("Just the one block.", { className: "note" });
+    assert.equal(html, '<p class="note">Just the one block.</p>');
   });
 });

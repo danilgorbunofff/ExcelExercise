@@ -74,7 +74,7 @@ export function capture() {
 
   for (const file of lessonFiles) {
     const id = file.replace(/\.json$/, "");
-    // The screen, not the file: `grade` reads one drill, and a v2 lesson keeps its drill and its
+    // The screen, not the file: `grade` reads one exercise, and a v2 lesson keeps its exercise and its
     // fixtures inside `screens[]`. Loading through the schema means this capture follows the same
     // shape the renderer grades, so a migration cannot make the snapshot disagree with the site.
     const { screens } = normalizeLesson(readJson(join(EXERCISES, file)), file);
@@ -109,6 +109,11 @@ export function capture() {
       }
       verdicts.audit.push(...[audit.reference, ...audit.wrong].map((input) => settle(screen, input)));
     });
+
+    // A lesson made of presses alone gives the formula grader nothing to record, and the snapshot's
+    // own test requires every captured lesson to hold at least one verdict. Its audit row still
+    // exists: `tests/content.test.js` holds the presses to it.
+    if (verdicts.accepted.length + verdicts.rejected.length + verdicts.audit.length === 0) continue;
 
     lessons[id] = {
       accepted: verdicts.accepted.sort(byInput),

@@ -7,10 +7,12 @@
  * produces an unchanged file, which is what makes a release diff readable.
  */
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { inflateRawSync } from "node:zlib";
 import { describe, it } from "node:test";
 
-import { spreadsheet, workbookName, workbookUrl } from "../legacy/src/xlsx.mjs";
+import { spreadsheet, workbook, workbookName, workbookUrl } from "../legacy/src/xlsx.mjs";
 
 const SHEET = {
   name: "Orders",
@@ -114,5 +116,86 @@ describe("the workbook file name", () => {
   it("refuses an id with nothing a file name can keep", () => {
     // Silently returning ".xlsx" would ship a file with no name rather than fail the build.
     assert.throws(() => workbookName("pivot-tables", "///"), /has no characters a file name can keep/);
+  });
+});
+
+/**
+ * The second tab every formula screen ships: the same grid, with the reference formula in the answer
+ * cell. Two tabs is the smallest case that proves the container is a workbook and not a sheet.
+ */
+const SOLUTION = { ...SHEET, name: "Solution", rows: [["Item", "Units", "Result"], ["Widget", 3, "=B2*2.5"]] };
+
+describe("a workbook of more than one sheet", () => {
+  it("carries one worksheet part per tab, after the parts every workbook needs", () => {
+    assert.deepEqual(
+      [...unzip(workbook([SHEET, SOLUTION])).keys()],
+      [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml",
+        "xl/worksheets/sheet2.xml",
+      ],
+      "the second tab is missing or out of order",
+    );
+  });
+
+  it("lists the tabs in the order they were given, each with its own relationship", () => {
+    const parts = unzip(workbook([SHEET, SOLUTION]));
+    assert.match(
+      parts.get("xl/workbook.xml"),
+      /<sheets><sheet name="Orders" sheetId="1" r:id="rId1"\/><sheet name="Solution" sheetId="2" r:id="rId2"\/><\/sheets>/,
+    );
+    const rels = parts.get("xl/_rels/workbook.xml.rels");
+    assert.match(rels, /Id="rId1" Type="[^"]*\/worksheet" Target="worksheets\/sheet1\.xml"/);
+    assert.match(rels, /Id="rId2" Type="[^"]*\/worksheet" Target="worksheets\/sheet2\.xml"/);
+    // Styles keep the last id, so a reader that resolves it by number still finds one.
+    assert.match(rels, /Id="rId3" Type="[^"]*\/styles" Target="styles\.xml"/);
+  });
+
+  it("declares every worksheet in the content types", () => {
+    const types = unzip(workbook([SHEET, SOLUTION])).get("[Content_Types].xml");
+    assert.match(types, /PartName="\/xl\/worksheets\/sheet1\.xml"/);
+    assert.match(types, /PartName="\/xl\/worksheets\/sheet2\.xml"/);
+  });
+
+  it("writes each tab's own rows into its own part", () => {
+    const parts = unzip(workbook([SHEET, SOLUTION]));
+    assert.match(parts.get("xl/worksheets/sheet2.xml"), /<c r="C2"><f>B2\*2\.5<\/f><\/c>/);
+    assert.doesNotMatch(parts.get("xl/worksheets/sheet1.xml"), /<c r="C3"><f>B2\*2\.5<\/f><\/c>/);
+  });
+
+  it("is exactly what one sheet writes when there is one sheet", () => {
+    // The single-tab files shipped before multi-sheet workbooks existed, so the wrapper cannot change
+    // a byte: a rebuild of an unchanged lesson has to stay a no-op diff.
+    assert.ok(spreadsheet(SHEET).equals(workbook([SHEET])), "one sheet wrapped in a workbook is different bytes");
+  });
+
+  it("builds the same bytes from the same tabs, in a process that has never seen them", () => {
+    const here = createHash("sha256").update(workbook([SHEET, SOLUTION])).digest("hex");
+    const modulePath = new URL("../legacy/src/xlsx.mjs", import.meta.url).pathname;
+    const script = `
+      import { createHash } from "node:crypto";
+      import { workbook } from ${JSON.stringify(modulePath)};
+      const sheet = ${JSON.stringify(SHEET)};
+      const solution = ${JSON.stringify(SOLUTION)};
+      process.stdout.write(createHash("sha256").update(workbook([sheet, solution])).digest("hex"));
+    `;
+    const child = spawnSync(process.execPath, ["--input-type=module", "-e", script], { encoding: "utf8" });
+    assert.equal(child.status, 0, child.stderr);
+    assert.equal(child.stdout, here, "a fresh process built different bytes");
+  });
+
+  it("refuses a tab name Excel would refuse", () => {
+    const check = (name, why) => assert.throws(() => workbook([SHEET, { ...SOLUTION, name }]), why);
+    check("a".repeat(32), /longer than 31 characters/);
+    check("Q1/Q2", /character Excel forbids/);
+    check("Q1:Q2", /character Excel forbids/);
+    check("   ", /every sheet needs a name/);
+    check("'''", /only apostrophes/);
+    assert.throws(() => workbook([SHEET, { ...SOLUTION, name: "orders" }]), /two sheets are both named/);
+    assert.throws(() => workbook([]), /at least one sheet/);
   });
 });

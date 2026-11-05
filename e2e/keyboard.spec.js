@@ -1,5 +1,5 @@
 /**
- * One drill, keyboard only. The grid's arrow keys have their own spec; this one is about the rest of the
+ * One exercise, keyboard only. The grid's arrow keys have their own spec; this one is about the rest of the
  * page: whether a learner who never touches the mouse can reach the bar, hear where they are, read the
  * hint, take the reveal and finish — and whether the page says so by moving the focus rather than by
  * hoping the next thing is visible.
@@ -64,7 +64,7 @@ async function tabTo(page, wanted, limit = 30) {
   throw new Error(`tab order never reached ${wanted} in ${limit} presses: ${trail.join(" -> ")}`);
 }
 
-test("a whole drill is passable without a mouse", async ({ page }) => {
+test("a whole exercise is passable without a mouse", async ({ page }) => {
   await page.goto(FREE.path);
   await expect(page.locator("#formula")).toBeVisible();
   await waitForClient(page);
@@ -86,11 +86,11 @@ test("a whole drill is passable without a mouse", async ({ page }) => {
   await page.keyboard.type("=SUM(B2:B4)");
   await page.keyboard.press("Enter");
   await expect(page.locator("#feedback-head")).toHaveText("Correct");
-  // Finishing the drill hands the focus to its one way forward, so a keyboard user does not have to
+  // Finishing the exercise hands the focus to its one way forward, so a keyboard user does not have to
   // tab back past the bar and the hint row to find it.
   await expect(page.locator("a.next-cta")).toBeFocused();
 
-  // And it works: Enter on it leaves the drill.
+  // And it works: Enter on it leaves the exercise.
   await page.keyboard.press("Enter");
   await expect(page).not.toHaveURL(new RegExp(FREE.slug));
 });

@@ -153,7 +153,7 @@ describe("proxy wiring", () => {
 
   it("answers before the session work, so a deployment without accounts still has the limit", () => {
     const guard = code.indexOf("admitVerifyRequest({");
-    const early = code.indexOf("if (!config.enabled) return NextResponse.next()");
+    const early = code.indexOf("if (!config.enabled) {");
     assert.ok(guard > -1, "the guard is not called");
     assert.ok(early > guard, "the guard must run before the unconfigured-accounts early return");
   });

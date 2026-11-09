@@ -111,7 +111,9 @@ export function renderRail({ index, currentSlug, icons = {} }) {
     .map((entry) => {
       const current = entry.slug === currentSlug;
       const number = String(entry.number).padStart(2, "0");
-      const lock = entry.free ? "" : ` ${inlineIcon(icons.lock, { size: 12, className: "icon icon-lock" })}`;
+      // Seventy-odd locks down the rail read as a wall; the ten free lessons are the news, so they are the
+      // ones that carry a mark. A paid lesson keeps its spoken "(paid lesson)" below.
+      const lock = entry.free ? ` <span class="rail-free" aria-hidden="true">Free</span>` : "";
       const gatedNote = entry.free ? "" : `<span class="visually-hidden"> (paid lesson)</span>`;
       return `        <li${attrs({
         class: `rail-item${current ? " is-current" : ""}`,

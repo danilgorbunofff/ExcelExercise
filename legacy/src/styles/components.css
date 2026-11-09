@@ -572,7 +572,8 @@ html:has(.menu[open]) {
 /* ── Progress rail ─────────────────────────────────────────────────────── */
 
 .rail {
-  order: -1;
+  /* Phone: the exercise first, the map after it (above, 86 chips put the grid two screens down). */
+  order: 1;
   align-self: start;
   padding: var(--s-4);
   border: 1px solid var(--line);
@@ -646,7 +647,7 @@ html:has(.menu[open]) {
 .rail-item {
   position: relative;
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) 14px;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
   align-items: baseline;
   gap: var(--s-2);
   padding: var(--s-2) 0;
@@ -716,7 +717,7 @@ html:has(.menu[open]) {
   height: 12px;
 }
 
-/* Below the two-column breakpoint the rail is a horizontal strip above the card:
+/* Below the two-column breakpoint the rail is a wrapped strip of chips below the card:
    numbers stay visible, the title stays in the accessible name. */
 @media (max-width: 1023px) {
   .rail-list {
@@ -1041,6 +1042,14 @@ html:has(.menu[open]) {
 .sheet + .workbook-file,
 .article-drill .workbook-file {
   margin-top: var(--s-3);
+}
+
+/* In a lesson card the download is the grid's footer strip. */
+.sheet-card .sheet + .workbook-file {
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--line);
+  background: var(--surface-sunk);
 }
 
 /*
@@ -2234,6 +2243,30 @@ html:has(.menu[open]) {
 .icon-lock {
   flex: none;
   color: var(--text-muted);
+}
+
+/* Free-lesson mark; a dot on the phone's number chips. */
+.rail-free {
+  flex: none;
+  padding: 0 6px;
+  border-radius: var(--r-1);
+  background: var(--ok-bg);
+  color: var(--ok);
+  font-size: var(--fs-meta);
+}
+
+@media (max-width: 1023px) {
+  .rail-free {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    overflow: hidden;
+    background: var(--ok);
+    color: transparent;
+  }
 }
 
 .icon.flip {

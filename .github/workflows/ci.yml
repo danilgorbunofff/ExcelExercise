@@ -45,6 +45,13 @@ jobs:
       - name: unit
         run: npm test
 
+      # Static checks. Existing findings are warnings; only new errors fail.
+      - name: lint
+        run: npm run lint
+
+      - name: typecheck
+        run: npm run typecheck
+
       # Fixtures are replayed through the real grader here, not just shape-checked: a lesson whose
       # declared rejects are actually accepted is a broken drill that only this step catches.
       - name: content factory gate

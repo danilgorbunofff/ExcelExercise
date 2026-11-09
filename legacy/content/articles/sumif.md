@@ -70,7 +70,7 @@ Take the off-by-one row. If the criteria column starts at A2 but the sum range s
 
 ## Other apps
 
-Google Sheets has SUMIF and SUMIFS with the same argument order, so `=SUMIF(A2:A8, "North", C2:C8)` copies across without a change. The criteria follow Sheets' regular expression rules rather than Excel's wildcards, so a pattern with a `*` in it needs rewriting.
+Google Sheets has SUMIF and SUMIFS with the same argument order, so `=SUMIF(A2:A8, "North", C2:C8)` copies across without a change. Wildcards (`*`, `?` and `~`) work the same way in both, so a pattern does not need rewriting.
 
 VBA exposes `WorksheetFunction.SumIf(Range("A2:A8"), "North", Range("C2:C8"))`, and the third argument is optional there too. That repeats the trap: leave it out and the macro adds up the criteria column instead.
 

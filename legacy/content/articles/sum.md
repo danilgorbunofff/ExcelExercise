@@ -64,7 +64,7 @@ The last row of the table is the one that survives longest in real files. A tota
 
 ## Other apps
 
-Google Sheets has SUM with the same range syntax, so `=SUM(B2:B4)` moves between the two products without an edit. Sheets also counts numbers stored as text where Excel does not, so a total can disagree by one row after an import.
+Google Sheets has SUM with the same range syntax, so `=SUM(B2:B4)` moves between the two products without an edit.
 
 VBA calls it as `WorksheetFunction.Sum(Range("B2:B4"))`, and that method returns 0 rather than an error when the range holds no numbers at all. `Evaluate("SUM(B2:B4)")` is the shorter route when the range is already a string.
 

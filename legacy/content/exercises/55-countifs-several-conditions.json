@@ -276,7 +276,7 @@
       },
       {
         "code": "Wrong total",
-        "text": "Two conditions on the same column can never both hold, and the count comes back as 0."
+        "text": "Two conditions that exclude each other, such as North and South on the same column, can never both hold for one row, and the count comes back as 0."
       },
       {
         "code": "One condition",

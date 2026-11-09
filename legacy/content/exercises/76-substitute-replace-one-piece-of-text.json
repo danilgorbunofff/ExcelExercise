@@ -5,7 +5,7 @@
   "title": "SUBSTITUTE: replace one piece of text",
   "docs": {
     "syntax": "=SUBSTITUTE(text,old,new,[instance]) swaps old for new everywhere, or at one instance",
-    "explain": "SUBSTITUTE takes the text, the piece to look for and the piece to put in its place. It swaps every match in the string, so the call =SUBSTITUTE(A2,\"-\",\"/\") turns WH-12-03 into WH/12/03. Nothing outside the match changes.\n\nThis column holds three booking references, each with two hyphens. The first screen replaces both, which is what the three-argument form does. The second adds 2 as a fourth argument, and only the second hyphen becomes a slash: WH-12/03.\n\nThe number counts from the left, and it counts the hyphens you keep. So 2 points at the second hyphen, not at the second match to change. A replace at a fixed position names a place, and breaks as soon as a reference changes length.",
+    "explain": "SUBSTITUTE takes the text, the piece to look for and the piece to put in its place. It swaps every match in the string, so the call =SUBSTITUTE(A2,\"-\",\"/\") turns WH-12-03 into WH/12/03. Nothing outside the match changes.\n\nThis column holds three booking references, each with two hyphens. The first screen replaces both, which is what the three-argument form does. The second adds 2 as a fourth argument, and only the second hyphen becomes a slash: WH-12/03.\n\nThe number counts occurrences of the piece you are replacing, from the left, so 2 points at the second hyphen in the string. A replace at a fixed position names a place, and breaks as soon as a reference changes length.",
     "errors": [
       {
         "code": "#VALUE!",

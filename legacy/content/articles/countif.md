@@ -69,7 +69,7 @@ Case is not a factor: COUNTIF treats `"open"` and `"Open"` as the same criterion
 
 ## Other apps
 
-Google Sheets has COUNTIF, and its criteria can be read as regular expressions rather than Excel's wildcards. `=COUNTIF(A2:A8, "e.*")` counts the cells that contain an `e`; Excel would read `"e*"` as "starts with e". Copying a formula across changes the meaning of the string, not just the syntax.
+Google Sheets has COUNTIF with the same two arguments, and it reads the same wildcards, so `=COUNTIF(A2:A8, "e*")` counts the cells that start with e in both products. Regular expressions are a separate family there (`REGEXMATCH` and its relatives), and COUNTIF does not read them.
 
 VBA goes through `WorksheetFunction.CountIf(Range("A2:A8"), "Open")`, and it raises a run-time error rather than returning 0 when the criteria are malformed. That is easier to debug than a silent zero, but a loop needs an error handler around it.
 

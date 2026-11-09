@@ -19,7 +19,7 @@ Leave the third argument out and nothing errors: `=SUMIF(A2:A6,"North")` adds th
 
 ## Why it works
 
-- Two ranges, matched by position. Row 2 of the condition range is compared to the condition, and if it matches, row 2 of the sum range is added. The two ranges must be the same shape; `A2:A6` with `B2:B10` is not a smaller or larger answer, it is `#VALUE!`.
+- Two ranges, matched by position: row 2 of the condition range is tested, and a match adds row 2 of the sum range. Keep them the same shape. Excel does not complain when they differ, so `A2:A6` with `B2:B10` quietly reads `B2:B6`. SUMIFS returns `#VALUE!` instead.
 - The condition is a value, not a formula, and it can be a comparison or a pattern: `">=200"`, `"<>North"`, `"N*"`. Comparison operators live inside the quotes, which surprises people who write `>="200"`.
 - Matching ignores case. `"north"` finds North, so a region column with mixed capitalisation still totals correctly, but two spellings of one region cannot be counted separately by SUMIF alone.
 - The answer follows the condition only if the condition points at a cell. Typed into the formula it becomes a hardcoded report; written as `A7` it becomes a summary you can drag down a list of regions.

@@ -68,7 +68,7 @@ The `#VALUE!` row is the other frequent one, and it usually comes from imported 
 
 ## Other apps
 
-Google Sheets has IF with the same three arguments, so `=IF(B2 >= 50, "Pass", "Fail")` behaves the same on both sides. Its IFS arrived earlier than Excel's and returns an error instead of an empty cell when no test matches, which is a difference worth knowing before a column is compared.
+Google Sheets has IF with the same three arguments, so `=IF(B2 >= 50, "Pass", "Fail")` behaves the same on both sides. IFS exists there too and, as in Excel, returns `#N/A` when no test is true, so close the list with a `TRUE` pair in either product.
 
 VBA has no IF worksheet function worth calling, because `IIf(B2 >= 50, "Pass", "Fail")` evaluates both branches before it picks one. A branch that divides by zero raises an error even when the test is false, so a plain `If ... Then ... Else` block is the safer route.
 

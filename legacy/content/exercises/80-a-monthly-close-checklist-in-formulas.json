@@ -13,7 +13,7 @@
       },
       {
         "code": "#NAME?",
-        "text": "The function is typed as IF or COUNTIF with a letter missing, so Excel finds nothing to run."
+        "text": "The function is typed as IF or COUNTIF with a letter missing, and Excel returns #NAME?."
       },
       {
         "code": "Wrong flag",

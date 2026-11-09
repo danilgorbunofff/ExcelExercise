@@ -34,7 +34,7 @@ B5 shows 3580. The formula names three cells, but nothing about it is fixed: typ
 
 Ranges get dragged too far. Suppose the selection is `B2:B6`, where B5 holds the word Total and B6 is empty. SUM ignores both and still returns 3580, because text and empty cells are not numbers. There is no error, and that is the useful part: a heading caught in the range does not break the formula.
 
-The same forgiveness is a trap when the good data is text. If an imported column stored `1200` as text rather than as a number, SUM skips it without a word and the total is quietly short. Select the cell and look at its alignment: numbers sit on the right by default, text sits on the left.
+The same forgiveness is a trap when the good data is text. If an imported column stored `1200` as text rather than as a number, SUM skips it without a word and the total is short. Select the cell and look at its alignment: numbers sit on the right by default, text sits on the left.
 
 ### Example 3: adding two blocks
 
@@ -54,7 +54,7 @@ The comma separates two ranges and SUM adds all six cells. This works with any n
 | A total that is high | The range includes a subtotal further down the column | Stop the range above the subtotal row |
 | `0` | The range is empty or points at the wrong column | Read the range addresses, not the column letters |
 
-The last row of the table is the one that survives longest in real files. A total placed at the bottom of a column, then a new range dragged to include rows below it, adds the old total to the new figures. The number is plausible and wrong, which is the worst combination. Read the range in the formula bar before you trust the answer.
+The last row of the table is the one that survives longest in real files. A total placed at the bottom of a column, then a new range dragged to include rows below it, adds the old total to the new figures. The total is too big by exactly the old subtotal. Read the range in the formula bar before you trust the answer.
 
 ## Alternatives
 

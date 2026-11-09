@@ -154,7 +154,7 @@
   ],
   "docs": {
     "syntax": "=SUM(number1, [number2], ...)",
-    "explain": "SUM adds the numbers in the range you give it. Any text or blank cell inside that range is stepped over rather than counted. =SUM(B2:B4) covers 1200, 1450 and 930 and returns 3580. Change South to 1500 and the total follows.\n\nThe failure runs the other way. A number stored as text looks like a number and is skipped without a warning, so the total comes out low and nothing on screen says why. A region missing from a total is usually a left-aligned figure in the column.\n\nPoint at the range rather than at three cells. 1200+1450+930 breaks when a row is inserted, while B2:B4 grows to take the new row in.",
+    "explain": "SUM adds the numbers in the range you give it. Any text or blank cell inside that range is stepped over rather than counted. =SUM(B2:B4) covers 1200, 1450 and 930 and returns 3580. Change South to 1500 and the total follows.\n\nThe failure runs the other way. A number stored as text looks like a number but SUM skips it, so the total comes out low and the cells look fine. A region missing from a total is usually a left-aligned figure in the column.\n\nPoint at the range rather than at three cells. 1200+1450+930 breaks when a row is inserted, while B2:B4 grows to take the new row in.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -162,11 +162,11 @@
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled as SUMM or SU. Excel reads what is there and does not guess at the rest."
+        "text": "The function name is misspelled as SUMM or SU. Excel returns #NAME? for a name it does not recognise."
       },
       {
         "code": "Out of range",
-        "text": "SUM(B2:B5) would reach the label in B5 as well. A range that runs one cell long is how a total quietly doubles itself."
+        "text": "SUM(B2:B5) would reach the label in B5 as well. A range that runs one cell long picks up the total itself and doubles it."
       }
     ],
     "atWork": "Every monthly close: one row per branch, one column per period, and a total at the bottom that updates itself.",

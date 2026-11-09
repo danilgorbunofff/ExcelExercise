@@ -230,11 +230,11 @@
     "errors": [
       {
         "code": "#NUM!",
-        "text": "The position is 0 or larger than the count of values, so there is no such place in the order."
+        "text": "The position is 0 or larger than the count of values, and LARGE has no such place in the order."
       },
       {
         "code": "#VALUE!",
-        "text": "The first argument holds text rather than a block of numbers, so there is no order to count through."
+        "text": "The first argument holds text rather than a block of numbers, and text has no order to count through."
       },
       {
         "code": "Wrong end",

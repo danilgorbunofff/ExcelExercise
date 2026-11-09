@@ -56,7 +56,7 @@ Now a student needs the score and the attendance. `AND` returns true only when e
 | `#VALUE!` | The test compares text with a number, such as `B2>=70` where B2 holds "seventy" | Compare like with like |
 | Nothing changes when you sort | The range uses relative references that moved | Lock the references with `$` |
 
-The swapped-branches row is worth a second look because the sheet still looks right. Every cell contains a word, the column is full, and the only clue is that everyone failed. When a whole column returns one answer, read the formula and check which side of the comma each result sits on.
+The swapped-branches row is worth a second look because the sheet looks finished: every cell contains a word, the column is full, and the only clue is that everyone failed. When a whole column returns one answer, read the formula and check which side of the comma each result sits on.
 
 The `#VALUE!` row is the other frequent one, and it usually comes from imported data. A score pasted from another system can arrive as text, and any comparison against a number then fails. `ISNUMBER` tells you which it is, and `VALUE` converts a text number back to a real one.
 

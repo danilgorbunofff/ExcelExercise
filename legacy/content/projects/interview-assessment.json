@@ -15,7 +15,7 @@
     },
     {
       "heading": "What the interviewer checks",
-      "body": "Not whether you can sum a column, but whether you notice that Net is already net. Summing the discount column tells you nothing about revenue; the money given away is what the gross would have been minus what was booked. Two of the eight tasks need exactly that distinction."
+      "body": "The question is whether you notice that Net is already net. Summing the discount column tells you nothing about revenue; the money given away is what the gross would have been minus what was booked. Two of the eight tasks need exactly that distinction."
     }
   ],
   "dataset": {

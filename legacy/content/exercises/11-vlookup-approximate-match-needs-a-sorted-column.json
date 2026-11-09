@@ -136,15 +136,15 @@
   ],
   "docs": {
     "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
-    "explain": "Approximate match walks the first column until the lookup value would pass, then steps back to the row it last cleared. That is why the bands rise: 4200 sits above the 1000 band in A3 and below 5000 in A4, so the formula returns the rate on the 1000 row, 0.05.\n\nThe fourth argument picks the mode. FALSE demands a band that starts at exactly 4200, and none does, so exact match answers #N/A. TRUE asks for the band below, and 1 means the same thing. The grader wants that argument written rather than implied.\n\nA band table is only as good as its sort. Move 1000 under 5000 and the same formula stops on the wrong row, with no error to warn you.",
+    "explain": "Approximate match walks the first column until the lookup value would pass, then steps back to the row it last cleared. That is why the bands rise: 4200 sits above the 1000 band in A3 and below 5000 in A4, so the formula returns the rate on the 1000 row, 0.05.\n\nThe fourth argument picks the mode. FALSE demands a band that starts at exactly 4200, and none does, so exact match answers #N/A. TRUE asks for the band below, and 1 means the same thing. The grader wants that argument written rather than implied.\n\nA band table is only as good as its sort. Move 1000 under 5000 and the same formula stops on the wrong row.",
     "errors": [
       {
         "code": "#N/A",
-        "text": "The lookup value is below the first band, so there is no row to step back to."
+        "text": "The lookup value is below the first band, and VLOOKUP has no earlier row to step back to."
       },
       {
         "code": "#VALUE!",
-        "text": "The column index is text rather than a number, so there is no column to read."
+        "text": "The column index is text rather than a number, which names no column to read."
       },
       {
         "code": "#REF!",

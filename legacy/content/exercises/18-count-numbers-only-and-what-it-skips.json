@@ -122,7 +122,7 @@
     "errors": [
       {
         "code": "One short",
-        "text": "A reading stored as text is skipped without a warning, so the count lands below the figures you can see."
+        "text": "A reading stored as text is skipped, so the count lands below the figures you can see."
       },
       {
         "code": "Circular",

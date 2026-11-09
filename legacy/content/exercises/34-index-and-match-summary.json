@@ -127,7 +127,7 @@
   ],
   "docs": {
     "syntax": "=INDEX(rates, MATCH(units, bands, 1))",
-    "explain": "The band table in A2:B4 is read as ranges. 150 sits above the 100 in A3 and below the 200 in A4, so the band that applies starts on row 3 and pays 0.04. MATCH with 1 returns 2, the position of that starting point, and INDEX reads B3.\n\nA third argument of 1 asks for the last starting point at or below the value, which assumes the column is sorted ascending. The column here runs 0, 100, 200. Set 0 instead and MATCH looks for a row that says exactly 150, finds none, and returns #N/A.\n\nThe quiet failure is a band column that has drifted out of order. A figure below the first threshold fails loudly, because MATCH finds nothing and the cell shows #N/A. Re-sort the column and check the first row before trusting a rate that looks plausible.",
+    "explain": "The band table in A2:B4 is read as ranges. 150 sits above the 100 in A3 and below the 200 in A4, so the band that applies starts on row 3 and pays 0.04. MATCH with 1 returns 2, the position of that starting point, and INDEX reads B3.\n\nA third argument of 1 asks for the last starting point at or below the value, which assumes the column is sorted ascending. The column here runs 0, 100, 200. Set 0 instead and MATCH looks for a row that says exactly 150, finds none, and returns #N/A.\n\nThe quiet failure is a band column that has drifted out of order. A figure below the first threshold fails loudly, because MATCH finds nothing and the cell shows #N/A. Re-sort the column and check the first row before trusting any rate.",
     "errors": [
       {
         "code": "#N/A",
@@ -135,7 +135,7 @@
       },
       {
         "code": "Wrong band",
-        "text": "The band column is not sorted ascending, so MATCH settles on a neighbouring row and returns its rate without an error."
+        "text": "The band column is not sorted ascending, so MATCH settles on a neighbouring row and returns its rate."
       }
     ],
     "atWork": "Commission and tax bands, where the rate changes at thresholds and the table is written smallest first.",
@@ -147,6 +147,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "INDEX MATCH with bands: read a rate",
-    "description": "MATCH with 1 finds the last band that starts at or below 150, and INDEX reads the 0.04 rate. A wrong mode returns a plausible rate from the wrong row."
+    "description": "MATCH with 1 finds the last band that starts at or below 150, and INDEX reads the 0.04 rate. A wrong mode returns a rate from the wrong row."
   }
 }

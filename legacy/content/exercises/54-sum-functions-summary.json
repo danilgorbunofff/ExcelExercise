@@ -242,7 +242,7 @@
       },
       {
         "code": "Wrong total",
-        "text": "Ranges of different shapes match the wrong rows. Nothing errors, and the figure is off by a row."
+        "text": "Ranges of different shapes match the wrong rows. The total is off by one row."
       }
     ],
     "atWork": "A regional report that needs the grand total, the headline region and everything outside it on three lines.",

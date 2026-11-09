@@ -9,7 +9,7 @@
     "errors": [
       {
         "code": "#N/A",
-        "text": "The typed name is not in the column MATCH reads, so there is no position to return."
+        "text": "The typed name is not in the column MATCH reads, which leaves it no position to return."
       },
       {
         "code": "#REF!",
@@ -17,7 +17,7 @@
       },
       {
         "code": "Wrong table",
-        "text": "The outer INDEX reads the target column at the rep's row instead of the region's row, and returns a nearby figure with no error at all."
+        "text": "The outer INDEX reads the target column at the rep's row instead of the region's row, and returns a nearby figure."
       }
     ],
     "atWork": "A summary cell that follows a typed name through a rep list and a region table.",

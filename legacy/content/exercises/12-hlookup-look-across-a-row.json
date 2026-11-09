@@ -131,7 +131,7 @@
     "errors": [
       {
         "code": "#N/A",
-        "text": "The month is not in the first row of B1:D3, so there is no column to read down."
+        "text": "The month is not in the first row of B1:D3, which leaves no column to read down."
       },
       {
         "code": "#VALUE!",
@@ -151,6 +151,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "HLOOKUP in Excel: read across a row table",
-    "description": "HLOOKUP finds a month in the first row and reads down to the row you name. Row 3 holds the price, so a 2 would quietly return the units figure instead."
+    "description": "HLOOKUP finds a month in the first row and reads down to the row you name. Row 3 holds the price, so a 2 would return the units figure instead."
   }
 }

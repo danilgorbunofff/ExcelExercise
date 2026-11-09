@@ -218,7 +218,7 @@
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A word was passed as an argument in its own right, as in =MIN(Fastest), so there is no number to compare."
+        "text": "A word was passed as an argument in its own right, as in =MIN(Fastest), which gives MIN no number to compare."
       },
       {
         "code": "#REF!",

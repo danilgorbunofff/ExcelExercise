@@ -254,7 +254,7 @@
   ],
   "docs": {
     "syntax": "=LEN(text), =LEFT(text, count), =RIGHT(text, count)",
-    "explain": "LEN counts characters, spaces included. Invoice 2026-03 runs to 15: the seven letters, the space, four year digits, the hyphen and two month digits. Counting the space is what makes 15 right and 14 wrong.\n\nLEFT(A2,3) keeps the first three characters and returns Inv, the document prefix. RIGHT(A2,4) keeps the last four and returns 6-03, the final digit of the year, the hyphen and the month. Both take a count you supply, so neither knows anything about the code.\n\nA typed count is fine while every code has the same shape. The first code with a longer prefix gets cut in the wrong place, and LEFT returns something plausible instead of an error. That is the point at which FIND takes over the counting.",
+    "explain": "LEN counts characters, spaces included. Invoice 2026-03 runs to 15: the seven letters, the space, four year digits, the hyphen and two month digits. Counting the space is what makes 15 right and 14 wrong.\n\nLEFT(A2,3) keeps the first three characters and returns Inv, the document prefix. RIGHT(A2,4) keeps the last four and returns 6-03, the final digit of the year, the hyphen and the month. Both take a count you supply, so neither knows anything about the code.\n\nA typed count is fine while every code has the same shape. The first code with a longer prefix gets cut in the wrong place, and LEFT returns the wrong letters instead of an error. That is the point at which FIND takes over the counting.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -266,7 +266,7 @@
       },
       {
         "code": "#NAME?",
-        "text": "The function is spelled LN or LEF, and the sheet has nothing by that name to call."
+        "text": "The function is spelled LN or LEF, and Excel returns #NAME?."
       }
     ],
     "atWork": "Splitting a supplier reference into its document type and the period it covers.",

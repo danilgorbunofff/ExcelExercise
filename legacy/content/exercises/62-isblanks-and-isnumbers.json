@@ -227,7 +227,7 @@
       },
       {
         "code": "#NAME?",
-        "text": "The function name was mistyped, so Excel has nothing to run."
+        "text": "The function name was mistyped, and Excel returns #NAME?."
       },
       {
         "code": "Text answer",

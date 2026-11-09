@@ -64,7 +64,7 @@ const QUESTIONS = [
   ],
   [
     "How many devices can I use?",
-    "As many as you sign in on. The account carries your progress between them, so there is no device limit and no second seat to buy.",
+    "As many as you sign in on. The account carries your progress between them, and the plan has no device limit and no second seat to buy.",
   ],
   [
     "What if it is not for me?",

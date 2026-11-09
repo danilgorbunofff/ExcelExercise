@@ -240,6 +240,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "SWITCH in Excel: match a list of values",
-    "description": "SWITCH takes one value, then value and result pairs, and returns the first exact match. A text \"3\" never matches the number 3, so it quietly falls back."
+    "description": "SWITCH takes one value, then value and result pairs, and returns the first exact match. A text \"3\" never matches the number 3, so it falls back."
   }
 }

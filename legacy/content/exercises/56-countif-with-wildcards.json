@@ -237,7 +237,7 @@
   ],
   "docs": {
     "syntax": "=COUNTIF(range, \"pattern*\") counts the names that match; * stands for any run of characters and ? for exactly one",
-    "explain": "COUNTIF criteria accept two wildcards, and either one turns an exact match into a pattern. The star stands for any run of characters, including none, so Widget* covers Widget A, Widget B, Widget C and Widget D. The question mark stands for exactly one character, so Gadget? misses Gadget B because of the space.\n\nThe wildcards sit inside the quotes with the rest of the pattern. Widget* returns 4 here. Move the star to the front and *B returns 3, the three names ending in B: Widget B, Gizmo B and Gadget B.\n\nWithout a wildcard the criterion is the whole cell, so Widget on its own returns 0 because no cell holds that word. A star on the wrong end counts another set of rows and still returns a number that looks plausible.",
+    "explain": "COUNTIF criteria accept two wildcards, and either one turns an exact match into a pattern. The star stands for any run of characters, including none, so Widget* covers Widget A, Widget B, Widget C and Widget D. The question mark stands for exactly one character, so Gadget? misses Gadget B because of the space.\n\nThe wildcards sit inside the quotes with the rest of the pattern. Widget* returns 4 here. Move the star to the front and *B returns 3, the three names ending in B: Widget B, Gizmo B and Gadget B.\n\nWithout a wildcard the criterion is the whole cell, so Widget on its own returns 0 because no cell holds that word. A star on the wrong end counts another set of rows and still returns a number.",
     "errors": [
       {
         "code": "#NAME?",
@@ -245,11 +245,11 @@
       },
       {
         "code": "Matches nothing",
-        "text": "An exact criterion that no cell holds, such as Widget on its own, returns 0 without a warning."
+        "text": "An exact criterion that no cell holds, such as Widget on its own, returns 0."
       },
       {
         "code": "Wrong end",
-        "text": "A star on the wrong end counts another set of rows and still returns a plausible number."
+        "text": "A star on the wrong end counts a different set of rows and returns that count."
       }
     ],
     "atWork": "Counting every product in one family, and counting records that share a code prefix or suffix.",
@@ -262,6 +262,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "COUNTIF with wildcards in Excel",
-    "description": "The star matches any run of characters and the question mark matches one. A star on the wrong end of the pattern silently counts a different set of rows."
+    "description": "The star matches any run of characters and the question mark matches one. A star on the wrong end of the pattern counts a different set of rows."
   }
 }

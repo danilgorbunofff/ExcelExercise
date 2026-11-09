@@ -230,7 +230,7 @@
       },
       {
         "code": "#NAME?",
-        "text": "UPPER was typed with an extra letter, which is a function the sheet has never heard of."
+        "text": "UPPER was typed with an extra letter, and Excel returns #NAME?."
       },
       {
         "code": "Half converted",

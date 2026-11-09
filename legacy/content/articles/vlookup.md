@@ -29,7 +29,7 @@ The directory holds IDs in column A, names in B and salaries in C, with rows 1 t
 
 `=VLOOKUP(D2, A2:C6, 3, FALSE)`
 
-VLOOKUP reads D2, walks down A2:A6 until it finds `E-104`, then moves three columns right inside the block and returns 54000 from C5. If the ID is not there, the result is `#N/A` and no salary is shown. That refusal is the point of the exact match: a wrong number that looks plausible is worse than an error.
+VLOOKUP reads D2, walks down A2:A6 until it finds `E-104`, then moves three columns right inside the block and returns 54000 from C5. If the ID is not there, the result is `#N/A` and no salary is shown. That refusal is the point of the exact match: a wrong salary is worse than an error.
 
 ### Example 2: copied down a column
 
@@ -62,7 +62,7 @@ Numbers exported as text cause the same problem in reverse: the ID looks like 10
 
 Sorted columns are the other trap. `TRUE` is the default when the fourth argument is left out, and it assumes the first column is sorted ascending. On an unsorted list it returns the nearest value below the one you asked for.
 
-Nothing errors, the answer is simply wrong, and the sheet looks fine. If a VLOOKUP ever returns a value from the wrong row, check for a missing fourth argument before anything else.
+The answer is simply wrong, and the cell shows a salary as usual. If a VLOOKUP ever returns a value from the wrong row, check for a missing fourth argument before anything else.
 
 ## Alternatives
 

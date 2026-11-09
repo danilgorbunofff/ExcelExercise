@@ -88,7 +88,7 @@ In a new workbook, yes if your version of Excel has it. XLOOKUP does the same jo
 
 ### What does the 0 in MATCH do?
 
-It asks for an exact match and nothing else. Leave it out and MATCH assumes the search column is sorted ascending and returns the nearest value below, which is a wrong answer with no error. `1` and `-1` are for sorted bands and are rarely what you want.
+It asks for an exact match and nothing else. Leave it out and MATCH assumes the search column is sorted ascending and returns the nearest value below, so the cell shows a wrong answer, not an error. `1` and `-1` are for sorted bands and are rarely what you want.
 
 ### Why do the two ranges need to start on the same row?
 

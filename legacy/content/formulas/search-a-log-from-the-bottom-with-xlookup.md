@@ -1,7 +1,7 @@
 ---
 title: Get the newest price for a SKU from the log
 question: How do I look up the latest entry when a key appears more than once?
-summary: Search mode -1 walks the key column from the bottom, so a repeated SKU returns its newest price. The same formula with the default search mode returns an old price with no error.
+summary: Search mode -1 walks the key column from the bottom, so a repeated SKU returns its newest price. The same formula with the default search mode returns the oldest price instead.
 description: How XLOOKUP's search mode returns the newest row for a repeated key, why the default answers with an old price, and the errors.
 function: XLOOKUP
 family: lookup
@@ -39,7 +39,7 @@ Other routes reach the same number and each depends on something the sheet has t
 | A price for a neighbouring SKU | the match mode became approximate, so the nearest key was accepted | keep `0` in the fifth slot |
 | `#NAME?` | the install predates XLOOKUP | use `LOOKUP(2,1/(A2:A6=A7),B2:B6)`, which searches from the end on any version |
 
-The first two rows are the pair worth knowing by heart. One is silently stale and the other loudly missing, and both come from the same two ranges read in the wrong direction or at the wrong extent. When a log lookup disagrees with the last row you can see with your own eyes, count the ranges before you suspect the data.
+The first two rows are the pair worth knowing by heart. One returns an old price and the other returns an error, and both come from the same two ranges read in the wrong direction or at the wrong extent. When a log lookup disagrees with the last row you can see with your own eyes, count the ranges before you suspect the data.
 
 ## Practice
 

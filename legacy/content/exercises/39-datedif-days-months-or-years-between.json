@@ -212,19 +212,19 @@
   ],
   "docs": {
     "syntax": "=DATEDIF(start, end, \"unit\")",
-    "explain": "Subtracting one date from another answers in days and nothing else. DATEDIF takes a start date, an end date and a unit in quotes, and answers in whichever unit you name. Y, M and D give whole units; YM, MD and YD give what is left after the whole ones.\n\nAda started on 1 January 2022 and the review is 1 March 2024, so the Y answer is 2. A subtraction on that pair gives 790 and M gives 26, both correct answers to other questions. The second screen asks for Grace's complete months and expects 38.\n\nNothing in the call checks that the unit matches the question, so a wrong one returns a plausible number. Excel leaves DATEDIF out of its function list, so type the name in full. A start date after the end returns #NUM! instead of a negative count.",
+    "explain": "Subtracting one date from another answers in days and nothing else. DATEDIF takes a start date, an end date and a unit in quotes, and answers in whichever unit you name. Y, M and D give whole units; YM, MD and YD give what is left after the whole ones.\n\nAda started on 1 January 2022 and the review is 1 March 2024, so the Y answer is 2. A subtraction on that pair gives 790 and M gives 26, both correct answers to other questions. The second screen asks for Grace's complete months and expects 38.\n\nNothing in the call checks that the unit matches the question, so a wrong one returns the answer to a different question. Excel leaves DATEDIF out of its function list, so type the name in full. A start date after the end returns #NUM! instead of a negative count.",
     "errors": [
       {
         "code": "#NUM!",
-        "text": "The end date falls before the start date, so there is no positive interval for DATEDIF to report."
+        "text": "The end date falls before the start date, which leaves DATEDIF no positive interval to report."
       },
       {
         "code": "#NUM!",
-        "text": "The unit in quotes is not Y, M, D, YM, MD or YD, so there is no unit to count."
+        "text": "The unit in quotes is not Y, M, D, YM, MD or YD, which DATEDIF cannot count in."
       },
       {
         "code": "#VALUE!",
-        "text": "One of the dates is text that Excel cannot read as a date, so there is no serial to compare."
+        "text": "One of the dates is text that Excel cannot read as a date, so DATEDIF has no serial to compare."
       }
     ],
     "atWork": "A staff review sheet reporting complete years of service, without dividing a day count by 365.",
@@ -236,6 +236,6 @@
   "updated": "2026-10-31",
   "seo": {
     "title": "DATEDIF in Excel: days, months or years",
-    "description": "DATEDIF answers in the unit you name, leftovers included, so Y gives complete years and YM the months after them. A wrong unit returns a plausible number."
+    "description": "DATEDIF answers in the unit you name, leftovers included, so Y gives complete years and YM the months after them. A wrong unit answers another question."
   }
 }

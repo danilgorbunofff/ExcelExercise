@@ -218,6 +218,10 @@
     { "id": "stacked-hedge", "regex": "\\b(?:can|may|might|could) (?:often |potentially |sometimes )?(?:potentially|help to|help you to)\\b|\\bmay potentially\\b", "why": "two hedges in a row; commit to the claim or cut it" },
     { "id": "journey-words", "regex": "\\b(?:tapestry|embark(?:ing)? on|your (?:learning |excel )?journey|navigat(?:e|ing) the (?:complexit|nuance|landscape|world))", "why": "travel metaphors for a formula lesson; say what the reader will do" },
     { "id": "takeaway-label", "regex": "(?:^|\\n|[.!?]\\s+)(?:key takeaway|the takeaway|bottom line|pro tip|quick tip|remember)\\s*:", "why": "a labelled summary; say it in the sentence" },
-    { "id": "assistant-voice", "regex": "\\b(?:i hope this helps|feel free to|let me know if|as an ai|certainly!|great question)\\b", "why": "chatbot phrasing, not site copy" }
+    { "id": "assistant-voice", "regex": "\\b(?:i hope this helps|feel free to|let me know if|as an ai|certainly!|great question)\\b", "why": "chatbot phrasing, not site copy" },
+    { "id": "silent-failure", "regex": "\\b(?:with no error|without (?:an )?error|silently|quietly|nothing warns|no warning|without a warning|nothing on screen|nothing errors|nothing on the sheet (?:says|looks))\\b", "why": "a refrain: say what the cell shows (a 0, a short total, a neighbour's value) instead of that nothing warns you" },
+    { "id": "plausible-refrain", "regex": "\\b(?:plausible|believable|looks right|look right|looks real|real answer)\\b|confident-looking", "why": "name the wrong value instead of calling it plausible" },
+    { "id": "so-there-is-no", "regex": "\\bso there is no\\b", "why": "the stock error-case shape; state the cause and the cell in other words" },
+    { "id": "nothing-to-call", "regex": "\\b(?:nothing by that name|nothing to call|nothing to run|never heard of|name it does not know|does not guess)\\b", "why": "for a misspelt function say Excel returns #NAME?, not that it has nothing to call" }
   ]
 }

@@ -61,7 +61,7 @@
         "func-average": "Use AVERAGE. Adding the scores and dividing by five by hand works here and breaks the moment a student leaves.",
         "require-ref": "Point the formula at the score column instead of typing the number you worked out.",
         "value": "The answer is 88.5. Check that the range covers all five scores and nothing else.",
-        "error": "#DIV/0! means AVERAGE found no numbers at all: the range is pointing at blank cells or at the header word rather than at the five scores. Text is skipped silently, not averaged.",
+        "error": "#DIV/0! means AVERAGE found no numbers at all: the range is pointing at blank cells or at the header word rather than at the five scores. Text is skipped, not averaged.",
         "hardcoded": "The formula only works for these five scores, which means a number is typed in. Average the whole range, B2:B6, so a corrected score moves the class average."
       },
       "fixtures": {

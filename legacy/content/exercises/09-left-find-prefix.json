@@ -137,7 +137,7 @@
   ],
   "docs": {
     "syntax": "=LEFT(text, FIND(delimiter, text) - 1)",
-    "explain": "FIND reports where a character sits inside a string, and LEFT takes a given number of characters from the start. Joined, they cut a prefix of any length off a code. The reference in B2 is ORD-2024-0917, so FIND(\"-\",B2) returns 4, counting from one.\n\nThe dash is not part of the prefix, so the length is 4 minus 1. The formula =LEFT(B2,FIND(\"-\",B2)-1) returns ORD in B6, and the minus one is the only thing keeping the dash out. Type the position FIND gave you and the answer comes back as ORD-.\n\nLEFT(B2,3) gives the same answer on every row of this sheet, which is why it feels safe. It breaks the first time a code arrives with a four-letter prefix, and nothing warns you. FIND keeps the formula tied to the dash instead.",
+    "explain": "FIND reports where a character sits inside a string, and LEFT takes a given number of characters from the start. Joined, they cut a prefix of any length off a code. The reference in B2 is ORD-2024-0917, so FIND(\"-\",B2) returns 4, counting from one.\n\nThe dash is not part of the prefix, so the length is 4 minus 1. The formula =LEFT(B2,FIND(\"-\",B2)-1) returns ORD in B6, and the minus one is the only thing keeping the dash out. Type the position FIND gave you and the answer comes back as ORD-.\n\nLEFT(B2,3) gives the same answer on every row of this sheet, which is why it feels safe. It breaks the first time a code arrives with a four-letter prefix. FIND keeps the formula tied to the dash instead.",
     "errors": [
       {
         "code": "#VALUE!",

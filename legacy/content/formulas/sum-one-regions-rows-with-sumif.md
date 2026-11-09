@@ -15,11 +15,11 @@ updated: 2026-02-18
 
 `=SUMIF(A2:A6,"North",B2:B6)` reads as three separate jobs. `A2:A6` is where the condition is checked. `"North"` is the condition, quoted because it is text. `B2:B6` is what gets added when the condition holds.
 
-Leave the third argument out and nothing errors: `=SUMIF(A2:A6,"North")` adds the cells in the condition range, which are the words North, so the sum is 0. That silent zero is the most common SUMIF bug, and it is the reason the third argument is worth writing out every time even when it looks optional.
+Leave the third argument out and the formula still runs: `=SUMIF(A2:A6,"North")` adds the cells in the condition range, which are the words North, so the sum is 0. That silent zero is the most common SUMIF bug, and it is the reason the third argument is worth writing out every time even when it looks optional.
 
 ## Why it works
 
-- Two ranges, matched by position: row 2 of the condition range is tested, and a match adds row 2 of the sum range. Keep them the same shape. Excel does not complain when they differ, so `A2:A6` with `B2:B10` quietly reads `B2:B6`. SUMIFS returns `#VALUE!` instead.
+- Two ranges, matched by position: row 2 of the condition range is tested, and a match adds row 2 of the sum range. Keep them the same shape. Excel does not complain when they differ, so `A2:A6` with `B2:B10` reads `B2:B6`. SUMIFS returns `#VALUE!` instead.
 - The condition is a value, not a formula, and it can be a comparison or a pattern: `">=200"`, `"<>North"`, `"N*"`. Comparison operators live inside the quotes, which surprises people who write `>="200"`.
 - Matching ignores case. `"north"` finds North, so a region column with mixed capitalisation still totals correctly, but two spellings of one region cannot be counted separately by SUMIF alone.
 - The answer follows the condition only if the condition points at a cell. Typed into the formula it becomes a hardcoded report; written as `A7` it becomes a summary you can drag down a list of regions.
@@ -37,7 +37,7 @@ The same shape works for the other aggregate questions: `COUNTIF` counts the mat
 | A total that is short by one row | one range stops a row before the other | count the rows of each range; they must match |
 | A total that never changes | the condition was typed into the formula instead of pointed at | reference the cell that holds the region name |
 
-The first row is the one that costs trust: a zero looks like a real answer, so the report gets published. If a SUMIF returns 0, look at the third argument before you look at the data. A missing sum range produces exactly the same screen as a region with no sales.
+The first row is the one that costs trust: the cell shows 0, and a 0 gets published. If a SUMIF returns 0, look at the third argument before you look at the data. A missing sum range produces exactly the same screen as a region with no sales.
 
 ## Practice
 

@@ -66,7 +66,7 @@
   --r-1: 4px;
   --r-2: 8px;
   --r-3: 12px;
-  --shadow-1: 0 1px 2px #21201c0f, 0 1px 3px -1px #21201c14;
+  --shadow-1: 0 1px 2px #21201c14, 0 4px 10px -4px #21201c1f;
   --dur-1: 120ms;
   --dur-2: 180ms;
   /* The loading pulse. Long enough to read as work in progress rather than a flicker, which is why it

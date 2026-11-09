@@ -16,6 +16,7 @@ import {
   checkText,
   countSyllables,
   findBanned,
+  findPatterns,
   findTypography,
   lessonFields,
   lintCopy,
@@ -426,7 +427,11 @@ describe("the prose inside a project", () => {
   it("reports nothing on the four projects the track ships", () => {
     const report = lintCopy(CONTENT);
     assert.equal(report.stats.projects, 4, "the gate did not load the project track");
-    const fromProjects = report.findings.filter((finding) => finding.where.startsWith("content/projects/"));
+    // `ai-pattern` findings are prompts to read a sentence again, reported by `npm run content:copy`; they are
+    // not defects, so they do not make a shipped project "unclean".
+    const fromProjects = report.findings.filter(
+      (finding) => finding.where.startsWith("content/projects/") && finding.rule !== "ai-pattern",
+    );
     assert.deepEqual(fromProjects.map((finding) => `${finding.where}: ${finding.message}`), []);
   });
 
@@ -435,6 +440,54 @@ describe("the prose inside a project", () => {
       const shipped = JSON.parse(readFileSync(join(CONTENT, "projects", file), "utf8"));
       const paragraphs = splitParagraphs(shipped.docs.explain).length;
       assert.ok(paragraphs >= 2, `${file} explains in ${paragraphs} paragraph`);
+    }
+  });
+});
+
+describe("the structural patterns", () => {
+  const fires = (text) => findPatterns(text, rules).map((hit) => hit.id);
+
+  it("flags the shapes a generator reaches for", () => {
+    assert.ok(fires("VLOOKUP isn't just a lookup, it is a way to join two sheets.").includes("antithesis-just"));
+    assert.ok(fires("It's not about the formula, it's about the habit.").includes("antithesis-not-about"));
+    assert.ok(fires("Here's the catch. The range moves when you copy it.").includes("reveal-frame"));
+    assert.ok(fires("Ever wondered why a total comes out wrong?").includes("reader-hook"));
+    assert.ok(fires("This is where XLOOKUP comes in.").includes("comes-in"));
+    assert.ok(fires("Absolute references play a crucial role in copied formulas.").includes("abstract-role"));
+    assert.ok(fires("Pro tip: press F4 to lock the reference.").includes("takeaway-label"));
+    assert.ok(fires("I hope this helps.").includes("assistant-voice"));
+  });
+
+  it("stays quiet on sentences a person writes about a spreadsheet", () => {
+    for (const text of [
+      "Ana's score is exactly 70, so the formula puts Pass in C2.",
+      "The point here is what a wildcard does inside the first argument.",
+      "Type =SUM(B2:B4) in B5 and press Enter.",
+      "Copying the formula down moves B2 to B3, which is why the total drifts.",
+      "The result is 44.8, not 45, because the cell is not rounded.",
+    ]) {
+      assert.deepEqual(fires(text), [], text);
+    }
+  });
+
+  it("only warns, because a pattern is a reason to look and not a verdict", () => {
+    const { findings } = checkText("It's not about the formula, it's about the habit.", {
+      field: "docs.explain",
+      where: "fixture",
+      prose: true,
+      rules,
+    });
+    const hit = findings.find((finding) => finding.rule === "ai-pattern");
+    assert.equal(hit?.severity, "warn");
+  });
+
+  it("gives every pattern an id, a compilable regex and a reason", () => {
+    const ids = new Set();
+    for (const entry of rules.patterns) {
+      assert.ok(entry.id && entry.why, JSON.stringify(entry));
+      assert.ok(!ids.has(entry.id), `duplicate ${entry.id}`);
+      ids.add(entry.id);
+      assert.doesNotThrow(() => new RegExp(entry.regex, "gi"), entry.id);
     }
   });
 });

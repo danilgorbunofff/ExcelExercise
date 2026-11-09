@@ -155,6 +155,22 @@ export function findTypography(text) {
  * allowed to be dense. A Markdown page's paragraphs are named after the heading above them, not
  * `explain`, so the flag is what puts them under the same ceiling a lesson's explanation sits under.
  */
+/**
+ * Structural tells: shapes a phrase list cannot hold ("not just X, it is Y", "Here's the catch"). They are
+ * regular expressions in `copy-rules.json`, matched against the lower-cased text, and they only ever warn:
+ * a pattern is a reason to look at a sentence, not proof anyone did not write it.
+ */
+export function findPatterns(text, rules) {
+  const hits = [];
+  for (const entry of rules.patterns ?? []) {
+    const re = new RegExp(entry.regex, "gi");
+    for (const found of String(text).matchAll(re)) {
+      hits.push({ ...entry, at: found.index, match: found[0].trim() });
+    }
+  }
+  return hits.sort((a, b) => a.at - b.at);
+}
+
 export function checkText(text, { field, where, prose, rules }) {
   if (typeof text !== "string" || text.trim() === "") return { findings: [], stats: null };
   const findings = [];
@@ -166,6 +182,17 @@ export function checkText(text, { field, where, prose, rules }) {
       field,
       where,
       message: `"${hit.match}" — ${hit.why}`,
+      excerpt: excerpt(text, hit.at, hit.match.length),
+    });
+  }
+
+  for (const hit of findPatterns(text, rules)) {
+    findings.push({
+      rule: "ai-pattern",
+      severity: "warn",
+      field,
+      where,
+      message: `[${hit.id}] "${hit.match}": ${hit.why}`,
       excerpt: excerpt(text, hit.at, hit.match.length),
     });
   }

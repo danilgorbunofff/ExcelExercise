@@ -205,5 +205,19 @@
     "size": 5,
     "maxOverlap": 0.3,
     "why": "two lessons that share a third of their five-word runs read as one page duplicated, and Google treats them that way"
-  }
+  },
+  "patterns": [
+    { "id": "antithesis-just", "regex": "\\b(?:is|are|was|were|isn't|aren't|it's|that's)\\s+(?:not\\s+)?(?:just|only|merely|simply)\\s+(?:a|an|the)\\b[^.]{0,60}[,;]\\s*(?:it|they|this|that)\\b", "why": "the 'not just X, it is Y' turn is the commonest generated flourish; state Y and drop the straw X" },
+    { "id": "antithesis-not-about", "regex": "\\b(?:it|this|that)(?:'s| is) not about\\b", "why": "'it is not about X, it is about Y' says the point twice; say Y" },
+    { "id": "antithesis-not-but", "regex": "\\bnot (?:just |only |merely )?[a-z][^,.;:]{2,40}, but (?:also )?[a-z]", "why": "a 'not X, but Y' pair; if X is a real mistake name it, otherwise say Y" },
+    { "id": "reveal-frame", "regex": "(?:^|[.!?]\\s+)(?:here's|here is) (?:the (?:thing|catch|kicker|secret|truth|deal)|why|what)\\b|\\bthe (?:best|good|bad|catch|result|answer)\\?\\s", "why": "a drum-roll before the point; give the point" },
+    { "id": "reader-hook", "regex": "(?:^|[.!?]\\s+)(?:ever (?:wonder|wondered|struggled|stared|felt)|have you ever|imagine (?:this|that|you)|picture this|what if i told you)\\b", "why": "a hook aimed at the reader instead of a statement about the spreadsheet" },
+    { "id": "comes-in", "regex": "\\b(?:this|that)(?:'s| is) where\\b[^.]{0,50}\\b(?:comes? in|shines?|steps? in)\\b", "why": "announcing an entrance; just use the function" },
+    { "id": "abstract-role", "regex": "\\b(?:plays?|played) an? (?:crucial|vital|key|pivotal|important|significant) role\\b|\\b(?:serves?|stands?) as an? (?:testament|reminder|foundation|cornerstone)\\b", "why": "abstract praise; say what the thing does" },
+    { "id": "inflated-adjective", "regex": "\\b(?:crucial|pivotal|vital|indispensable|game-?changing|transformative|invaluable)\\b", "why": "inflated emphasis; if it matters, show what breaks without it" },
+    { "id": "stacked-hedge", "regex": "\\b(?:can|may|might|could) (?:often |potentially |sometimes )?(?:potentially|help to|help you to)\\b|\\bmay potentially\\b", "why": "two hedges in a row; commit to the claim or cut it" },
+    { "id": "journey-words", "regex": "\\b(?:tapestry|embark(?:ing)? on|your (?:learning |excel )?journey|navigat(?:e|ing) the (?:complexit|nuance|landscape|world))", "why": "travel metaphors for a formula lesson; say what the reader will do" },
+    { "id": "takeaway-label", "regex": "(?:^|\\n|[.!?]\\s+)(?:key takeaway|the takeaway|bottom line|pro tip|quick tip|remember)\\s*:", "why": "a labelled summary; say it in the sentence" },
+    { "id": "assistant-voice", "regex": "\\b(?:i hope this helps|feel free to|let me know if|as an ai|certainly!|great question)\\b", "why": "chatbot phrasing, not site copy" }
+  ]
 }

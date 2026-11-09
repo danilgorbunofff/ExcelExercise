@@ -21,6 +21,9 @@ Next is held at 16.4.3 (16.4.5 drops `content-length` on `/datasets/*`; see `e2e
   `npm run typecheck:all` shows the existing JSDoc error baseline (~160, not enforced)
 - `npm run test:e2e` Playwright against a built app (`npm run next:build` first, or use `npm run e2e`);
   `--project=chromium` for a fast run
+- `npm run content:copy` copy gate (banned phrases, structural AI-tell patterns, readability); rules in
+  `packages/content-lint/data/copy-rules.json`. `npm run vale` runs Vale (`brew install vale`) on a generated
+  copy of the same rules; after editing the rules run `npm run vale:sync`. Findings are warnings, never verdicts
 - `npm run check` the full gate: tests, content gates, next build, budget, origin, secret scan, crawl
 - `npm run db:start` / `db:check` local Supabase (needs Docker) and the `tests/db` suites
 

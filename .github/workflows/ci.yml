@@ -52,6 +52,19 @@ jobs:
       - name: typecheck
         run: npm run typecheck
 
+      # Prose checks. The Vale style is generated from the copy gate's rules, so the committed files have
+      # to match them (blocking). The Vale run itself only advises: a flagged sentence is a reason to
+      # reread it, not a failed build.
+      - name: vale style matches the copy rules
+        run: npm run vale:check
+
+      - name: prose lint (advisory)
+        continue-on-error: true
+        run: |
+          curl -sSL https://github.com/vale-cli/vale/releases/download/v3.26.0/vale_3.26.0_Linux_64-bit.tar.gz | tar -xz -C "$RUNNER_TEMP" vale
+          npm run vale:sync
+          "$RUNNER_TEMP/vale" .vale/export
+
       # Fixtures are replayed through the real grader here, not just shape-checked: a lesson whose
       # declared rejects are actually accepted is a broken drill that only this step catches.
       - name: content factory gate

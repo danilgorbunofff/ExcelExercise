@@ -491,3 +491,11 @@ describe("the structural patterns", () => {
     }
   });
 });
+
+describe("the Vale style", () => {
+  it("is generated from the copy rules, so the two engines cannot disagree", () => {
+    // `--check` exits non-zero, and execFileSync throws, when a rule file is stale or orphaned.
+    const out = execFileSync("node", [join(ROOT, "scripts", "vale-sync.mjs"), "--check"], { cwd: ROOT, encoding: "utf8" });
+    assert.match(out, /rule files match/);
+  });
+});

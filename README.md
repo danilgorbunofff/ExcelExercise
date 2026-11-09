@@ -27,7 +27,7 @@ Until the port lands, `npm test`, `npm run build` and `npm run check` all still 
 ```bash
 node --version          # 22 or newer — `node --test` expands the test globs; built on v25.9.0
 npm install             # Next.js and React, for the new app shell only
-npm test                # 794 tests, no build step
+npm test                # ~2,100 tests, no build step
 npm run content:check   # every fixture replayed through the grader, plus prompt and link checks
 npm run build           # writes legacy/dist — 30 pages, one stylesheet, the assets
 npm run verify          # build, then assert the emitted HTML is really complete
@@ -35,6 +35,9 @@ npm run check           # all of it, including the Next.js build
 npm run dev             # build, then serve legacy/dist at http://localhost:4173
 npm run next:dev        # the Next.js shell on http://localhost:3000
 npm run next:hot        # the same, without the production build — use this while editing
+npm run lint            # ESLint over app/, lib/, proxy.js
+npm run typecheck       # tsc; checks files that opt in with // @ts-check
+npm run test:e2e        # Playwright against an existing build (npm run e2e builds first)
 npm run e2e             # build, then drive the shell in a real browser (Playwright)
 ```
 
@@ -44,7 +47,7 @@ while the port is in progress.
 
 | Command | What it does | Pass condition |
 |---|---|---|
-| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules, the paywall, the legal pages | 2,079 pass, 0 fail |
+| `npm test` | Grader fixtures, golden verdicts, content validation, build, server, client, progress, styles, vendor pins, template fragments, build verification, auth rules, the paywall, the legal pages | all pass, 0 fail (2,099 at last count) |
 | `npm run golden:update` | Rewrites `tests/golden/snapshot.json` — only when a grader change is intended — and prints which verdicts moved | diff reviewed like code |
 | `npm run build` | Renders `legacy/dist/` from `legacy/content/` and `legacy/src/` | 141 pages, exit 0 |
 | `npm run content:check` | Loads `legacy/content/`, replays every fixture through the real grader, checks prompts and internal links | every fixture agrees, 0 errors |

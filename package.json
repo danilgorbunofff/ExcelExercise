@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Excel Supreme \u2014 zero-signup, in-browser Excel practice drills with deterministic grading",
+  "description": "Excel Supreme — zero-signup, in-browser Excel practice drills with deterministic grading",
   "scripts": {
     "test": "node --test \"tests/**/*.test.js\"",
     "golden:update": "node tests/golden/update.mjs",
@@ -35,6 +35,9 @@
     "next:assets": "node scripts/next-assets.mjs",
     "next:check": "node scripts/check-next-pages.mjs",
     "e2e": "npm run next:build && playwright test",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc -p .",
+    "typecheck:all": "tsc -p . --checkJs",
     "e2e:accounts": "PW_ACCOUNTS=1 playwright test --project=accounts",
     "smoke": "node scripts/smoke.mjs",
     "content:legal": "node packages/content-lint/cli.js legal",
@@ -59,6 +62,10 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
     "@lhci/cli": "0.15.1",
-    "@playwright/test": "1.64.1"
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2"
   }
 }

@@ -269,16 +269,27 @@ single 1px line between neighbours.
 
 ## 8. Motion
 
+Motion tells the reader that something opened, closed or changed. It is short, small and always optional.
+
 | Moment | Animation | Duration |
 |---|---|---|
 | Feedback appears | opacity 0→1, translateY 2px→0 | 120ms `--ease` |
 | Hint expands | height auto via grid-template-rows 0fr→1fr | 180ms |
 | Solution panel | opacity + 2px translate | 180ms |
 | Cell accepts answer | background colour only | 120ms |
+| Menu drawer | slides in from the left, scrim fades; reverses on close | 180ms |
+| Feedback dialog | fades and rises 8px; reverses on close | 180ms |
+| Menu button | three bars become a cross while the drawer is open | 180ms |
+| `<details>` folds (questions, lesson groups, dashboard groups, previews) | height, plus the chevron turning | 180ms |
+| Pricing term switch | the raised segment slides to the chosen term; its panel rises in | 180ms |
+| Moving between exercise screens | the new screen rises in (not on page load) | 180ms |
+| Progress bar | width grows | 180ms |
+| Page to page | crossfade; the header keeps its place (`view-transition-name`) | 180ms |
 
-Nothing else moves. No scroll-triggered reveals, no hover lifts, no parallax, no springs. Under
-`prefers-reduced-motion: reduce`, all durations become 0ms and transforms are removed — the state
-change still happens.
+Still not allowed: scroll-triggered reveals, hover lifts, parallax, springs, looping effects. Every rule
+sits inside `prefers-reduced-motion: no-preference`, so under `reduce` nothing moves and the state change
+still happens. A browser without a feature (`::details-content`, `@starting-style`, cross-document view
+transitions) ignores that rule and changes instantly.
 
 ## 9. Copy voice
 

@@ -3393,6 +3393,172 @@ html:has(.menu[open]) {
   }
 }
 
+/* ── Motion, part two: things that open, close and change ──────────────────
+   Overlays, folds, the pricing switch, exercise screens and page changes. Same rules as above: only
+   inside `no-preference`, 180ms at most, the shared easing, no layout shift. A browser that lacks a
+   feature below ignores that rule and the element changes instantly, as it did before. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The drawer and the feedback note leave as they arrive. `display` and `overlay` are discrete, so the
+     dialog stays painted until the exit finishes. */
+  .menu {
+    translate: -100% 0;
+    transition: translate var(--dur-2) var(--ease), overlay var(--dur-2) allow-discrete,
+      display var(--dur-2) allow-discrete;
+  }
+
+  .menu[open] {
+    translate: 0 0;
+  }
+
+  .feedback-dialog {
+    opacity: 0;
+    translate: 0 8px;
+    transition: opacity var(--dur-2) var(--ease), translate var(--dur-2) var(--ease),
+      overlay var(--dur-2) allow-discrete, display var(--dur-2) allow-discrete;
+  }
+
+  .feedback-dialog[open] {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .menu::backdrop,
+  .feedback-dialog::backdrop {
+    opacity: 0;
+    transition: opacity var(--dur-2) var(--ease), overlay var(--dur-2) allow-discrete,
+      display var(--dur-2) allow-discrete;
+  }
+
+  .menu[open]::backdrop,
+  .feedback-dialog[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .menu[open] {
+      translate: -100% 0;
+    }
+
+    .feedback-dialog[open] {
+      opacity: 0;
+      translate: 0 8px;
+    }
+
+    .menu[open]::backdrop,
+    .feedback-dialog[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* The three bars become a cross while the drawer is open. */
+  .menu-bars,
+  .menu-bars::before,
+  .menu-bars::after {
+    transition: top var(--dur-2) var(--ease), rotate var(--dur-2) var(--ease),
+      background-color var(--dur-2) var(--ease);
+  }
+
+  .menu-toggle[aria-expanded="true"] .menu-bars {
+    background: transparent;
+  }
+
+  .menu-toggle[aria-expanded="true"] .menu-bars::before {
+    top: 0;
+    rotate: 45deg;
+  }
+
+  .menu-toggle[aria-expanded="true"] .menu-bars::after {
+    top: 0;
+    rotate: -45deg;
+  }
+
+  /* Folds: every <details> opens and closes by height. */
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  details::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition: block-size var(--dur-2) var(--ease), content-visibility var(--dur-2) var(--ease) allow-discrete;
+  }
+
+  details[open]::details-content {
+    block-size: auto;
+  }
+
+  .level-sum .level-chevron {
+    transition: transform var(--dur-2) var(--ease);
+  }
+
+  /* The pricing switch: the raised segment slides to the chosen term instead of jumping, and the panel
+     it reveals arrives with the same short rise as feedback. */
+  .term-track {
+    position: relative;
+  }
+
+  .term-track::before {
+    content: "";
+    position: absolute;
+    inset-block: var(--s-1);
+    inset-inline-start: var(--s-1);
+    width: calc((100% - 4 * var(--s-1)) / 3);
+    border-radius: var(--r-1);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+    transition: translate var(--dur-2) var(--ease);
+  }
+
+  #term-semiannual:checked ~ .term-track::before {
+    translate: calc(100% + var(--s-1)) 0;
+  }
+
+  #term-annual:checked ~ .term-track::before {
+    translate: calc(200% + 2 * var(--s-1)) 0;
+  }
+
+  .term-track label {
+    position: relative;
+  }
+
+  #term-monthly:checked ~ .term-track label[for="term-monthly"],
+  #term-semiannual:checked ~ .term-track label[for="term-semiannual"],
+  #term-annual:checked ~ .term-track label[for="term-annual"] {
+    background: none;
+    box-shadow: none;
+  }
+
+  #term-monthly:checked ~ .term-body [data-plan="monthly"],
+  #term-semiannual:checked ~ .term-body [data-plan="semiannual"],
+  #term-annual:checked ~ .term-body [data-plan="annual"] {
+    animation: rise var(--dur-2) var(--ease) both;
+  }
+
+  /* A screen the reader moves to arrives with the same rise. `drill.js` adds the class only when the
+     reader changes screen, so nothing animates on page load. */
+  .is-entering {
+    animation: rise var(--dur-2) var(--ease) both;
+  }
+
+  .rail-fill {
+    transition: width var(--dur-2) var(--ease);
+  }
+
+  /* A move between two pages of this site crossfades, and the header stays where it is. */
+  @view-transition {
+    navigation: auto;
+  }
+
+  header.site {
+    view-transition-name: site-header;
+  }
+
+  ::view-transition-group(root) {
+    animation-duration: var(--dur-2);
+  }
+}
+
 /* ── Function notes ───────────────────────────────────────────────────── */
 
 /* A note is read, not operated, so it gets the measure and nothing else: no card, no shadow, no

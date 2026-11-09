@@ -236,6 +236,17 @@ describe("visual constraints", () => {
     assert.equal(/^\s*(animation|transition):/m.test(optIn(components)), false);
   });
 
+  it("keeps the opening, closing and page-change motion inside the opt-in block", () => {
+    const optIn = (text) => text.replace(/@media \(prefers-reduced-motion: no-preference\)[\s\S]*?\n\}/g, "");
+    const outside = optIn(components);
+    for (const feature of ["::details-content", "@starting-style", "@view-transition", "translate: -100% 0", ".is-entering"]) {
+      assert.ok(components.includes(feature), `${feature} is missing from the motion rules`);
+      assert.equal(outside.includes(feature), false, `${feature} applies to readers who asked for less motion`);
+    }
+    // Nothing in the motion rules runs longer than the 180ms token.
+    assert.equal(/--dur-[3-9]/.test(components.slice(components.indexOf("Motion, part two"))), false);
+  });
+
   it("has one focus treatment, applied through :focus-visible", () => {
     const outlines = authored.flatMap((text) => declarations(text, "outline"));
     assert.ok(outlines.length >= 1);

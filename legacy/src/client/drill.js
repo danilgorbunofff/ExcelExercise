@@ -372,6 +372,8 @@ function mountDrill(payloadNode) {
   let screenStartedMs = clock.elapsedMs();
 
   let active = 0;
+  // Becomes true after the first screen is on the page, so only a move between screens animates.
+  let screensShown = false;
   let cells = [];
   let byKey = new Map();
   let targetCell = null;
@@ -600,9 +602,17 @@ function mountDrill(payloadNode) {
 
   /** Put one screen on the page and point the bar, the docs and the hint at it. */
   function enterScreen(position, { focus = false } = {}) {
+    const moved = screensShown && position !== active;
     active = position;
+    screensShown = true;
     activePanels().forEach((panel, index) => {
       panel.hidden = index !== position;
+      if (moved && index === position) {
+        // Restart the CSS rise: remove, force a reflow, add. The class does nothing under reduced motion.
+        panel.classList.remove("is-entering");
+        void panel.offsetWidth;
+        panel.classList.add("is-entering");
+      }
     });
     const screen = activeScreen();
     cells = [...(activeGrid()?.querySelectorAll("[role=gridcell]") ?? [])];

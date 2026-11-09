@@ -350,20 +350,22 @@ export function verify({ root = ROOT, dist, env = process.env } = {}) {
     // First paint has to fit in a second on a throttled connection, and nothing stands between the HTML
     // and the page: the counts are filled in after it renders, so the only thing that can grow the wait
     // is the bytes themselves. Slow 3G is about 50 kB/s, so the page plus the one stylesheet it loads
-    // get half of that second — 25 kB gzipped — and the budget is 45 kB, enough slack for round trips
+    // get half of that second — 25 kB gzipped — and the budget is 46 kB, enough slack for round trips
     // without letting a regression hide behind it. It was 40 kB until the navigation drawer, then 42 kB,
     // and the header and drawer glyphs — fifteen 16px icons, each drawn once per page, so no sprite is
     // cheaper than inline — cost about 2 kB gzipped and have to be paid for somewhere. 44 kB is 0.88 s
     // at 50 kB/s. The lesson-page polish (free marks in the rail, the download strip, the phone rail order)
     // cost about 0.2 kB of stylesheet and the 40 B of headroom was gone, so the budget is 45 kB: 0.90 s.
+    // The second motion block (overlays, folds, the pricing switch, page changes) cost about 1 kB gzipped, so the
+    // budget is 46 kB: 0.92 s.
     // A missing stylesheet is priced as zero here and reported where it belongs, further down.
     const firstPaint = ["learn/index.html", "assets/styles.css"]
       .filter((file) => existsSync(join(distDir, file)))
       .reduce((total, file) => total + gzipSync(readFileSync(join(distDir, file))).length, 0);
     ok(
-      firstPaint < 45_000,
+      firstPaint < 46_000,
       "learn/index.html first paint",
-      `costs ${firstPaint} B gzipped, over the 45 kB a throttled second affords`,
+      `costs ${firstPaint} B gzipped, over the 46 kB a throttled second affords`,
     );
   }
 

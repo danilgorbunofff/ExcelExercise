@@ -50,7 +50,10 @@
     "lighthouse": "lhci autorun",
     "review": "node scripts/review.mjs",
     "content:shortcuts": "node packages/content-lint/cli.js shortcuts",
-    "content:report": "node scripts/content-report.mjs"
+    "content:report": "node scripts/content-report.mjs",
+    "vale:sync": "node scripts/vale-sync.mjs",
+    "vale:check": "node scripts/vale-sync.mjs --check",
+    "vale": "npm run vale:sync && vale .vale/export"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

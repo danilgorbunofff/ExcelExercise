@@ -35,6 +35,8 @@ npm run check           # all of it, including the Next.js build
 npm run dev             # build, then serve legacy/dist at http://localhost:4173
 npm run next:dev        # the Next.js shell on http://localhost:3000
 npm run next:hot        # the same, without the production build — use this while editing
+npm run content:copy    # the copy gate: banned phrases, structural AI-tell patterns, readability (warnings)
+npm run vale            # the same rules through Vale, on the lessons and pages (brew install vale)
 npm run lint            # ESLint over app/, lib/, proxy.js
 npm run typecheck       # tsc; checks files that opt in with // @ts-check
 npm run test:e2e        # Playwright against an existing build (npm run e2e builds first)

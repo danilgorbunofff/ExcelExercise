@@ -218,7 +218,7 @@
       },
       {
         "code": "Wrong month",
-        "text": "A month built as B2+2 rolls into the following month without an error, so 1 May appears where 1 April was asked for."
+        "text": "A month built as B2+2 rolls into the following month, so 1 May appears where 1 April was asked for."
       }
     ],
     "atWork": "A finance export with the year, month and day in three columns, turned into one date column the ledger can sort and age.",

@@ -37,7 +37,7 @@ The same shape works with two MATCH functions for a grid. One MATCH finds the ro
 | The answer never moves | the lookup value was typed into the formula instead of pointed at | reference the cell that holds the value you are asking about |
 | `#VALUE!` | `A2:B5` was passed to INDEX, so INDEX was asked for one cell but given a block | give INDEX the single column to read: `A2:A5` |
 
-The first two are loud. The third is the one that costs money, because a plausible part name next to a plausible price looks right by eye. When a lookup result looks wrong and no error appears, check the third argument before you suspect the data.
+The first two are loud. The third is the one that costs money, because a real part name next to a real price passes a glance. When a lookup result looks wrong and no error appears, check the third argument before you suspect the data.
 
 ## Practice
 

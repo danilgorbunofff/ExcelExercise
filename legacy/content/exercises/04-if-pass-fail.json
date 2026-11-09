@@ -106,7 +106,7 @@
   ],
   "docs": {
     "syntax": "=IF(logical_test, value_if_true, value_if_false)",
-    "explain": "IF takes a test and returns one of two values. The test comes first, the value for a true result second, and the value for a false one third. Either value can be a number, text or another formula. Text needs quote marks, or Excel reads Pass as a name and returns #NAME?.\n\nAna's score is exactly 70, so =IF(B2>=70,\"Pass\",\"Fail\") puts Pass in C2. Narrow the comparison to > and the same student fails, because 70 is not greater than 70. The two values are just as easy to reverse, and a reversed pair still fills the column with confident-looking answers.\n\nLeave the third argument out and a false test returns FALSE, so the cell shows a logical value where a label was expected. Type Pass without quotes and the formula stops with #NAME?.",
+    "explain": "IF takes a test and returns one of two values. The test comes first, the value for a true result second, and the value for a false one third. Either value can be a number, text or another formula. Text needs quote marks, or Excel reads Pass as a name and returns #NAME?.\n\nAna's score is exactly 70, so =IF(B2>=70,\"Pass\",\"Fail\") puts Pass in C2. Narrow the comparison to > and the same student fails, because 70 is not greater than 70. The two values are just as easy to reverse, and a reversed pair still fills the column with words, all of them wrong.\n\nLeave the third argument out and a false test returns FALSE, so the cell shows a logical value where a label was expected. Type Pass without quotes and the formula stops with #NAME?.",
     "errors": [
       {
         "code": "FALSE",
@@ -118,7 +118,7 @@
       },
       {
         "code": "Swapped branches",
-        "text": "With the labels the other way round, every passing student is marked Fail and nothing on the sheet looks wrong."
+        "text": "With the labels the other way round, every passing student is marked Fail."
       }
     ],
     "atWork": "A stock flag or a budget status is an IF underneath, and so is every pass or fail mark on a report.",

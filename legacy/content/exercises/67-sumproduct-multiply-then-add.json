@@ -17,7 +17,7 @@
       },
       {
         "code": "Wrong total",
-        "text": "A range that starts one row below the other pairs each price with the next quantity, and the total comes back as a number with no warning."
+        "text": "A range that starts one row below the other pairs each price with the next quantity, and the total comes back as a number."
       }
     ],
     "atWork": "Valuing a stock list in one cell, and averaging a price per unit sold rather than per row.",

@@ -113,7 +113,7 @@
       },
       {
         "code": "#VALUE!",
-        "text": "The search column and the return column are different sizes, so there is no row to pair with."
+        "text": "The search column and the return column are different sizes, and some rows have no partner."
       }
     ],
     "atWork": "A stock sheet where a discontinued SKU has to read as out of stock in an email, rather than #N/A.",

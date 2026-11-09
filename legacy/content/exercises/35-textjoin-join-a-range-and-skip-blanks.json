@@ -122,7 +122,7 @@
       },
       {
         "code": "#NAME?",
-        "text": "TEXTJOIN is typed without its last letter, so the sheet reads a name it does not know."
+        "text": "TEXTJOIN is typed without its last letter, and Excel returns #NAME?."
       },
       {
         "code": "Blanks kept",

@@ -157,7 +157,7 @@
   ],
   "docs": {
     "syntax": "=COUNTIF(range, criteria)",
-    "explain": "COUNTIF reads a range and counts the cells that meet one condition. Text criteria go in quotes, so =COUNTIF(B2:B9,\"Open\") returns 4: four of the eight statuses read Open. A number needs no quotes, while \">=5\" and \"<>Closed\" keep theirs because a comparison is still text.\n\nThis sheet holds eight tickets with four different statuses, and the answer sits under the last of them. The range has to reach B9. Stop at B8 and the count comes back as 3, one short, with no error to mark the ticket you missed.\n\nCase does not matter, so \"open\" and \"Open\" land in the same count. Wildcards work inside the criteria as well: \"O*\" also returns 4 here, and \"T-10*\" tested against column A would count all eight tickets.",
+    "explain": "COUNTIF reads a range and counts the cells that meet one condition. Text criteria go in quotes, so =COUNTIF(B2:B9,\"Open\") returns 4: four of the eight statuses read Open. A number needs no quotes, while \">=5\" and \"<>Closed\" keep theirs because a comparison is still text.\n\nThis sheet holds eight tickets with four different statuses, and the answer sits under the last of them. The range has to reach B9. Stop at B8 and the count comes back as 3, one short, and the ticket you missed is not marked.\n\nCase does not matter, so \"open\" and \"Open\" land in the same count. Wildcards work inside the criteria as well: \"O*\" also returns 4 here, and \"T-10*\" tested against column A would count all eight tickets.",
     "errors": [
       {
         "code": "#NAME?",

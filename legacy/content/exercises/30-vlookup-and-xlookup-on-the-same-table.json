@@ -256,7 +256,7 @@
       },
       {
         "code": "#REF!",
-        "text": "VLOOKUP's column number is wider than the table, so there is no column to return from."
+        "text": "VLOOKUP's column number is wider than the table, which asks for a column the table does not have."
       }
     ],
     "atWork": "A supplier price list pasted into a sheet, where the SKU column is the only reliable key.",

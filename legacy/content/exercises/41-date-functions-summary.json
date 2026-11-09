@@ -197,7 +197,7 @@
     "errors": [
       {
         "code": "#NUM!",
-        "text": "DATEDIF was given an end date before its start date, so there is no positive interval to count."
+        "text": "DATEDIF was given an end date before its start date, which leaves no positive interval to count."
       },
       {
         "code": "#NUM!",
@@ -205,7 +205,7 @@
       },
       {
         "code": "#VALUE!",
-        "text": "A date argument arrived as text that cannot be read as a date, so there is no serial underneath it."
+        "text": "A date argument arrived as text that cannot be read as a date, which leaves no serial underneath it."
       }
     ],
     "atWork": "A policy register aged against today, and an invoice log that pays on the last day of the following month.",

@@ -5,7 +5,7 @@
   "title": "AGGREGATE: a total that says what to ignore",
   "docs": {
     "syntax": "=AGGREGATE(function-number, options, range) with 9 for SUM, 1 for AVERAGE and 6 to skip error values",
-    "explain": "AGGREGATE takes three arguments: a function number, an options number, then the range. The function number works as it does in SUBTOTAL, so 9 adds and 1 averages. The formula =AGGREGATE(9,6,B2:B4) adds the three prices to 35.\n\nThe options number decides what the calculation walks past. Six ignores error values, and seven ignores hidden rows as well. A plain SUM answers a broken reference with that same error across the whole column, while AGGREGATE keeps adding the cells that still hold numbers.\n\nThe cost of option six is that a failed row disappears from the total, and nothing on screen says so. Here B2:B4 is intact, so 35 is the plain sum as well. The second screen changes only the function number, to 1, and rounds 35 over 3 to 11.7.",
+    "explain": "AGGREGATE takes three arguments: a function number, an options number, then the range. The function number works as it does in SUBTOTAL, so 9 adds and 1 averages. The formula =AGGREGATE(9,6,B2:B4) adds the three prices to 35.\n\nThe options number decides what the calculation walks past. Six ignores error values, and seven ignores hidden rows as well. A plain SUM answers a broken reference with that same error across the whole column, while AGGREGATE keeps adding the cells that still hold numbers.\n\nThe cost of option six is that a failed row disappears from the total. Here B2:B4 is intact, so 35 is the plain sum as well. The second screen changes only the function number, to 1, and rounds 35 over 3 to 11.7.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -17,7 +17,7 @@
       },
       {
         "code": "Wrong total",
-        "text": "Option six has left a failed row out of the total, and nothing on screen says a row is missing."
+        "text": "Option six has left a failed row out of the total, so the sum is one row short."
       }
     ],
     "atWork": "A total that keeps working when one row of the source data has broken.",

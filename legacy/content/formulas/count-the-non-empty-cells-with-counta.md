@@ -22,7 +22,7 @@ The counterpart question is why `COUNT` disagrees. COUNT counts numbers only, an
 - Empty means empty. A cell holding a single space is not empty, so COUNTA counts it, which is exactly how a progress bar ends up reporting a step that never happened.
 - `COUNTA` is the right function for a checklist, because the empty cell is the information: the step has not been done. Counting the filled ones is how the status deck gets its number without anyone scrolling.
 - Dates, numbers, labels and even `#N/A` all count. If the column might contain errors and you want to exclude them, COUNTA is the wrong tool, because it will happily report a column of `#N/A` as full.
-- Counting from a whole column is safe if the header is empty, and not safe otherwise: a header row counts as a filled cell. `=COUNTA(B:B)-1` is the usual correction, and it is the kind of arithmetic that silently goes wrong when a second header row is added.
+- Counting from a whole column is safe if the header is empty, and not safe otherwise: a header row counts as a filled cell. `=COUNTA(B:B)-1` is the usual correction, and it is the kind of arithmetic that goes wrong when a second header row is added.
 - `COUNTA` answers "how many rows have data", which is also the length of a list. That makes it the usual argument to `INDEX` when you are reading the last item of a column: `=INDEX(B2:B100,COUNTA(B2:B100))` reads the last filled cell.
 
 `SUBTOTAL(3,B2:B6)` is the same count that respects a filter, so it changes when rows are hidden by one. When the number on screen has to match the rows the reader can see, that is the function to reach for.

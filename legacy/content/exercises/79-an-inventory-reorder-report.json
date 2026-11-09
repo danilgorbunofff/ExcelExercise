@@ -9,11 +9,11 @@
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A cell in the subtraction holds text, so there is no number to work with."
+        "text": "A cell in the subtraction holds text, which is not a number to work with."
       },
       {
         "code": "#NAME?",
-        "text": "MAX is misspelled in the call, so Excel reads a name it does not know."
+        "text": "MAX is misspelled in the call, and Excel returns #NAME?."
       },
       {
         "code": "Negative order",

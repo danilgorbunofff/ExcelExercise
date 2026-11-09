@@ -145,7 +145,7 @@
   ],
   "docs": {
     "syntax": "=INDEX(grid, row, column)",
-    "explain": "Two MATCH calls answer two separate questions. South is second in A2:A4, so the first returns 2. Q3 is third in the header row B1:D1, so the second returns 3. INDEX reads B2:D4 at row 2, column 3, and B7 shows 130.\n\nThe two lists run in different directions, which is why they are separate ranges. A2:A4 is a column of regions and B1:D1 is a row of quarters. Give the quarter MATCH the region column and Q3 is not among the labels it searches, so the cell shows #N/A.\n\nBoth calls need the zero, since neither list is sorted. A wrong number from either one still produces a figure: swap the two MATCH calls and B7 reads 95, West's Q2. When a two-way answer looks plausible, check each MATCH on its own before blaming INDEX.",
+    "explain": "Two MATCH calls answer two separate questions. South is second in A2:A4, so the first returns 2. Q3 is third in the header row B1:D1, so the second returns 3. INDEX reads B2:D4 at row 2, column 3, and B7 shows 130.\n\nThe two lists run in different directions, which is why they are separate ranges. A2:A4 is a column of regions and B1:D1 is a row of quarters. Give the quarter MATCH the region column and Q3 is not among the labels it searches, so the cell shows #N/A.\n\nBoth calls need the zero, since neither list is sorted. A wrong number from either one still produces a figure: swap the two MATCH calls and B7 reads 95, West's Q2. When a two-way answer is a number you did not expect, check each MATCH on its own before blaming INDEX.",
     "errors": [
       {
         "code": "#N/A",
@@ -153,7 +153,7 @@
       },
       {
         "code": "Swapped positions",
-        "text": "The two MATCH calls went in the wrong order, so INDEX reads row 3 column 2 and returns 95 with no error."
+        "text": "The two MATCH calls went in the wrong order, so INDEX reads row 3 column 2 and returns 95."
       },
       {
         "code": "#REF!",

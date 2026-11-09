@@ -61,7 +61,7 @@ export function WeekPanel({ data, streaks = flagEnabled("streaks") }) {
       </dl>
       {week.empty ? (
         <p className="auth-week-empty">
-          Nothing was attempted in the last seven days, so there is no accuracy to show. A finished exercise
+          Nothing was attempted in the last seven days, which leaves no accuracy to show. A finished exercise
           fills this in.
         </p>
       ) : (

@@ -9,11 +9,11 @@
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A function is handed a whole range instead of one cell, so there is no single string to clean."
+        "text": "A function is handed a whole range instead of one cell, which is not a single string to clean."
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled, so the sheet has nothing to call."
+        "text": "The function name is misspelled, and Excel returns #NAME?."
       },
       {
         "code": "Doubled dot",
@@ -82,7 +82,7 @@
         "func-proper": "Each word has to be capitalised rather than shouted.",
         "require-ref": "The imported name is in A2.",
         "value": "Padding and doubled spaces collapse, and the words become Ana Lopez.",
-        "error": "#VALUE! means the function was handed a whole range, so there is no single string to trim."
+        "error": "#VALUE! means the function was handed a whole range, which is not a single string to trim."
       },
       "fixtures": {
         "accept": [

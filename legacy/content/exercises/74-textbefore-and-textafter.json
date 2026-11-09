@@ -9,7 +9,7 @@
     "errors": [
       {
         "code": "#N/A",
-        "text": "The cell holds no copy of the delimiter, so there is no place to split."
+        "text": "The cell holds no copy of the delimiter, which leaves no place to split."
       },
       {
         "code": "#NAME?",

@@ -13,11 +13,11 @@
       },
       {
         "code": "#NAME?",
-        "text": "The function is spelled MD or MIDD, and Excel has nothing by that name to call."
+        "text": "The function is spelled MD or MIDD, and Excel returns #NAME?."
       },
       {
         "code": "Wrong slice",
-        "text": "A start of 3 keeps the hyphen and returns -1042 while the formula still looks right."
+        "text": "A start of 3 keeps the hyphen and returns -1042."
       }
     ],
     "atWork": "Pulling a fixed part out of a product, order or account code.",

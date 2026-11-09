@@ -229,7 +229,7 @@
   ],
   "docs": {
     "syntax": "=SUMIF(criteria_range, condition, [sum_range])",
-    "explain": "SUMIF's third argument is the range to add. Leave it out and SUMIF adds the cells it has just tested, which suits a column of scores and fails the moment the numbers sit somewhere else.\n\nColumn A holds the region and column C the bonus, so the condition reads A2:A6 while the addition reads C2:C6. The ranges only have to line up row for row: row 2 of each is the same sale, and the North bonuses of 32, 18 and 40 come to 90.\n\nA shifted range is silently wrong rather than an error, so check that both ranges start and end on the same rows. The second screen works with two arguments because there the scores are both the test and the total.",
+    "explain": "SUMIF's third argument is the range to add. Leave it out and SUMIF adds the cells it has just tested, which suits a column of scores and fails the moment the numbers sit somewhere else.\n\nColumn A holds the region and column C the bonus, so the condition reads A2:A6 while the addition reads C2:C6. The ranges only have to line up row for row: row 2 of each is the same sale, and the North bonuses of 32, 18 and 40 come to 90.\n\nA shifted range gives a wrong total instead of an error, so check that both ranges start and end on the same rows. The second screen works with two arguments because there the scores are both the test and the total.",
     "errors": [
       {
         "code": "#VALUE!",

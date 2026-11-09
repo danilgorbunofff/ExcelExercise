@@ -236,7 +236,7 @@
   ],
   "docs": {
     "syntax": "=SUMIFS(sum_range, criteria_range1, criteria1, [criteria_range2, criteria2], ...)",
-    "explain": "SUMIFS adds the cells in one range whose rows meet every condition you set. It takes the range to add first, then pairs of range and condition. That is the opposite order to SUMIF, and the reason a SUMIF habit gets it wrong.\n\nHere the sum range is C2:C6, the region must read North and the rep must read Ada. Rows 2 and 6 match, so the answer is 720. The second screen drops the rep and adds an amount above 200, which leaves out the shipped order at 180 and gives 620.\n\nEvery criteria range has to be the same shape as the sum range, or the rows drift and the total is quietly wrong. Text and comparisons both go in quotes, and wildcards work inside them. A condition that needs OR across two columns takes two SUMIFS calls added together.",
+    "explain": "SUMIFS adds the cells in one range whose rows meet every condition you set. It takes the range to add first, then pairs of range and condition. That is the opposite order to SUMIF, and the reason a SUMIF habit gets it wrong.\n\nHere the sum range is C2:C6, the region must read North and the rep must read Ada. Rows 2 and 6 match, so the answer is 720. The second screen drops the rep and adds an amount above 200, which leaves out the shipped order at 180 and gives 620.\n\nEvery criteria range has to be the same shape as the sum range, or the rows drift and the total is wrong. Text and comparisons both go in quotes, and wildcards work inside them. A condition that needs OR across two columns takes two SUMIFS calls added together.",
     "errors": [
       {
         "code": "#VALUE!",

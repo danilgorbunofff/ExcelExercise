@@ -24,7 +24,7 @@ With those two things true, VLOOKUP walks down the first column and stops at the
 - Approximate match is a threshold search, not a fuzzy text match. It is built for the tables where each row means "from this number upwards": commission tiers, postage bands, tax brackets, discount breaks.
 - The band row is the *lower* edge of its band. 4200 gets the 1000 rate, not the 5000 rate, because 4200 has not reached 5000 yet. Reading the wrong edge is a one-row error that moves every answer in the table.
 - The sorted column is what makes the walk possible. VLOOKUP does not scan the whole column and pick the closest; it steps down until the next value would overshoot and then returns the row it is on. On an unsorted column the step where it overshoots can happen anywhere, so the answer depends on the order the rows happen to be in.
-- The third argument counts columns in the table, so `2` is the rate. A `1` returns the band itself (1000), which is a plausible-looking number in a plausible-looking cell, and completely the wrong thing.
+- The third argument counts columns in the table, so `2` is the rate. A `1` returns the band itself (1000), which is the threshold and not the rate.
 - Exact match on the same table returns `#N/A` for 4200, because no band *starts* at 4200. That is not a mistake in the formula; it is the wrong mode for the question. Approximate match is only for thresholds, so when you know the whole key, look it up by that key instead.
 
 The same band table can be read with `XLOOKUP` and match mode `-1`, which means "exact or the next smaller item". `LOOKUP` also does it, since it is approximate by nature and takes no mode argument at all. Both still need the column sorted, because both are threshold searches underneath.

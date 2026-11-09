@@ -235,7 +235,7 @@
     "errors": [
       {
         "code": "#N/A",
-        "text": "No value repeats, so there is no mode. A list of unique ticket sizes always lands here."
+        "text": "No value repeats, which leaves MODE nothing to return. A list of unique ticket sizes always lands here."
       },
       {
         "code": "#VALUE!",

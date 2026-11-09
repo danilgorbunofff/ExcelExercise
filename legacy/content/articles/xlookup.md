@@ -61,7 +61,7 @@ The search starts at the bottom of the range and returns the last SKU that match
 | Every result is the first row | The search range points at names instead of codes | Point it at the SKU column |
 | A price belongs to the wrong SKU | The two ranges start on different rows | Start both on the same row |
 
-The last row of that table is the one that hides. Two ranges of the same size but different starting rows line up incorrectly, and every answer after the first belongs to a neighbour. Nothing errors. Read the two ranges in the formula bar and check that both begin on row 2.
+The last row of that table is the one that hides. Two ranges of the same size but different starting rows line up incorrectly, and every answer after the first belongs to a neighbour. Every cell still shows a price. Read the two ranges in the formula bar and check that both begin on row 2.
 
 ## Alternatives
 
@@ -87,7 +87,7 @@ In Microsoft 365, Excel 2021 and later, and in the web app, yes. Excel 2019 and 
 
 ### Why do I not need a FALSE argument?
 
-Exact match is the default `match_mode`. XLOOKUP finds the value or returns `#N/A`; it never quietly returns the nearest row below, which is what a VLOOKUP does when the fourth argument is left out. If you do want banded behaviour, `match_mode` has options for the next smaller and next larger item.
+Exact match is the default `match_mode`. XLOOKUP finds the value or returns `#N/A`; it never returns the nearest row below, which is what a VLOOKUP does when the fourth argument is left out. If you do want banded behaviour, `match_mode` has options for the next smaller and next larger item.
 
 ### Can XLOOKUP return more than one cell?
 

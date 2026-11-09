@@ -9,11 +9,11 @@
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "The fourth argument is below 1 or is not a number, so there is no occurrence to replace."
+        "text": "The fourth argument is below 1 or is not a number, which names no occurrence to replace."
       },
       {
         "code": "#NAME?",
-        "text": "SUBSTITUTE is misspelled, so the sheet has nothing to call."
+        "text": "SUBSTITUTE is misspelled, and Excel returns #NAME?."
       },
       {
         "code": "Nothing replaced",

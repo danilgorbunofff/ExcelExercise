@@ -2,7 +2,7 @@
 
 A read-through of the site's prose.
 
-**Status:** section A (the 11 factual problems) was reworded afterwards, sentence by sentence. Sections B and C are still open decisions for the author.
+**Status:** section A (the 11 factual problems) was reworded afterwards, sentence by sentence. Section C (the templated phrasing) was then reduced too: see `docs/copy-style.md` for the rules and `npm run content:copy` for the check. Section B is still an open decision for the author.
 
 ## What was read
 

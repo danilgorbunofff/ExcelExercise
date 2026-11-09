@@ -28,7 +28,7 @@ updated: 2026-02-24
 
 `Ctrl + T` is the first key worth knowing, because a table carries its own filters, its own header row
 and a reference that grows when new rows arrive. A plain range does none of that, and the difference
-shows up a month later when a pivot table silently ignores the rows added since.
+shows up a month later when a pivot table ignores the rows added since.
 
 The rest of the page is cleanup. Conversations with clients arrive as one column of names, and
 `Alt + A + E` splits them at the comma without you retyping anything. When the numbers need to leave

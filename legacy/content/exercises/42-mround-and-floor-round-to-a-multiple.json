@@ -198,7 +198,7 @@
     "errors": [
       {
         "code": "#DIV/0!",
-        "text": "The multiple is zero, so there is no grid of multiples to land on."
+        "text": "The multiple is zero, and zero gives MROUND no grid of multiples to land on."
       },
       {
         "code": "#NUM!",

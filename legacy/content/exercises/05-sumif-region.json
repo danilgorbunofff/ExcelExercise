@@ -124,7 +124,7 @@
   ],
   "docs": {
     "syntax": "=SUMIF(range, criteria, [sum_range])",
-    "explain": "SUMIF asks two things at once: which rows match, and which column gets added. The regions sit in A2:A6, the condition is North, and the amounts sit in B2:B6.\n\n=SUMIF(A2:A6,\"North\",B2:B6) returns 900 from the three North rows of 320, 180 and 400, while the table holds 1450. The third argument is the one people drop, and dropping it makes SUMIF add the region names instead, which comes back as 0 with no error to show for it.\n\nConditions behave as they do in COUNTIF, so \">=200\" and \"N*\" both work. The two ranges are matched by position, so give them the same shape.",
+    "explain": "SUMIF asks two things at once: which rows match, and which column gets added. The regions sit in A2:A6, the condition is North, and the amounts sit in B2:B6.\n\n=SUMIF(A2:A6,\"North\",B2:B6) returns 900 from the three North rows of 320, 180 and 400, while the table holds 1450. The third argument is the one people drop, and dropping it makes SUMIF add the region names instead, which comes back as 0.\n\nConditions behave as they do in COUNTIF, so \">=200\" and \"N*\" both work. The two ranges are matched by position, so give them the same shape.",
     "errors": [
       {
         "code": "#VALUE!",

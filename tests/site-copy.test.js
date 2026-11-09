@@ -189,7 +189,7 @@ describe("the surfaces the gate reads", () => {
     assert.equal(report.stats.surfaces, surfaces.length);
     assert.ok(report.stats.words > 15000, `only ${report.stats.words} words measured; the extraction regressed`);
     // Every rule the report can name has to be a rule the content gate knows, so the house style is one file.
-    const known = new Set(["banned-phrase", "typography", "long-sentence", "mean-sentence", "long-paragraph", "reading-ease", "seo-title", "seo-description"]);
+    const known = new Set(["banned-phrase", "typography", "long-sentence", "mean-sentence", "long-paragraph", "reading-ease", "seo-title", "seo-description", "ai-pattern"]);
     for (const finding of report.findings) assert.ok(known.has(finding.rule), `unknown rule ${finding.rule}`);
   });
 });

@@ -158,7 +158,7 @@ export function legalSections({ config, track, index = [], accountHref = "/accou
           heading: "Cookies, and why there is no banner",
           html: paragraphs([
             "Signed out, this site sets no cookies at all.",
-            "Signed in, the auth server sets one first-party session cookie. It is the only way to know that the next request is still you, so it is strictly necessary. A consent banner exists to ask permission for cookies that are not. There is nothing here to ask about, so there is no banner.",
+            "Signed in, the auth server sets one first-party session cookie. It is the only way to know that the next request is still you, so it is strictly necessary. A consent banner exists to ask permission for cookies that are not. There is nothing here to ask about, so no banner is shown.",
             "The same applies to storage: the keys above are this site's own functionality, not tracking. A banner offering to switch them off would have to switch the exercises off with them.",
           ]),
         },

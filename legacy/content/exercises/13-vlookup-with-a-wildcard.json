@@ -162,7 +162,7 @@
       },
       {
         "code": "#VALUE!",
-        "text": "The column number is a word such as lead, so there is no column to count to."
+        "text": "The column number is a word such as lead, which cannot be counted to."
       },
       {
         "code": "#REF!",

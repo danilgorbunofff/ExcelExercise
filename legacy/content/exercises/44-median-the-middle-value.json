@@ -173,7 +173,7 @@
         "func-median": "An even count has no single middle element, and MEDIAN handles that for you.",
         "require-ref": "Read all six readings from the sheet so a new one is picked up automatically.",
         "value": "The middle two are 15 and 18, so the median is the half-way value, 16.5.",
-        "error": "A word typed inside the brackets gives #VALUE!. Readings left blank in the grid are skipped quietly."
+        "error": "A word typed inside the brackets gives #VALUE!. Readings left blank in the grid are skipped."
       },
       "fixtures": {
         "accept": [
@@ -225,7 +225,7 @@
     "errors": [
       {
         "code": "#NUM!",
-        "text": "The range holds no numbers at all, so there is no middle value to report."
+        "text": "The range holds no numbers at all, which leaves MEDIAN no middle value to report."
       },
       {
         "code": "#VALUE!",

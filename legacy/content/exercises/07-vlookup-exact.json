@@ -173,7 +173,7 @@
   ],
   "docs": {
     "syntax": "=VLOOKUP(lookup_value, table_array, col_index_num, [range_lookup])",
-    "explain": "VLOOKUP reads down the first column of a table until it finds the lookup value, then returns the cell in that row at the column number you name. The ID in D2 is E-104, which sits in row 5. Column 3 of that row holds 54000, so the formula =VLOOKUP(D2,A2:C6,3,FALSE) returns 54000.\n\nThe fourth argument decides the mode. FALSE, or 0, asks for an exact hit and gives #N/A when the ID is absent. TRUE, or nothing at all, matches approximately: it stops on the last row it passed, so an ID column can return another employee's salary without an error.\n\nWrite FALSE every time on an ID column. Left out, the match is the silent kind, and a wrong salary looks like a right one until payroll disagrees.",
+    "explain": "VLOOKUP reads down the first column of a table until it finds the lookup value, then returns the cell in that row at the column number you name. The ID in D2 is E-104, which sits in row 5. Column 3 of that row holds 54000, so the formula =VLOOKUP(D2,A2:C6,3,FALSE) returns 54000.\n\nThe fourth argument decides the mode. FALSE, or 0, asks for an exact hit and gives #N/A when the ID is absent. TRUE, or nothing at all, matches approximately: it stops on the last row it passed, so an ID column can return another employee's salary.\n\nWrite FALSE every time on an ID column. Left out, the match is the silent kind, and a wrong salary looks like a right one until payroll disagrees.",
     "errors": [
       {
         "code": "#N/A",

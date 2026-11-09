@@ -197,11 +197,11 @@
   ],
   "docs": {
     "syntax": "=DAYS(end, start)",
-    "explain": "DAYS takes an end date and a start date, in that order, and returns the distance between them in days. A plain subtraction C2-B2 answers the same question; naming the function makes the direction explicit. The result is an ordinary number, so arithmetic applies to it.\n\nThe first screen measures an escalation from 1 March to 15 March 2024 and expects 14. The second counts an audit from 1 March to 3 May, which is 63 days, then divides by seven for 9 weeks. Swap the arguments and DAYS returns -14 without an error.\n\nA serial is only a date because the workbook counts from 1899, so 45352 means 1 March 2024 by convention. Keep a day count formatted as a number: format 14 as a date and the cell claims 14 January 1900.",
+    "explain": "DAYS takes an end date and a start date, in that order, and returns the distance between them in days. A plain subtraction C2-B2 answers the same question; naming the function makes the direction explicit. The result is an ordinary number, so arithmetic applies to it.\n\nThe first screen measures an escalation from 1 March to 15 March 2024 and expects 14. The second counts an audit from 1 March to 3 May, which is 63 days, then divides by seven for 9 weeks. Swap the arguments and DAYS returns -14.\n\nA serial is only a date because the workbook counts from 1899, so 45352 means 1 March 2024 by convention. Keep a day count formatted as a number: format 14 as a date and the cell claims 14 January 1900.",
     "errors": [
       {
         "code": "#VALUE!",
-        "text": "A date argument is text that Excel cannot read as a date, so there is no serial to subtract."
+        "text": "A date argument is text that Excel cannot read as a date, so DAYS has no serial to subtract."
       },
       {
         "code": "#NUM!",
@@ -209,7 +209,7 @@
       },
       {
         "code": "Negative days",
-        "text": "The arguments are the wrong way round, so DAYS returns -14 with no error to warn you."
+        "text": "The arguments are the wrong way round, so DAYS returns -14."
       }
     ],
     "atWork": "A service-level report that measures how long each ticket stayed open, then states the same figure in weeks.",

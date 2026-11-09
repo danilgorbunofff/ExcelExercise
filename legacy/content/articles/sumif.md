@@ -18,7 +18,7 @@ updated: 2026-02-14
 - `criteria` is what a cell in that column has to be, for example `"North"` or `">1000"`.
 - `sum_range` is the column that gets added. It is optional, and that is a trap.
 
-The two ranges start from their own first cell, not from each other. SUMIF lines up A2 with B2, A3 with B3, and so on, so `A2:A6` and `B2:B6` must start on the same row. Miss that and the totals silently belong to the wrong rows.
+The two ranges start from their own first cell, not from each other. SUMIF lines up A2 with B2, A3 with B3, and so on, so `A2:A6` and `B2:B6` must start on the same row. Miss that and the totals belong to the wrong rows.
 
 The optional third argument is where most of the confusion lives. Left out, SUMIF adds the values in `range` itself. That works when the condition and the numbers are the same column, such as `=SUMIF(B2:B6,">1000")`.
 
@@ -60,7 +60,7 @@ With F2 holding North, the formula returns 900. Change F2 to South and it return
 | Right total, wrong rows | The two ranges start on different rows | Start both ranges on the same row |
 | `#NAME?` | The function name is misspelled | Let Excel complete it |
 
-Take the off-by-one row. If the criteria column starts at A2 but the sum range starts at B1, the row that matches A2 is added using B1's value. Every result after it shifts by one, and nothing errors. The only way to catch it is to read both ranges in the formula bar and check that they begin on the same row.
+Take the off-by-one row. If the criteria column starts at A2 but the sum range starts at B1, the row that matches A2 is added using B1's value. Every result after it shifts by one, and the cell still shows a number. The only way to catch it is to read both ranges in the formula bar and check that they begin on the same row.
 
 ## Alternatives
 
@@ -82,7 +82,7 @@ The exercise below shows the regional table and asks for the North total. Type t
 
 ### What happens if I leave out the third argument?
 
-SUMIF adds the cells in `range`, which is the column it tested. That is correct only when the condition and the numbers live in the same column. With a separate amount column, the function finds no numbers to add and returns 0, without an error message.
+SUMIF adds the cells in `range`, which is the column it tested. That is correct only when the condition and the numbers live in the same column. With a separate amount column, the function finds no numbers to add and returns 0.
 
 ### What is the difference between SUMIF and SUMIFS?
 
@@ -90,7 +90,7 @@ SUMIF takes one condition, SUMIFS takes as many as you like. SUMIFS also puts `s
 
 ### Do the ranges have to be the same size?
 
-They should be. Excel accepts ranges of different sizes and lines them up from the top left, which produces totals that look plausible and belong to the wrong rows. Same start row, same height: that is the rule worth keeping.
+They should be. Excel accepts ranges of different sizes and lines them up from the top left, which produces totals that belong to the wrong rows. Same start row, same height: that is the rule worth keeping.
 
 ### Can SUMIF add rows between two dates?
 

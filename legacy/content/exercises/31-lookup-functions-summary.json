@@ -125,7 +125,7 @@
     "errors": [
       {
         "code": "#N/A",
-        "text": "Nothing in the searched column matched, so there is no row to return from."
+        "text": "Nothing in the searched column matched, so the lookup has no row to return from."
       },
       {
         "code": "#REF!",

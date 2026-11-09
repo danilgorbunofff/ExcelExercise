@@ -5,7 +5,7 @@
   "title": "Sales summary end to end",
   "docs": {
     "syntax": "=SUMIFS(amounts,criteria_range,\"North\") totals one region; wrap it in IF to compare two",
-    "explain": "SUMIFS names the column to add first, then pairs of range and criterion. That order is the reverse of SUMIF, which takes the range to test, the criterion, then the range to add. Get it wrong and the function returns zero or a total from the wrong column, both of which look plausible in a small table.\n\nHere the amounts in C2:C5 are added where A2:A5 reads North, so rows 2 and 4 count and the answer is 2650. The second screen puts that total beside the South total of 850 inside an IF, and the cell names the region with the larger one.\n\nA summary that stops at totals leaves the reader to compare the figures by eye. The IF answers the question the report was asked, and it costs one extra function on top of two totals that were already there.",
+    "explain": "SUMIFS names the column to add first, then pairs of range and criterion. That order is the reverse of SUMIF, which takes the range to test, the criterion, then the range to add. Get it wrong and the function returns zero or a total from the wrong column.\n\nHere the amounts in C2:C5 are added where A2:A5 reads North, so rows 2 and 4 count and the answer is 2650. The second screen puts that total beside the South total of 850 inside an IF, and the cell names the region with the larger one.\n\nA summary that stops at totals leaves the reader to compare the figures by eye. The IF answers the question the report was asked, and it costs one extra function on top of two totals that were already there.",
     "errors": [
       {
         "code": "#VALUE!",
@@ -13,11 +13,11 @@
       },
       {
         "code": "#NAME?",
-        "text": "The function name is misspelled, so the sheet has nothing to call."
+        "text": "The function name is misspelled, and Excel returns #NAME?."
       },
       {
         "code": "Wrong total",
-        "text": "The criterion points at the rep column instead of the region column, and the answer comes back as 0 with no error."
+        "text": "The criterion points at the rep column instead of the region column, and the answer comes back as 0."
       }
     ],
     "atWork": "One region's sales pulled out of a flat list, then a sentence naming the region that leads.",

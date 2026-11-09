@@ -13,7 +13,7 @@
       },
       {
         "code": "#N/A",
-        "text": "A lookup key is not in the table, so there is no row to read and the key has to be counted first."
+        "text": "A lookup key is not in the table, which leaves no row to read, so the key has to be counted first."
       },
       {
         "code": "#VALUE!",

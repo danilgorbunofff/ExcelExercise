@@ -21,7 +21,7 @@ The difference between `TRIM` and `CLEAN` is worth knowing. `CLEAN` removes non-
 
 ## Examples
 
-### Example 1: the cell that looks right and is not
+### Example 1: the cell that reads fine and is not
 
 An imported name column holds `"  Ana  Lopez  "` in A2. On screen it reads Ana Lopez, and a `MATCH` against a clean list returns `#N/A`.
 

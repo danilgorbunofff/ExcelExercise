@@ -233,7 +233,7 @@
       },
       {
         "code": "#NAME?",
-        "text": "North is typed without quotes, so Excel reads the word as a name it does not know."
+        "text": "North is typed without quotes, so Excel reads it as a name and returns #NAME?."
       },
       {
         "code": "40 for 44.8",

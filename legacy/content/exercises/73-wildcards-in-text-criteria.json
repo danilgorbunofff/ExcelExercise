@@ -17,7 +17,7 @@
       },
       {
         "code": "Wrong count",
-        "text": "COUNTIF(B2:B5,\"N\") matches nothing, and 0 looks like a real answer on the page."
+        "text": "COUNTIF(B2:B5,\"N\") matches nothing and returns 0."
       }
     ],
     "atWork": "Counting or totalling the rows whose code or name fits one pattern.",

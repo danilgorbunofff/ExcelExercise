@@ -38,6 +38,9 @@
     "test:e2e": "playwright test",
     "typecheck": "tsc -p .",
     "typecheck:all": "tsc -p . --checkJs",
+    "lint": "eslint app lib proxy.js instrumentation.js",
+    "format:check": "prettier --check app lib proxy.js instrumentation.js",
+    "format": "prettier --write",
     "e2e:accounts": "PW_ACCOUNTS=1 playwright test --project=accounts",
     "smoke": "node scripts/smoke.mjs",
     "content:legal": "node packages/content-lint/cli.js legal",
@@ -66,6 +69,9 @@
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "typescript": "7.0.2"
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.5",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3"
   }
 }

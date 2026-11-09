@@ -1,0 +1,7 @@
+.next/
+legacy/dist/
+legacy/vendor/
+public/
+package-lock.json
+reference/
+tests/golden/

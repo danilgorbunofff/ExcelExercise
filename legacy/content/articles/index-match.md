@@ -64,7 +64,7 @@ MATCH returns a position inside its own range, and INDEX tries to use that posit
 
 `=XLOOKUP(A2, A2:A6, C2:C6)` replaces the nested pair with one function, and it is in Excel 2021 and Microsoft 365. It also takes a fourth argument for the missing case, so `=XLOOKUP(A2, A2:A6, C2:C6, "not on file")` removes the `=IFERROR(` wrapper that INDEX and MATCH need.
 
-`=VLOOKUP(A2, A2:C6, 3, FALSE)` is the older single-function route, and it stays fine while the return column sits to the right of the key. The pair survives because it is the only form that works in Excel 2019 and older, in exported files, and in formulas another tool has to read.
+`=VLOOKUP(A2, A2:C6, 3, FALSE)` is the older single-function route, and it stays fine while the return column sits to the right of the key. The pair is still worth knowing because it looks left, survives an inserted column, and runs in Excel 2019 and older, where XLOOKUP does not exist.
 
 ## Other apps
 
@@ -90,6 +90,6 @@ In a new workbook, yes if your version of Excel has it. XLOOKUP does the same jo
 
 It asks for an exact match and nothing else. Leave it out and MATCH assumes the search column is sorted ascending and returns the nearest value below, which is a wrong answer with no error. `1` and `-1` are for sorted bands and are rarely what you want.
 
-### Why do the two ranges need the same height?
+### Why do the two ranges need to start on the same row?
 
-Because MATCH answers with a position, and INDEX reads a position. If the search range covers A2:A6 and the return range covers C2:C7, then position 5 points at different rows in each. Same start row, same number of rows: that is the requirement, and it is the first thing to check when an INDEX+MATCH returns `#REF!`.
+Because MATCH answers with a position and INDEX spends it. If the search range starts on row 2 and the return range on row 3, position 1 points at different rows, and every answer belongs to a neighbour. Keep the heights equal too. A shorter return range leaves INDEX positions it cannot reach, which is the usual cause of `#REF!`.

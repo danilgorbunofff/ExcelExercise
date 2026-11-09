@@ -248,7 +248,7 @@
       },
       {
         "code": "Wrong total",
-        "text": "SUMIFS joins conditions with AND. Two conditions on the same column can never both match, and the answer comes back as 0."
+        "text": "SUMIFS joins conditions with AND. Two tests that exclude each other, such as Shipped and Open on the same column, can never both be true for one row, and the answer comes back as 0."
       }
     ],
     "atWork": "A sales sheet totalling one rep in one region, and an order book totalling the shipped orders above a credit limit.",

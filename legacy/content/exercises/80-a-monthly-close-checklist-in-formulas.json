@@ -5,7 +5,7 @@
   "title": "A monthly close checklist in formulas",
   "docs": {
     "syntax": "=IF(variance=0,\"ready\",\"check\") flags one check; =COUNTIF(range,\"<>0\") counts the rest",
-    "explain": "IF tests a condition and returns one of two values, so a checklist row can answer in words. The formula =IF(B2=0,\"ready\",\"check\") reads the variance and gives ready at zero, check at anything else. Four variances can be read by eye; forty cannot.\n\nThe bank row sits at zero, so it reads ready, and so does payroll. Accruals at 12.5 and prepaids at -3 come back as check. The second screen counts the rows still out with COUNTIF(B2:B5,\"<>0\"), and the answer is 2.\n\nThe criterion goes in quotes because it is text, and the zero inside the quotes stays a number. Drop the third argument and the failing row shows FALSE, which reads as a fault in the formula. Both outcomes belong in the call.",
+    "explain": "IF tests a condition and returns one of two values, so a checklist row can answer in words. The formula =IF(B2=0,\"ready\",\"check\") reads the variance and gives ready at zero, check at anything else. Four variances can be read by eye; forty cannot.\n\nThe bank row sits at zero, so it reads ready, and so does payroll. Accruals at 12.5 and prepaids at -3 come back as check. The second screen counts the rows still out with COUNTIF(B2:B5,\"<>0\"), and the answer is 2.\n\nThe criterion goes in quotes because a comparison is written as text. COUNTIF reads <>0 as not equal to the number 0. Drop the third argument and the failing row shows FALSE, which reads as a fault in the formula. Both outcomes belong in the call.",
     "errors": [
       {
         "code": "#DIV/0!",

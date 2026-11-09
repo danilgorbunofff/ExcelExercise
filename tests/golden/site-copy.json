@@ -2573,6 +2573,10 @@
  ],
  [
   "page:/excel-functions/countif",
+  "Google Sheets has COUNTIF with the same two arguments, and it reads the same wildcards, so =COUNTIF(A2:A8, \"e*\") counts the cells that start with e in both products. Regular expressions are a separate family there ( REGEXMATCH and its relatives), and COUNTIF does not read them."
+ ],
+ [
+  "page:/excel-functions/countif",
   "Hard-coding 48 makes the sheet rigid. Put the threshold in a cell and build the criteria from it:"
  ],
  [
